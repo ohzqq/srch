@@ -29,6 +29,8 @@ type result struct {
 	value string
 }
 
+type Opt func(*Search)
+
 func New(s Searcher, opts ...Opt) *Search {
 	return &Search{
 		search: s,
@@ -36,7 +38,7 @@ func New(s Searcher, opts ...Opt) *Search {
 }
 
 func (s *Search) Get(q ...Query) ([]int, error) {
-	r, err := s.search(q...)
+	r, err := s.search.Search(q...)
 	if err != nil {
 		return nil, err
 	}
@@ -48,9 +50,10 @@ func (s *Search) Get(q ...Query) ([]int, error) {
 
 	l := list.New(items, list.NewDefaultDelegate(), 100, 20)
 	s.Model = &l
+	s.SetNoLimit()
 
 	p := tea.NewProgram(s)
-	_, err := p.Run()
+	_, err = p.Run()
 	if err != nil {
 		return []int{}, err
 	}
@@ -81,7 +84,7 @@ func (m *result) FilterValue() string {
 }
 
 func (i *result) Title() string {
-	return m.value
+	return i.value
 }
 
 func (i *result) Description() string { return "" }
