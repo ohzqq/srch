@@ -5,11 +5,15 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/ohzqq/bubbles/list"
+	"github.com/ohzqq/facet"
+	"github.com/samber/lo"
 )
 
 type Searcher interface {
 	Search(...Query) ([]Result, error)
 }
+
+type SearchFunc func(...Query) ([]Result, error)
 
 type Query interface {
 	fmt.Stringer
@@ -21,8 +25,17 @@ type Result interface {
 
 type Search struct {
 	*list.Model
-	search  Searcher
-	results []Result
+	interactive bool
+	idx         *facet.Index
+	search      Searcher
+	results     []Result
+	query       string
+}
+
+type Results struct {
+	Data   []any          `json:"data"`
+	Facets []*facet.Facet `json:"facets"`
+	Query  string         `json:"query"`
 }
 
 type result struct {
@@ -37,14 +50,45 @@ func New(s Searcher, opts ...Opt) *Search {
 	}
 }
 
-func (s *Search) Get(q ...Query) ([]int, error) {
-	r, err := s.search.Search(q...)
+func Interactive(s *Search) {
+	s.interactive = true
+}
+
+func (s *Search) Get(q ...Query) error {
+	if len(q) > 0 {
+		s.query = q[0].String()
+	}
+	var err error
+	s.results, err = s.search.Search(q...)
 	if err != nil {
-		return nil, err
+		return err
+	}
+	return nil
+}
+
+func (m *Search) Results() (*Results, error) {
+	return m.getResults(), nil
+}
+
+func (m *Search) getResults(ids ...int) *Results {
+	r := &Results{
+		Query: m.query,
 	}
 
-	items := make([]list.Item, len(r))
-	for i, result := range r {
+	if len(ids) > 0 {
+		r.Data = make([]any, len(ids))
+		for i, id := range ids {
+			r.Data[i] = m.results[id]
+		}
+		return r
+	}
+	r.Data = lo.ToAnySlice(m.results)
+	return r
+}
+
+func (s *Search) Choose() (*Results, error) {
+	items := make([]list.Item, len(s.results))
+	for i, result := range s.results {
 		items[i] = newResult(result)
 	}
 
@@ -53,12 +97,14 @@ func (s *Search) Get(q ...Query) ([]int, error) {
 	s.SetNoLimit()
 
 	p := tea.NewProgram(s)
-	_, err = p.Run()
+	_, err := p.Run()
 	if err != nil {
-		return []int{}, err
+		return nil, err
 	}
 
-	return s.ToggledItems(), nil
+	res := s.getResults(s.ToggledItems()...)
+
+	return res, nil
 }
 
 func (m *Search) Init() tea.Cmd { return nil }

@@ -15,13 +15,24 @@ var testS = testSearcher{
 	cmd: []string{"list", "--with-library", "http://localhost:8888/#audiobooks", "--username", "churkey", "--password", "<f:/home/mxb/.dotfiles/misc/calibre.txt>", "--limit", "2", "--for-machine"},
 }
 
+type testQ string
+
+func (q testQ) String() string {
+	return string(q)
+}
+
 func TestCDB(t *testing.T) {
 	s := New(testS)
-	sel, err := s.Get()
+	//err := s.Get()
+	err := s.Get(testQ("litrpg"))
 	if err != nil {
 		t.Error(err)
 	}
-	fmt.Printf("%v\n", sel)
+	sel, err := s.Results()
+	if err != nil {
+		t.Error(err)
+	}
+	fmt.Printf("%#v\n", sel)
 }
 
 func cdbSearch(t *testing.T) []byte {
@@ -39,9 +50,12 @@ func cdbSearch(t *testing.T) []byte {
 
 type testResult map[string]any
 
-func (s testSearcher) Search(...Query) ([]Result, error) {
+func (s testSearcher) Search(queries ...Query) ([]Result, error) {
+	if len(queries) > 0 {
+		testS.cmd = append(testS.cmd, "-s", queries[0].String())
+	}
 	cdb := exec.Command("calibredb", testS.cmd...)
-	//println(cdb.String())
+	println(cdb.String())
 
 	out, err := cdb.Output()
 	if err != nil {
@@ -64,4 +78,8 @@ func (s testSearcher) Search(...Query) ([]Result, error) {
 
 func (r testResult) String() string {
 	return r["title"].(string)
+}
+
+func (s testSearcher) Find() SearchFunc {
+	return s.Search
 }
