@@ -1,28 +1,24 @@
-viper: true
+Viper: true
+Commands:
 - Use: "toot"
-  Aliases:
-    - t
+  Name: "tootCmd"
+  Aliases: '[]string{"t"}'
   Short: toot command
   Long: long explanation
-  Run: printName
-  FlagStruct:
-    turkey: string
-    gobble: string
-  PersistentFlags:
-    - type: StringVarP
-      var: "&cmdTootFlags.turkey"
-      name: turkey
-      shorthand: t
-      value: '""'
-      usage: "gobble gobble"
-      viper: true
+  Parent: rootCmd
   Flags:
-    - type: StringVarP
-      var: "&cmdTootFlags.gobble"
-      name: gooble
-      shorthand: g
-      value: '""'
-      usage: "gobble gobble"
+    - Type: StringP
+      Name: turkey
+      Shorthand: t
+      Value: '""'
+      Usage: "gobble gobble"
+      Viper: true
+    - Type: StringP
+      Name: gooble
+      Shorthand: g
+      Value: '""'
+      Usage: "gobble gobble"
+      Persistent: true
     
 - Use: "poot"
-  Run: printName
+  Name: "pootCmd"
