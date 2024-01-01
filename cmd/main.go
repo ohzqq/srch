@@ -31,7 +31,7 @@ func readCfg() cmds {
 	if err != nil {
 		log.Fatal(err)
 	}
-	f, err := os.Create("cmd/test.go")
+	f, err := os.Create("cmd/commands.go")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -71,7 +71,7 @@ type Cmd struct {
 	Run        string            `yaml:"Run"`
 	FlagStruct map[string]string `yaml:"FlagStruct"`
 	Flags      []Flag            `yaml:"Flags"`
-	Children   []string          `yaml:"Children"`
+	Parent     string            `yaml:"Parent"`
 }
 
 type Flag struct {
