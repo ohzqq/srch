@@ -1,0 +1,28 @@
+viper: true
+- Use: "toot"
+  Aliases:
+    - t
+  Short: toot command
+  Long: long explanation
+  Run: printName
+  FlagStruct:
+    turkey: string
+    gobble: string
+  PersistentFlags:
+    - type: StringVarP
+      var: "&cmdTootFlags.turkey"
+      name: turkey
+      shorthand: t
+      value: '""'
+      usage: "gobble gobble"
+      viper: true
+  Flags:
+    - type: StringVarP
+      var: "&cmdTootFlags.gobble"
+      name: gooble
+      shorthand: g
+      value: '""'
+      usage: "gobble gobble"
+    
+- Use: "poot"
+  Run: printName
