@@ -1,11 +1,7 @@
-{{define "main"}}
-{{end}}
 {{define "cobra"}}
 package cmd
 
 import (
-	"os"
-
 	"github.com/spf13/cobra"
 {{- if .Viper }}
 	"github.com/spf13/viper"{{ end }}
