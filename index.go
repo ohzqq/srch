@@ -1,4 +1,4 @@
-package facet
+package srch
 
 import (
 	"bytes"
@@ -26,7 +26,7 @@ type Index struct {
 }
 
 // New initializes an index.
-func New(c any, data ...any) (*Index, error) {
+func NewIndex(c any, data ...any) (*Index, error) {
 	idx, err := parseCfg(c)
 	if err != nil {
 		return nil, err

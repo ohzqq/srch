@@ -1,4 +1,4 @@
-package facet
+package srch
 
 import (
 	"net/url"
@@ -24,7 +24,7 @@ func Filter(idx *Index) *Index {
 	filtered := roaring.ParOr(viper.GetInt("workers"), bits...)
 	ids := filtered.ToArray()
 
-	res, err := New(
+	res, err := NewIndex(
 		idx.GetConfig(),
 		FilteredItems(idx.Data, lo.ToAnySlice(ids)),
 	)

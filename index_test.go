@@ -1,4 +1,4 @@
-package facet
+package srch
 
 import (
 	"encoding/json"
@@ -21,7 +21,7 @@ const testCfgFileData = `testdata/config-with-data.json`
 
 func init() {
 	var err error
-	idx, err = New(testCfgFile, testData)
+	idx, err = NewIndex(testCfgFile, testData)
 	if err != nil {
 		log.Fatal(err)
 	}

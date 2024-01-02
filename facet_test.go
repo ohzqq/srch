@@ -1,4 +1,4 @@
-package facet
+package srch
 
 import (
 	"fmt"

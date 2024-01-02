@@ -1,4 +1,4 @@
-package facet
+package srch
 
 //func TestFilters(t *testing.T) {
 //  println("test filters")
