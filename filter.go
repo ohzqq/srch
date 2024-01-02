@@ -24,9 +24,9 @@ func Filter(idx *Index) *Index {
 	filtered := roaring.ParOr(viper.GetInt("workers"), bits...)
 	ids := filtered.ToArray()
 
-	res, err := NewIndex(
+	res, err := New(
 		idx.GetConfig(),
-		FilteredItems(idx.Data, lo.ToAnySlice(ids)),
+		DataSlice(FilteredItems(idx.Data, lo.ToAnySlice(ids))),
 	)
 	res.Filters = idx.Filters
 	if err != nil {

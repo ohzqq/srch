@@ -12,6 +12,6 @@ type Results struct {
 	Query  string         `json:"query"`
 }
 
-type Result interface {
+type Item interface {
 	fmt.Stringer
 }

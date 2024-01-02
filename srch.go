@@ -3,15 +3,14 @@ package srch
 import (
 	"fmt"
 
-	"github.com/ohzqq/facet"
 	"github.com/samber/lo"
 )
 
 type Searcher interface {
-	Search(...Query) ([]Result, error)
+	Search(...Query) ([]Item, error)
 }
 
-type SearchFunc func(...Query) ([]Result, error)
+type SearchFunc func(...Query) ([]Item, error)
 
 type Query interface {
 	fmt.Stringer
@@ -19,25 +18,21 @@ type Query interface {
 
 type Search struct {
 	interactive bool
-	idx         *facet.Index
 	search      Searcher
-	results     []Result
+	results     []Item
 	query       string
 }
 
-type Opt func(*Search)
+type Opt func(*Index)
 
-func New(s Searcher, opts ...Opt) *Search {
+func NewSearch(s Searcher) *Search {
 	search := &Search{
 		search: s,
-	}
-	for _, opt := range opts {
-		opt(search)
 	}
 	return search
 }
 
-func Interactive(s *Search) {
+func Interactive(s *Index) {
 	s.interactive = true
 }
 

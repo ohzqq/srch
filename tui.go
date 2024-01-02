@@ -11,7 +11,7 @@ type TUI struct {
 
 type item string
 
-func Choose(results []Result) ([]int, error) {
+func Choose(results []Item) ([]int, error) {
 	items := make([]list.Item, len(results))
 	for i, r := range results {
 		items[i] = item(r.String())

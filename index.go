@@ -15,6 +15,7 @@ import (
 )
 
 func init() {
+	log.SetFlags(log.Lshortfile)
 	viper.SetDefault("workers", 1)
 }
 
@@ -23,19 +24,23 @@ type Index struct {
 	Data    []any      `json:"data,omitempty"`
 	Facets  []*Facet   `json:"facets"`
 	Filters url.Values `json:"filters"`
+	*Search
 }
 
 // New initializes an index.
-func NewIndex(c any, data ...any) (*Index, error) {
+func New(c any, opts ...Opt) (*Index, error) {
 	idx, err := parseCfg(c)
 	if err != nil {
 		return nil, err
 	}
 
-	err = idx.SetData(data...)
-	if err != nil {
-		return nil, err
+	for _, opt := range opts {
+		opt(idx)
 	}
+	//err = idx.SetData(data...)
+	//if err != nil {
+	//return nil, err
+	//}
 
 	if idx.Filters != nil {
 		return Filter(idx), nil
@@ -179,6 +184,28 @@ func NewIndexFromFiles(cfg string) (*Index, error) {
 	}
 
 	return idx, nil
+}
+
+func DataFile(cfg string) Opt {
+	return func(idx *Index) {
+		f, err := os.Open(cfg)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer f.Close()
+
+		data, err := DecodeData(f)
+		if err != nil {
+			log.Fatal(err)
+		}
+		idx.Data = data
+	}
+}
+
+func DataSlice(data []any) Opt {
+	return func(idx *Index) {
+		idx.Data = data
+	}
 }
 
 // NewDataFromFiles parses index data from files.

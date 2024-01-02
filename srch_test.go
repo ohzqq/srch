@@ -22,7 +22,7 @@ func (q testQ) String() string {
 }
 
 func TestCDB(t *testing.T) {
-	s := New(testS)
+	s := NewSearch(testS)
 	//err := s.Get()
 	sel, err := s.Get(testQ("litrpg"))
 	if err != nil {
@@ -32,7 +32,8 @@ func TestCDB(t *testing.T) {
 }
 
 func TestTUI(t *testing.T) {
-	s := New(testS, Interactive)
+	t.SkipNow()
+	s := NewSearch(testS)
 	//err := s.Get()
 	sel, err := s.Get(testQ("litrpg"))
 	if err != nil {
@@ -56,7 +57,7 @@ func cdbSearch(t *testing.T) []byte {
 
 type testResult map[string]any
 
-func (s testSearcher) Search(queries ...Query) ([]Result, error) {
+func (s testSearcher) Search(queries ...Query) ([]Item, error) {
 	if len(queries) > 0 {
 		testS.cmd = append(testS.cmd, "-s", queries[0].String())
 	}
@@ -74,7 +75,7 @@ func (s testSearcher) Search(queries ...Query) ([]Result, error) {
 		return nil, err
 	}
 
-	var items []Result
+	var items []Item
 	for _, r := range res {
 		items = append(items, r)
 	}

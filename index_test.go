@@ -21,7 +21,7 @@ const testCfgFileData = `testdata/config-with-data.json`
 
 func init() {
 	var err error
-	idx, err = NewIndex(testCfgFile, testData)
+	idx, err = New(testCfgFile, DataFile(testData))
 	if err != nil {
 		log.Fatal(err)
 	}
