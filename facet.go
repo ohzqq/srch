@@ -169,3 +169,10 @@ func (t *FacetItem) BelongsTo(vals ...string) *FacetItem {
 func (t *FacetItem) Bitmap() *roaring.Bitmap {
 	return roaring.BitmapOf(t.belongsTo...)
 }
+
+func (t *FacetItem) String() string {
+	if t.Str != "" {
+		return t.Str
+	}
+	return t.Value
+}

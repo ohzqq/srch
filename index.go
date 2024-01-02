@@ -32,9 +32,12 @@ func New(c any, opts ...Opt) (*Index, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	if len(idx.Data) > 0 {
 		idx.CollectItems()
 	}
+
+	idx.search = NewSearch(idx.Results)
 
 	for _, opt := range opts {
 		opt(idx)
@@ -110,7 +113,13 @@ func (idx *Index) Decode(r io.Reader) error {
 }
 
 func (idx *Index) Search(kw string) (Results, error) {
-	return idx.search.Get(q(kw))
+	res, err := idx.search.Get(q(kw))
+	if err != nil {
+		return Results{}, err
+	}
+
+	idx.CollectItems()
+	return res, nil
 }
 
 type q string

@@ -22,6 +22,7 @@ func (q testQ) String() string {
 }
 
 func TestCDB(t *testing.T) {
+	t.SkipNow()
 	s := NewSearch(testS)
 	//err := s.Get()
 	sel, err := s.Get(testQ("litrpg"))

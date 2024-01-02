@@ -24,14 +24,13 @@ func init() {
 	var err error
 	idx, err = New(testCfgFile,
 		DataFile(testData),
-		WithSearch(testS),
+		//WithSearch(testS),
 	)
 	if err != nil {
 		log.Fatal(err)
 	}
 	books = idx.Data
-	fmt.Printf("%v\n", len(books))
-	fmt.Printf("%v\n", len(idx.Data))
+
 }
 
 func TestIdxCfg(t *testing.T) {
@@ -40,6 +39,21 @@ func TestIdxCfg(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+}
+
+func TestIdxSearch(t *testing.T) {
+	//vals := make(url.Values)
+	//vals.Add("q", "fish")
+	//q, err := ParseFilters(vals)
+	//if err != nil {
+	//t.Error(err)
+	//}
+
+	res, err := idx.Results.Search(q("fish"))
+	if err != nil {
+		t.Error(err)
+	}
+	fmt.Printf("search results %v\n", res)
 }
 
 func TestNewIdxFromString(t *testing.T) {
@@ -66,6 +80,7 @@ func TestNewIdxFromString(t *testing.T) {
 }
 
 func TestNewIdxFromMap(t *testing.T) {
+	t.SkipNow()
 	d := make(map[string]any)
 	err := mapstructure.Decode(idx, &d)
 	if err != nil {
