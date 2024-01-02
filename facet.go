@@ -67,8 +67,9 @@ func (f *Facet) AddItem(term string, ids ...string) *FacetItem {
 
 // CollectItems takes the input data and aggregates them based on the
 // Facet.Attribute.
-func (f *Facet) CollectItems(data []map[string]any) *Facet {
-	for i, item := range data {
+func (f *Facet) CollectItems(data []any) *Facet {
+	for i, d := range data {
+		item := cast.ToStringMap(d)
 		if terms, ok := item[f.Attribute]; ok {
 			var items []string
 			switch t := terms.(type) {

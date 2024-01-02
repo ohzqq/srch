@@ -17,22 +17,12 @@ type Query interface {
 	fmt.Stringer
 }
 
-type Result interface {
-	fmt.Stringer
-}
-
 type Search struct {
 	interactive bool
 	idx         *facet.Index
 	search      Searcher
 	results     []Result
 	query       string
-}
-
-type Results struct {
-	Data   []any          `json:"data"`
-	Facets []*facet.Facet `json:"facets"`
-	Query  string         `json:"query"`
 }
 
 type Opt func(*Search)

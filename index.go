@@ -20,9 +20,9 @@ func init() {
 
 // Index is a structure for facets and data.
 type Index struct {
-	Data    []map[string]any `json:"data,omitempty"`
-	Facets  []*Facet         `json:"facets"`
-	Filters url.Values       `json:"filters"`
+	Data    []any      `json:"data,omitempty"`
+	Facets  []*Facet   `json:"facets"`
+	Filters url.Values `json:"filters"`
 }
 
 // New initializes an index.
@@ -154,8 +154,8 @@ func (idx *Index) PrettyPrint() {
 }
 
 // DecodeData decodes data from a io.Reader.
-func DecodeData(r io.Reader) ([]map[string]any, error) {
-	var data []map[string]any
+func DecodeData(r io.Reader) ([]any, error) {
+	var data []any
 	err := json.NewDecoder(r).Decode(&data)
 	if err != nil {
 		return data, err
@@ -182,8 +182,8 @@ func NewIndexFromFiles(cfg string) (*Index, error) {
 }
 
 // NewDataFromFiles parses index data from files.
-func NewDataFromFiles(d ...string) ([]map[string]any, error) {
-	var data []map[string]any
+func NewDataFromFiles(d ...string) ([]any, error) {
+	var data []any
 	for _, datum := range d {
 		p, err := dataFromFile(datum)
 		if err != nil {
@@ -194,7 +194,7 @@ func NewDataFromFiles(d ...string) ([]map[string]any, error) {
 	return data, nil
 }
 
-func dataFromFile(d string) ([]map[string]any, error) {
+func dataFromFile(d string) ([]any, error) {
 	data, err := os.Open(d)
 	if err != nil {
 		return nil, err
@@ -219,7 +219,7 @@ func NewIndexFromString(d string) (*Index, error) {
 }
 
 // NewDatFromString parses index data from a json formatted string.
-func NewDataFromString(d string) ([]map[string]any, error) {
+func NewDataFromString(d string) ([]any, error) {
 	buf := bytes.NewBufferString(d)
 	return DecodeData(buf)
 }
@@ -270,7 +270,7 @@ func parseFacetMap(f any) map[string]*Facet {
 	return facets
 }
 
-func parseData(d any) ([]map[string]any, error) {
+func parseData(d any) ([]any, error) {
 	switch val := d.(type) {
 	case []byte:
 		return unmarshalData(val)
@@ -280,14 +280,14 @@ func parseData(d any) ([]map[string]any, error) {
 		} else {
 			return unmarshalData([]byte(val))
 		}
-	case []map[string]any:
+	case []any:
 		return val, nil
 	}
 	return nil, errors.New("data couldn't be parsed")
 }
 
-func unmarshalData(d []byte) ([]map[string]any, error) {
-	var data []map[string]any
+func unmarshalData(d []byte) ([]any, error) {
+	var data []any
 	err := json.Unmarshal(d, &data)
 	if err != nil {
 		return nil, err

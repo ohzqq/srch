@@ -11,7 +11,7 @@ import (
 
 var idx = &Index{}
 
-var books []map[string]any
+var books []any
 
 const numBooks = 7174
 
