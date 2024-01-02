@@ -57,7 +57,7 @@ func cdbSearch(t *testing.T) []byte {
 
 type testResult map[string]any
 
-func (s testSearcher) Search(queries ...Query) ([]Item, error) {
+func (s testSearcher) Search(queries ...Queryer) ([]Item, error) {
 	if len(queries) > 0 {
 		testS.cmd = append(testS.cmd, "-s", queries[0].String())
 	}
@@ -85,8 +85,4 @@ func (s testSearcher) Search(queries ...Query) ([]Item, error) {
 
 func (r testResult) String() string {
 	return r["title"].(string)
-}
-
-func (s testSearcher) Find() SearchFunc {
-	return s.Search
 }

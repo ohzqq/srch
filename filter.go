@@ -1,6 +1,7 @@
 package srch
 
 import (
+	"fmt"
 	"net/url"
 
 	"github.com/RoaringBitmap/roaring"
@@ -12,10 +13,12 @@ import (
 // Filter takes an *Index, filters the data and calculates the facets. It
 // returns a new *Index.
 func Filter(idx *Index) *Index {
+	fmt.Printf("filter %d\n", len(idx.Data))
 	if idx.Filters.Has("q") {
 		kw := idx.Filters.Get("q")
 		idx.Results, _ = idx.Search(kw)
 		idx.Filters.Del("q")
+		println(len(idx.Data))
 	}
 
 	var bits []*roaring.Bitmap

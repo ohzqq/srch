@@ -2,19 +2,24 @@ package srch
 
 import (
 	"fmt"
+	"net/url"
 
 	"github.com/samber/lo"
 )
 
 type Searcher interface {
-	Search(...Query) ([]Item, error)
+	Search(...Queryer) ([]Item, error)
 }
 
-type SearchFunc func(...Query) ([]Item, error)
+type Data interface {
+	Get(...url.Values) []any
+}
 
-type Query interface {
+type Queryer interface {
 	fmt.Stringer
 }
+
+type Query url.Values
 
 type Search struct {
 	interactive bool
@@ -22,8 +27,6 @@ type Search struct {
 	results     []Item
 	query       string
 }
-
-type Opt func(*Index)
 
 func NewSearch(s Searcher) *Search {
 	search := &Search{
@@ -36,7 +39,7 @@ func Interactive(s *Index) {
 	s.search.interactive = true
 }
 
-func (s *Search) Get(q ...Query) (Results, error) {
+func (s *Search) Get(q ...Queryer) (Results, error) {
 	if len(q) > 0 {
 		s.query = q[0].String()
 	}

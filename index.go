@@ -18,6 +18,8 @@ func init() {
 	viper.SetDefault("workers", 1)
 }
 
+type Opt func(*Index)
+
 // Index is a structure for facets and data.
 type Index struct {
 	Results
