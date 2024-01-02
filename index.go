@@ -6,7 +6,6 @@ import (
 	"errors"
 	"io"
 	"log"
-	"net/url"
 	"os"
 
 	"github.com/mitchellh/mapstructure"
@@ -22,7 +21,6 @@ func init() {
 // Index is a structure for facets and data.
 type Index struct {
 	Results
-	Filters url.Values `json:"filters"`
 	*Search
 }
 
