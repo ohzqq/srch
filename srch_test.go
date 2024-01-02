@@ -24,11 +24,17 @@ func (q testQ) String() string {
 func TestCDB(t *testing.T) {
 	s := New(testS)
 	//err := s.Get()
-	err := s.Get(testQ("litrpg"))
+	sel, err := s.Get(testQ("litrpg"))
 	if err != nil {
 		t.Error(err)
 	}
-	sel, err := s.Results()
+	fmt.Printf("%#v\n", sel)
+}
+
+func TestTUI(t *testing.T) {
+	s := New(testS, Interactive)
+	//err := s.Get()
+	sel, err := s.Get(testQ("litrpg"))
 	if err != nil {
 		t.Error(err)
 	}
