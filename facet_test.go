@@ -66,6 +66,7 @@ func TestRoaringFilters(t *testing.T) {
 }
 
 func testFilters(q url.Values) {
+	fmt.Printf("%+v\n", len(idx.Data))
 	items := idx.Filter(q)
 	fmt.Printf("%+v\n", len(items.Data))
 

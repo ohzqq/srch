@@ -33,14 +33,13 @@ func New(c any, opts ...Opt) (*Index, error) {
 	if err != nil {
 		return nil, err
 	}
+	if len(idx.Data) > 0 {
+		idx.CollectItems()
+	}
 
 	for _, opt := range opts {
 		opt(idx)
 	}
-	//err = idx.SetData(data...)
-	//if err != nil {
-	//return nil, err
-	//}
 
 	if idx.Filters != nil {
 		return Filter(idx), nil
@@ -199,12 +198,14 @@ func DataFile(cfg string) Opt {
 			log.Fatal(err)
 		}
 		idx.Data = data
+		idx.CollectItems()
 	}
 }
 
 func DataSlice(data []any) Opt {
 	return func(idx *Index) {
 		idx.Data = data
+		idx.CollectItems()
 	}
 }
 

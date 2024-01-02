@@ -2,6 +2,7 @@ package srch
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"os"
 	"testing"
@@ -26,6 +27,8 @@ func init() {
 		log.Fatal(err)
 	}
 	books = idx.Data
+	fmt.Printf("%v\n", len(books))
+	fmt.Printf("%v\n", len(idx.Data))
 }
 
 func TestIdxCfg(t *testing.T) {
@@ -34,7 +37,6 @@ func TestIdxCfg(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	//fmt.Printf("%v\n", cfg)
 }
 
 func TestNewIdxFromString(t *testing.T) {

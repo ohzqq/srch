@@ -1,6 +1,8 @@
 package srch
 
 import (
+	"log"
+
 	"github.com/RoaringBitmap/roaring"
 	"github.com/sahilm/fuzzy"
 	"github.com/spf13/cast"
@@ -121,6 +123,7 @@ func (f *Facet) Filter(filters ...string) *roaring.Bitmap {
 	for _, filter := range filters {
 		term := f.FuzzyFindItem(filter)
 		if len(term) < 1 {
+			log.Fatal("no term found")
 		}
 		bits = append(bits, term[0].Bitmap())
 	}
