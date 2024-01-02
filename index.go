@@ -21,8 +21,7 @@ func init() {
 
 // Index is a structure for facets and data.
 type Index struct {
-	Data    []any      `json:"data,omitempty"`
-	Facets  []*Facet   `json:"facets"`
+	Results
 	Filters url.Values `json:"filters"`
 	*Search
 }

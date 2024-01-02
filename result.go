@@ -2,14 +2,12 @@ package srch
 
 import (
 	"fmt"
-
-	"github.com/ohzqq/facet"
 )
 
 type Results struct {
-	Data   []any          `json:"data"`
-	Facets []*facet.Facet `json:"facets"`
-	Query  string         `json:"query"`
+	Data   []any    `json:"data"`
+	Facets []*Facet `json:"facets"`
+	Query  string   `json:"query"`
 }
 
 type Item interface {
