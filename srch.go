@@ -33,17 +33,17 @@ func NewSearch(s Searcher) *Search {
 }
 
 func Interactive(s *Index) {
-	s.interactive = true
+	s.search.interactive = true
 }
 
-func (s *Search) Get(q ...Query) (*Results, error) {
+func (s *Search) Get(q ...Query) (Results, error) {
 	if len(q) > 0 {
 		s.query = q[0].String()
 	}
 	var err error
 	s.results, err = s.search.Search(q...)
 	if err != nil {
-		return nil, err
+		return Results{}, err
 	}
 
 	if s.interactive {
@@ -53,13 +53,13 @@ func (s *Search) Get(q ...Query) (*Results, error) {
 	return s.Results()
 }
 
-func (m *Search) Results() (*Results, error) {
+func (m *Search) Results() (Results, error) {
 	return m.getResults(), nil
 }
 
-func (m *Search) getResults(ids ...int) *Results {
-	r := &Results{
-		Query: m.query,
+func (m *Search) getResults(ids ...int) Results {
+	r := Results{
+		//Query: m.query,
 	}
 
 	if len(ids) > 0 {
@@ -74,10 +74,10 @@ func (m *Search) getResults(ids ...int) *Results {
 	return r
 }
 
-func (s *Search) Choose() (*Results, error) {
+func (s *Search) Choose() (Results, error) {
 	ids, err := Choose(s.results)
 	if err != nil {
-		return nil, err
+		return Results{}, err
 	}
 
 	res := s.getResults(ids...)

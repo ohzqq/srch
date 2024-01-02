@@ -21,7 +21,7 @@ func init() {
 // Index is a structure for facets and data.
 type Index struct {
 	Results
-	*Search
+	search *Search
 }
 
 // New initializes an index.
@@ -107,6 +107,14 @@ func (idx *Index) Decode(r io.Reader) error {
 	return nil
 }
 
+func (idx *Index) Search(kw string) (Results, error) {
+	return idx.search.Get(q(kw))
+}
+
+type q string
+
+func (qq q) String() string { return string(qq) }
+
 // Encode marshals json from an io.Writer.
 func (idx *Index) Encode(w io.Writer) error {
 	return json.NewEncoder(w).Encode(idx)
@@ -180,6 +188,12 @@ func NewIndexFromFiles(cfg string) (*Index, error) {
 	}
 
 	return idx, nil
+}
+
+func WithSearch(s Searcher) Opt {
+	return func(idx *Index) {
+		idx.search = NewSearch(s)
+	}
 }
 
 func DataFile(cfg string) Opt {

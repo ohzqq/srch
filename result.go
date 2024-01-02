@@ -8,7 +8,7 @@ import (
 type Results struct {
 	Data    []any      `json:"data"`
 	Facets  []*Facet   `json:"facets"`
-	Query   string     `json:"query"`
+	Query   url.Values `json:"query"`
 	Filters url.Values `json:"filters"`
 }
 
