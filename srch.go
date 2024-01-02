@@ -1,21 +1,11 @@
 package srch
 
 import (
-	"fmt"
-
 	"github.com/samber/lo"
 )
 
 type Searcher interface {
 	Search(string) ([]Item, error)
-}
-
-type Data interface {
-	Get(...any) ([]any, error)
-}
-
-type Queryer interface {
-	fmt.Stringer
 }
 
 type Search struct {

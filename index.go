@@ -122,10 +122,6 @@ func (idx *Index) Search(kw string) (Results, error) {
 	return res, nil
 }
 
-type q string
-
-func (qq q) String() string { return string(qq) }
-
 // Encode marshals json from an io.Writer.
 func (idx *Index) Encode(w io.Writer) error {
 	return json.NewEncoder(w).Encode(idx)

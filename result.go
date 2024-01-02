@@ -22,8 +22,8 @@ type Item interface {
 	fmt.Stringer
 }
 
-type DefaultItem struct {
-	Value string
+func NewDefaultItem(val string) *FacetItem {
+	return &FacetItem{Value: val}
 }
 
 func (r Results) Search(q string) ([]Item, error) {
@@ -31,7 +31,7 @@ func (r Results) Search(q string) ([]Item, error) {
 	if q == "" {
 		for _, m := range r.Data {
 			item := cast.ToStringMap(m)
-			res = append(res, &FacetItem{Value: item["title"].(string)})
+			res = append(res, NewDefaultItem(item["title"].(string)))
 		}
 		return res, nil
 	}
@@ -57,8 +57,4 @@ func (r Results) Len() int {
 
 func (r Results) FuzzyFind(q string) fuzzy.Matches {
 	return fuzzy.FindFrom(q, r)
-}
-
-func (i *DefaultItem) String() string {
-	return i.Value
 }
