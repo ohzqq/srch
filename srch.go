@@ -7,7 +7,7 @@ import (
 )
 
 type Searcher interface {
-	Search(...Queryer) ([]Item, error)
+	Search(string) ([]Item, error)
 }
 
 type Data interface {
@@ -36,12 +36,10 @@ func Interactive(s *Index) {
 	s.search.interactive = true
 }
 
-func (s *Search) Get(q ...Queryer) (Results, error) {
-	if len(q) > 0 {
-		s.query = q[0].String()
-	}
+func (s *Search) Get(q string) (Results, error) {
+	s.query = q
 	var err error
-	s.results, err = s.search.Search(q...)
+	s.results, err = s.search.Search(q)
 	if err != nil {
 		return Results{}, err
 	}

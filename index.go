@@ -113,7 +113,7 @@ func (idx *Index) Decode(r io.Reader) error {
 }
 
 func (idx *Index) Search(kw string) (Results, error) {
-	res, err := idx.search.Get(q(kw))
+	res, err := idx.search.Get(kw)
 	if err != nil {
 		return Results{}, err
 	}

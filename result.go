@@ -26,13 +26,18 @@ type DefaultItem struct {
 	Value string
 }
 
-func (r Results) Search(q ...Queryer) ([]Item, error) {
+func (r Results) Search(q string) ([]Item, error) {
 	var res []Item
-	if len(q) > 0 {
-		matches := r.FuzzyFind(q[0].String())
-		for _, m := range matches {
-			res = append(res, &FacetItem{Match: m})
+	if q == "" {
+		for _, m := range r.Data {
+			item := cast.ToStringMap(m)
+			res = append(res, &FacetItem{Value: item["title"].(string)})
 		}
+		return res, nil
+	}
+	matches := r.FuzzyFind(q)
+	for _, m := range matches {
+		res = append(res, &FacetItem{Match: m})
 	}
 	return res, nil
 }

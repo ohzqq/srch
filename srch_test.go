@@ -25,7 +25,7 @@ func TestCDB(t *testing.T) {
 	t.SkipNow()
 	s := NewSearch(testS)
 	//err := s.Get()
-	sel, err := s.Get(testQ("litrpg"))
+	sel, err := s.Get("litrpg")
 	if err != nil {
 		t.Error(err)
 	}
@@ -36,7 +36,7 @@ func TestTUI(t *testing.T) {
 	t.SkipNow()
 	s := NewSearch(testS)
 	//err := s.Get()
-	sel, err := s.Get(testQ("litrpg"))
+	sel, err := s.Get("litrpg")
 	if err != nil {
 		t.Error(err)
 	}
@@ -58,10 +58,8 @@ func cdbSearch(t *testing.T) []byte {
 
 type testResult map[string]any
 
-func (s testSearcher) Search(queries ...Queryer) ([]Item, error) {
-	if len(queries) > 0 {
-		testS.cmd = append(testS.cmd, "-s", queries[0].String())
-	}
+func (s testSearcher) Search(queries string) ([]Item, error) {
+	testS.cmd = append(testS.cmd, "-s", queries)
 	cdb := exec.Command("calibredb", testS.cmd...)
 	println(cdb.String())
 

@@ -49,7 +49,7 @@ func TestIdxSearch(t *testing.T) {
 	//t.Error(err)
 	//}
 
-	res, err := idx.Results.Search(q("fish"))
+	res, err := idx.Results.Search("fish")
 	if err != nil {
 		t.Error(err)
 	}
