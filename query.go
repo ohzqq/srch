@@ -2,6 +2,8 @@ package srch
 
 import (
 	"net/url"
+
+	"github.com/samber/lo"
 )
 
 type Query url.Values
@@ -34,4 +36,15 @@ func (q Query) Values() url.Values {
 
 func (q Query) Encode() string {
 	return q.Values().Encode()
+}
+
+func (q Query) Keywords() []string {
+	if q.Values().Has("q") {
+		return q["q"]
+	}
+	return []string{}
+}
+
+func (q Query) Filters() url.Values {
+	return lo.OmitByKeys(q, []string{"q"})
 }

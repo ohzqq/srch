@@ -2,7 +2,6 @@ package srch
 
 import (
 	"fmt"
-	"net/url"
 
 	"github.com/samber/lo"
 )
@@ -12,7 +11,7 @@ type Searcher interface {
 }
 
 type Data interface {
-	Get(...url.Values) []any
+	Get(...any) ([]any, error)
 }
 
 type Queryer interface {
