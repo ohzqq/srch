@@ -19,8 +19,6 @@ type Queryer interface {
 	fmt.Stringer
 }
 
-type Query url.Values
-
 type Search struct {
 	interactive bool
 	search      Searcher

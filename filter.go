@@ -77,6 +77,12 @@ func FilterBytes(val []byte) (url.Values, error) {
 
 // ParseFilters takes an interface{} and returns a url.Values.
 func ParseFilters(f any) (url.Values, error) {
+	filters, err := ParseValues(f)
+	return url.Values(filters), err
+}
+
+// ParseValues takes an interface{} and returns a url.Values.
+func ParseValues(f any) (map[string][]string, error) {
 	filters := make(map[string][]string)
 	var err error
 	switch val := f.(type) {
@@ -92,5 +98,5 @@ func ParseFilters(f any) (url.Values, error) {
 			return nil, err
 		}
 	}
-	return url.Values(filters), nil
+	return filters, nil
 }
