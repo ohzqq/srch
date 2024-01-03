@@ -127,7 +127,7 @@ func (idx *Index) Get(kw string) (*Results, error) {
 }
 
 func (s *Index) get(q string) (*Results, error) {
-	results, err := s.search.Search(s.Data, q)
+	results, err := s.search.Search(q)
 	if err != nil {
 		return &Results{}, err
 	}

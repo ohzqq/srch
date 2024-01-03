@@ -25,7 +25,7 @@ func TestCDB(t *testing.T) {
 	t.SkipNow()
 	//s := NewSearch(testS)
 	//err := s.Get()
-	sel, err := idx.search.Search(books, "litrpg")
+	sel, err := idx.search.Search("litrpg")
 	if err != nil {
 		t.Error(err)
 	}
@@ -36,7 +36,7 @@ func TestTUI(t *testing.T) {
 	t.SkipNow()
 	//s := NewSearch(testS)
 	//err := s.Get()
-	sel, err := idx.search.Search(books, "litrpg")
+	sel, err := idx.search.Search("litrpg")
 	if err != nil {
 		t.Error(err)
 	}
