@@ -8,7 +8,7 @@ func TestNewSrc(t *testing.T) {
 
 func TestFuzzyFindSrc(t *testing.T) {
 	src := testNewSrc(t)
-	m, err := src.Search(books, "fish")
+	m, err := src.Search("fish")
 	if err != nil {
 		t.Error(err)
 	}
@@ -16,7 +16,7 @@ func TestFuzzyFindSrc(t *testing.T) {
 		t.Errorf("got %d, expected 56\n", len(m.Data))
 	}
 
-	m, err = src.Search(books, "")
+	m, err = src.Search("")
 	if err != nil {
 		t.Error(err)
 	}
@@ -26,7 +26,7 @@ func TestFuzzyFindSrc(t *testing.T) {
 }
 
 func testNewSrc(t *testing.T) *Src {
-	src := NewSrc()
+	src := NewSrc(books)
 	//if src.Len() != 7174 {
 	//  t.Errorf("got %d, expected 7174\n", src.Len())
 	//}

@@ -8,33 +8,32 @@ import (
 	"github.com/spf13/cast"
 )
 
-type Data interface {
-	fuzzy.Source
-	Data() []any
-}
-
 type Src struct {
-	data   []any
+	Data   []any
 	fields []string
 }
 
-func NewSrc() *Src {
+func NewSrc(data []any, fields ...string) *Src {
+	f := []string{"title"}
+	if len(fields) > 0 {
+		f = fields
+	}
 	return &Src{
-		fields: []string{"title"},
+		Data:   data,
+		fields: f,
 	}
 }
 
-func (r *Src) Search(data []any, q string) (*Results, error) {
-	r.data = data
+func (r *Src) Search(q string) (*Results, error) {
 	res := &Results{}
 	if q == "" {
-		res.Data = data
+		res.Data = r.Data
 		return res, nil
 	}
+
 	matches := r.FuzzyFind(q)
 	for _, m := range matches {
-		res.Data = append(res.Data, data[m.Index])
-		//res.Data = append(res.Data, &FacetItem{Match: m})
+		res.Data = append(res.Data, r.Data[m.Index])
 	}
 	return res, nil
 }
@@ -43,17 +42,13 @@ func (src *Src) FuzzyFind(q string) fuzzy.Matches {
 	return fuzzy.FindFrom(q, src)
 }
 
-func (r *Src) Data() []any {
-	return r.data
-}
-
 func (r *Src) Len() int {
-	return len(r.data)
+	return len(r.Data)
 }
 
 func (r *Src) String(i int) string {
 	s := lo.PickByKeys(
-		cast.ToStringMap(r.data[i]),
+		cast.ToStringMap(r.Data[i]),
 		r.fields,
 	)
 	vals := cast.ToStringSlice(lo.Values(s))

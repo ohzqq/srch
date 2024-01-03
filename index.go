@@ -25,7 +25,7 @@ type Index struct {
 	Search
 	search Searcher
 	Data   []any `json:"data"`
-	src    Src
+	src    *Src
 }
 
 // New initializes an index.
@@ -35,15 +35,17 @@ func New(c any, opts ...Opt) (*Index, error) {
 		return nil, err
 	}
 
-	if len(idx.Data) > 0 {
-		idx.CollectItems()
-	}
-
-	idx.search = idx.Search
+	//if len(idx.Data) > 0 {
+	//  idx.CollectItems()
+	//}
 
 	for _, opt := range opts {
 		opt(idx)
 	}
+
+	//if idx.search == nil {
+	//  idx.search = NewSrc()
+	//}
 
 	if idx.Filters != nil {
 		return Filter(idx), nil
