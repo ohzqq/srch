@@ -23,6 +23,7 @@ type Opt func(*Index)
 // Index is a structure for facets and data.
 type Index struct {
 	Search
+	search Searcher
 }
 
 // New initializes an index.
@@ -36,7 +37,7 @@ func New(c any, opts ...Opt) (*Index, error) {
 		idx.CollectItems()
 	}
 
-	//idx.search = NewSearch(idx.Results)
+	idx.search = idx.Search
 
 	for _, opt := range opts {
 		opt(idx)
@@ -112,13 +113,27 @@ func (idx *Index) Decode(r io.Reader) error {
 }
 
 func (idx *Index) Get(kw string) (Search, error) {
-	res, err := idx.Search.Get(kw)
+	res, err := idx.get(kw)
 	if err != nil {
 		return Search{}, err
 	}
 
 	idx.CollectItems()
 	return res, nil
+}
+
+func (s *Index) get(q string) (Search, error) {
+	var err error
+	s.results, err = s.search.Search(q)
+	if err != nil {
+		return Search{}, err
+	}
+
+	if s.interactive {
+		return s.Choose()
+	}
+
+	return s.Results()
 }
 
 // Encode marshals json from an io.Writer.

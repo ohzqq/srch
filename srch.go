@@ -1,24 +1,35 @@
 package srch
 
 import (
+	"fmt"
+	"net/url"
+	"strings"
+
+	"github.com/sahilm/fuzzy"
 	"github.com/samber/lo"
+	"github.com/spf13/cast"
 )
 
 type Searcher interface {
 	Search(string) ([]Item, error)
 }
 
-type Searchz struct {
-	interactive bool
-	search      Searcher
-	results     []Item
-	query       string
+type Search struct {
+	Data         []any      `json:"data"`
+	SearchFields []string   `json:"search_fields"`
+	Facets       []*Facet   `json:"facets"`
+	query        Query      `json:"query"`
+	Filters      url.Values `json:"filters"`
+	interactive  bool
+	results      []Item
+}
+
+type Item interface {
+	fmt.Stringer
 }
 
 func NewSearch(s Searcher) Search {
-	search := Search{
-		search: s,
-	}
+	search := Search{}
 	return search
 }
 
@@ -26,18 +37,41 @@ func Interactive(s *Index) {
 	s.Search.interactive = true
 }
 
-func (s *Search) Get(q string) (Search, error) {
-	var err error
-	s.results, err = s.search.Search(q)
-	if err != nil {
-		return Search{}, err
-	}
+func NewDefaultItem(val string) *FacetItem {
+	return &FacetItem{Value: val}
+}
 
-	if s.interactive {
-		return s.Choose()
+func (r Search) Search(q string) ([]Item, error) {
+	var res []Item
+	if q == "" {
+		for _, m := range r.Data {
+			item := cast.ToStringMap(m)
+			res = append(res, NewDefaultItem(item["title"].(string)))
+		}
+		return res, nil
 	}
+	matches := r.FuzzyFind(q)
+	for _, m := range matches {
+		res = append(res, &FacetItem{Match: m})
+	}
+	return res, nil
+}
 
-	return s.Results()
+func (r Search) String(i int) string {
+	s := lo.PickByKeys(
+		cast.ToStringMap(r.Data[i]),
+		r.SearchFields,
+	)
+	vals := cast.ToStringSlice(lo.Values(s))
+	return strings.Join(vals, "\n")
+}
+
+func (r Search) Len() int {
+	return len(r.Data)
+}
+
+func (r Search) FuzzyFind(q string) fuzzy.Matches {
+	return fuzzy.FindFrom(q, r)
 }
 
 func (m *Search) Results() (Search, error) {
