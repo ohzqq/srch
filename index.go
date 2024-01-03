@@ -9,7 +9,6 @@ import (
 	"os"
 
 	"github.com/mitchellh/mapstructure"
-	"github.com/sahilm/fuzzy"
 	"github.com/spf13/cast"
 	"github.com/spf13/viper"
 )
@@ -27,15 +26,6 @@ type Index struct {
 	search Searcher
 	Data   []any `json:"data"`
 	src    Src
-}
-
-type Data interface {
-	fuzzy.Source
-	Data() []any
-}
-
-type Src struct {
-	data []any
 }
 
 // New initializes an index.
