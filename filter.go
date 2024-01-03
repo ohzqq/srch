@@ -16,7 +16,7 @@ func Filter(idx *Index) *Index {
 	fmt.Printf("filter %d\n", len(idx.Data))
 	if idx.Filters.Has("q") {
 		kw := idx.Filters.Get("q")
-		idx.Results, _ = idx.Search(kw)
+		idx.Search, _ = idx.Get(kw)
 		idx.Filters.Del("q")
 		println(len(idx.Data))
 	}

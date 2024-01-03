@@ -8,30 +8,29 @@ type Searcher interface {
 	Search(string) ([]Item, error)
 }
 
-type Search struct {
+type Searchz struct {
 	interactive bool
 	search      Searcher
 	results     []Item
 	query       string
 }
 
-func NewSearch(s Searcher) *Search {
-	search := &Search{
+func NewSearch(s Searcher) Search {
+	search := Search{
 		search: s,
 	}
 	return search
 }
 
 func Interactive(s *Index) {
-	s.search.interactive = true
+	s.Search.interactive = true
 }
 
-func (s *Search) Get(q string) (Results, error) {
-	s.query = q
+func (s *Search) Get(q string) (Search, error) {
 	var err error
 	s.results, err = s.search.Search(q)
 	if err != nil {
-		return Results{}, err
+		return Search{}, err
 	}
 
 	if s.interactive {
@@ -41,12 +40,12 @@ func (s *Search) Get(q string) (Results, error) {
 	return s.Results()
 }
 
-func (m *Search) Results() (Results, error) {
+func (m *Search) Results() (Search, error) {
 	return m.getResults(), nil
 }
 
-func (m *Search) getResults(ids ...int) Results {
-	r := Results{
+func (m *Search) getResults(ids ...int) Search {
+	r := Search{
 		//Query: m.query,
 	}
 
@@ -62,10 +61,10 @@ func (m *Search) getResults(ids ...int) Results {
 	return r
 }
 
-func (s *Search) Choose() (Results, error) {
+func (s *Search) Choose() (Search, error) {
 	ids, err := Choose(s.results)
 	if err != nil {
-		return Results{}, err
+		return Search{}, err
 	}
 
 	res := s.getResults(ids...)
