@@ -126,14 +126,14 @@ func (idx *Index) Get(kw string) (*Results, error) {
 func (s *Index) get(q string) (*Results, error) {
 	results, err := s.search.Search(s.Data, q)
 	if err != nil {
-		return &Results{}, err
+		return Search{}, err
 	}
 
 	if s.interactive {
 		return s.Choose()
 	}
 
-	return results, nil
+	return s.Results()
 }
 
 // Encode marshals json from an io.Writer.

@@ -11,7 +11,7 @@ import (
 )
 
 type Searcher interface {
-	Search([]any, string) ([]Item, error)
+	Search([]any, string) (*Results, error)
 }
 
 type Search struct {
@@ -43,19 +43,21 @@ func NewDefaultItem(val string) *FacetItem {
 	return &FacetItem{Value: val}
 }
 
-func (r Search) Search(data []any, q string) ([]Item, error) {
+func (r Search) Search(data []any, q string) (*Results, error) {
 	r.data = data
-	var res []Item
+	//var res []Item
+	res := &Results{}
 	if q == "" {
 		for _, m := range data {
-			item := cast.ToStringMap(m)
-			res = append(res, NewDefaultItem(item["title"].(string)))
+			res.Data = append(res.Data, m)
+			//item := cast.ToStringMap(m)
+			//res = append(res, NewDefaultItem(item["title"].(string)))
 		}
 		return res, nil
 	}
 	matches := r.FuzzyFind(q)
 	for _, m := range matches {
-		res = append(res, &FacetItem{Match: m})
+		res.Data = append(res.Data, &FacetItem{Match: m})
 	}
 	return res, nil
 }
@@ -77,31 +79,29 @@ func (r Search) FuzzyFind(q string) fuzzy.Matches {
 	return fuzzy.FindFrom(q, r)
 }
 
-func (m *Search) Results() (Search, error) {
+func (m *Search) Results() (*Results, error) {
 	return m.getResults(), nil
 }
 
-func (m *Search) getResults(ids ...int) Search {
-	r := Search{
-		//Query: m.query,
-	}
+func (m *Search) getResults(ids ...int) *Results {
+	r := &Results{}
 
 	if len(ids) > 0 {
-		r.data = make([]any, len(ids))
+		r.Data = make([]any, len(ids))
 		for i, id := range ids {
-			r.data[i] = m.results[id]
+			r.Data[i] = m.results[id]
 		}
 		return r
 	}
-	r.data = lo.ToAnySlice(m.results)
+	r.Data = lo.ToAnySlice(m.results)
 
 	return r
 }
 
-func (s *Search) Choose() (Search, error) {
+func (s *Search) Choose() (*Results, error) {
 	ids, err := Choose(s.results)
 	if err != nil {
-		return Search{}, err
+		return &Results{}, err
 	}
 
 	res := s.getResults(ids...)
