@@ -11,26 +11,28 @@ import (
 )
 
 type Searcher interface {
-	Search(string) ([]Item, error)
+	Search([]any, string) ([]Item, error)
 }
 
 type Search struct {
-	Data         []any      `json:"data"`
 	SearchFields []string   `json:"search_fields"`
-	Facets       []*Facet   `json:"facets"`
 	query        Query      `json:"query"`
+	Facets       []*Facet   `json:"facets"`
 	Filters      url.Values `json:"filters"`
 	interactive  bool
 	results      []Item
+	data         []any
 }
 
 type Item interface {
 	fmt.Stringer
 }
 
-func NewSearch(s Searcher) Search {
-	search := Search{}
-	return search
+func NewSearch() *Search {
+	search := Search{
+		SearchFields: []string{"title"},
+	}
+	return &search
 }
 
 func Interactive(s *Index) {
@@ -41,10 +43,11 @@ func NewDefaultItem(val string) *FacetItem {
 	return &FacetItem{Value: val}
 }
 
-func (r Search) Search(q string) ([]Item, error) {
+func (r Search) Search(data []any, q string) ([]Item, error) {
+	r.data = data
 	var res []Item
 	if q == "" {
-		for _, m := range r.Data {
+		for _, m := range data {
 			item := cast.ToStringMap(m)
 			res = append(res, NewDefaultItem(item["title"].(string)))
 		}
@@ -59,7 +62,7 @@ func (r Search) Search(q string) ([]Item, error) {
 
 func (r Search) String(i int) string {
 	s := lo.PickByKeys(
-		cast.ToStringMap(r.Data[i]),
+		cast.ToStringMap(r.data[i]),
 		r.SearchFields,
 	)
 	vals := cast.ToStringSlice(lo.Values(s))
@@ -67,7 +70,7 @@ func (r Search) String(i int) string {
 }
 
 func (r Search) Len() int {
-	return len(r.Data)
+	return len(r.data)
 }
 
 func (r Search) FuzzyFind(q string) fuzzy.Matches {
@@ -84,13 +87,13 @@ func (m *Search) getResults(ids ...int) Search {
 	}
 
 	if len(ids) > 0 {
-		r.Data = make([]any, len(ids))
+		r.data = make([]any, len(ids))
 		for i, id := range ids {
-			r.Data[i] = m.results[id]
+			r.data[i] = m.results[id]
 		}
 		return r
 	}
-	r.Data = lo.ToAnySlice(m.results)
+	r.data = lo.ToAnySlice(m.results)
 
 	return r
 }

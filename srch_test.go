@@ -23,9 +23,9 @@ func (q testQ) String() string {
 
 func TestCDB(t *testing.T) {
 	t.SkipNow()
-	s := NewSearch(testS)
+	//s := NewSearch(testS)
 	//err := s.Get()
-	sel, err := s.Search("litrpg")
+	sel, err := idx.search.Search(books, "litrpg")
 	if err != nil {
 		t.Error(err)
 	}
@@ -34,9 +34,9 @@ func TestCDB(t *testing.T) {
 
 func TestTUI(t *testing.T) {
 	t.SkipNow()
-	s := NewSearch(testS)
+	//s := NewSearch(testS)
 	//err := s.Get()
-	sel, err := s.Search("litrpg")
+	sel, err := idx.search.Search(books, "litrpg")
 	if err != nil {
 		t.Error(err)
 	}

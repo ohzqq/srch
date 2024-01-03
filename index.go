@@ -24,6 +24,7 @@ type Opt func(*Index)
 type Index struct {
 	Search
 	search Searcher
+	Data   []any `json:"data"`
 }
 
 // New initializes an index.
@@ -124,7 +125,7 @@ func (idx *Index) Get(kw string) (Search, error) {
 
 func (s *Index) get(q string) (Search, error) {
 	var err error
-	s.results, err = s.search.Search(q)
+	s.results, err = s.search.Search(s.Data, q)
 	if err != nil {
 		return Search{}, err
 	}
@@ -213,7 +214,13 @@ func NewIndexFromFiles(cfg string) (*Index, error) {
 
 func WithSearch(s Searcher) Opt {
 	return func(idx *Index) {
-		idx.Search = NewSearch(s)
+		idx.search = s
+	}
+}
+
+func WithSearchFields(fields []string) Opt {
+	return func(idx *Index) {
+		idx.Search.SearchFields = fields
 	}
 }
 
