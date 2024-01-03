@@ -8,9 +8,14 @@ import (
 	"github.com/spf13/cast"
 )
 
+type Source interface {
+	Get(...string) ([]any, error)
+}
+
 type Src struct {
-	Data   []any `json:"data"`
-	fields []string
+	Data    []any `json:"data"`
+	fields  []string
+	matches fuzzy.Matches
 }
 
 func NewSrc(data []any, fields ...string) *Src {
@@ -24,27 +29,46 @@ func NewSrc(data []any, fields ...string) *Src {
 	}
 }
 
-func (r *Src) Search(q string) (*Results, error) {
+func (r *Src) Search(q string) error {
 	if q == "" {
 		return NewResults(r.Data), nil
 	}
 
-	res := &Results{
-		Src: &Src{},
+	var data []any
+	r.matches = r.FuzzyFind(q)
+	for _, m := range r.matches {
+		data = append(data, r.Data[m.Index])
 	}
-	matches := r.FuzzyFind(q)
-	for _, m := range matches {
-		res.Data = append(res.Data, r.Data[m.Index])
-	}
-	return res, nil
+	return NewResults(data), nil
 }
 
 func (src *Src) FuzzyFind(q string) fuzzy.Matches {
 	return fuzzy.FindFrom(q, src)
 }
 
+func (src *Src) Find(q string) Results {
+	return src
+}
+
 func (r *Src) Len() int {
 	return len(r.Data)
+}
+
+func (r *Src) Matches() []int {
+	if len(r.matches) > 0 {
+		fn := func(m fuzzy.Match, _ int) int {
+			return m.Index
+		}
+		return lo.Map(r.matches, fn)
+	}
+	return r.dataIDs()
+}
+
+func (r *Src) dataIDs() []int {
+	fn := func(_ any, index int) int {
+		return index
+	}
+	return lo.Map(r.Data, fn)
 }
 
 func (r *Src) String(i int) string {

@@ -4,14 +4,18 @@ import (
 	"net/url"
 )
 
-type Results struct {
+type Results interface {
+	Matches() []int
+}
+
+type Result struct {
 	*Src
 	Facets  []*Facet   `json:"facets"`
 	Filters url.Values `json:"filters"`
 }
 
-func NewResults(data []any) *Results {
-	return &Results{
+func NewResults(data []any) *Result {
+	return &Result{
 		Src: NewSrc(data),
 	}
 }

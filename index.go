@@ -35,16 +35,12 @@ func New(c any, opts ...Opt) (*Index, error) {
 		return nil, err
 	}
 
-	//if len(idx.Data) > 0 {
-	//  idx.CollectItems()
-	//}
-
 	for _, opt := range opts {
 		opt(idx)
 	}
 
 	if idx.search == nil {
-		idx.search = NewSrc(idx.Data)
+		idx.search = idx.Src
 	}
 
 	if idx.Filters != nil {
@@ -116,20 +112,20 @@ func (idx *Index) Decode(r io.Reader) error {
 	return nil
 }
 
-func (idx *Index) Get(kw string) (*Results, error) {
+func (idx *Index) Get(kw string) (*Result, error) {
 	res, err := idx.get(kw)
 	if err != nil {
-		return &Results{}, err
+		return &Result{}, err
 	}
 
 	idx.CollectItems()
 	return res, nil
 }
 
-func (s *Index) get(q string) (*Results, error) {
-	results, err := s.search.Search(q)
+func (s *Index) get(q string) (*Result, error) {
+	err := s.search.Search(q)
 	if err != nil {
-		return &Results{}, err
+		return &Result{}, err
 	}
 
 	if s.interactive {
