@@ -24,8 +24,8 @@ type Opt func(*Index)
 type Index struct {
 	Search
 	search Searcher
-	Data   []any `json:"data"`
-	src    *Src
+	//Data   []any `json:"data"`
+	*Src
 }
 
 // New initializes an index.
@@ -43,9 +43,9 @@ func New(c any, opts ...Opt) (*Index, error) {
 		opt(idx)
 	}
 
-	//if idx.search == nil {
-	//  idx.search = NewSrc()
-	//}
+	if idx.search == nil {
+		idx.search = NewSrc(idx.Data)
+	}
 
 	if idx.Filters != nil {
 		return Filter(idx), nil
@@ -238,14 +238,14 @@ func DataFile(cfg string) Opt {
 		if err != nil {
 			log.Fatal(err)
 		}
-		idx.Data = data
+		idx.Src = NewSrc(data)
 		idx.CollectItems()
 	}
 }
 
 func DataSlice(data []any) Opt {
 	return func(idx *Index) {
-		idx.Data = data
+		idx.Src = NewSrc(data)
 		idx.CollectItems()
 	}
 }
@@ -274,7 +274,9 @@ func dataFromFile(d string) ([]any, error) {
 
 // NewIndexFromString initializes an index from a json formatted string.
 func NewIndexFromString(d string) (*Index, error) {
-	idx := &Index{}
+	idx := &Index{
+		Src: &Src{},
+	}
 	buf := bytes.NewBufferString(d)
 	err := idx.Decode(buf)
 	if err != nil {
@@ -295,7 +297,9 @@ func NewDataFromString(d string) ([]any, error) {
 
 // NewIndexFromMap initalizes an index from a map[string]any.
 func NewIndexFromMap(d map[string]any) (*Index, error) {
-	idx := &Index{}
+	idx := &Index{
+		Src: &Src{},
+	}
 	err := mapstructure.Decode(d, idx)
 	if err != nil {
 		return nil, err

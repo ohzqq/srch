@@ -9,7 +9,7 @@ import (
 )
 
 type Src struct {
-	Data   []any
+	Data   []any `json:"data"`
 	fields []string
 }
 
@@ -25,12 +25,13 @@ func NewSrc(data []any, fields ...string) *Src {
 }
 
 func (r *Src) Search(q string) (*Results, error) {
-	res := &Results{}
 	if q == "" {
-		res.Data = r.Data
-		return res, nil
+		return NewResults(r.Data), nil
 	}
 
+	res := &Results{
+		Src: &Src{},
+	}
 	matches := r.FuzzyFind(q)
 	for _, m := range matches {
 		res.Data = append(res.Data, r.Data[m.Index])
