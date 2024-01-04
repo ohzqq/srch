@@ -27,7 +27,6 @@ type Index struct {
 	Query            url.Values `json:"filters"`
 	interactive      bool
 	search           SearchFunc
-	results          []any
 }
 
 // New initializes an index.
@@ -109,6 +108,10 @@ func (idx *Index) CollectItems() *Index {
 		facet.CollectItems(idx.Data)
 	}
 	return idx
+}
+
+func (idx *Index) Items() []any {
+	return idx.Data
 }
 
 // GetConfig returns a map of the Index's config.
