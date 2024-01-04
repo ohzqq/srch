@@ -9,9 +9,6 @@ import (
 	"github.com/spf13/cast"
 )
 
-type Search struct {
-}
-
 type Item interface {
 	fmt.Stringer
 }

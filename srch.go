@@ -8,16 +8,14 @@ type Searcher interface {
 	Search(string) ([]Item, error)
 }
 
-type Searchz struct {
-	interactive bool
-	search      Searcher
-	results     []Item
-	query       string
-}
+type SearchFunc func(string) []any
 
-func NewSearch(s Searcher) Search {
-	search := Search{}
-	return search
+func FuzzyFind(data []any, fields ...string) SearchFunc {
+	return func(q string) []any {
+		if q == "" {
+			return data
+		}
+	}
 }
 
 func Interactive(s *Index) {
