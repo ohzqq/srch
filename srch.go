@@ -23,7 +23,7 @@ func FuzzySearch(data []any, fields ...string) SearchFunc {
 		src := GetSearchableFieldValues(data, fields)
 		var res []any
 		for _, m := range fuzzy.Find(q, src) {
-			res = append(res, m.Index)
+			res = append(res, data[m.Index])
 		}
 		return res
 	}
@@ -43,13 +43,19 @@ func GetSearchableFieldValues(data []any, fields []string) []string {
 }
 
 func (s *Index) get(q string) (*Index, error) {
-	s.results = s.search(q)
+	r := s.search(q)
+	res, err := New(s.GetConfig(), DataSlice(r))
+	res.Query = s.Query
 
-	if s.interactive {
-		return s.Choose()
+	if err != nil {
+		return s, err
 	}
 
-	return s.Results()
+	if res.interactive {
+		return res.Choose()
+	}
+
+	return res.Results()
 }
 
 func (m *Index) Results() (*Index, error) {
@@ -57,23 +63,15 @@ func (m *Index) Results() (*Index, error) {
 }
 
 func (m *Index) getResults(ids ...int) *Index {
-	r := &Index{
-		Query:            m.Query,
-		SearchableFields: m.SearchableFields,
-		interactive:      m.interactive,
-		search:           m.search,
-	}
-
 	if len(ids) > 0 {
-		r.Data = make([]any, len(ids))
+		m.Data = make([]any, len(ids))
 		for i, id := range ids {
-			r.Data[i] = m.results[id]
+			m.Data[i] = m.results[id]
 		}
-		return r
+		return m
 	}
-	r.Data = lo.ToAnySlice(m.results)
 
-	return r
+	return m
 }
 
 func (s *Index) Choose() (*Index, error) {

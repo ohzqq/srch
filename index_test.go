@@ -2,8 +2,8 @@ package srch
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
+	"net/url"
 	"os"
 	"testing"
 
@@ -41,10 +41,30 @@ func TestIdxCfg(t *testing.T) {
 	}
 }
 
+func TestIdxFilterSearch(t *testing.T) {
+	t.SkipNow()
+	//vals := testVals()
+	//res := idx.Search(vals)
+
+	fn := FuzzySearch(books, "title")
+	res := fn("fish")
+	i, err := New(testCfgFile, DataSlice(res))
+	if err != nil {
+		t.Error(err)
+	}
+	vals := make(url.Values)
+	vals.Set("authors", "amy lane")
+	r := i.Filter(vals)
+	if len(r.Data) != 4 {
+		t.Errorf("got %d, expected 4", len(r.Data))
+	}
+}
+
 func TestIdxSearch(t *testing.T) {
+	println("test idx search")
 	vals := testVals()
-	res := idx.Search(vals)
-	fmt.Printf("search results %v\n", res)
+	r := idx.Search(vals)
+	r.PrettyPrint()
 }
 
 func TestNewIdxFromString(t *testing.T) {

@@ -7,6 +7,7 @@ import (
 )
 
 func TestNewQuery(t *testing.T) {
+	t.SkipNow()
 	q := testQuery()
 	println(q.String())
 

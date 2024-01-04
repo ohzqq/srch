@@ -81,6 +81,15 @@ func (idx *Index) Search(q any) *Index {
 	return Filter(res)
 }
 
+func CopyIndex(idx *Index) *Index {
+	return &Index{
+		SearchableFields: idx.SearchableFields,
+		Facets:           idx.Facets,
+		interactive:      idx.interactive,
+		Query:            idx.Query,
+	}
+}
+
 // CollectItems collects a facet's items from the data set.
 func (idx *Index) CollectItems() *Index {
 	for _, facet := range idx.Facets {

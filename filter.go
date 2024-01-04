@@ -13,14 +13,11 @@ import (
 // Filter takes an *Index, filters the data and calculates the facets. It
 // returns a new *Index.
 func Filter(idx *Index) *Index {
-	fmt.Printf("filter %d\n", len(idx.Data))
 	if idx.Query.Has("q") {
-		//kw := idx.Filters.Get("q")
-		//idx.Search, _ = idx.Get(kw)
 		idx.Query.Del("q")
-		println(len(idx.Data))
 	}
 
+	fmt.Printf("after se kal: %v\n", idx.Query)
 	var bits []*roaring.Bitmap
 	for name, filters := range idx.Query {
 		for _, facet := range idx.Facets {
@@ -32,6 +29,7 @@ func Filter(idx *Index) *Index {
 
 	filtered := roaring.ParOr(viper.GetInt("workers"), bits...)
 	ids := filtered.ToArray()
+	fmt.Printf("number of filtered itersm %d\n", len(ids))
 
 	res, err := New(
 		idx.GetConfig(),
