@@ -43,13 +43,7 @@ func GetSearchableFieldValues(data []any, fields []string) []string {
 }
 
 func (s *Index) get(q string) (*Index, error) {
-	r := s.search(q)
-	res, err := New(s.GetConfig(), DataSlice(r))
-	res.Query = s.Query
-
-	if err != nil {
-		return s, err
-	}
+	res := CopyIndex(s, s.search(q))
 
 	if res.interactive {
 		return res.Choose()

@@ -64,7 +64,8 @@ func TestIdxSearch(t *testing.T) {
 	println("test idx search")
 	vals := testVals()
 	r := idx.Search(vals)
-	r.PrettyPrint()
+	//fmt.Println(len(r.Data))
+	r.Print()
 }
 
 func TestNewIdxFromString(t *testing.T) {

@@ -47,11 +47,19 @@ func New(c any, opts ...Opt) (*Index, error) {
 
 	idx.search = FuzzySearch(idx.Data, idx.SearchableFields...)
 
-	//if idx.Query != nil {
-	//  return Filter(idx), nil
-	//}
-
 	return idx, nil
+}
+
+func CopyIndex(idx *Index, data []any) *Index {
+	n := &Index{
+		SearchableFields: idx.SearchableFields,
+		Facets:           idx.Facets,
+		interactive:      idx.interactive,
+		Query:            idx.Query,
+		search:           idx.search,
+		Data:             data,
+	}
+	return n
 }
 
 // Filter idx.Data and re-calculate facets.
@@ -79,15 +87,6 @@ func (idx *Index) Search(q any) *Index {
 	res.CollectItems()
 
 	return Filter(res)
-}
-
-func CopyIndex(idx *Index) *Index {
-	return &Index{
-		SearchableFields: idx.SearchableFields,
-		Facets:           idx.Facets,
-		interactive:      idx.interactive,
-		Query:            idx.Query,
-	}
 }
 
 // CollectItems collects a facet's items from the data set.

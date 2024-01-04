@@ -35,7 +35,6 @@ func Filter(idx *Index) *Index {
 		idx.GetConfig(),
 		DataSlice(FilteredItems(idx.Data, lo.ToAnySlice(ids))),
 	)
-	res.Query = idx.Query
 	if err != nil {
 		return res
 	}
