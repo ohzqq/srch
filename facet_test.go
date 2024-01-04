@@ -53,7 +53,7 @@ func TestRoaringFilter(t *testing.T) {
 }
 
 func TestRoaringFilters(t *testing.T) {
-	t.SkipNow()
+	//t.SkipNow()
 	vals := testQuery()
 	q, err := ParseFilters(vals)
 	if err != nil {

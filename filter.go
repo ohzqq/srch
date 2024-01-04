@@ -31,14 +31,8 @@ func Filter(idx *Index) *Index {
 	ids := filtered.ToArray()
 	fmt.Printf("number of filtered itersm %d\n", len(ids))
 
-	res, err := New(
-		idx.GetConfig(),
-		DataSlice(FilteredItems(idx.Data, lo.ToAnySlice(ids))),
-	)
-	if err != nil {
-		return res
-	}
-	return res
+	d := FilteredItems(idx.Data, lo.ToAnySlice(ids))
+	return CopyIndex(idx, d)
 }
 
 // FilteredItems returns the subset of data.
