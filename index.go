@@ -52,14 +52,6 @@ func New(c any, opts ...Opt) (*Index, error) {
 }
 
 func CopyIndex(idx *Index, data []any) *Index {
-	//n := &Index{
-	//  SearchableFields: idx.SearchableFields,
-	//  Facets:           idx.Facets,
-	//  interactive:      idx.interactive,
-	//  Query:            idx.Query,
-	//  search:           idx.search,
-	//  Data:             data,
-	//}
 	n, err := New(idx.GetConfig(), DataSlice(data))
 	if err != nil {
 		return idx
@@ -67,7 +59,6 @@ func CopyIndex(idx *Index, data []any) *Index {
 	n.Query = idx.Query
 	n.search = idx.search
 	n.interactive = idx.interactive
-
 	return n
 }
 

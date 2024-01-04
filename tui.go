@@ -1,8 +1,6 @@
 package srch
 
 import (
-	"fmt"
-
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/ohzqq/bubbles/list"
 )
@@ -14,8 +12,6 @@ type TUI struct {
 type item string
 
 func Choose(idx *Index) ([]int, error) {
-	fmt.Printf("searchable feidsl %v\n total items %d\n", idx.SearchableFields, idx.Len())
-
 	items := make([]list.Item, idx.Len())
 	for i := 0; i < idx.Len(); i++ {
 		items[i] = item(idx.String(i))

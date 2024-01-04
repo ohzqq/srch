@@ -1,7 +1,6 @@
 package srch
 
 import (
-	"fmt"
 	"net/url"
 
 	"github.com/RoaringBitmap/roaring"
@@ -17,7 +16,6 @@ func Filter(idx *Index) *Index {
 		idx.Query.Del("q")
 	}
 
-	fmt.Printf("after se kal: %v\n", idx.Query)
 	var bits []*roaring.Bitmap
 	for name, filters := range idx.Query {
 		for _, facet := range idx.Facets {
@@ -29,7 +27,6 @@ func Filter(idx *Index) *Index {
 
 	filtered := roaring.ParOr(viper.GetInt("workers"), bits...)
 	ids := filtered.ToArray()
-	fmt.Printf("number of filtered itersm %d\n", len(ids))
 
 	d := FilteredItems(idx.Data, lo.ToAnySlice(ids))
 	return CopyIndex(idx, d)
