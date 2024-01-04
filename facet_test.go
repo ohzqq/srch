@@ -53,17 +53,22 @@ func TestRoaringFilter(t *testing.T) {
 }
 
 func TestRoaringFilters(t *testing.T) {
+	vals := testQuery()
+	q, err := ParseFilters(vals)
+	if err != nil {
+		t.Error(err)
+	}
+	testFilters(q)
+}
+
+func testVals() url.Values {
 	vals := make(url.Values)
 	vals.Add("tags", "abo")
 	vals.Add("tags", "dnr")
 	vals.Add("authors", "Alice Winters")
 	vals.Add("authors", "Amy Lane")
 	vals.Add("q", "fish")
-	q, err := ParseFilters(vals)
-	if err != nil {
-		t.Error(err)
-	}
-	testFilters(q)
+	return vals
 }
 
 func testFilters(q url.Values) {

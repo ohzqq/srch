@@ -2,6 +2,7 @@ package srch
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"os"
 	"testing"
@@ -40,13 +41,11 @@ func TestIdxCfg(t *testing.T) {
 	}
 }
 
-//func TestIdxSearch(t *testing.T) {
-//  res, err := idx.Results.Search("fish")
-//  if err != nil {
-//    t.Error(err)
-//  }
-//  fmt.Printf("search results %v\n", res)
-//}
+func TestIdxSearch(t *testing.T) {
+	vals := testVals()
+	res := idx.Search(vals)
+	fmt.Printf("search results %v\n", res)
+}
 
 func TestNewIdxFromString(t *testing.T) {
 	idx, err := parseCfg(testCfg)

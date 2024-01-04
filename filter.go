@@ -88,6 +88,8 @@ func ParseValues(f any) (map[string][]string, error) {
 	switch val := f.(type) {
 	case url.Values:
 		return val, nil
+	case Query:
+		return val, nil
 	case []byte:
 		return FilterBytes(val)
 	case string:
