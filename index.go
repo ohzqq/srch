@@ -19,8 +19,6 @@ func init() {
 	viper.SetDefault("workers", 1)
 }
 
-type Opt func(*Index)
-
 // Index is a structure for facets and data.
 type Index struct {
 	Data         []any      `json:"data"`
@@ -29,8 +27,8 @@ type Index struct {
 	query        Query      `json:"query"`
 	Filters      url.Values `json:"filters"`
 	interactive  bool
-	search       Searcher
-	results      []Item
+	search       SearchFunc
+	results      []any
 }
 
 // New initializes an index.
@@ -204,12 +202,6 @@ func NewIndexFromFiles(cfg string) (*Index, error) {
 	return idx, nil
 }
 
-func WithSearch(s Searcher) Opt {
-	return func(idx *Index) {
-		idx.search = s
-	}
-}
-
 func DataFile(cfg string) Opt {
 	return func(idx *Index) {
 		f, err := os.Open(cfg)
@@ -222,13 +214,6 @@ func DataFile(cfg string) Opt {
 		if err != nil {
 			log.Fatal(err)
 		}
-		idx.Data = data
-		idx.CollectItems()
-	}
-}
-
-func DataSlice(data []any) Opt {
-	return func(idx *Index) {
 		idx.Data = data
 		idx.CollectItems()
 	}

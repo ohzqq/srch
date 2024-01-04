@@ -1,7 +1,11 @@
 package srch
 
 import (
+	"strings"
+
+	"github.com/sahilm/fuzzy"
 	"github.com/samber/lo"
+	"github.com/spf13/cast"
 )
 
 type Searcher interface {
@@ -15,19 +19,31 @@ func FuzzyFind(data []any, fields ...string) SearchFunc {
 		if q == "" {
 			return data
 		}
+
+		src := GetSearchableFieldValues(data, fields)
+		var res []any
+		for _, m := range fuzzy.Find(q, src) {
+			res = append(res, m.Index)
+		}
+		return res
 	}
 }
 
-func Interactive(s *Index) {
-	s.interactive = true
+func GetSearchableFieldValues(data []any, fields []string) []string {
+	src := make([]string, len(data))
+	for i, d := range data {
+		s := lo.PickByKeys(
+			cast.ToStringMap(d),
+			fields,
+		)
+		vals := cast.ToStringSlice(lo.Values(s))
+		src[i] = strings.Join(vals, "\n")
+	}
+	return src
 }
 
 func (s *Index) get(q string) (*Index, error) {
-	var err error
-	s.results, err = s.search.Search(q)
-	if err != nil {
-		return &Index{}, err
-	}
+	s.results = s.search(q)
 
 	if s.interactive {
 		return s.Choose()
