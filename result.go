@@ -36,7 +36,7 @@ func NewDefaultItem(val string) *FacetItem {
 func (r *Index) String(i int) string {
 	s := lo.PickByKeys(
 		cast.ToStringMap(r.Data[i]),
-		r.SearchFields,
+		r.SearchableFields,
 	)
 	vals := cast.ToStringSlice(lo.Values(s))
 	return strings.Join(vals, "\n")

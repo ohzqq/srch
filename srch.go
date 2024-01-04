@@ -14,7 +14,7 @@ type Searcher interface {
 
 type SearchFunc func(string) []any
 
-func FuzzyFind(data []any, fields ...string) SearchFunc {
+func FuzzySearch(data []any, fields ...string) SearchFunc {
 	return func(q string) []any {
 		if q == "" {
 			return data
@@ -58,7 +58,10 @@ func (m *Index) Results() (*Index, error) {
 
 func (m *Index) getResults(ids ...int) *Index {
 	r := &Index{
-		//Query: m.query,
+		Query:            m.Query,
+		SearchableFields: m.SearchableFields,
+		interactive:      m.interactive,
+		search:           m.search,
 	}
 
 	if len(ids) > 0 {

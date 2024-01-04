@@ -21,14 +21,13 @@ func init() {
 
 // Index is a structure for facets and data.
 type Index struct {
-	Data         []any      `json:"data"`
-	SearchFields []string   `json:"search_fields"`
-	Facets       []*Facet   `json:"facets"`
-	query        Query      `json:"query"`
-	Filters      url.Values `json:"filters"`
-	interactive  bool
-	search       SearchFunc
-	results      []any
+	Data             []any      `json:"data"`
+	SearchableFields []string   `json:"searchableFields"`
+	Facets           []*Facet   `json:"facets"`
+	Query            url.Values `json:"filters"`
+	interactive      bool
+	search           SearchFunc
+	results          []any
 }
 
 // New initializes an index.
@@ -38,19 +37,19 @@ func New(c any, opts ...Opt) (*Index, error) {
 		return nil, err
 	}
 
-	if len(idx.Data) > 0 {
-		idx.CollectItems()
-	}
-
-	//idx.search = NewSearch(idx.Results)
-
 	for _, opt := range opts {
 		opt(idx)
 	}
 
-	if idx.Filters != nil {
-		return Filter(idx), nil
+	if len(idx.Data) > 0 {
+		idx.CollectItems()
 	}
+
+	idx.search = FuzzySearch(idx.Data, idx.SearchableFields...)
+
+	//if idx.Query != nil {
+	//  return Filter(idx), nil
+	//}
 
 	return idx, nil
 }
@@ -62,8 +61,24 @@ func (idx *Index) Filter(q any) *Index {
 		log.Fatal(err)
 	}
 
-	idx.Filters = filters
+	idx.Query = filters
 	return Filter(idx)
+}
+
+func (idx *Index) Search(q any) *Index {
+	filters, err := ParseFilters(q)
+	if err != nil {
+		log.Fatal(err)
+	}
+	idx.Query = filters
+
+	res, err := idx.get(filters.Get("q"))
+	if err != nil {
+		return idx
+	}
+	res.CollectItems()
+
+	return Filter(res)
 }
 
 // CollectItems collects a facet's items from the data set.
@@ -115,16 +130,6 @@ func (idx *Index) Decode(r io.Reader) error {
 		return err
 	}
 	return nil
-}
-
-func (idx *Index) Get(kw string) (*Index, error) {
-	res, err := idx.get(kw)
-	if err != nil {
-		return &Index{}, err
-	}
-
-	idx.CollectItems()
-	return res, nil
 }
 
 // Encode marshals json from an io.Writer.
@@ -200,23 +205,6 @@ func NewIndexFromFiles(cfg string) (*Index, error) {
 	}
 
 	return idx, nil
-}
-
-func DataFile(cfg string) Opt {
-	return func(idx *Index) {
-		f, err := os.Open(cfg)
-		if err != nil {
-			log.Fatal(err)
-		}
-		defer f.Close()
-
-		data, err := DecodeData(f)
-		if err != nil {
-			log.Fatal(err)
-		}
-		idx.Data = data
-		idx.CollectItems()
-	}
 }
 
 // NewDataFromFiles parses index data from files.

@@ -14,15 +14,15 @@ import (
 // returns a new *Index.
 func Filter(idx *Index) *Index {
 	fmt.Printf("filter %d\n", len(idx.Data))
-	if idx.Filters.Has("q") {
+	if idx.Query.Has("q") {
 		//kw := idx.Filters.Get("q")
 		//idx.Search, _ = idx.Get(kw)
-		idx.Filters.Del("q")
+		idx.Query.Del("q")
 		println(len(idx.Data))
 	}
 
 	var bits []*roaring.Bitmap
-	for name, filters := range idx.Filters {
+	for name, filters := range idx.Query {
 		for _, facet := range idx.Facets {
 			if facet.Attribute == name {
 				bits = append(bits, facet.Filter(filters...))
@@ -37,7 +37,7 @@ func Filter(idx *Index) *Index {
 		idx.GetConfig(),
 		DataSlice(FilteredItems(idx.Data, lo.ToAnySlice(ids))),
 	)
-	res.Filters = idx.Filters
+	res.Query = idx.Query
 	if err != nil {
 		return res
 	}
