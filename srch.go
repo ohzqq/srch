@@ -1,6 +1,7 @@
 package srch
 
 import (
+	"log"
 	"strings"
 
 	"github.com/sahilm/fuzzy"
@@ -38,6 +39,27 @@ func GetSearchableFieldValues(data []any, fields []string) []string {
 	return src
 }
 
+func (idx *Index) Search(q any) *Index {
+	filters, err := ParseFilters(q)
+	if err != nil {
+		log.Fatal(err)
+	}
+	idx.Query = filters
+
+	res, err := idx.get(filters.Get("q"))
+	if err != nil {
+		return idx
+	}
+
+	if !res.HasFacets() {
+		return res
+	}
+
+	res.CollectItems()
+
+	return Filter(res)
+}
+
 func (s *Index) get(q string) (*Index, error) {
 	res := CopyIndex(s, s.search(q))
 
@@ -54,10 +76,11 @@ func (m *Index) Results() (*Index, error) {
 
 func (m *Index) getResults(ids ...int) *Index {
 	if len(ids) > 0 {
-		m.Data = make([]any, len(ids))
+		data := make([]any, len(ids))
 		for i, id := range ids {
-			m.Data[i] = m.Data[id]
+			data[i] = m.Data[id]
 		}
+		m.Data = data
 		return m
 	}
 

@@ -82,27 +82,6 @@ func (idx *Index) Filter(q any) *Index {
 	return Filter(idx)
 }
 
-func (idx *Index) Search(q any) *Index {
-	filters, err := ParseFilters(q)
-	if err != nil {
-		log.Fatal(err)
-	}
-	idx.Query = filters
-
-	res, err := idx.get(filters.Get("q"))
-	if err != nil {
-		return idx
-	}
-
-	if !res.HasFacets() {
-		return res
-	}
-
-	res.CollectItems()
-
-	return Filter(res)
-}
-
 // CollectItems collects a facet's items from the data set.
 func (idx *Index) CollectItems() *Index {
 	for _, facet := range idx.Facets {
@@ -118,7 +97,8 @@ func (idx *Index) GetConfig() map[string]any {
 		facets = append(facets, f.GetConfig())
 	}
 	return map[string]any{
-		"facets": facets,
+		"facets":           facets,
+		"searchableFields": idx.SearchableFields,
 	}
 }
 
