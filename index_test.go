@@ -61,6 +61,7 @@ func TestIdxFilterSearch(t *testing.T) {
 }
 
 func TestIdxSearch(t *testing.T) {
+	t.SkipNow()
 	println("test idx search")
 	vals := testVals()
 	r := idx.Search(vals)

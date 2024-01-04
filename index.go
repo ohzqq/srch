@@ -45,7 +45,9 @@ func New(c any, opts ...Opt) (*Index, error) {
 		idx.CollectItems()
 	}
 
-	idx.search = FuzzySearch(idx.Data, idx.SearchableFields...)
+	if idx.search == nil {
+		idx.search = FuzzySearch(idx.Data, idx.SearchableFields...)
+	}
 
 	return idx, nil
 }
@@ -91,6 +93,11 @@ func (idx *Index) Search(q any) *Index {
 	if err != nil {
 		return idx
 	}
+
+	if !res.HasFacets() {
+		return res
+	}
+
 	res.CollectItems()
 
 	return Filter(res)
@@ -113,6 +120,10 @@ func (idx *Index) GetConfig() map[string]any {
 	return map[string]any{
 		"facets": facets,
 	}
+}
+
+func (idx *Index) HasFacets() bool {
+	return len(idx.Facets) > 0
 }
 
 // GetFacet returns a facet.

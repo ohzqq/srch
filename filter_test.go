@@ -1,12 +1,34 @@
 package srch
 
-//func TestFilters(t *testing.T) {
-//  println("test filters")
-//  f1 := `tags=abo&tags=dnr&authors=Alice+Winters&authors=Amy+Lane`
-//  q, err := parseFilters(f1)
-//  if err != nil {
-//    t.Error(err)
-//  }
-//  testFilters(q)
-//  //fmt.Printf("%+v\n", books)
-//}
+import (
+	"log"
+	"net/url"
+	"testing"
+
+	"github.com/ohzqq/audible"
+	"github.com/samber/lo"
+)
+
+func TestAudibleSearch(t *testing.T) {
+	cfg := map[string]any{
+		"searchableFields": []string{"title"},
+	}
+	a, err := New(cfg, WithSearch(audibleSrch))
+	if err != nil {
+		t.Error(err)
+	}
+	v := make(url.Values)
+	v.Set("q", "amy lane fish")
+	res := a.Search(v)
+	res.Print()
+}
+
+func audibleSrch(q string) []any {
+	s := audible.NewSearch(q)
+	r, err := audible.Products().Search(s)
+	if err != nil {
+		log.Fatal(err)
+	}
+	//fmt.Printf("products %v\n", r.Products)
+	return lo.ToAnySlice(r.Products)
+}
