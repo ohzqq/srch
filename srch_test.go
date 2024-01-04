@@ -2,7 +2,6 @@ package srch
 
 import (
 	"encoding/json"
-	"fmt"
 	"os/exec"
 	"testing"
 )
@@ -21,27 +20,27 @@ func (q testQ) String() string {
 	return string(q)
 }
 
-func TestCDB(t *testing.T) {
-	t.SkipNow()
-	s := NewSearch(testS)
-	//err := s.Get()
-	sel, err := s.Get("litrpg")
-	if err != nil {
-		t.Error(err)
-	}
-	fmt.Printf("%#v\n", sel)
-}
+//func TestCDB(t *testing.T) {
+//  t.SkipNow()
+//  s := NewSearch(testS)
+//  //err := s.Get()
+//  sel, err := s.Get("litrpg")
+//  if err != nil {
+//    t.Error(err)
+//  }
+//  fmt.Printf("%#v\n", sel)
+//}
 
-func TestTUI(t *testing.T) {
-	t.SkipNow()
-	s := NewSearch(testS)
-	//err := s.Get()
-	sel, err := s.Get("litrpg")
-	if err != nil {
-		t.Error(err)
-	}
-	fmt.Printf("%#v\n", sel)
-}
+//func TestTUI(t *testing.T) {
+//  t.SkipNow()
+//  s := NewSearch(testS)
+//  //err := s.Get()
+//  sel, err := s.Get("litrpg")
+//  if err != nil {
+//    t.Error(err)
+//  }
+//  fmt.Printf("%#v\n", sel)
+//}
 
 func cdbSearch(t *testing.T) []byte {
 	//cdb := exec.Command("echo", `angst`)

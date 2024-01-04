@@ -16,21 +16,19 @@ type Searchz struct {
 }
 
 func NewSearch(s Searcher) Search {
-	search := Search{
-		search: s,
-	}
+	search := Search{}
 	return search
 }
 
 func Interactive(s *Index) {
-	s.Search.interactive = true
+	s.interactive = true
 }
 
-func (s *Search) Get(q string) (Search, error) {
+func (s *Index) get(q string) (*Index, error) {
 	var err error
 	s.results, err = s.search.Search(q)
 	if err != nil {
-		return Search{}, err
+		return &Index{}, err
 	}
 
 	if s.interactive {
@@ -40,12 +38,12 @@ func (s *Search) Get(q string) (Search, error) {
 	return s.Results()
 }
 
-func (m *Search) Results() (Search, error) {
+func (m *Index) Results() (*Index, error) {
 	return m.getResults(), nil
 }
 
-func (m *Search) getResults(ids ...int) Search {
-	r := Search{
+func (m *Index) getResults(ids ...int) *Index {
+	r := &Index{
 		//Query: m.query,
 	}
 
@@ -61,10 +59,10 @@ func (m *Search) getResults(ids ...int) Search {
 	return r
 }
 
-func (s *Search) Choose() (Search, error) {
+func (s *Index) Choose() (*Index, error) {
 	ids, err := Choose(s.results)
 	if err != nil {
-		return Search{}, err
+		return &Index{}, err
 	}
 
 	res := s.getResults(ids...)

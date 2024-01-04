@@ -2,7 +2,6 @@ package srch
 
 import (
 	"fmt"
-	"net/url"
 	"strings"
 
 	"github.com/sahilm/fuzzy"
@@ -11,14 +10,6 @@ import (
 )
 
 type Search struct {
-	Data         []any      `json:"data"`
-	SearchFields []string   `json:"search_fields"`
-	Facets       []*Facet   `json:"facets"`
-	query        Query      `json:"query"`
-	Filters      url.Values `json:"filters"`
-	interactive  bool
-	search       Searcher
-	results      []Item
 }
 
 type Item interface {
@@ -45,7 +36,7 @@ func NewDefaultItem(val string) *FacetItem {
 //  return res, nil
 //}
 
-func (r Search) String(i int) string {
+func (r *Index) String(i int) string {
 	s := lo.PickByKeys(
 		cast.ToStringMap(r.Data[i]),
 		r.SearchFields,
@@ -54,10 +45,10 @@ func (r Search) String(i int) string {
 	return strings.Join(vals, "\n")
 }
 
-func (r Search) Len() int {
+func (r *Index) Len() int {
 	return len(r.Data)
 }
 
-func (r Search) FuzzyFind(q string) fuzzy.Matches {
+func (r *Index) FuzzyFind(q string) fuzzy.Matches {
 	return fuzzy.FindFrom(q, r)
 }

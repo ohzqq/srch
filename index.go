@@ -6,6 +6,7 @@ import (
 	"errors"
 	"io"
 	"log"
+	"net/url"
 	"os"
 
 	"github.com/mitchellh/mapstructure"
@@ -22,7 +23,14 @@ type Opt func(*Index)
 
 // Index is a structure for facets and data.
 type Index struct {
-	Search
+	Data         []any      `json:"data"`
+	SearchFields []string   `json:"search_fields"`
+	Facets       []*Facet   `json:"facets"`
+	query        Query      `json:"query"`
+	Filters      url.Values `json:"filters"`
+	interactive  bool
+	search       Searcher
+	results      []Item
 }
 
 // New initializes an index.
@@ -111,10 +119,10 @@ func (idx *Index) Decode(r io.Reader) error {
 	return nil
 }
 
-func (idx *Index) Get(kw string) (Search, error) {
-	res, err := idx.Search.Get(kw)
+func (idx *Index) Get(kw string) (*Index, error) {
+	res, err := idx.get(kw)
 	if err != nil {
-		return Search{}, err
+		return &Index{}, err
 	}
 
 	idx.CollectItems()
@@ -136,9 +144,9 @@ func (idx *Index) DecodeData(r io.Reader) error {
 }
 
 // String returns an Index as a json formatted string.
-func (idx *Index) String() string {
-	return string(idx.JSON())
-}
+//func (idx *Index) String() string {
+//  return string(idx.JSON())
+//}
 
 // JSON marshals an Index to json.
 func (idx *Index) JSON() []byte {
@@ -198,7 +206,7 @@ func NewIndexFromFiles(cfg string) (*Index, error) {
 
 func WithSearch(s Searcher) Opt {
 	return func(idx *Index) {
-		idx.Search = NewSearch(s)
+		idx.search = s
 	}
 }
 
