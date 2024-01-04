@@ -57,7 +57,7 @@ func cdbSearch(t *testing.T) []byte {
 
 type testResult map[string]any
 
-func (s testSearcher) Search(queries string) ([]Item, error) {
+func (s testSearcher) Search(queries string) ([]any, error) {
 	testS.cmd = append(testS.cmd, "-s", queries)
 	cdb := exec.Command("calibredb", testS.cmd...)
 	println(cdb.String())
@@ -73,7 +73,7 @@ func (s testSearcher) Search(queries string) ([]Item, error) {
 		return nil, err
 	}
 
-	var items []Item
+	var items []any
 	for _, r := range res {
 		items = append(items, r)
 	}

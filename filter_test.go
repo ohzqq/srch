@@ -13,7 +13,7 @@ func TestAudibleSearch(t *testing.T) {
 	cfg := map[string]any{
 		"searchableFields": []string{"title"},
 	}
-	a, err := New(cfg, WithSearch(audibleSrch))
+	a, err := New(cfg, WithSearch(audibleSrch), Interactive)
 	if err != nil {
 		t.Error(err)
 	}

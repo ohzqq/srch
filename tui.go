@@ -3,7 +3,6 @@ package srch
 import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/ohzqq/bubbles/list"
-	"github.com/spf13/cast"
 )
 
 type TUI struct {
@@ -12,10 +11,10 @@ type TUI struct {
 
 type item string
 
-func Choose(results []any) ([]int, error) {
-	items := make([]list.Item, len(results))
-	for i, r := range results {
-		items[i] = item(cast.ToString(r))
+func Choose(idx *Index) ([]int, error) {
+	items := make([]list.Item, idx.Len())
+	for i := 0; i < idx.Len(); i++ {
+		items[i] = item(idx.String(i))
 	}
 
 	s := &TUI{}

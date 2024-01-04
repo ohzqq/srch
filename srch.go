@@ -8,10 +8,6 @@ import (
 	"github.com/spf13/cast"
 )
 
-type Searcher interface {
-	Search(string) ([]Item, error)
-}
-
 type SearchFunc func(string) []any
 
 func FuzzySearch(data []any, fields ...string) SearchFunc {
@@ -60,7 +56,7 @@ func (m *Index) getResults(ids ...int) *Index {
 	if len(ids) > 0 {
 		m.Data = make([]any, len(ids))
 		for i, id := range ids {
-			m.Data[i] = m.results[id]
+			m.Data[i] = m.Data[id]
 		}
 		return m
 	}
@@ -69,7 +65,7 @@ func (m *Index) getResults(ids ...int) *Index {
 }
 
 func (s *Index) Choose() (*Index, error) {
-	ids, err := Choose(s.results)
+	ids, err := Choose(s)
 	if err != nil {
 		return &Index{}, err
 	}
@@ -77,4 +73,21 @@ func (s *Index) Choose() (*Index, error) {
 	res := s.getResults(ids...)
 
 	return res, nil
+}
+
+func (r *Index) String(i int) string {
+	s := lo.PickByKeys(
+		cast.ToStringMap(r.Data[i]),
+		r.SearchableFields,
+	)
+	vals := cast.ToStringSlice(lo.Values(s))
+	return strings.Join(vals, "\n")
+}
+
+func (r *Index) Len() int {
+	return len(r.Data)
+}
+
+func (r *Index) FuzzyFind(q string) fuzzy.Matches {
+	return fuzzy.FindFrom(q, r)
 }

@@ -66,6 +66,7 @@ func CopyIndex(idx *Index, data []any) *Index {
 	}
 	n.Query = idx.Query
 	n.search = idx.search
+	n.interactive = idx.interactive
 
 	return n
 }
@@ -108,10 +109,6 @@ func (idx *Index) CollectItems() *Index {
 		facet.CollectItems(idx.Data)
 	}
 	return idx
-}
-
-func (idx *Index) Items() []any {
-	return idx.Data
 }
 
 // GetConfig returns a map of the Index's config.
