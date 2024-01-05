@@ -10,7 +10,7 @@ import (
 
 type Src func(args ...any) []any
 
-func SliceSrc(data ...any) Src {
+func SliceSrc(data []any) Src {
 	return func(...any) []any {
 		return data
 	}

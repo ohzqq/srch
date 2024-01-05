@@ -1,8 +1,6 @@
 package srch
 
 import (
-	"fmt"
-
 	"github.com/RoaringBitmap/roaring"
 	"github.com/samber/lo"
 	"github.com/spf13/cast"
@@ -12,9 +10,6 @@ import (
 // Filter takes an *Index, filters the data and calculates the facets. It
 // returns a new *Index.
 func Filter(idx *Index) *Index {
-	for _, f := range idx.Facets {
-		fmt.Printf("%+v\n", f)
-	}
 	var bits []*roaring.Bitmap
 	for name, filters := range idx.Query {
 		for _, facet := range idx.Facets {
@@ -28,7 +23,6 @@ func Filter(idx *Index) *Index {
 	ids := filtered.ToArray()
 
 	d := FilteredItems(idx.Data, lo.ToAnySlice(ids))
-	println(len(d))
 	return CopyIndex(idx, d)
 }
 

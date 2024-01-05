@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"log"
 	"os"
@@ -43,11 +42,8 @@ func New(src Src, opts ...Opt) *Index {
 		opt(idx)
 	}
 
-	if len(idx.Data) > 0 && len(idx.Facets) > 0 {
+	if len(idx.Data) > 0 && idx.HasFacets() {
 		idx.CollectItems()
-		for _, f := range idx.Facets {
-			fmt.Printf("%+v\n", f)
-		}
 	}
 
 	if idx.fuzzy {
