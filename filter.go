@@ -12,10 +12,6 @@ import (
 // Filter takes an *Index, filters the data and calculates the facets. It
 // returns a new *Index.
 func Filter(idx *Index) *Index {
-	if idx.Query.Has("q") {
-		idx.Query.Del("q")
-	}
-
 	var bits []*roaring.Bitmap
 	for name, filters := range idx.Query {
 		for _, facet := range idx.Facets {

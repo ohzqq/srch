@@ -48,7 +48,7 @@ func (idx *Index) Search(q any) *Index {
 	if err != nil {
 		log.Fatal(err)
 	}
-	idx.query = filters
+	idx.Query = filters
 
 	res, err := idx.get(filters.Keywords()...)
 	if err != nil {

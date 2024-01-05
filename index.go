@@ -6,7 +6,6 @@ import (
 	"errors"
 	"io"
 	"log"
-	"net/url"
 	"os"
 
 	"github.com/mitchellh/mapstructure"
@@ -21,11 +20,10 @@ func init() {
 
 // Index is a structure for facets and data.
 type Index struct {
-	Data             []any      `json:"data"`
-	SearchableFields []string   `json:"searchableFields"`
-	Facets           []*Facet   `json:"facets"`
-	Query            url.Values `json:"filters"`
-	query            Query
+	Data             []any    `json:"data"`
+	SearchableFields []string `json:"searchableFields"`
+	Facets           []*Facet `json:"facets"`
+	Query            Query    `json:"filters"`
 	interactive      bool
 	fuzzy            bool
 	search           SearchFunc
@@ -88,7 +86,7 @@ func CopyIndex(idx *Index, data []any) *Index {
 
 // Filter idx.Data and re-calculate facets.
 func (idx *Index) Filter(q any) *Index {
-	filters, err := ParseFilters(q)
+	filters, err := NewQuery(q)
 	if err != nil {
 		log.Fatal(err)
 	}
