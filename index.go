@@ -129,19 +129,6 @@ func (idx *Index) GetFacet(name string) *Facet {
 	return NewFacet(name)
 }
 
-// SetData sets the data set for the index.
-func (idx *Index) SetData(data ...any) error {
-	for _, datum := range data {
-		d, err := parseData(datum)
-		if err != nil {
-			return err
-		}
-		idx.Data = append(idx.Data, d...)
-	}
-	idx.CollectItems()
-	return nil
-}
-
 // Decode unmarshals json from an io.Reader.
 func (idx *Index) Decode(r io.Reader) error {
 	err := json.NewDecoder(r).Decode(idx)
@@ -226,28 +213,6 @@ func NewIndexFromFiles(cfg string) (*Index, error) {
 	return idx, nil
 }
 
-// NewDataFromFiles parses index data from files.
-func NewDataFromFiles(d ...string) ([]any, error) {
-	var data []any
-	for _, datum := range d {
-		p, err := dataFromFile(datum)
-		if err != nil {
-			return nil, err
-		}
-		data = append(data, p...)
-	}
-	return data, nil
-}
-
-func dataFromFile(d string) ([]any, error) {
-	data, err := os.Open(d)
-	if err != nil {
-		return nil, err
-	}
-	defer data.Close()
-	return DecodeData(data)
-}
-
 // NewIndexFromString initializes an index from a json formatted string.
 func NewIndexFromString(d string) (*Index, error) {
 	idx := &Index{}
@@ -261,12 +226,6 @@ func NewIndexFromString(d string) (*Index, error) {
 		idx.CollectItems()
 	}
 	return idx, nil
-}
-
-// NewDatFromString parses index data from a json formatted string.
-func NewDataFromString(d string) ([]any, error) {
-	buf := bytes.NewBufferString(d)
-	return DecodeData(buf)
 }
 
 // NewIndexFromMap initalizes an index from a map[string]any.
@@ -313,31 +272,6 @@ func parseFacetMap(f any) map[string]*Facet {
 		facets[name] = facet
 	}
 	return facets
-}
-
-func parseData(d any) ([]any, error) {
-	switch val := d.(type) {
-	case []byte:
-		return unmarshalData(val)
-	case string:
-		if exist(val) {
-			return dataFromFile(val)
-		} else {
-			return unmarshalData([]byte(val))
-		}
-	case []any:
-		return val, nil
-	}
-	return nil, errors.New("data couldn't be parsed")
-}
-
-func unmarshalData(d []byte) ([]any, error) {
-	var data []any
-	err := json.Unmarshal(d, &data)
-	if err != nil {
-		return nil, err
-	}
-	return data, nil
 }
 
 func exist(path string) bool {
