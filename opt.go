@@ -2,6 +2,7 @@ package srch
 
 import (
 	"bytes"
+	"io"
 	"log"
 	"os"
 )
@@ -37,6 +38,15 @@ func CfgString(cfg string) Opt {
 func CfgBytes(cfg []byte) Opt {
 	return func(idx *Index) {
 		err := CfgIndexFromBytes(idx, cfg)
+		if err != nil {
+			log.Printf("cfg error: %v, using defaults\n", err)
+		}
+	}
+}
+
+func ReadCfg(r io.Reader) Opt {
+	return func(idx *Index) {
+		err := idx.Decode(r)
 		if err != nil {
 			log.Printf("cfg error: %v, using defaults\n", err)
 		}

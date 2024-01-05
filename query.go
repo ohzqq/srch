@@ -45,6 +45,10 @@ func (q Query) Encode() string {
 	return q.Values().Encode()
 }
 
+func (q Query) Set(k, v string) {
+	q.Values().Set(k, v)
+}
+
 func (q Query) Keywords() []string {
 	if q.Values().Has("q") {
 		return q["q"]

@@ -26,6 +26,16 @@ func FileSrc(file ...string) Src {
 	}
 }
 
+func ReadDataSrc(r io.Reader) Src {
+	return func(...any) []any {
+		d, err := DecodeData(r)
+		if err != nil {
+			return []any{}
+		}
+		return d
+	}
+}
+
 // DecodeData decodes data from a io.Reader.
 func DecodeData(r io.Reader) ([]any, error) {
 	var data []any
