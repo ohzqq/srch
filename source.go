@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"io"
 	"os"
 )
 
@@ -23,6 +24,16 @@ func FileSrc(file ...string) Src {
 		}
 		return data
 	}
+}
+
+// DecodeData decodes data from a io.Reader.
+func DecodeData(r io.Reader) ([]any, error) {
+	var data []any
+	err := json.NewDecoder(r).Decode(&data)
+	if err != nil {
+		return data, err
+	}
+	return data, nil
 }
 
 // NewDataFromFiles parses index data from files.

@@ -29,7 +29,9 @@ type Index struct {
 	search           SearchFunc
 }
 
-func NewIndex(src Src, opts ...Opt) *Index {
+// New initializes an *Index with defaults: SearchableFields are
+// []string{"title"}.
+func New(src Src, opts ...Opt) *Index {
 	idx := &Index{
 		Data:             src(),
 		SearchableFields: []string{"title"},
@@ -52,7 +54,7 @@ func NewIndex(src Src, opts ...Opt) *Index {
 }
 
 func CopyIndex(idx *Index, data []any) *Index {
-	n := NewIndex(SliceSrc(data), WithCfg(idx.GetConfig()))
+	n := New(SliceSrc(data), WithCfg(idx.GetConfig()))
 	n.Data = data
 	n.Query = idx.Query
 	n.search = idx.search
@@ -128,14 +130,6 @@ func (idx *Index) DecodeData(r io.Reader) error {
 	return nil
 }
 
-func (idx *Index) SetConfig(c any) {
-}
-
-// String returns an Index as a json formatted string.
-//func (idx *Index) String() string {
-//  return string(idx.JSON())
-//}
-
 // JSON marshals an Index to json.
 func (idx *Index) JSON() []byte {
 	var buf bytes.Buffer
@@ -164,16 +158,6 @@ func (idx *Index) PrettyPrint() {
 	}
 }
 
-// DecodeData decodes data from a io.Reader.
-func DecodeData(r io.Reader) ([]any, error) {
-	var data []any
-	err := json.NewDecoder(r).Decode(&data)
-	if err != nil {
-		return data, err
-	}
-	return data, nil
-}
-
 // CfgIndexFromFile initializes an index from files.
 func CfgIndexFromFile(idx *Index, cfg string) error {
 	f, err := os.Open(cfg)
@@ -190,16 +174,41 @@ func CfgIndexFromFile(idx *Index, cfg string) error {
 	return nil
 }
 
-// CfgIndexFromString initializes an index from a json formatted string.
-func CfgIndexFromString(idx *Index, d string) error {
-	buf := bytes.NewBufferString(d)
-	err := idx.Decode(buf)
+func CfgIndex(idx *Index, cfg any) {
+	switch val := cfg.(type) {
+	case []byte:
+		err := CfgIndexFromBytes(idx, val)
+		if err != nil {
+			log.Fatal(err)
+		}
+		return
+	case string:
+		if exist(val) {
+			err := CfgIndexFromFile(idx, val)
+			if err != nil {
+				log.Fatal(err)
+			}
+			return
+		} else {
+			err := CfgIndexFromBytes(idx, []byte(val))
+			if err != nil {
+				log.Fatal(err)
+			}
+			return
+		}
+	case map[string]any:
+		err := CfgIndexFromMap(idx, val)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+}
+
+// CfgIndexFromBytes initializes an index from a json formatted string.
+func CfgIndexFromBytes(idx *Index, d []byte) error {
+	err := idx.Decode(bytes.NewBuffer(d))
 	if err != nil {
 		return err
-	}
-
-	if len(idx.Data) > 0 {
-		idx.CollectItems()
 	}
 	return nil
 }
@@ -209,9 +218,6 @@ func CfgIndexFromMap(idx *Index, d map[string]any) error {
 	err := mapstructure.Decode(d, idx)
 	if err != nil {
 		return err
-	}
-	if len(idx.Data) > 0 {
-		idx.CollectItems()
 	}
 	return nil
 }

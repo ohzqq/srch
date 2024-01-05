@@ -29,14 +29,14 @@ func init() {
 	//  log.Fatal(err)
 	//}
 
-	idx = NewIndex(FileSrc(testData), WithCfg(testCfgFile))
+	idx = New(FileSrc(testData), WithCfg(testCfgFile))
 
 	books = idx.Data
 
 }
 
 func TestNewIndexFunc(t *testing.T) {
-	i := NewIndex(FileSrc(testData), WithCfgFile(testCfgFile))
+	i := New(FileSrc(testData), WithCfgFile(testCfgFile))
 	if i.Len() != 7174 {
 		t.Errorf("got %d, expected 7174\n", i.Len())
 	}
@@ -60,7 +60,7 @@ func TestIdxFilterSearch(t *testing.T) {
 
 	fn := FuzzySearch(books, "title")
 	res := fn("fish")
-	i := NewIndex(SliceSrc(res), WithCfg(testCfgFile))
+	i := New(SliceSrc(res), WithCfg(testCfgFile))
 	vals := make(url.Values)
 	vals.Set("authors", "amy lane")
 	r := i.Filter(vals)
