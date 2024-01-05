@@ -1,9 +1,5 @@
 package srch
 
-import (
-	"os"
-)
-
 type Src func(args ...any) []any
 
 func SliceSrc(data ...any) Src {
@@ -12,15 +8,9 @@ func SliceSrc(data ...any) Src {
 	}
 }
 
-func FileSrc(file string) Src {
+func FileSrc(file ...string) Src {
 	return func(...any) []any {
-		f, err := os.Open(file)
-		if err != nil {
-			return []any{}
-		}
-		defer f.Close()
-
-		data, err := DecodeData(f)
+		data, err := NewDataFromFiles(file...)
 		if err != nil {
 			return []any{}
 		}
