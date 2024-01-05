@@ -1,8 +1,6 @@
 package srch
 
 import (
-	"net/url"
-
 	"github.com/RoaringBitmap/roaring"
 	"github.com/samber/lo"
 	"github.com/spf13/cast"
@@ -39,50 +37,4 @@ func FilteredItems(data []any, ids []any) []any {
 		}
 	}
 	return items
-}
-
-// FilterString parses an encoded filter string.
-func FilterString(val string) (url.Values, error) {
-	q, err := url.ParseQuery(val)
-	if err != nil {
-		return nil, err
-	}
-	return q, nil
-}
-
-// FilterBytes parses a byte slice to url.Values.
-func FilterBytes(val []byte) (url.Values, error) {
-	filters, err := cast.ToStringMapStringSliceE(string(val))
-	if err != nil {
-		return nil, err
-	}
-	return filters, nil
-}
-
-// ParseFilters takes an interface{} and returns a url.Values.
-func ParseFilters(f any) (url.Values, error) {
-	filters, err := ParseValues(f)
-	return url.Values(filters), err
-}
-
-// ParseValues takes an interface{} and returns a url.Values.
-func ParseValues(f any) (map[string][]string, error) {
-	filters := make(map[string][]string)
-	var err error
-	switch val := f.(type) {
-	case url.Values:
-		return val, nil
-	case Query:
-		return val, nil
-	case []byte:
-		return FilterBytes(val)
-	case string:
-		return FilterString(val)
-	default:
-		filters, err = cast.ToStringMapStringSliceE(val)
-		if err != nil {
-			return nil, err
-		}
-	}
-	return filters, nil
 }
