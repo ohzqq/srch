@@ -73,7 +73,7 @@ func WithFuzzySearch() Opt {
 	}
 }
 
-// DataString initializes an index from a json formatted string.
+// DataString sets the *Index.Data from a json formatted string.
 func DataString(d string) Opt {
 	return func(idx *Index) {
 		buf := bytes.NewBufferString(d)
@@ -88,6 +88,7 @@ func DataString(d string) Opt {
 	}
 }
 
+// DataSlice sets the *Index.Data from a slice.
 func DataSlice(data []any) Opt {
 	return func(idx *Index) {
 		idx.Data = data
@@ -95,6 +96,7 @@ func DataSlice(data []any) Opt {
 	}
 }
 
+// DataFile sets the *Index.Data from a json file.
 func DataFile(cfg string) Opt {
 	return func(idx *Index) {
 		f, err := os.Open(cfg)

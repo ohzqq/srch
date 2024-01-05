@@ -54,13 +54,16 @@ func TestIdxCfg(t *testing.T) {
 }
 
 func TestIdxFilterSearch(t *testing.T) {
-	t.SkipNow()
+	//t.SkipNow()
 	//vals := testVals()
 	//res := idx.Search(vals)
 
 	fn := FuzzySearch(books, "title")
 	res := fn("fish")
 	i := New(SliceSrc(res), WithCfg(testCfgFile))
+	//for _, f := range i.Facets {
+	//  fmt.Printf("%+v\n", f)
+	//}
 	vals := make(url.Values)
 	vals.Set("authors", "amy lane")
 	r := i.Filter(vals)

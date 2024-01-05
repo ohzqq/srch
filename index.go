@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"log"
 	"os"
@@ -44,6 +45,9 @@ func New(src Src, opts ...Opt) *Index {
 
 	if len(idx.Data) > 0 && len(idx.Facets) > 0 {
 		idx.CollectItems()
+		for _, f := range idx.Facets {
+			fmt.Printf("%+v\n", f)
+		}
 	}
 
 	if idx.fuzzy {
@@ -53,6 +57,7 @@ func New(src Src, opts ...Opt) *Index {
 	return idx
 }
 
+// CopyIndex copies an index's config.
 func CopyIndex(idx *Index, data []any) *Index {
 	n := New(SliceSrc(data), WithCfg(idx.GetConfig()))
 	n.Data = data
@@ -93,6 +98,7 @@ func (idx *Index) GetConfig() map[string]any {
 	}
 }
 
+// HasFacets returns true if facets are configured.
 func (idx *Index) HasFacets() bool {
 	return len(idx.Facets) > 0
 }
@@ -119,15 +125,6 @@ func (idx *Index) Decode(r io.Reader) error {
 // Encode marshals json from an io.Writer.
 func (idx *Index) Encode(w io.Writer) error {
 	return json.NewEncoder(w).Encode(idx)
-}
-
-// DecodeData unmarshals data from an io.Reader.
-func (idx *Index) DecodeData(r io.Reader) error {
-	err := json.NewDecoder(r).Decode(&idx.Data)
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
 // JSON marshals an Index to json.
@@ -158,6 +155,37 @@ func (idx *Index) PrettyPrint() {
 	}
 }
 
+// CfgIndex configures an *Index.
+func CfgIndex(idx *Index, cfg any) {
+	switch val := cfg.(type) {
+	case []byte:
+		err := CfgIndexFromBytes(idx, val)
+		if err != nil {
+			log.Printf("cfg error: %v, using defaults\n", err)
+		}
+		return
+	case string:
+		if exist(val) {
+			err := CfgIndexFromFile(idx, val)
+			if err != nil {
+				log.Printf("cfg error: %v, using defaults\n", err)
+			}
+			return
+		} else {
+			err := CfgIndexFromBytes(idx, []byte(val))
+			if err != nil {
+				log.Printf("cfg error: %v, using defaults\n", err)
+			}
+			return
+		}
+	case map[string]any:
+		err := CfgIndexFromMap(idx, val)
+		if err != nil {
+			log.Printf("cfg error: %v, using defaults\n", err)
+		}
+	}
+}
+
 // CfgIndexFromFile initializes an index from files.
 func CfgIndexFromFile(idx *Index, cfg string) error {
 	f, err := os.Open(cfg)
@@ -172,36 +200,6 @@ func CfgIndexFromFile(idx *Index, cfg string) error {
 	}
 
 	return nil
-}
-
-func CfgIndex(idx *Index, cfg any) {
-	switch val := cfg.(type) {
-	case []byte:
-		err := CfgIndexFromBytes(idx, val)
-		if err != nil {
-			log.Fatal(err)
-		}
-		return
-	case string:
-		if exist(val) {
-			err := CfgIndexFromFile(idx, val)
-			if err != nil {
-				log.Fatal(err)
-			}
-			return
-		} else {
-			err := CfgIndexFromBytes(idx, []byte(val))
-			if err != nil {
-				log.Fatal(err)
-			}
-			return
-		}
-	case map[string]any:
-		err := CfgIndexFromMap(idx, val)
-		if err != nil {
-			log.Fatal(err)
-		}
-	}
 }
 
 // CfgIndexFromBytes initializes an index from a json formatted string.
