@@ -33,6 +33,16 @@ func init() {
 
 }
 
+func TestNewIndexFunc(t *testing.T) {
+	i := NewIndex(FileSrc(testData), WithCfgFile(testCfgFile))
+	if i.Len() != 7174 {
+		t.Errorf("got %d, expected 7174\n", i.Len())
+	}
+	if len(i.Facets) != 4 {
+		t.Errorf("got %d, expected 4\n", len(i.Facets))
+	}
+}
+
 func TestIdxCfg(t *testing.T) {
 	//cfg := &Index{}
 	err := json.Unmarshal([]byte(testCfg), idx)

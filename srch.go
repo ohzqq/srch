@@ -9,10 +9,14 @@ import (
 	"github.com/spf13/cast"
 )
 
-type SearchFunc func(string) []any
+type SearchFunc func(...any) []any
 
 func FuzzySearch(data []any, fields ...string) SearchFunc {
-	return func(q string) []any {
+	return func(qq ...any) []any {
+		var q string
+		if len(qq) > 0 {
+			q = qq[0].(string)
+		}
 		if q == "" {
 			return data
 		}

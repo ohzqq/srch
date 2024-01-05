@@ -1,6 +1,7 @@
 package srch
 
 import (
+	"bytes"
 	"log"
 	"os"
 )
@@ -9,6 +10,21 @@ type Opt func(*Index)
 
 func Interactive(s *Index) {
 	s.interactive = true
+}
+
+func WithCfgFile(file string) Opt {
+	return func(idx *Index) {
+		f, err := os.Open(file)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer f.Close()
+
+		err = idx.Decode(f)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
 }
 
 func WithFields(fields []string) Opt {
@@ -20,6 +36,27 @@ func WithFields(fields []string) Opt {
 func WithSearch(s SearchFunc) Opt {
 	return func(idx *Index) {
 		idx.search = s
+	}
+}
+
+func WithFuzzySearch() Opt {
+	return func(idx *Index) {
+		idx.fuzzy = true
+	}
+}
+
+// DataString initializes an index from a json formatted string.
+func DataString(d string) Opt {
+	return func(idx *Index) {
+		buf := bytes.NewBufferString(d)
+		err := idx.Decode(buf)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		if len(idx.Data) > 0 {
+			idx.CollectItems()
+		}
 	}
 }
 

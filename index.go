@@ -26,7 +26,30 @@ type Index struct {
 	Facets           []*Facet   `json:"facets"`
 	Query            url.Values `json:"filters"`
 	interactive      bool
+	fuzzy            bool
 	search           SearchFunc
+}
+
+func NewIndex(src Src, opts ...Opt) *Index {
+	idx := &Index{
+		Data:             src(),
+		SearchableFields: []string{"title"},
+		search:           SearchFunc(src),
+	}
+
+	for _, opt := range opts {
+		opt(idx)
+	}
+
+	if len(idx.Data) > 0 && len(idx.Facets) > 0 {
+		idx.CollectItems()
+	}
+
+	if idx.fuzzy {
+		idx.search = FuzzySearch(idx.Data, idx.SearchableFields...)
+	}
+
+	return idx
 }
 
 // New initializes an index.
