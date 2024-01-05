@@ -17,6 +17,15 @@ type Facet struct {
 	Sep       string       `json:"-"`
 }
 
+// FacetItem is a data structure for a Facet's item.
+type FacetItem struct {
+	Value       string `json:"value"`
+	Label       string `json:"label"`
+	Count       int    `json:"count"`
+	belongsTo   []uint32
+	fuzzy.Match `json:"-"`
+}
+
 // NewFacet initializes a facet with attribute.
 func NewFacet(name string) *Facet {
 	return &Facet{
@@ -134,15 +143,6 @@ func (f *Facet) Filter(filters ...string) *roaring.Bitmap {
 	default:
 		return roaring.ParOr(viper.GetInt("workers"), bits...)
 	}
-}
-
-// FacetItem is a data structure for a Facet's item.
-type FacetItem struct {
-	Value       string `json:"value"`
-	Label       string `json:"label"`
-	Count       int    `json:"count"`
-	belongsTo   []uint32
-	fuzzy.Match `json:"-"`
 }
 
 // NewFacetItem initializes an item with a value and string slice of related data

@@ -11,10 +11,10 @@ type TUI struct {
 
 type item string
 
-func Choose(results []Item) ([]int, error) {
-	items := make([]list.Item, len(results))
-	for i, r := range results {
-		items[i] = item(r.String())
+func Choose(idx *Index) ([]int, error) {
+	items := make([]list.Item, idx.Len())
+	for i := 0; i < idx.Len(); i++ {
+		items[i] = item(idx.String(i))
 	}
 
 	s := &TUI{}

@@ -69,6 +69,29 @@ func (q testQ) String() string {
 	return string(q)
 }
 
+<<<<<<< HEAD
+func TestCDB(t *testing.T) {
+	t.SkipNow()
+	//s := NewSearch(testS)
+	//err := s.Get()
+	sel, err := idx.search.Search("litrpg")
+	if err != nil {
+		t.Error(err)
+	}
+	fmt.Printf("%#v\n", sel)
+}
+
+func TestTUI(t *testing.T) {
+	t.SkipNow()
+	//s := NewSearch(testS)
+	//err := s.Get()
+	sel, err := idx.search.Search("litrpg")
+	if err != nil {
+		t.Error(err)
+	}
+	fmt.Printf("%#v\n", sel)
+}
+=======
 //func TestCDB(t *testing.T) {
 //  t.SkipNow()
 //  s := NewSearch(testS)
@@ -90,6 +113,7 @@ func (q testQ) String() string {
 //  }
 //  fmt.Printf("%#v\n", sel)
 //}
+>>>>>>> fix
 
 func cdbSearch(t *testing.T) []byte {
 	//cdb := exec.Command("echo", `angst`)

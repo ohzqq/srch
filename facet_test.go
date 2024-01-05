@@ -53,21 +53,27 @@ func TestRoaringFilter(t *testing.T) {
 }
 
 func TestRoaringFilters(t *testing.T) {
-	vals := make(url.Values)
-	vals.Add("tags", "abo")
-	vals.Add("tags", "dnr")
-	vals.Add("authors", "Alice Winters")
-	vals.Add("authors", "Amy Lane")
-	vals.Add("q", "fish")
-	q, err := ParseFilters(vals)
+	//t.SkipNow()
+	vals := testQuery()
+	q, err := ParseValues(vals)
 	if err != nil {
 		t.Error(err)
 	}
 	testFilters(q)
 }
 
+func testVals() url.Values {
+	vals := make(url.Values)
+	//vals.Add("tags", "abo")
+	//vals.Add("tags", "dnr")
+	//vals.Add("authors", "Alice Winters")
+	vals.Add("authors", "Amy Lane")
+	vals.Add("q", "fish")
+	return vals
+}
+
 func testFilters(q url.Values) {
-	fmt.Printf("pre filter %+v\n", len(idx.Data))
+	//fmt.Printf("pre filter %+v\n", len(idx.Data))
 	items := idx.Filter(q)
 	fmt.Printf("post filter %+v\n", len(items.Data))
 

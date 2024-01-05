@@ -2,7 +2,7 @@ package srch
 
 import (
 	"encoding/json"
-	"log"
+	"net/url"
 	"os"
 	"testing"
 
@@ -20,16 +20,29 @@ const testCfgFile = `testdata/config.json`
 const testCfgFileData = `testdata/config-with-data.json`
 
 func init() {
-	var err error
-	idx, err = New(testCfgFile,
-		DataFile(testData),
-		//WithSearch(testS),
-	)
-	if err != nil {
-		log.Fatal(err)
-	}
+	//var err error
+	//idx, err = New(testCfgFile,
+	//DataFile(testData),
+	////WithSearch(testS),
+	//)
+	//if err != nil {
+	//  log.Fatal(err)
+	//}
+
+	idx = New(FileSrc(testData), WithCfg(testCfgFile))
+
 	books = idx.Data
 
+}
+
+func TestNewIndexFunc(t *testing.T) {
+	i := New(FileSrc(testData), CfgFile(testCfgFile))
+	if i.Len() != 7174 {
+		t.Errorf("got %d, expected 7174\n", i.Len())
+	}
+	if len(i.Facets) != 4 {
+		t.Errorf("got %d, expected 4\n", len(i.Facets))
+	}
 }
 
 func TestIdxCfg(t *testing.T) {
@@ -40,35 +53,29 @@ func TestIdxCfg(t *testing.T) {
 	}
 }
 
-//func TestIdxSearch(t *testing.T) {
-//  res, err := idx.Results.Search("fish")
-//  if err != nil {
-//    t.Error(err)
-//  }
-//  fmt.Printf("search results %v\n", res)
-//}
+func TestIdxFilterSearch(t *testing.T) {
+	//t.SkipNow()
+	//vals := testVals()
+	//res := idx.Search(vals)
 
-func TestNewIdxFromString(t *testing.T) {
-	idx, err := parseCfg(testCfg)
-	if err != nil {
-		t.Error(err)
+	fn := FuzzySearch(books, "title")
+	res := fn("fish")
+	i := New(SliceSrc(res), WithCfg(testCfgFile))
+	vals := make(url.Values)
+	vals.Set("authors", "amy lane")
+	r := i.Filter(vals)
+	if len(r.Data) != 4 {
+		t.Errorf("got %d, expected 4", len(r.Data))
 	}
-	if len(idx.Facets) != 2 {
-		t.Errorf("got %d facets, expected 2", len(idx.Facets))
-	}
+}
 
-	d, err := os.ReadFile(testData)
-	if err != nil {
-		t.Error(err)
-	}
-
-	data, err := NewDataFromString(string(d))
-	if err != nil {
-		t.Error(err)
-	}
-	if len(data) != len(books) {
-		t.Errorf("got %d, expected 7174\v", len(data))
-	}
+func TestIdxSearch(t *testing.T) {
+	t.SkipNow()
+	println("test idx search")
+	vals := testVals()
+	r := idx.Search(vals)
+	//fmt.Println(len(r.Data))
+	r.Print()
 }
 
 func TestNewIdxFromMap(t *testing.T) {
@@ -78,15 +85,15 @@ func TestNewIdxFromMap(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	i, err := NewIndexFromMap(d)
+	err = CfgIndexFromMap(idx, d)
 	if err != nil {
 		t.Error(err)
 	}
-	if len(i.Data) != len(books) {
-		t.Errorf("got %d, expected 7174\v", len(i.Data))
+	if len(idx.Data) != len(books) {
+		t.Errorf("got %d, expected 7174\v", len(idx.Data))
 	}
-	if len(i.Facets) != 2 {
-		t.Errorf("got %d facets, expected 2", len(i.Facets))
+	if len(idx.Facets) != 2 {
+		t.Errorf("got %d facets, expected 2", len(idx.Facets))
 	}
 }
 

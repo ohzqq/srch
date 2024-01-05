@@ -20,6 +20,12 @@ func init() {
 
 // Index is a structure for facets and data.
 type Index struct {
+<<<<<<< HEAD
+	Search
+	search Searcher
+	//Data   []any `json:"data"`
+	*Src
+=======
 	Data             []any    `json:"data"`
 	SearchableFields []string `json:"searchableFields"`
 	Facets           []*Facet `json:"facets"`
@@ -27,6 +33,7 @@ type Index struct {
 	interactive      bool
 	fuzzy            bool
 	search           SearchFunc
+>>>>>>> fix
 }
 
 // New initializes an *Index with defaults: SearchableFields are
@@ -42,12 +49,21 @@ func New(src Src, opts ...Opt) *Index {
 		opt(idx)
 	}
 
+<<<<<<< HEAD
+	if idx.search == nil {
+		idx.search = idx.Src
+	}
+
+	if idx.Filters != nil {
+		return Filter(idx), nil
+=======
 	if len(idx.Data) > 0 && idx.HasFacets() {
 		idx.CollectItems()
 	}
 
 	if idx.fuzzy {
 		idx.search = FuzzySearch(idx.Data, idx.SearchableFields...)
+>>>>>>> fix
 	}
 
 	return idx
@@ -118,6 +134,32 @@ func (idx *Index) Decode(r io.Reader) error {
 	return nil
 }
 
+<<<<<<< HEAD
+func (idx *Index) Get(kw string) (*Result, error) {
+	res, err := idx.get(kw)
+	if err != nil {
+		return &Result{}, err
+	}
+
+	idx.CollectItems()
+	return res, nil
+}
+
+func (s *Index) get(q string) (*Result, error) {
+	err := s.search.Search(q)
+	if err != nil {
+		return &Result{}, err
+	}
+
+	if s.interactive {
+		return s.Choose()
+	}
+
+	return results, nil
+}
+
+=======
+>>>>>>> fix
 // Encode marshals json from an io.Writer.
 func (idx *Index) Encode(w io.Writer) error {
 	return json.NewEncoder(w).Encode(idx)
@@ -151,11 +193,57 @@ func (idx *Index) PrettyPrint() {
 	}
 }
 
+<<<<<<< HEAD
+// DecodeData decodes data from a io.Reader.
+func DecodeData(r io.Reader) ([]any, error) {
+	var data []any
+	err := json.NewDecoder(r).Decode(&data)
+	if err != nil {
+		return data, err
+	}
+	return data, nil
+}
+
+// NewIndexFromFiles initializes an index from files.
+func NewIndexFromFiles(cfg string) (*Index, error) {
+	idx := &Index{}
+
+	f, err := os.Open(cfg)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+
+	err = idx.Decode(f)
+	if err != nil {
+		return nil, err
+	}
+
+	return idx, nil
+}
+
+func WithSearch(s Searcher) Opt {
+	return func(idx *Index) {
+		idx.search = s
+	}
+}
+
+func WithSearchFields(fields []string) Opt {
+	return func(idx *Index) {
+		idx.Search.SearchFields = fields
+	}
+}
+
+func DataFile(cfg string) Opt {
+	return func(idx *Index) {
+		f, err := os.Open(cfg)
+=======
 // CfgIndex configures an *Index.
 func CfgIndex(idx *Index, cfg any) {
 	switch val := cfg.(type) {
 	case []byte:
 		err := CfgIndexFromBytes(idx, val)
+>>>>>>> fix
 		if err != nil {
 			log.Printf("cfg error: %v, using defaults\n", err)
 		}
@@ -174,8 +262,28 @@ func CfgIndex(idx *Index, cfg any) {
 			}
 			return
 		}
+<<<<<<< HEAD
+		idx.Src = NewSrc(data)
+		idx.CollectItems()
+	}
+}
+
+func DataSlice(data []any) Opt {
+	return func(idx *Index) {
+		idx.Src = NewSrc(data)
+		idx.CollectItems()
+	}
+}
+
+// NewDataFromFiles parses index data from files.
+func NewDataFromFiles(d ...string) ([]any, error) {
+	var data []any
+	for _, datum := range d {
+		p, err := dataFromFile(datum)
+=======
 	case map[string]any:
 		err := CfgIndexFromMap(idx, val)
+>>>>>>> fix
 		if err != nil {
 			log.Printf("cfg error: %v, using defaults\n", err)
 		}
@@ -190,7 +298,17 @@ func CfgIndexFromFile(idx *Index, cfg string) error {
 	}
 	defer f.Close()
 
+<<<<<<< HEAD
+// NewIndexFromString initializes an index from a json formatted string.
+func NewIndexFromString(d string) (*Index, error) {
+	idx := &Index{
+		Src: &Src{},
+	}
+	buf := bytes.NewBufferString(d)
+	err := idx.Decode(buf)
+=======
 	err = idx.Decode(f)
+>>>>>>> fix
 	if err != nil {
 		return err
 	}
@@ -198,9 +316,18 @@ func CfgIndexFromFile(idx *Index, cfg string) error {
 	return nil
 }
 
+<<<<<<< HEAD
+// NewIndexFromMap initalizes an index from a map[string]any.
+func NewIndexFromMap(d map[string]any) (*Index, error) {
+	idx := &Index{
+		Src: &Src{},
+	}
+	err := mapstructure.Decode(d, idx)
+=======
 // CfgIndexFromBytes initializes an index from a json formatted string.
 func CfgIndexFromBytes(idx *Index, d []byte) error {
 	err := idx.Decode(bytes.NewBuffer(d))
+>>>>>>> fix
 	if err != nil {
 		return err
 	}

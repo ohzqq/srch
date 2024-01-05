@@ -1,14 +1,47 @@
 package srch
 
 import (
+<<<<<<< HEAD
+	"fmt"
+	"net/url"
+
+=======
 	"log"
 	"strings"
 
 	"github.com/sahilm/fuzzy"
+>>>>>>> fix
 	"github.com/samber/lo"
 	"github.com/spf13/cast"
 )
 
+<<<<<<< HEAD
+type Searcher interface {
+	Search(string) error
+	Matches() []int
+	//Find(string) Results
+}
+
+type Search struct {
+	SearchFields []string   `json:"search_fields"`
+	query        Query      `json:"query"`
+	Facets       []*Facet   `json:"facets"`
+	Filters      url.Values `json:"filters"`
+	interactive  bool
+	results      []Item
+	data         []any
+}
+
+type Item interface {
+	fmt.Stringer
+}
+
+func NewSearch() *Search {
+	search := Search{
+		SearchFields: []string{"title"},
+	}
+	return &search
+=======
 type SearchFunc func(...any) []any
 
 func FuzzySearch(data []any, fields ...string) SearchFunc {
@@ -28,6 +61,7 @@ func FuzzySearch(data []any, fields ...string) SearchFunc {
 		}
 		return res
 	}
+>>>>>>> fix
 }
 
 func GetSearchableFieldValues(data []any, fields []string) []string {
@@ -43,6 +77,18 @@ func GetSearchableFieldValues(data []any, fields []string) []string {
 	return src
 }
 
+<<<<<<< HEAD
+func NewDefaultItem(val string) *FacetItem {
+	return &FacetItem{Value: val}
+}
+
+func (m *Search) Results() (*Result, error) {
+	return m.getResults(), nil
+}
+
+func (m *Search) getResults(ids ...int) *Result {
+	r := &Result{}
+=======
 func (idx *Index) Search(q any) *Index {
 	filters, err := NewQuery(q)
 	if err != nil {
@@ -71,6 +117,7 @@ func (idx *Index) get(q ...string) (*Index, error) {
 	if res.interactive {
 		return res.Choose()
 	}
+>>>>>>> fix
 
 	return res.Results()
 }
@@ -92,10 +139,17 @@ func (idx *Index) getResults(ids ...int) *Index {
 	return idx
 }
 
+<<<<<<< HEAD
+func (s *Search) Choose() (*Result, error) {
+	ids, err := Choose(s.results)
+	if err != nil {
+		return &Result{}, err
+=======
 func (idx *Index) Choose() (*Index, error) {
 	ids, err := Choose(idx)
 	if err != nil {
 		return &Index{}, err
+>>>>>>> fix
 	}
 
 	res := idx.getResults(ids...)
