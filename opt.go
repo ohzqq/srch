@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"log"
 	"os"
+
+	"github.com/mitchellh/mapstructure"
 )
 
 type Opt func(*Index)
@@ -29,25 +31,39 @@ func WithCfgFile(file string) Opt {
 
 func WithCfg(c any) Opt {
 	return func(idx *Index) {
-		var buf bytes.Buffer
-		var err error
 		switch val := c.(type) {
 		case []byte:
-			buf.Read(val)
+			err := idx.Decode(bytes.NewBuffer(val))
+			if err != nil {
+				log.Fatal(err)
+			}
+			return
 		case string:
 			if exist(val) {
-				f, err := os.ReadFile(val)
+				f, err := os.Open(val)
 				if err != nil {
 					log.Fatal(err)
 				}
-				buf.Read(f)
+				defer f.Close()
+
+				err = idx.Decode(f)
+				if err != nil {
+					log.Fatal(err)
+				}
+
+				return
 			} else {
-				buf.Read([]byte(val))
+				err := idx.Decode(bytes.NewBufferString(val))
+				if err != nil {
+					log.Fatal(err)
+				}
+				return
 			}
-		}
-		err = idx.Decode(&buf)
-		if err != nil {
-			log.Fatal(err)
+		case map[string]any:
+			err := mapstructure.Decode(val, idx)
+			if err != nil {
+				log.Fatal(err)
+			}
 		}
 	}
 }

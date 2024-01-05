@@ -2,7 +2,6 @@ package srch
 
 import (
 	"encoding/json"
-	"log"
 	"net/url"
 	"os"
 	"testing"
@@ -21,14 +20,17 @@ const testCfgFile = `testdata/config.json`
 const testCfgFileData = `testdata/config-with-data.json`
 
 func init() {
-	var err error
-	idx, err = New(testCfgFile,
-		DataFile(testData),
-		//WithSearch(testS),
-	)
-	if err != nil {
-		log.Fatal(err)
-	}
+	//var err error
+	//idx, err = New(testCfgFile,
+	//DataFile(testData),
+	////WithSearch(testS),
+	//)
+	//if err != nil {
+	//  log.Fatal(err)
+	//}
+
+	idx = NewIndex(FileSrc(testData), WithCfg(testCfgFile))
+
 	books = idx.Data
 
 }

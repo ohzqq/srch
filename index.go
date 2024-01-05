@@ -152,6 +152,9 @@ func (idx *Index) DecodeData(r io.Reader) error {
 	return nil
 }
 
+func (idx *Index) SetConfig(c any) {
+}
+
 // String returns an Index as a json formatted string.
 //func (idx *Index) String() string {
 //  return string(idx.JSON())
