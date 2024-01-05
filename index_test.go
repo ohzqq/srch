@@ -36,7 +36,7 @@ func init() {
 }
 
 func TestNewIndexFunc(t *testing.T) {
-	i := New(FileSrc(testData), WithCfgFile(testCfgFile))
+	i := New(FileSrc(testData), CfgFile(testCfgFile))
 	if i.Len() != 7174 {
 		t.Errorf("got %d, expected 7174\n", i.Len())
 	}

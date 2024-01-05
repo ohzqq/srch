@@ -12,11 +12,33 @@ func Interactive(s *Index) {
 	s.interactive = true
 }
 
-func WithCfgFile(file string) Opt {
+func CfgFile(file string) Opt {
 	return func(idx *Index) {
 		err := CfgIndexFromFile(idx, file)
 		if err != nil {
-			log.Fatal(err)
+			log.Printf("cfg error: %v, using defaults\n", err)
+		}
+	}
+}
+
+func CfgMap(m map[string]any) Opt {
+	return func(idx *Index) {
+		err := CfgIndexFromMap(idx, m)
+		if err != nil {
+			log.Printf("cfg error: %v, using defaults\n", err)
+		}
+	}
+}
+
+func CfgString(cfg string) Opt {
+	return CfgBytes([]byte(cfg))
+}
+
+func CfgBytes(cfg []byte) Opt {
+	return func(idx *Index) {
+		err := CfgIndexFromBytes(idx, cfg)
+		if err != nil {
+			log.Printf("cfg error: %v, using defaults\n", err)
 		}
 	}
 }
