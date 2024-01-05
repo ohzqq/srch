@@ -27,6 +27,12 @@ func WithCfgFile(file string) Opt {
 	}
 }
 
+func WithFacets(facets []*Facet) Opt {
+	return func(idx *Index) {
+		idx.Facets = facets
+	}
+}
+
 func WithFields(fields []string) Opt {
 	return func(idx *Index) {
 		idx.SearchableFields = fields

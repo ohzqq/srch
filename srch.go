@@ -44,13 +44,13 @@ func GetSearchableFieldValues(data []any, fields []string) []string {
 }
 
 func (idx *Index) Search(q any) *Index {
-	filters, err := ParseFilters(q)
+	filters, err := NewQuery(q)
 	if err != nil {
 		log.Fatal(err)
 	}
-	idx.Query = filters
+	idx.query = filters
 
-	res, err := idx.get(filters.Get("q"))
+	res, err := idx.get(filters.Keywords()...)
 	if err != nil {
 		return idx
 	}
@@ -64,8 +64,8 @@ func (idx *Index) Search(q any) *Index {
 	return Filter(res)
 }
 
-func (s *Index) get(q string) (*Index, error) {
-	res := CopyIndex(s, s.search(q))
+func (s *Index) get(q ...string) (*Index, error) {
+	res := CopyIndex(s, s.search(lo.ToAnySlice(q)))
 
 	if res.interactive {
 		return res.Choose()

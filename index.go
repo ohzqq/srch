@@ -25,6 +25,7 @@ type Index struct {
 	SearchableFields []string   `json:"searchableFields"`
 	Facets           []*Facet   `json:"facets"`
 	Query            url.Values `json:"filters"`
+	query            Query
 	interactive      bool
 	fuzzy            bool
 	search           SearchFunc
