@@ -27,6 +27,31 @@ func WithCfgFile(file string) Opt {
 	}
 }
 
+func WithCfg(c any) Opt {
+	return func(idx *Index) {
+		var buf bytes.Buffer
+		var err error
+		switch val := c.(type) {
+		case []byte:
+			buf.Read(val)
+		case string:
+			if exist(val) {
+				f, err := os.ReadFile(val)
+				if err != nil {
+					log.Fatal(err)
+				}
+				buf.Read(f)
+			} else {
+				buf.Read([]byte(val))
+			}
+		}
+		err = idx.Decode(&buf)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+}
+
 func WithFacets(facets []*Facet) Opt {
 	return func(idx *Index) {
 		idx.Facets = facets
