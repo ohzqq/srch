@@ -51,33 +51,9 @@ func NewIndex(src Src, opts ...Opt) *Index {
 	return idx
 }
 
-// New initializes an index.
-func New(c any, opts ...Opt) (*Index, error) {
-	idx, err := parseCfg(c)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, opt := range opts {
-		opt(idx)
-	}
-
-	if len(idx.Data) > 0 {
-		idx.CollectItems()
-	}
-
-	if idx.search == nil {
-		idx.search = FuzzySearch(idx.Data, idx.SearchableFields...)
-	}
-
-	return idx, nil
-}
-
 func CopyIndex(idx *Index, data []any) *Index {
-	n, err := New(idx.GetConfig(), DataSlice(data))
-	if err != nil {
-		return idx
-	}
+	n := NewIndex(SliceSrc(data), WithCfg(idx.GetConfig()))
+	n.Data = data
 	n.Query = idx.Query
 	n.search = idx.search
 	n.interactive = idx.interactive
@@ -198,70 +174,46 @@ func DecodeData(r io.Reader) ([]any, error) {
 	return data, nil
 }
 
-// NewIndexFromFiles initializes an index from files.
-func NewIndexFromFiles(cfg string) (*Index, error) {
-	idx := &Index{}
-
+// CfgIndexFromFile initializes an index from files.
+func CfgIndexFromFile(idx *Index, cfg string) error {
 	f, err := os.Open(cfg)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	defer f.Close()
 
 	err = idx.Decode(f)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return idx, nil
+	return nil
 }
 
-// NewIndexFromString initializes an index from a json formatted string.
-func NewIndexFromString(d string) (*Index, error) {
-	idx := &Index{}
+// CfgIndexFromString initializes an index from a json formatted string.
+func CfgIndexFromString(idx *Index, d string) error {
 	buf := bytes.NewBufferString(d)
 	err := idx.Decode(buf)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	if len(idx.Data) > 0 {
 		idx.CollectItems()
 	}
-	return idx, nil
+	return nil
 }
 
-// NewIndexFromMap initalizes an index from a map[string]any.
-func NewIndexFromMap(d map[string]any) (*Index, error) {
-	idx := &Index{}
+// CfgIndexFromMap initalizes an index from a map[string]any.
+func CfgIndexFromMap(idx *Index, d map[string]any) error {
 	err := mapstructure.Decode(d, idx)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	if len(idx.Data) > 0 {
 		idx.CollectItems()
 	}
-	return idx, nil
-}
-
-func parseCfg(c any) (*Index, error) {
-	cfg := &Index{}
-	switch val := c.(type) {
-	case []byte:
-		buf := bytes.NewBuffer(val)
-		err := cfg.Decode(buf)
-		return cfg, err
-	case string:
-		if exist(val) {
-			return NewIndexFromFiles(val)
-		} else {
-			return NewIndexFromString(val)
-		}
-	case map[string]any:
-		return NewIndexFromMap(val)
-	}
-
-	return cfg, nil
+	return nil
 }
 
 func parseFacetMap(f any) map[string]*Facet {

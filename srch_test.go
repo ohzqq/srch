@@ -13,14 +13,11 @@ import (
 )
 
 func TestAudibleSearch(t *testing.T) {
-	t.SkipNow()
+	//t.SkipNow()
 	cfg := map[string]any{
 		"searchableFields": []string{"Title"},
 	}
-	a, err := New(cfg, WithSearch(audibleSrch), Interactive)
-	if err != nil {
-		t.Error(err)
-	}
+	a := NewIndex(audibleSrc("sporemaggeddon"), WithSearch(audibleSrch), WithCfg(cfg), Interactive)
 	v := make(url.Values)
 	v.Set("q", "amy lane fish")
 	res := a.Search(v)
@@ -28,11 +25,21 @@ func TestAudibleSearch(t *testing.T) {
 	//res.Print()
 }
 
+func audibleSrc(q string) Src {
+	return func(...any) []any {
+		return audibleApi(q)
+	}
+}
+
 func audibleSrch(query ...any) []any {
 	var q string
 	if len(query) > 0 {
 		q = query[0].(string)
 	}
+	return audibleApi(q)
+}
+
+func audibleApi(q string) []any {
 	s := audible.NewSearch(q)
 	r, err := audible.Products().Search(s)
 	if err != nil {

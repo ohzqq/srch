@@ -64,8 +64,9 @@ func (idx *Index) Search(q any) *Index {
 	return Filter(res)
 }
 
-func (s *Index) get(q ...string) (*Index, error) {
-	res := CopyIndex(s, s.search(lo.ToAnySlice(q)))
+func (idx *Index) get(q ...string) (*Index, error) {
+	data := idx.search(lo.ToAnySlice(q)...)
+	res := CopyIndex(idx, data)
 
 	if res.interactive {
 		return res.Choose()
@@ -74,30 +75,30 @@ func (s *Index) get(q ...string) (*Index, error) {
 	return res.Results()
 }
 
-func (m *Index) Results() (*Index, error) {
-	return m.getResults(), nil
+func (idx *Index) Results() (*Index, error) {
+	return idx.getResults(), nil
 }
 
-func (m *Index) getResults(ids ...int) *Index {
+func (idx *Index) getResults(ids ...int) *Index {
 	if len(ids) > 0 {
 		data := make([]any, len(ids))
 		for i, id := range ids {
-			data[i] = m.Data[id]
+			data[i] = idx.Data[id]
 		}
-		m.Data = data
-		return m
+		idx.Data = data
+		return idx
 	}
 
-	return m
+	return idx
 }
 
-func (s *Index) Choose() (*Index, error) {
-	ids, err := Choose(s)
+func (idx *Index) Choose() (*Index, error) {
+	ids, err := Choose(idx)
 	if err != nil {
 		return &Index{}, err
 	}
 
-	res := s.getResults(ids...)
+	res := idx.getResults(ids...)
 
 	return res, nil
 }

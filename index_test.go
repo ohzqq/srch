@@ -60,10 +60,7 @@ func TestIdxFilterSearch(t *testing.T) {
 
 	fn := FuzzySearch(books, "title")
 	res := fn("fish")
-	i, err := New(testCfgFile, DataSlice(res))
-	if err != nil {
-		t.Error(err)
-	}
+	i := NewIndex(SliceSrc(res), WithCfg(testCfgFile))
 	vals := make(url.Values)
 	vals.Set("authors", "amy lane")
 	r := i.Filter(vals)
@@ -81,29 +78,6 @@ func TestIdxSearch(t *testing.T) {
 	r.Print()
 }
 
-func TestNewIdxFromString(t *testing.T) {
-	idx, err := parseCfg(testCfg)
-	if err != nil {
-		t.Error(err)
-	}
-	if len(idx.Facets) != 2 {
-		t.Errorf("got %d facets, expected 2", len(idx.Facets))
-	}
-
-	d, err := os.ReadFile(testData)
-	if err != nil {
-		t.Error(err)
-	}
-
-	data, err := NewDataFromString(string(d))
-	if err != nil {
-		t.Error(err)
-	}
-	if len(data) != len(books) {
-		t.Errorf("got %d, expected 7174\v", len(data))
-	}
-}
-
 func TestNewIdxFromMap(t *testing.T) {
 	t.SkipNow()
 	d := make(map[string]any)
@@ -111,15 +85,15 @@ func TestNewIdxFromMap(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	i, err := NewIndexFromMap(d)
+	err = CfgIndexFromMap(idx, d)
 	if err != nil {
 		t.Error(err)
 	}
-	if len(i.Data) != len(books) {
-		t.Errorf("got %d, expected 7174\v", len(i.Data))
+	if len(idx.Data) != len(books) {
+		t.Errorf("got %d, expected 7174\v", len(idx.Data))
 	}
-	if len(i.Facets) != 2 {
-		t.Errorf("got %d facets, expected 2", len(i.Facets))
+	if len(idx.Facets) != 2 {
+		t.Errorf("got %d facets, expected 2", len(idx.Facets))
 	}
 }
 
