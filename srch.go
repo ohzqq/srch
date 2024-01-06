@@ -3,7 +3,9 @@ package srch
 import (
 	"log"
 	"strings"
+	"unicode"
 
+	"github.com/kljensen/snowball/english"
 	"github.com/sahilm/fuzzy"
 	"github.com/samber/lo"
 	"github.com/spf13/cast"
@@ -118,4 +120,80 @@ func (r *Index) Len() int {
 
 func (r *Index) FuzzyFind(q string) fuzzy.Matches {
 	return fuzzy.FindFrom(q, r)
+}
+
+func Tokenizer(str string) []string {
+	var tokens []string
+	for _, token := range strings.FieldsFunc(str, splitFields) {
+		token := strings.ToLower(token)
+		if !lo.Contains(stopWords, token) {
+			tokens = append(tokens, token)
+		}
+	}
+	return stemmerFilter(tokens)
+}
+
+func splitFields(c rune) bool {
+	return !unicode.IsLetter(c) && !unicode.IsNumber(c)
+}
+
+func stemmerFilter(tokens []string) []string {
+	r := make([]string, len(tokens))
+	for i, token := range tokens {
+		r[i] = english.Stem(token, false)
+	}
+	return r
+}
+
+var stopWords = []string{
+	"i",
+	"vol",
+	"what",
+	"which",
+	"who",
+	"whom",
+	"this",
+	"that",
+	"am",
+	"is",
+	"are",
+	"was",
+	"were",
+	"be",
+	"been",
+	"being",
+	"have",
+	"has",
+	"had",
+	"having",
+	"do",
+	"does",
+	"did",
+	"doing",
+	"a",
+	"an",
+	"the",
+	"and",
+	"but",
+	"if",
+	"or",
+	"because",
+	"as",
+	"of",
+	"at",
+	"by",
+	"for",
+	"with",
+	"into",
+	"to",
+	"from",
+	"then",
+	"when",
+	"where",
+	"why",
+	"how",
+	"no",
+	"not",
+	"than",
+	"too",
 }
