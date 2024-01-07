@@ -4,6 +4,7 @@ import (
 	"github.com/RoaringBitmap/roaring"
 	"github.com/samber/lo"
 	"github.com/spf13/cast"
+	"github.com/spf13/viper"
 )
 
 type FieldType string
@@ -71,22 +72,37 @@ func (f *Field) ListTokens() []string {
 	return lo.Keys(f.Items)
 }
 
+// Filter applies the listed filters to the facet.
+func (f *Field) Filter(filters ...string) *roaring.Bitmap {
+	var bits []*roaring.Bitmap
+	for _, filter := range filters {
+		bits = append(bits, f.Search(filter))
+	}
+
+	switch f.Operator {
+	case "and":
+		return roaring.ParAnd(viper.GetInt("workers"), bits...)
+	default:
+		return roaring.ParOr(viper.GetInt("workers"), bits...)
+	}
+}
+
 func (f *Field) Search(text string) *roaring.Bitmap {
 	if f.FieldType == Taxonomy {
 		if ids, ok := f.Items[text]; ok {
 			return ids
 		}
 	}
-	var r []*roaring.Bitmap
+	var bits []*roaring.Bitmap
 	for _, token := range Tokenizer(text) {
 		if ids, ok := f.Items[token]; ok {
-			r = append(r, ids)
+			bits = append(bits, ids)
 		}
 	}
 	switch f.Operator {
 	case "and":
-		return roaring.FastAnd(r...)
+		return roaring.ParAnd(viper.GetInt("workers"), bits...)
 	default:
-		return roaring.FastOr(r...)
+		return roaring.ParOr(viper.GetInt("workers"), bits...)
 	}
 }

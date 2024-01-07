@@ -45,13 +45,12 @@ func TestNewIndexFunc(t *testing.T) {
 		t.Errorf("got %d, expected 4\n", len(i.Facets))
 	}
 	i.BuildIndex()
-	field, err := i.GetField("title")
+	field, err := i.GetField("tags")
 	if err != nil {
 		t.Error(err)
 	}
-	res := field.Search("red fish")
+	res := field.Filter("abo", "dnr")
 	fmt.Printf("%v\n", len(res.ToArray()))
-	fmt.Printf("%v\n", len(field.Items["fish"].ToArray()))
 	//for _, f := range idx.Fields {
 	//  fmt.Printf("%#v\n", f)
 	//}
