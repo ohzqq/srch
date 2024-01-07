@@ -12,7 +12,7 @@ func TestFieldSearch(t *testing.T) {
 	for _, b := range books {
 		title := cast.ToString(b["title"])
 		for _, token := range Tokenizer(title) {
-			facet.Add(token, b["id"])
+			facet.Add(cast.ToStringSlice(token), b["id"])
 		}
 	}
 

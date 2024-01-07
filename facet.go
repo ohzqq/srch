@@ -5,7 +5,6 @@ import (
 
 	"github.com/RoaringBitmap/roaring"
 	"github.com/sahilm/fuzzy"
-	"github.com/samber/lo"
 	"github.com/spf13/cast"
 	"github.com/spf13/viper"
 )
@@ -69,7 +68,6 @@ func (f *Facet) ListItems() []string {
 // AddItem adds an item with optional ids. If the item already exists ids are
 // appended.
 func (f *Facet) AddItem(term string, ids ...string) *FacetItem {
-	f.Field.Add(term, lo.ToAnySlice(ids)...)
 	for _, i := range f.Items {
 		if term == i.Value {
 			i.BelongsTo(ids...)

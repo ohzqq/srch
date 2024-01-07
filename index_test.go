@@ -43,6 +43,13 @@ func TestNewIndexFunc(t *testing.T) {
 	if len(i.Facets) != 4 {
 		t.Errorf("got %d, expected 4\n", len(i.Facets))
 	}
+	i.BuildIndex()
+	title, err := i.GetField("tags")
+	if err != nil {
+		t.Error(err)
+	}
+	res := title.Search("grumpy/sunshine")
+	println(len(res))
 	//for _, f := range idx.Fields {
 	//  fmt.Printf("%#v\n", f)
 	//}

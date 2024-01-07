@@ -25,6 +25,7 @@ type Index struct {
 	Facets           []*Facet         `json:"facets"`
 	Fields           []*Field         `json:"fields"`
 	Query            Query            `json:"filters"`
+	Identifier       string           `json:"identifier"`
 	interactive      bool
 	fuzzy            bool
 	search           SearchFunc
@@ -37,6 +38,7 @@ func New(src Src, opts ...Opt) *Index {
 		Data:             src(),
 		SearchableFields: []string{"title"},
 		search:           SearchFunc(src),
+		Identifier:       "id",
 	}
 
 	for _, opt := range opts {
@@ -64,14 +66,27 @@ func CopyIndex(idx *Index, data []map[string]any) *Index {
 	return n
 }
 
-//func (idx *Index) BuildIndex() *Index {
-//  for _, d := range idx.Data {
-//    var item map[string]any
-//    for _, f := range idx.Fields {
-//    }
-//  }
-//  return idx
-//}
+func (idx *Index) BuildIndex() *Index {
+	for _, d := range idx.Data {
+		id := cast.ToUint32(d[idx.Identifier])
+		for _, f := range idx.Fields {
+			if val, ok := d[f.Attribute]; ok {
+				println(f.Attribute)
+				f.Add(cast.ToStringSlice(val), id)
+			}
+		}
+	}
+	return idx
+}
+
+func (idx *Index) GetField(attr string) (*Field, error) {
+	for _, f := range idx.Fields {
+		if f.Attribute == attr {
+			return f, nil
+		}
+	}
+	return nil, errors.New("no such field")
+}
 
 // Filter idx.Data and re-calculate facets.
 func (idx *Index) Filter(q any) *Index {

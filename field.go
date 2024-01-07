@@ -9,7 +9,7 @@ import (
 type FieldType string
 
 const (
-	Taxonomy FieldType = "keyword"
+	Taxonomy FieldType = "taxonomy"
 	Text     FieldType = "text"
 )
 
@@ -37,18 +37,24 @@ func NewTaxonomyField(attr string) *Field {
 	return NewField(attr, Taxonomy)
 }
 
-func (f *Field) Add(value string, ids ...any) {
+func (f *Field) Add(value []string, ids ...any) {
 	if f.FieldType == Text {
-		f.addFullText(value, uint32Slice(ids))
+		f.addFullText(value[0], uint32Slice(ids))
 		return
 	}
-	f.addTerm(value, uint32Slice(ids))
+	for _, val := range value {
+		f.addTerm(val, uint32Slice(ids))
+	}
 }
 
 func (f *Field) addFullText(text string, ids []uint32) {
 	for _, token := range Tokenizer(text) {
 		f.addTerm(token, ids)
 	}
+}
+
+func (f *Field) ListTokens() []string {
+	return lo.Keys(f.Items)
 }
 
 func (f *Field) addTerm(term string, ids []uint32) {
@@ -59,6 +65,11 @@ func (f *Field) addTerm(term string, ids []uint32) {
 }
 
 func (f *Field) Search(text string) []uint32 {
+	if f.FieldType == Taxonomy {
+		if ids, ok := f.Items[text]; ok {
+			return ids
+		}
+	}
 	var r []uint32
 	for _, token := range Tokenizer(text) {
 		if ids, ok := f.Items[token]; ok {
