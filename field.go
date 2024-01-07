@@ -39,21 +39,21 @@ func NewTaxonomyField(attr string) *Field {
 
 func (f *Field) Add(value any, ids ...any) {
 	if f.FieldType == Text {
-		f.addFullText(cast.ToString(value), uint32Slice(ids))
+		f.addFullText(cast.ToString(value), cast.ToIntSlice(ids))
 		return
 	}
 	for _, val := range cast.ToStringSlice(value) {
-		f.addTerm(val, uint32Slice(ids))
+		f.addTerm(val, cast.ToIntSlice(ids))
 	}
 }
 
-func (f *Field) addFullText(text string, ids []uint32) {
+func (f *Field) addFullText(text string, ids []int) {
 	for _, token := range Tokenizer(text) {
 		f.addTerm(token, ids)
 	}
 }
 
-func (f *Field) addTerm(term string, ids []uint32) {
+func (f *Field) addTerm(term string, ids []int) {
 	if f.Items == nil {
 		f.Items = make(map[string]*roaring.Bitmap)
 	}
@@ -61,8 +61,8 @@ func (f *Field) addTerm(term string, ids []uint32) {
 		f.Items[term] = roaring.New()
 	}
 	for _, id := range ids {
-		if !f.Items[term].Contains(id) {
-			f.Items[term].Add(id)
+		if !f.Items[term].ContainsInt(id) {
+			f.Items[term].AddInt(id)
 		}
 	}
 }
@@ -83,13 +83,10 @@ func (f *Field) Search(text string) *roaring.Bitmap {
 			r = append(r, ids)
 		}
 	}
-	return roaring.FastOr(r...)
-}
-
-func uint32Slice(ids []any) []uint32 {
-	bits := make([]uint32, len(ids))
-	for i, id := range ids {
-		bits[i] = cast.ToUint32(id)
+	switch f.Operator {
+	case "and":
+		return roaring.FastAnd(r...)
+	default:
+		return roaring.FastOr(r...)
 	}
-	return bits
 }

@@ -49,7 +49,7 @@ func TestNewIndexFunc(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	res := field.Search("fish")
+	res := field.Search("red fish")
 	fmt.Printf("%v\n", len(res.ToArray()))
 	fmt.Printf("%v\n", len(field.Items["fish"].ToArray()))
 	//for _, f := range idx.Fields {
