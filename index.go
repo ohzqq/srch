@@ -71,7 +71,6 @@ func (idx *Index) BuildIndex() *Index {
 		id := cast.ToUint32(d[idx.Identifier])
 		for _, f := range idx.Fields {
 			if val, ok := d[f.Attribute]; ok {
-				println(f.Attribute)
 				f.Add(cast.ToStringSlice(val), id)
 			}
 		}
