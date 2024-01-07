@@ -14,18 +14,18 @@ const (
 )
 
 type Field struct {
-	Attribute string              `json:"attribute"`
-	Items     map[string][]uint32 `json:"items,omitempty"`
-	Operator  string              `json:"operator,omitempty"`
-	Sep       string              `json:"-"`
-	FieldType FieldType           `json:"fieldType"`
+	Attribute string    `json:"attribute"`
+	Operator  string    `json:"operator,omitempty"`
+	Sep       string    `json:"-"`
+	FieldType FieldType `json:"fieldType"`
+	Items     map[string]*roaring.Bitmap
 }
 
 func NewField(attr string, ft FieldType) *Field {
 	return &Field{
 		Attribute: attr,
-		Items:     make(map[string][]uint32),
 		FieldType: ft,
+		Items:     make(map[string]*roaring.Bitmap),
 	}
 }
 
@@ -37,12 +37,12 @@ func NewTaxonomyField(attr string) *Field {
 	return NewField(attr, Taxonomy)
 }
 
-func (f *Field) Add(value []string, ids ...any) {
+func (f *Field) Add(value any, ids ...any) {
 	if f.FieldType == Text {
-		f.addFullText(value[0], uint32Slice(ids))
+		f.addFullText(cast.ToString(value), uint32Slice(ids))
 		return
 	}
-	for _, val := range value {
+	for _, val := range cast.ToStringSlice(value) {
 		f.addTerm(val, uint32Slice(ids))
 	}
 }
@@ -53,38 +53,37 @@ func (f *Field) addFullText(text string, ids []uint32) {
 	}
 }
 
+func (f *Field) addTerm(term string, ids []uint32) {
+	if f.Items == nil {
+		f.Items = make(map[string]*roaring.Bitmap)
+	}
+	if _, ok := f.Items[term]; !ok {
+		f.Items[term] = roaring.New()
+	}
+	for _, id := range ids {
+		if !f.Items[term].Contains(id) {
+			f.Items[term].Add(id)
+		}
+	}
+}
+
 func (f *Field) ListTokens() []string {
 	return lo.Keys(f.Items)
 }
 
-func (f *Field) addTerm(term string, ids []uint32) {
-	if f.Items == nil {
-		f.Items = make(map[string][]uint32)
-	}
-	f.Items[term] = append(f.Items[term], ids...)
-}
-
-func (f *Field) Search(text string) []uint32 {
+func (f *Field) Search(text string) *roaring.Bitmap {
 	if f.FieldType == Taxonomy {
 		if ids, ok := f.Items[text]; ok {
 			return ids
 		}
 	}
-	var r []uint32
+	var r []*roaring.Bitmap
 	for _, token := range Tokenizer(text) {
 		if ids, ok := f.Items[token]; ok {
-			r = append(r, ids...)
+			r = append(r, ids)
 		}
 	}
-	return lo.Uniq(r)
-}
-
-// Bitmap returns a *roaring.Bitmap of slice indices for a FacetItem.
-func (f *Field) BitmapOf(term string) *roaring.Bitmap {
-	if items, ok := f.Items[term]; ok {
-		return roaring.BitmapOf(items...)
-	}
-	return nil
+	return roaring.FastOr(r...)
 }
 
 func uint32Slice(ids []any) []uint32 {

@@ -2,6 +2,7 @@ package srch
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/url"
 	"os"
 	"testing"
@@ -48,8 +49,9 @@ func TestNewIndexFunc(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	res := field.Search("him")
-	println(len(res))
+	res := field.Search("fish")
+	fmt.Printf("%v\n", len(res.ToArray()))
+	fmt.Printf("%v\n", len(field.Items["fish"].ToArray()))
 	//for _, f := range idx.Fields {
 	//  fmt.Printf("%#v\n", f)
 	//}
