@@ -8,13 +8,12 @@ import (
 )
 
 func TestFieldSearch(t *testing.T) {
-	facet := NewField("title")
-	facet.FieldType = Text
+	facet := NewTextField("title")
 	for _, book := range books {
 		b := book.(map[string]any)
 		title := cast.ToString(b["title"])
 		for _, token := range Tokenizer(title) {
-			facet.Add(token, cast.ToInt(b["id"]))
+			facet.Add(token, b["id"])
 		}
 	}
 
