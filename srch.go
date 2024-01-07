@@ -5,13 +5,52 @@ import (
 	"strings"
 	"unicode"
 
+	"github.com/RoaringBitmap/roaring"
 	"github.com/kljensen/snowball/english"
 	"github.com/sahilm/fuzzy"
 	"github.com/samber/lo"
 	"github.com/spf13/cast"
+	"github.com/spf13/viper"
 )
 
 type SearchFunc func(...any) []map[string]any
+
+func Search(data []map[string]any, fields []*Field, fn SearchFunc, q Query) *Index {
+	idx := &Index{
+		Data:   data,
+		Fields: fields,
+		search: fn,
+	}
+	idx.BuildIndex()
+	idx.Data = idx.search(q)
+	return idx
+}
+
+func FullText(data []map[string]any, fieldNames ...string) SearchFunc {
+	return func(query ...any) []map[string]any {
+		var q string
+		if len(query) > 0 {
+			q = cast.ToString(query[0])
+		}
+		if q == "" {
+			return data
+		}
+
+		idx := New(SliceSrc(data), WithFields(fieldNames))
+		idx.BuildIndex()
+
+		var bits []*roaring.Bitmap
+		for _, field := range fieldNames {
+			f, err := idx.GetField(field)
+			if err != nil {
+				log.Fatal(err)
+			}
+			bits = append(bits, f.Search(q))
+		}
+		res := roaring.ParOr(viper.GetInt("workers"), bits...)
+		return collectResults(idx.Data, cast.ToIntSlice(res))
+	}
+}
 
 func FuzzySearch(data []map[string]any, fields ...string) SearchFunc {
 	return func(qq ...any) []map[string]any {
@@ -83,15 +122,21 @@ func (idx *Index) Results() (*Index, error) {
 
 func (idx *Index) getResults(ids ...int) *Index {
 	if len(ids) > 0 {
-		data := make([]map[string]any, len(ids))
-		for i, id := range ids {
-			data[i] = idx.Data[id]
-		}
-		idx.Data = data
+		idx.Data = collectResults(idx.Data, ids)
 		return idx
 	}
-
 	return idx
+}
+
+func collectResults(d []map[string]any, ids []int) []map[string]any {
+	if len(ids) > 0 {
+		data := make([]map[string]any, len(ids))
+		for i, id := range ids {
+			data[i] = d[id]
+		}
+		return data
+	}
+	return d
 }
 
 func (idx *Index) Choose() (*Index, error) {

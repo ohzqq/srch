@@ -56,6 +56,16 @@ func TestNewIndexFunc(t *testing.T) {
 	//}
 }
 
+func TestSearch(t *testing.T) {
+	i := Search(
+		books,
+		idx.Fields,
+		FullText(books, "title"),
+		Query(testVals()),
+	)
+	println(len(i.Data))
+}
+
 func TestIdxCfg(t *testing.T) {
 	//cfg := &Index{}
 	err := json.Unmarshal([]byte(testCfg), idx)

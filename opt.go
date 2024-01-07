@@ -59,9 +59,19 @@ func WithCfg(c any) Opt {
 	}
 }
 
+func WithFacets(fields []string) Opt {
+	return func(idx *Index) {
+		for _, f := range fields {
+			idx.Fields = append(idx.Fields, NewTaxonomyField(f))
+		}
+	}
+}
+
 func WithFields(fields []string) Opt {
 	return func(idx *Index) {
-		idx.SearchableFields = fields
+		for _, f := range fields {
+			idx.Fields = append(idx.Fields, NewTextField(f))
+		}
 	}
 }
 
