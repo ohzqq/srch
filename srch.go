@@ -61,7 +61,7 @@ func (idx *Index) Search(q any) *Index {
 		return res
 	}
 
-	res.CollectItems()
+	res.BuildIndex()
 
 	return Filter(res)
 }

@@ -59,12 +59,6 @@ func WithCfg(c any) Opt {
 	}
 }
 
-func WithFacets(facets []*Facet) Opt {
-	return func(idx *Index) {
-		idx.Facets = facets
-	}
-}
-
 func WithFields(fields []string) Opt {
 	return func(idx *Index) {
 		idx.SearchableFields = fields
@@ -92,9 +86,7 @@ func DataString(d string) Opt {
 			log.Fatal(err)
 		}
 
-		if len(idx.Data) > 0 {
-			idx.CollectItems()
-		}
+		idx.BuildIndex()
 	}
 }
 
@@ -102,7 +94,7 @@ func DataString(d string) Opt {
 func DataSlice(data []map[string]any) Opt {
 	return func(idx *Index) {
 		idx.Data = data
-		idx.CollectItems()
+		idx.BuildIndex()
 	}
 }
 
@@ -120,6 +112,6 @@ func DataFile(cfg string) Opt {
 			log.Fatal(err)
 		}
 		idx.Data = data
-		idx.CollectItems()
+		idx.BuildIndex()
 	}
 }

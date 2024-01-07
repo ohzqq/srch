@@ -41,8 +41,8 @@ func TestNewIndexFunc(t *testing.T) {
 	if i.Len() != 7174 {
 		t.Errorf("got %d, expected 7174\n", i.Len())
 	}
-	if len(i.Facets) != 4 {
-		t.Errorf("got %d, expected 4\n", len(i.Facets))
+	if len(i.Facets()) != 4 {
+		t.Errorf("got %d, expected 4\n", len(i.Facets()))
 	}
 	i.BuildIndex()
 	field, err := i.GetField("tags")
@@ -103,8 +103,8 @@ func TestNewIdxFromMap(t *testing.T) {
 	if len(idx.Data) != len(books) {
 		t.Errorf("got %d, expected 7174\v", len(idx.Data))
 	}
-	if len(idx.Facets) != 2 {
-		t.Errorf("got %d facets, expected 2", len(idx.Facets))
+	if len(idx.Facets()) != 2 {
+		t.Errorf("got %d facets, expected 2", len(idx.Facets()))
 	}
 }
 
@@ -144,3 +144,13 @@ const testCfg = `{
 	]
 }
 `
+
+func testVals() url.Values {
+	vals := make(url.Values)
+	//vals.Add("tags", "abo")
+	//vals.Add("tags", "dnr")
+	//vals.Add("authors", "Alice Winters")
+	vals.Add("authors", "Amy Lane")
+	vals.Add("q", "fish")
+	return vals
+}

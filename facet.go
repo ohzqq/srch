@@ -48,11 +48,11 @@ func (f *Facet) GetItem(term string) *FacetItem {
 }
 
 // GetConfig returns a map of a Facet's config.
-func (f *Facet) GetConfig() map[string]any {
+func (f *Field) GetConfig() map[string]any {
 	return map[string]any{
 		"attribute": f.Attribute,
 		"operator":  f.Operator,
-		"fieldType": f.Field.FieldType,
+		"fieldType": f.FieldType,
 	}
 }
 

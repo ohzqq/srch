@@ -22,7 +22,6 @@ func init() {
 type Index struct {
 	Data             []map[string]any `json:"data"`
 	SearchableFields []string         `json:"searchableFields"`
-	Facets           []*Facet         `json:"facets"`
 	Fields           []*Field         `json:"fields"`
 	Query            Query            `json:"filters"`
 	Identifier       string           `json:"identifier"`
@@ -45,9 +44,7 @@ func New(src Src, opts ...Opt) *Index {
 		opt(idx)
 	}
 
-	if len(idx.Data) > 0 && idx.HasFacets() {
-		//idx.CollectItems()
-	}
+	idx.BuildIndex()
 
 	if idx.fuzzy {
 		idx.search = FuzzySearch(idx.Data, idx.SearchableFields...)
@@ -98,39 +95,31 @@ func (idx *Index) Filter(q any) *Index {
 	return Filter(idx)
 }
 
-// CollectItems collects a facet's items from the data set.
-func (idx *Index) CollectItems() *Index {
-	for _, facet := range idx.Facets {
-		facet.CollectItems(idx.Data)
+func (idx *Index) Facets() []*Field {
+	var facets []*Field
+	for _, field := range idx.Fields {
+		if field.FieldType == Taxonomy {
+			facets = append(facets, field)
+		}
 	}
-	return idx
+	return facets
 }
 
 // GetConfig returns a map of the Index's config.
 func (idx *Index) GetConfig() map[string]any {
 	var facets []map[string]any
-	for _, f := range idx.Facets {
+	for _, f := range idx.Fields {
 		facets = append(facets, f.GetConfig())
 	}
 	return map[string]any{
-		"facets":           facets,
+		"fields":           facets,
 		"searchableFields": idx.SearchableFields,
 	}
 }
 
 // HasFacets returns true if facets are configured.
 func (idx *Index) HasFacets() bool {
-	return len(idx.Facets) > 0
-}
-
-// GetFacet returns a facet.
-func (idx *Index) GetFacet(name string) *Facet {
-	for _, facet := range idx.Facets {
-		if facet.Attribute == name {
-			return facet
-		}
-	}
-	return NewFacet(name)
+	return len(idx.Facets()) > 0
 }
 
 // Decode unmarshals json from an io.Reader.
