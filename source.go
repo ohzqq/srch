@@ -8,37 +8,37 @@ import (
 	"os"
 )
 
-type Src func(args ...any) []any
+type Src func(args ...any) []map[string]any
 
-func SliceSrc(data []any) Src {
-	return func(...any) []any {
+func SliceSrc(data []map[string]any) Src {
+	return func(...any) []map[string]any {
 		return data
 	}
 }
 
 func FileSrc(file ...string) Src {
-	return func(...any) []any {
+	return func(...any) []map[string]any {
 		data, err := NewDataFromFiles(file...)
 		if err != nil {
-			return []any{}
+			return []map[string]any{}
 		}
 		return data
 	}
 }
 
 func ReadDataSrc(r io.Reader) Src {
-	return func(...any) []any {
+	return func(...any) []map[string]any {
 		d, err := DecodeData(r)
 		if err != nil {
-			return []any{}
+			return []map[string]any{}
 		}
 		return d
 	}
 }
 
 // DecodeData decodes data from a io.Reader.
-func DecodeData(r io.Reader) ([]any, error) {
-	var data []any
+func DecodeData(r io.Reader) ([]map[string]any, error) {
+	var data []map[string]any
 	err := json.NewDecoder(r).Decode(&data)
 	if err != nil {
 		return data, err
@@ -47,8 +47,8 @@ func DecodeData(r io.Reader) ([]any, error) {
 }
 
 // NewDataFromFiles parses index data from files.
-func NewDataFromFiles(d ...string) ([]any, error) {
-	var data []any
+func NewDataFromFiles(d ...string) ([]map[string]any, error) {
+	var data []map[string]any
 	for _, datum := range d {
 		p, err := dataFromFile(datum)
 		if err != nil {
@@ -59,7 +59,7 @@ func NewDataFromFiles(d ...string) ([]any, error) {
 	return data, nil
 }
 
-func dataFromFile(d string) ([]any, error) {
+func dataFromFile(d string) ([]map[string]any, error) {
 	data, err := os.Open(d)
 	if err != nil {
 		return nil, err
@@ -69,12 +69,12 @@ func dataFromFile(d string) ([]any, error) {
 }
 
 // NewDataFromString parses index data from a json formatted string.
-func NewDataFromString(d string) ([]any, error) {
+func NewDataFromString(d string) ([]map[string]any, error) {
 	buf := bytes.NewBufferString(d)
 	return DecodeData(buf)
 }
 
-func parseData(d any) ([]any, error) {
+func parseData(d any) ([]map[string]any, error) {
 	switch val := d.(type) {
 	case []byte:
 		return unmarshalData(val)
@@ -84,14 +84,14 @@ func parseData(d any) ([]any, error) {
 		} else {
 			return unmarshalData([]byte(val))
 		}
-	case []any:
+	case []map[string]any:
 		return val, nil
 	}
 	return nil, errors.New("data couldn't be parsed")
 }
 
-func unmarshalData(d []byte) ([]any, error) {
-	var data []any
+func unmarshalData(d []byte) ([]map[string]any, error) {
+	var data []map[string]any
 	err := json.Unmarshal(d, &data)
 	if err != nil {
 		return nil, err

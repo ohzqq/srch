@@ -27,8 +27,8 @@ func Filter(idx *Index) *Index {
 }
 
 // FilteredItems returns the subset of data.
-func FilteredItems(data []any, ids []any) []any {
-	items := make([]any, len(ids))
+func FilteredItems(data []map[string]any, ids []any) []map[string]any {
+	items := make([]map[string]any, len(ids))
 	for item, _ := range data {
 		for i, id := range ids {
 			if cast.ToInt(id) == item {

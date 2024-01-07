@@ -5,6 +5,7 @@ import (
 
 	"github.com/RoaringBitmap/roaring"
 	"github.com/sahilm/fuzzy"
+	"github.com/samber/lo"
 	"github.com/spf13/cast"
 	"github.com/spf13/viper"
 )
@@ -15,6 +16,7 @@ type Facet struct {
 	Items     []*FacetItem `json:"items,omitempty"`
 	Operator  string       `json:"operator,omitempty"`
 	Sep       string       `json:"-"`
+	*Field
 }
 
 // FacetItem is a data structure for a Facet's item.
@@ -32,6 +34,7 @@ func NewFacet(name string) *Facet {
 		Attribute: name,
 		Operator:  "or",
 		Sep:       ".",
+		Field:     NewTaxonomyField(name),
 	}
 }
 
@@ -50,6 +53,7 @@ func (f *Facet) GetConfig() map[string]any {
 	return map[string]any{
 		"attribute": f.Attribute,
 		"operator":  f.Operator,
+		"fieldType": f.Field.FieldType,
 	}
 }
 
@@ -65,6 +69,7 @@ func (f *Facet) ListItems() []string {
 // AddItem adds an item with optional ids. If the item already exists ids are
 // appended.
 func (f *Facet) AddItem(term string, ids ...string) *FacetItem {
+	f.Field.Add(term, lo.ToAnySlice(ids)...)
 	for _, i := range f.Items {
 		if term == i.Value {
 			i.BelongsTo(ids...)
@@ -78,7 +83,7 @@ func (f *Facet) AddItem(term string, ids ...string) *FacetItem {
 
 // CollectItems takes the input data and aggregates them based on the
 // Facet.Attribute.
-func (f *Facet) CollectItems(data []any) *Facet {
+func (f *Facet) CollectItems(data []map[string]any) *Facet {
 	for i, d := range data {
 		item := cast.ToStringMap(d)
 		if terms, ok := item[f.Attribute]; ok {
@@ -88,6 +93,8 @@ func (f *Facet) CollectItems(data []any) *Facet {
 				items = append(items, t)
 			case []string:
 				items = t
+			case []map[string]any:
+				items = cast.ToStringSlice(t)
 			case []any:
 				items = cast.ToStringSlice(t)
 			}

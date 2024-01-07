@@ -11,7 +11,7 @@ import (
 
 var idx = &Index{}
 
-var books []any
+var books []map[string]any
 
 const numBooks = 7174
 
@@ -43,6 +43,9 @@ func TestNewIndexFunc(t *testing.T) {
 	if len(i.Facets) != 4 {
 		t.Errorf("got %d, expected 4\n", len(i.Facets))
 	}
+	//for _, f := range idx.Fields {
+	//  fmt.Printf("%#v\n", f)
+	//}
 }
 
 func TestIdxCfg(t *testing.T) {

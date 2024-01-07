@@ -9,7 +9,6 @@ import (
 
 	"github.com/mitchellh/mapstructure"
 	"github.com/ohzqq/audible"
-	"github.com/samber/lo"
 )
 
 func TestAudibleSearch(t *testing.T) {
@@ -26,12 +25,12 @@ func TestAudibleSearch(t *testing.T) {
 }
 
 func audibleSrc(q string) Src {
-	return func(...any) []any {
+	return func(...any) []map[string]any {
 		return audibleApi(q)
 	}
 }
 
-func audibleSrch(query ...any) []any {
+func audibleSrch(query ...any) []map[string]any {
 	var q string
 	if len(query) > 0 {
 		q = query[0].(string)
@@ -39,7 +38,7 @@ func audibleSrch(query ...any) []any {
 	return audibleApi(q)
 }
 
-func audibleApi(q string) []any {
+func audibleApi(q string) []map[string]any {
 	s := audible.NewSearch(q)
 	r, err := audible.Products().Search(s)
 	if err != nil {
@@ -52,7 +51,7 @@ func audibleApi(q string) []any {
 		sl = append(sl, a)
 	}
 	//fmt.Printf("products %v\n", r.Products)
-	return lo.ToAnySlice(sl)
+	return sl
 }
 
 type testSearcher struct {

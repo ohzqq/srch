@@ -16,8 +16,9 @@ const (
 type Field struct {
 	Attribute string              `json:"attribute"`
 	Items     map[string][]uint32 `json:"items,omitempty"`
-	items     []*FacetItem
-	FieldType FieldType `json:"fieldType"`
+	Operator  string              `json:"operator,omitempty"`
+	Sep       string              `json:"-"`
+	FieldType FieldType           `json:"fieldType"`
 }
 
 func NewField(attr string, ft FieldType) *Field {
@@ -51,6 +52,9 @@ func (f *Field) addFullText(text string, ids []uint32) {
 }
 
 func (f *Field) addTerm(term string, ids []uint32) {
+	if f.Items == nil {
+		f.Items = make(map[string][]uint32)
+	}
 	f.Items[term] = append(f.Items[term], ids...)
 }
 

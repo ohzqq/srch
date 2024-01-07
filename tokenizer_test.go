@@ -11,8 +11,7 @@ type index map[string][]int
 
 func TestFacetSearch(t *testing.T) {
 	facet := NewFacet("title")
-	for _, book := range books {
-		b := book.(map[string]any)
+	for _, b := range books {
 		title := cast.ToString(b["title"])
 		for _, token := range Tokenizer(title) {
 			facet.AddItem(token, cast.ToString(b["id"]))
@@ -31,9 +30,8 @@ func TestIndexSearch(t *testing.T) {
 	fmt.Printf("%v\n", res)
 }
 
-func (idx index) add(docs []any) {
-	for _, book := range docs {
-		b := book.(map[string]any)
+func (idx index) add(docs []map[string]any) {
+	for _, b := range docs {
 		title := cast.ToString(b["title"])
 		id := cast.ToInt(b["id"])
 		for _, token := range Tokenizer(title) {

@@ -20,10 +20,11 @@ func init() {
 
 // Index is a structure for facets and data.
 type Index struct {
-	Data             []any    `json:"data"`
-	SearchableFields []string `json:"searchableFields"`
-	Facets           []*Facet `json:"facets"`
-	Query            Query    `json:"filters"`
+	Data             []map[string]any `json:"data"`
+	SearchableFields []string         `json:"searchableFields"`
+	Facets           []*Facet         `json:"facets"`
+	Fields           []*Field         `json:"fields"`
+	Query            Query            `json:"filters"`
 	interactive      bool
 	fuzzy            bool
 	search           SearchFunc
@@ -43,7 +44,7 @@ func New(src Src, opts ...Opt) *Index {
 	}
 
 	if len(idx.Data) > 0 && idx.HasFacets() {
-		idx.CollectItems()
+		//idx.CollectItems()
 	}
 
 	if idx.fuzzy {
@@ -54,7 +55,7 @@ func New(src Src, opts ...Opt) *Index {
 }
 
 // CopyIndex copies an index's config.
-func CopyIndex(idx *Index, data []any) *Index {
+func CopyIndex(idx *Index, data []map[string]any) *Index {
 	n := New(SliceSrc(data), WithCfg(idx.GetConfig()))
 	n.Data = data
 	n.Query = idx.Query
@@ -62,6 +63,15 @@ func CopyIndex(idx *Index, data []any) *Index {
 	n.interactive = idx.interactive
 	return n
 }
+
+//func (idx *Index) BuildIndex() *Index {
+//  for _, d := range idx.Data {
+//    var item map[string]any
+//    for _, f := range idx.Fields {
+//    }
+//  }
+//  return idx
+//}
 
 // Filter idx.Data and re-calculate facets.
 func (idx *Index) Filter(q any) *Index {
