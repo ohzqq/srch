@@ -38,6 +38,15 @@ func TestSearchResults(t *testing.T) {
 	}
 }
 
+func TestSearchSrc(t *testing.T) {
+	src := NewSourceData(books)
+	res := SearchSrc(src, idx.Fields, "fish")
+	data := res.Data()
+	if len(data) != 8 {
+		t.Errorf("got %d, expected 8\n", len(data))
+	}
+}
+
 func TestIdxFilterSearch(t *testing.T) {
 	//t.SkipNow()
 	//vals := testVals()
@@ -65,6 +74,7 @@ func TestAudibleSearch(t *testing.T) {
 		Interactive,
 	)
 	res := a.Search("amy lane fish")
+	println("audible search")
 	println(len(res.Data()))
 
 	//for i := 0; i < res.Len(); i++ {

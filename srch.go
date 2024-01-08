@@ -1,7 +1,6 @@
 package srch
 
 import (
-	"log"
 	"strings"
 	"unicode"
 
@@ -15,7 +14,14 @@ import (
 type SearchFunc func(string) []map[string]any
 
 func (idx *Index) Search(q string) *Results {
-	return Search(idx.Data(), idx.Fields, idx.search, q)
+	srch := idx.search
+	switch {
+	case idx.search == nil:
+		srch = FullText(idx.Data(), idx.SearchableFields()...)
+	case idx.fuzzy:
+		srch = FuzzySearch(idx.Data(), idx.SearchableFields()...)
+	}
+	return Search(idx.Data(), idx.Fields, srch, q)
 }
 
 func Search(data []map[string]any, fields []*Field, fn SearchFunc, q string) *Results {
@@ -30,25 +36,31 @@ func Search(data []map[string]any, fields []*Field, fn SearchFunc, q string) *Re
 	return NewResults(r, idx.Facets()...)
 }
 
+func SearchSrc(src *Src, fields []*Field, q string) *Results {
+	search := FullText(src.Data(), SearchableFields(fields)...)
+	return NewResults(search(q), FilterFacets(fields)...)
+}
+
 func FullText(data []map[string]any, fieldNames ...string) SearchFunc {
 	return func(q string) []map[string]any {
-		if q == "" {
-			return data
+		fields := make([]*Field, len(fieldNames))
+		for i, f := range fieldNames {
+			fields[i] = NewTextField(f)
 		}
-
-		idx := New(SliceSrc(data), WithTextFields(fieldNames))
-
-		var bits []*roaring.Bitmap
-		for _, field := range fieldNames {
-			f, err := idx.GetField(field)
-			if err != nil {
-				log.Fatal(err)
-			}
-			bits = append(bits, f.Search(q))
-		}
-		res := processBitResults(bits, "and")
-		return collectResults(idx.Data(), cast.ToIntSlice(res.ToArray()))
+		return fullTextSearch(data, fields, q)
 	}
+}
+
+func fullTextSearch(data []map[string]any, fields []*Field, q string) []map[string]any {
+	if q == "" {
+		return data
+	}
+	var bits []*roaring.Bitmap
+	for _, field := range fields {
+		bits = append(bits, field.Search(q))
+	}
+	res := processBitResults(bits, "and")
+	return collectResults(data, cast.ToIntSlice(res.ToArray()))
 }
 
 func FuzzySearch(data []map[string]any, fields ...string) SearchFunc {

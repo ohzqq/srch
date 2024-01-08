@@ -126,6 +126,11 @@ func FilterTextFields(fields []*Field) []*Field {
 	return lo.Filter(idx.Fields, filterTextFields)
 }
 
+func SearchableFields(fields []*Field) []string {
+	f := FilterTextFields(fields)
+	return lo.Map(f, mapFieldAttr)
+}
+
 func mapFieldAttr(f *Field, _ int) string {
 	return f.Attribute
 }

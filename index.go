@@ -9,7 +9,6 @@ import (
 	"os"
 
 	"github.com/mitchellh/mapstructure"
-	"github.com/samber/lo"
 	"github.com/spf13/cast"
 	"github.com/spf13/viper"
 )
@@ -39,13 +38,6 @@ func New(src DataSrc, opts ...Opt) *Index {
 	}
 
 	idx.BuildIndex()
-
-	switch {
-	case idx.search == nil:
-		idx.search = FullText(idx.Data(), idx.SearchableFields()...)
-	case idx.fuzzy:
-		idx.search = FuzzySearch(idx.Data(), idx.SearchableFields()...)
-	}
 
 	return idx
 }
@@ -103,12 +95,11 @@ func (idx *Index) Facets() []*Field {
 }
 
 func (idx *Index) TextFields() []*Field {
-	return lo.Filter(idx.Fields, filterTextFields)
+	return FilterTextFields(idx.Fields)
 }
 
 func (idx *Index) SearchableFields() []string {
-	f := idx.TextFields()
-	return lo.Map(f, mapFieldAttr)
+	return SearchableFields(idx.Fields)
 }
 
 // GetConfig returns a map of the Index's config.
