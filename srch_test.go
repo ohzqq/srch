@@ -2,6 +2,7 @@ package srch
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/url"
 	"os/exec"
@@ -21,14 +22,19 @@ func testVals() url.Values {
 	return vals
 }
 
-func TestSearch(t *testing.T) {
-	i := Search(
+func TestSearchResults(t *testing.T) {
+	res := Search(
 		books,
 		idx.Fields,
 		FullText(books, "title"),
-		Query(testVals()),
+		"fish",
 	)
-	println(len(i.Data))
+	if len(res.Data) != 8 {
+		t.Errorf("got %d, expected 8\n", len(res.Data))
+	}
+	for _, f := range res.Facets {
+		fmt.Printf("attr %s: %+v\n", f.Attribute, f.Items[0])
+	}
 }
 
 func TestIdxSearch(t *testing.T) {
@@ -83,11 +89,7 @@ func audibleSrc(q string) Src {
 	}
 }
 
-func audibleSrch(query ...any) []map[string]any {
-	var q string
-	if len(query) > 0 {
-		q = query[0].(string)
-	}
+func audibleSrch(q string) []map[string]any {
 	return audibleApi(q)
 }
 

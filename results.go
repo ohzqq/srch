@@ -44,7 +44,7 @@ func FieldsToFacets(fields []*Field) []*Facet {
 }
 
 func FieldItemsToFacetItems(fi map[string]*roaring.Bitmap) []*FacetItem {
-	items := make([]*FacetItem, len(fi))
+	var items []*FacetItem
 	for label, bits := range fi {
 		items = append(items, NewFacetItem(label, len(bits.ToArray())))
 	}

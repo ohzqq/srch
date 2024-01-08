@@ -10,29 +10,24 @@ import (
 	"github.com/sahilm/fuzzy"
 	"github.com/samber/lo"
 	"github.com/spf13/cast"
-	"github.com/spf13/viper"
 )
 
-type SearchFunc func(...any) []map[string]any
+type SearchFunc func(string) []map[string]any
 
-func Search(data []map[string]any, fields []*Field, fn SearchFunc, q Query) *Results {
+func Search(data []map[string]any, fields []*Field, fn SearchFunc, q string) *Results {
 	idx := New(
 		SliceSrc(data),
 		WithFields(fields),
 		WithSearch(fn),
 	)
 
-	idx.Data = idx.search(q)
+	r := idx.search(q)
 
-	return NewResults(idx.Data, idx.Facets()...)
+	return NewResults(r, idx.Facets()...)
 }
 
 func FullText(data []map[string]any, fieldNames ...string) SearchFunc {
-	return func(query ...any) []map[string]any {
-		var q string
-		if len(query) > 0 {
-			q = cast.ToString(query[0])
-		}
+	return func(q string) []map[string]any {
 		if q == "" {
 			return data
 		}
@@ -47,17 +42,13 @@ func FullText(data []map[string]any, fieldNames ...string) SearchFunc {
 			}
 			bits = append(bits, f.Search(q))
 		}
-		res := roaring.ParOr(viper.GetInt("workers"), bits...)
-		return collectResults(idx.Data, cast.ToIntSlice(res))
+		res := processBitResults(bits, "and")
+		return collectResults(idx.Data, cast.ToIntSlice(res.ToArray()))
 	}
 }
 
 func FuzzySearch(data []map[string]any, fields ...string) SearchFunc {
-	return func(qq ...any) []map[string]any {
-		var q string
-		if len(qq) > 0 {
-			q = qq[0].(string)
-		}
+	return func(q string) []map[string]any {
 		if q == "" {
 			return data
 		}
@@ -88,7 +79,7 @@ func (idx *Index) Search(q any) *Index {
 	}
 	idx.Query = filters
 
-	res, err := idx.get(filters.Keywords()...)
+	res, err := idx.get(filters.Keywords())
 	if err != nil {
 		return idx
 	}
@@ -102,8 +93,8 @@ func (idx *Index) Search(q any) *Index {
 	return Filter(res)
 }
 
-func (idx *Index) get(q ...string) (*Index, error) {
-	data := idx.search(lo.ToAnySlice(q)...)
+func (idx *Index) get(q string) (*Index, error) {
+	data := idx.search(q)
 	res := CopyIndex(idx, data)
 
 	if res.interactive {

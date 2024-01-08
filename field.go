@@ -91,7 +91,7 @@ func (f *Field) Filter(filters ...string) *roaring.Bitmap {
 	for _, filter := range filters {
 		bits = append(bits, f.Search(filter))
 	}
-	return f.processResults(bits)
+	return processBitResults(bits, f.Operator)
 }
 
 func (f *Field) Search(text string) *roaring.Bitmap {
@@ -106,11 +106,11 @@ func (f *Field) Search(text string) *roaring.Bitmap {
 			bits = append(bits, ids)
 		}
 	}
-	return f.processResults(bits)
+	return processBitResults(bits, f.Operator)
 }
 
-func (f *Field) processResults(bits []*roaring.Bitmap) *roaring.Bitmap {
-	switch f.Operator {
+func processBitResults(bits []*roaring.Bitmap, operator string) *roaring.Bitmap {
+	switch operator {
 	case "and":
 		return roaring.ParAnd(viper.GetInt("workers"), bits...)
 	default:
