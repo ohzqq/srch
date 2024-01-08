@@ -21,10 +21,14 @@ func init() {
 
 // Index is a structure for facets and data.
 type Index struct {
-	Data        []map[string]any `json:"data"`
-	Fields      []*Field         `json:"fields"`
-	Query       Query            `json:"filters"`
-	Identifier  string           `json:"identifier"`
+	Data []map[string]any `json:"data"`
+	*Config
+}
+
+type Config struct {
+	Fields      []*Field `json:"fields"`
+	Query       Query    `json:"filters"`
+	Identifier  string   `json:"identifier"`
 	interactive bool
 	fuzzy       bool
 	search      SearchFunc
@@ -34,9 +38,12 @@ type Index struct {
 // []string{"title"}.
 func New(src Src, opts ...Opt) *Index {
 	idx := &Index{
-		Data:       src(),
-		search:     SearchFunc(src),
-		Identifier: "id",
+		Data: src(),
+		Config: &Config{
+			search:     SearchFunc(src),
+			Identifier: "id",
+			Fields:     []*Field{NewTextField("title")},
+		},
 	}
 
 	for _, opt := range opts {

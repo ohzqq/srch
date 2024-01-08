@@ -15,16 +15,13 @@ import (
 
 type SearchFunc func(...any) []map[string]any
 
-type Results struct {
-	Data   []map[string]any
-	Facets []*Field
-}
-
 func Search(data []map[string]any, fields []*Field, fn SearchFunc, q Query) *Index {
 	idx := &Index{
-		Data:   data,
-		Fields: fields,
-		search: fn,
+		Data: data,
+		Config: &Config{
+			Fields: fields,
+			search: fn,
+		},
 	}
 	idx.BuildIndex()
 	idx.Data = idx.search(q)
@@ -79,10 +76,7 @@ func FuzzySearch(data []map[string]any, fields ...string) SearchFunc {
 func GetSearchableFieldValues(data []map[string]any, fields []string) []string {
 	src := make([]string, len(data))
 	for i, d := range data {
-		s := lo.PickByKeys(
-			cast.ToStringMap(d),
-			fields,
-		)
+		s := lo.PickByKeys(d, fields)
 		vals := cast.ToStringSlice(lo.Values(s))
 		src[i] = strings.Join(vals, "\n")
 	}
@@ -157,7 +151,7 @@ func (idx *Index) Choose() (*Index, error) {
 
 func (r *Index) String(i int) string {
 	s := lo.PickByKeys(
-		cast.ToStringMap(r.Data[i]),
+		r.Data[i],
 		r.SearchableFields(),
 	)
 	vals := cast.ToStringSlice(lo.Values(s))
