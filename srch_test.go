@@ -2,6 +2,7 @@ package srch
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/url"
 	"os/exec"
@@ -11,16 +12,74 @@ import (
 	"github.com/ohzqq/audible"
 )
 
+func testVals() url.Values {
+	vals := make(url.Values)
+	//vals.Add("tags", "abo")
+	//vals.Add("tags", "dnr")
+	//vals.Add("authors", "Alice Winters")
+	vals.Add("authors", "Amy Lane")
+	vals.Add("q", "fish")
+	return vals
+}
+
+func TestSearchResults(t *testing.T) {
+	res := Search(
+		books,
+		idx.Fields,
+		FullText(books, "title"),
+		"fish",
+	)
+	if len(res.Data) != 8 {
+		t.Errorf("got %d, expected 8\n", len(res.Data))
+	}
+	for _, f := range res.Facets {
+		fmt.Printf("attr %s: %+v\n", f.Attribute, f.Items[0])
+	}
+}
+
+func TestIdxSearch(t *testing.T) {
+	t.SkipNow()
+	println("test idx search")
+	vals := testVals()
+	r := idx.Search(vals)
+	//fmt.Println(len(r.Data))
+	r.Print()
+}
+
+func TestIdxFilterSearch(t *testing.T) {
+	//t.SkipNow()
+	//vals := testVals()
+	//res := idx.Search(vals)
+
+	fn := FuzzySearch(books, "title")
+	res := fn("fish")
+	i := New(SliceSrc(res), WithCfg(testCfgFile))
+	vals := make(url.Values)
+	vals.Set("authors", "amy lane")
+	r := i.Filter(vals)
+	if len(r.Data) != 4 {
+		t.Errorf("got %d, expected 4", len(r.Data))
+	}
+}
+
 func TestAudibleSearch(t *testing.T) {
 	t.SkipNow()
-	cfg := map[string]any{
-		"searchableFields": []string{"Title"},
-	}
-	a := New(audibleSrc("sporemaggeddon"), WithSearch(audibleSrch), WithCfg(cfg), Interactive)
+
+	a := New(
+		audibleSrc("sporemaggeddon"),
+		WithSearch(audibleSrch),
+		WithTextFields([]string{"Title"}),
+		Interactive,
+	)
 	v := make(url.Values)
 	v.Set("q", "amy lane fish")
 	res := a.Search(v)
 	println(res.Len())
+
+	//for i := 0; i < res.Len(); i++ {
+	//  println(res.String(i))
+	//}
+
 	//res.Print()
 }
 
@@ -30,11 +89,7 @@ func audibleSrc(q string) Src {
 	}
 }
 
-func audibleSrch(query ...any) []map[string]any {
-	var q string
-	if len(query) > 0 {
-		q = query[0].(string)
-	}
+func audibleSrch(q string) []map[string]any {
 	return audibleApi(q)
 }
 

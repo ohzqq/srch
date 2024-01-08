@@ -10,8 +10,8 @@ import (
 type FieldType string
 
 const (
-	Taxonomy FieldType = "taxonomy"
-	Text     FieldType = "text"
+	FacetField FieldType = "facet"
+	Text       FieldType = "text"
 )
 
 type Field struct {
@@ -31,11 +31,15 @@ func NewField(attr string, ft FieldType) *Field {
 }
 
 func NewTextField(attr string) *Field {
-	return NewField(attr, Text)
+	f := NewField(attr, Text)
+	f.Operator = "and"
+	return f
 }
 
 func NewTaxonomyField(attr string) *Field {
-	return NewField(attr, Taxonomy)
+	f := NewField(attr, FacetField)
+	f.Operator = "or"
+	return f
 }
 
 func (f *Field) Add(value any, ids ...any) {
@@ -68,6 +72,15 @@ func (f *Field) addTerm(term string, ids []int) {
 	}
 }
 
+// GetConfig returns a map of a Facet's config.
+func (f *Field) GetConfig() map[string]any {
+	return map[string]any{
+		"attribute": f.Attribute,
+		"operator":  f.Operator,
+		"fieldType": f.FieldType,
+	}
+}
+
 func (f *Field) ListTokens() []string {
 	return lo.Keys(f.Items)
 }
@@ -78,17 +91,11 @@ func (f *Field) Filter(filters ...string) *roaring.Bitmap {
 	for _, filter := range filters {
 		bits = append(bits, f.Search(filter))
 	}
-
-	switch f.Operator {
-	case "and":
-		return roaring.ParAnd(viper.GetInt("workers"), bits...)
-	default:
-		return roaring.ParOr(viper.GetInt("workers"), bits...)
-	}
+	return processBitResults(bits, f.Operator)
 }
 
 func (f *Field) Search(text string) *roaring.Bitmap {
-	if f.FieldType == Taxonomy {
+	if f.FieldType == FacetField {
 		if ids, ok := f.Items[text]; ok {
 			return ids
 		}
@@ -99,7 +106,11 @@ func (f *Field) Search(text string) *roaring.Bitmap {
 			bits = append(bits, ids)
 		}
 	}
-	switch f.Operator {
+	return processBitResults(bits, f.Operator)
+}
+
+func processBitResults(bits []*roaring.Bitmap, operator string) *roaring.Bitmap {
+	switch operator {
 	case "and":
 		return roaring.ParAnd(viper.GetInt("workers"), bits...)
 	default:

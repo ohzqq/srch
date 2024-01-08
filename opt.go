@@ -59,15 +59,25 @@ func WithCfg(c any) Opt {
 	}
 }
 
-func WithFacets(facets []*Facet) Opt {
+func WithFields(fields []*Field) Opt {
 	return func(idx *Index) {
-		idx.Facets = facets
+		idx.Fields = fields
 	}
 }
 
-func WithFields(fields []string) Opt {
+func WithFacets(fields []string) Opt {
 	return func(idx *Index) {
-		idx.SearchableFields = fields
+		for _, f := range fields {
+			idx.Fields = append(idx.Fields, NewTaxonomyField(f))
+		}
+	}
+}
+
+func WithTextFields(fields []string) Opt {
+	return func(idx *Index) {
+		for _, f := range fields {
+			idx.Fields = append(idx.Fields, NewTextField(f))
+		}
 	}
 }
 
@@ -91,10 +101,6 @@ func DataString(d string) Opt {
 		if err != nil {
 			log.Fatal(err)
 		}
-
-		if len(idx.Data) > 0 {
-			idx.CollectItems()
-		}
 	}
 }
 
@@ -102,7 +108,6 @@ func DataString(d string) Opt {
 func DataSlice(data []map[string]any) Opt {
 	return func(idx *Index) {
 		idx.Data = data
-		idx.CollectItems()
 	}
 }
 
@@ -120,6 +125,5 @@ func DataFile(cfg string) Opt {
 			log.Fatal(err)
 		}
 		idx.Data = data
-		idx.CollectItems()
 	}
 }

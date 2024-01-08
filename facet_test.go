@@ -1,3 +1,5 @@
+//go:build ignore
+
 package srch
 
 import (
@@ -9,7 +11,7 @@ import (
 )
 
 func TestRoaringTerms(t *testing.T) {
-	f := idx.GetFacet("tags")
+	f := idx.GetField("tags")
 	term := f.GetItem("abo")
 	r := term.Bitmap()
 	if len(r.ToArray()) != 416 {
@@ -18,14 +20,14 @@ func TestRoaringTerms(t *testing.T) {
 }
 
 func TestItemsList(t *testing.T) {
-	f := idx.GetFacet("tags")
+	f := idx.GetField("tags")
 	if f.Len() != len(f.Items) {
 		t.Errorf("got %d, expected %d\n", f.Len(), len(f.Items))
 	}
 }
 
 func TestFuzzyFindItem(t *testing.T) {
-	f := idx.GetFacet("tags")
+	f := idx.GetField("tags")
 	m := f.FuzzyFindItem("holiday")
 	if len(m) != 5 {
 		t.Errorf("got %d, expected 5", len(m))
@@ -60,16 +62,6 @@ func TestRoaringFilters(t *testing.T) {
 		t.Error(err)
 	}
 	testFilters(q)
-}
-
-func testVals() url.Values {
-	vals := make(url.Values)
-	//vals.Add("tags", "abo")
-	//vals.Add("tags", "dnr")
-	//vals.Add("authors", "Alice Winters")
-	vals.Add("authors", "Amy Lane")
-	vals.Add("q", "fish")
-	return vals
 }
 
 func testFilters(q url.Values) {

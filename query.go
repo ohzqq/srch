@@ -2,6 +2,7 @@ package srch
 
 import (
 	"net/url"
+	"strings"
 
 	"github.com/samber/lo"
 	"github.com/spf13/cast"
@@ -49,15 +50,24 @@ func (q Query) Set(k, v string) {
 	q.Values().Set(k, v)
 }
 
-func (q Query) Keywords() []string {
+func (q Query) Keywords() string {
 	if q.Values().Has("q") {
-		return q["q"]
+		return strings.Join(q["q"], " ")
 	}
-	return []string{}
+	return ""
 }
 
 func (q Query) Filters() url.Values {
 	return lo.OmitByKeys(q, []string{"q"})
+}
+
+func (q Query) HasFilters() bool {
+	for k, _ := range q {
+		if k != "q" {
+			return true
+		}
+	}
+	return false
 }
 
 // ParseValues takes an interface{} and returns a url.Values.

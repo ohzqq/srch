@@ -3,7 +3,6 @@ package srch
 import (
 	"encoding/json"
 	"fmt"
-	"net/url"
 	"os"
 	"testing"
 
@@ -41,10 +40,9 @@ func TestNewIndexFunc(t *testing.T) {
 	if i.Len() != 7174 {
 		t.Errorf("got %d, expected 7174\n", i.Len())
 	}
-	if len(i.Facets) != 4 {
-		t.Errorf("got %d, expected 4\n", len(i.Facets))
+	if len(i.Facets()) != 4 {
+		t.Errorf("got %d, expected 4\n", len(i.Facets()))
 	}
-	i.BuildIndex()
 	field, err := i.GetField("tags")
 	if err != nil {
 		t.Error(err)
@@ -56,37 +54,21 @@ func TestNewIndexFunc(t *testing.T) {
 	//}
 }
 
+func TestIndexProps(t *testing.T) {
+	for _, f := range idx.Facets() {
+		fmt.Printf("attr %s\n", f.Attribute)
+	}
+	for _, f := range idx.TextFields() {
+		fmt.Printf("attr %s\n", f.Attribute)
+	}
+}
+
 func TestIdxCfg(t *testing.T) {
 	//cfg := &Index{}
 	err := json.Unmarshal([]byte(testCfg), idx)
 	if err != nil {
 		t.Error(err)
 	}
-}
-
-func TestIdxFilterSearch(t *testing.T) {
-	//t.SkipNow()
-	//vals := testVals()
-	//res := idx.Search(vals)
-
-	fn := FuzzySearch(books, "title")
-	res := fn("fish")
-	i := New(SliceSrc(res), WithCfg(testCfgFile))
-	vals := make(url.Values)
-	vals.Set("authors", "amy lane")
-	r := i.Filter(vals)
-	if len(r.Data) != 4 {
-		t.Errorf("got %d, expected 4", len(r.Data))
-	}
-}
-
-func TestIdxSearch(t *testing.T) {
-	t.SkipNow()
-	println("test idx search")
-	vals := testVals()
-	r := idx.Search(vals)
-	//fmt.Println(len(r.Data))
-	r.Print()
 }
 
 func TestNewIdxFromMap(t *testing.T) {
@@ -103,8 +85,8 @@ func TestNewIdxFromMap(t *testing.T) {
 	if len(idx.Data) != len(books) {
 		t.Errorf("got %d, expected 7174\v", len(idx.Data))
 	}
-	if len(idx.Facets) != 2 {
-		t.Errorf("got %d facets, expected 2", len(idx.Facets))
+	if len(idx.Facets()) != 2 {
+		t.Errorf("got %d facets, expected 2", len(idx.Facets()))
 	}
 }
 

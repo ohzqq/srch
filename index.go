@@ -9,6 +9,7 @@ import (
 	"os"
 
 	"github.com/mitchellh/mapstructure"
+	"github.com/samber/lo"
 	"github.com/spf13/cast"
 	"github.com/spf13/viper"
 )
@@ -20,40 +21,37 @@ func init() {
 
 // Index is a structure for facets and data.
 type Index struct {
-	Data             []map[string]any `json:"data"`
-	SearchableFields []string         `json:"searchableFields"`
-	Facets           []*Facet         `json:"facets"`
-	Fields           []*Field         `json:"fields"`
-	Query            Query            `json:"filters"`
-	Identifier       string           `json:"identifier"`
-	interactive      bool
-	fuzzy            bool
-	search           SearchFunc
+	Data   []map[string]any `json:"data"`
+	search SearchFunc
+	*Config
 }
 
 // New initializes an *Index with defaults: SearchableFields are
 // []string{"title"}.
 func New(src Src, opts ...Opt) *Index {
-	idx := &Index{
-		Data:             src(),
-		SearchableFields: []string{"title"},
-		search:           SearchFunc(src),
-		Identifier:       "id",
-	}
+	idx := NewWithConfig(src(), DefaultConfig())
 
 	for _, opt := range opts {
 		opt(idx)
 	}
 
-	if len(idx.Data) > 0 && idx.HasFacets() {
-		//idx.CollectItems()
-	}
+	idx.BuildIndex()
 
-	if idx.fuzzy {
-		idx.search = FuzzySearch(idx.Data, idx.SearchableFields...)
+	switch {
+	case idx.search == nil:
+		idx.search = FullText(idx.Data, idx.SearchableFields()...)
+	case idx.fuzzy:
+		idx.search = FuzzySearch(idx.Data, idx.SearchableFields()...)
 	}
 
 	return idx
+}
+
+func NewWithConfig(data []map[string]any, cfg *Config) *Index {
+	return &Index{
+		Data:   data,
+		Config: cfg,
+	}
 }
 
 // CopyIndex copies an index's config.
@@ -98,39 +96,61 @@ func (idx *Index) Filter(q any) *Index {
 	return Filter(idx)
 }
 
-// CollectItems collects a facet's items from the data set.
-func (idx *Index) CollectItems() *Index {
-	for _, facet := range idx.Facets {
-		facet.CollectItems(idx.Data)
-	}
-	return idx
+func (idx *Index) Facets() []*Field {
+	//var facets []*Field
+	//for _, field := range idx.Fields {
+	//  if field.FieldType == Taxonomy {
+	//    facets = append(facets, field)
+	//  }
+	//}
+	facets := lo.Filter(idx.Fields, filterFacetFields)
+
+	return facets
+}
+
+func (idx *Index) TextFields() []*Field {
+	//var facets []*Field
+	//for _, field := range idx.Fields {
+	//  if field.FieldType == Text {
+	//    facets = append(facets, field)
+	//  }
+	//}
+	facets := lo.Filter(idx.Fields, filterTextFields)
+	return facets
+}
+
+func (idx *Index) SearchableFields() []string {
+	f := idx.TextFields()
+	return lo.Map(f, mapFieldAttr)
+}
+
+func mapFieldAttr(f *Field, _ int) string {
+	return f.Attribute
+}
+
+func filterTextFields(f *Field, _ int) bool {
+	return f.FieldType == Text
+}
+
+func filterFacetFields(f *Field, _ int) bool {
+	return f.FieldType == FacetField
 }
 
 // GetConfig returns a map of the Index's config.
 func (idx *Index) GetConfig() map[string]any {
 	var facets []map[string]any
-	for _, f := range idx.Facets {
+	for _, f := range idx.Fields {
 		facets = append(facets, f.GetConfig())
 	}
 	return map[string]any{
-		"facets":           facets,
-		"searchableFields": idx.SearchableFields,
+		"fields":           facets,
+		"searchableFields": idx.SearchableFields(),
 	}
 }
 
 // HasFacets returns true if facets are configured.
 func (idx *Index) HasFacets() bool {
-	return len(idx.Facets) > 0
-}
-
-// GetFacet returns a facet.
-func (idx *Index) GetFacet(name string) *Facet {
-	for _, facet := range idx.Facets {
-		if facet.Attribute == name {
-			return facet
-		}
-	}
-	return NewFacet(name)
+	return len(idx.Facets()) > 0
 }
 
 // Decode unmarshals json from an io.Reader.
@@ -240,18 +260,18 @@ func CfgIndexFromMap(idx *Index, d map[string]any) error {
 	return nil
 }
 
-func parseFacetMap(f any) map[string]*Facet {
-	facets := make(map[string]*Facet)
-	for name, agg := range cast.ToStringMap(f) {
-		facet := NewFacet(name)
-		err := mapstructure.Decode(agg, facet)
-		if err != nil {
-			log.Fatal(err)
-		}
-		facets[name] = facet
-	}
-	return facets
-}
+//func parseFacetMap(f any) map[string]*Facet {
+//  facets := make(map[string]*Facet)
+//  for name, agg := range cast.ToStringMap(f) {
+//    facet := NewFacet(name)
+//    err := mapstructure.Decode(agg, facet)
+//    if err != nil {
+//      log.Fatal(err)
+//    }
+//    facets[name] = facet
+//  }
+//  return facets
+//}
 
 func exist(path string) bool {
 	if _, err := os.Stat(path); errors.Is(err, os.ErrNotExist) {

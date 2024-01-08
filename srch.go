@@ -5,20 +5,50 @@ import (
 	"strings"
 	"unicode"
 
+	"github.com/RoaringBitmap/roaring"
 	"github.com/kljensen/snowball/english"
 	"github.com/sahilm/fuzzy"
 	"github.com/samber/lo"
 	"github.com/spf13/cast"
 )
 
-type SearchFunc func(...any) []map[string]any
+type SearchFunc func(string) []map[string]any
+
+func Search(data []map[string]any, fields []*Field, fn SearchFunc, q string) *Results {
+	idx := New(
+		SliceSrc(data),
+		WithFields(fields),
+		WithSearch(fn),
+	)
+
+	r := idx.search(q)
+
+	return NewResults(r, idx.Facets()...)
+}
+
+func FullText(data []map[string]any, fieldNames ...string) SearchFunc {
+	return func(q string) []map[string]any {
+		if q == "" {
+			return data
+		}
+
+		idx := New(SliceSrc(data), WithTextFields(fieldNames))
+
+		var bits []*roaring.Bitmap
+		for _, field := range fieldNames {
+			f, err := idx.GetField(field)
+			if err != nil {
+				log.Fatal(err)
+			}
+			bits = append(bits, f.Search(q))
+		}
+		res := processBitResults(bits, "and")
+		return collectResults(idx.Data, cast.ToIntSlice(res.ToArray()))
+	}
+}
 
 func FuzzySearch(data []map[string]any, fields ...string) SearchFunc {
-	return func(qq ...any) []map[string]any {
-		var q string
-		if len(qq) > 0 {
-			q = qq[0].(string)
-		}
+	return func(q string) []map[string]any {
 		if q == "" {
 			return data
 		}
@@ -35,10 +65,7 @@ func FuzzySearch(data []map[string]any, fields ...string) SearchFunc {
 func GetSearchableFieldValues(data []map[string]any, fields []string) []string {
 	src := make([]string, len(data))
 	for i, d := range data {
-		s := lo.PickByKeys(
-			cast.ToStringMap(d),
-			fields,
-		)
+		s := lo.PickByKeys(d, fields)
 		vals := cast.ToStringSlice(lo.Values(s))
 		src[i] = strings.Join(vals, "\n")
 	}
@@ -52,7 +79,7 @@ func (idx *Index) Search(q any) *Index {
 	}
 	idx.Query = filters
 
-	res, err := idx.get(filters.Keywords()...)
+	res, err := idx.get(filters.Keywords())
 	if err != nil {
 		return idx
 	}
@@ -61,13 +88,13 @@ func (idx *Index) Search(q any) *Index {
 		return res
 	}
 
-	res.CollectItems()
+	res.BuildIndex()
 
 	return Filter(res)
 }
 
-func (idx *Index) get(q ...string) (*Index, error) {
-	data := idx.search(lo.ToAnySlice(q)...)
+func (idx *Index) get(q string) (*Index, error) {
+	data := idx.search(q)
 	res := CopyIndex(idx, data)
 
 	if res.interactive {
@@ -83,15 +110,21 @@ func (idx *Index) Results() (*Index, error) {
 
 func (idx *Index) getResults(ids ...int) *Index {
 	if len(ids) > 0 {
-		data := make([]map[string]any, len(ids))
-		for i, id := range ids {
-			data[i] = idx.Data[id]
-		}
-		idx.Data = data
+		idx.Data = collectResults(idx.Data, ids)
 		return idx
 	}
-
 	return idx
+}
+
+func collectResults(d []map[string]any, ids []int) []map[string]any {
+	if len(ids) > 0 {
+		data := make([]map[string]any, len(ids))
+		for i, id := range ids {
+			data[i] = d[id]
+		}
+		return data
+	}
+	return d
 }
 
 func (idx *Index) Choose() (*Index, error) {
@@ -107,8 +140,8 @@ func (idx *Index) Choose() (*Index, error) {
 
 func (r *Index) String(i int) string {
 	s := lo.PickByKeys(
-		cast.ToStringMap(r.Data[i]),
-		r.SearchableFields,
+		r.Data[i],
+		r.SearchableFields(),
 	)
 	vals := cast.ToStringSlice(lo.Values(s))
 	return strings.Join(vals, "\n")

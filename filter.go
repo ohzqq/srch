@@ -12,7 +12,7 @@ import (
 func Filter(idx *Index) *Index {
 	var bits []*roaring.Bitmap
 	for name, filters := range idx.Query {
-		for _, facet := range idx.Facets {
+		for _, facet := range idx.Facets() {
 			if facet.Attribute == name {
 				bits = append(bits, facet.Filter(filters...))
 			}
