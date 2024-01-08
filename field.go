@@ -117,3 +117,15 @@ func processBitResults(bits []*roaring.Bitmap, operator string) *roaring.Bitmap 
 		return roaring.ParOr(viper.GetInt("workers"), bits...)
 	}
 }
+
+func mapFieldAttr(f *Field, _ int) string {
+	return f.Attribute
+}
+
+func filterTextFields(f *Field, _ int) bool {
+	return f.FieldType == Text
+}
+
+func filterFacetFields(f *Field, _ int) bool {
+	return f.FieldType == FacetField
+}

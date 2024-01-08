@@ -29,8 +29,9 @@ func TestSearchResults(t *testing.T) {
 		FullText(books, "title"),
 		"fish",
 	)
-	if len(res.Data) != 8 {
-		t.Errorf("got %d, expected 8\n", len(res.Data))
+	data := res.GetData()
+	if len(data) != 8 {
+		t.Errorf("got %d, expected 8\n", len(data))
 	}
 	for _, f := range res.Facets {
 		fmt.Printf("attr %s: %+v\n", f.Attribute, f.Items[0])
@@ -57,8 +58,9 @@ func TestIdxFilterSearch(t *testing.T) {
 	vals := make(url.Values)
 	vals.Set("authors", "amy lane")
 	r := i.Filter(vals)
-	if len(r.Data) != 4 {
-		t.Errorf("got %d, expected 4", len(r.Data))
+	data := r.GetData()
+	if len(data) != 4 {
+		t.Errorf("got %d, expected 4", len(data))
 	}
 }
 

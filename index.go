@@ -42,9 +42,9 @@ func New(src Src, opts ...Opt) *Index {
 
 	switch {
 	case idx.search == nil:
-		idx.search = FullText(idx.Data, idx.SearchableFields()...)
+		idx.search = FullText(idx.GetData(), idx.SearchableFields()...)
 	case idx.fuzzy:
-		idx.search = FuzzySearch(idx.Data, idx.SearchableFields()...)
+		idx.search = FuzzySearch(idx.GetData(), idx.SearchableFields()...)
 	}
 
 	return idx
@@ -52,9 +52,7 @@ func New(src Src, opts ...Opt) *Index {
 
 func NewWithConfig(data []map[string]any, cfg *Config) *Index {
 	return &Index{
-		Source: &Source{
-			Data: data,
-		},
+		Source: NewSource(SliceSrc(data)),
 		Config: cfg,
 	}
 }
@@ -62,7 +60,6 @@ func NewWithConfig(data []map[string]any, cfg *Config) *Index {
 // CopyIndex copies an index's config.
 func CopyIndex(idx *Index, data []map[string]any) *Index {
 	n := New(SliceSrc(data), WithCfg(idx.GetConfig()))
-	n.Data = data
 	n.Query = idx.Query
 	n.search = idx.search
 	n.interactive = idx.interactive
@@ -70,7 +67,7 @@ func CopyIndex(idx *Index, data []map[string]any) *Index {
 }
 
 func (idx *Index) BuildIndex() *Index {
-	for _, d := range idx.Data {
+	for _, d := range idx.GetData() {
 		id := cast.ToUint32(d[idx.Identifier])
 		for _, f := range idx.Fields {
 			if val, ok := d[f.Attribute]; ok {
@@ -102,43 +99,16 @@ func (idx *Index) Filter(q any) *Index {
 }
 
 func (idx *Index) Facets() []*Field {
-	//var facets []*Field
-	//for _, field := range idx.Fields {
-	//  if field.FieldType == Taxonomy {
-	//    facets = append(facets, field)
-	//  }
-	//}
-	facets := lo.Filter(idx.Fields, filterFacetFields)
-
-	return facets
+	return lo.Filter(idx.Fields, filterFacetFields)
 }
 
 func (idx *Index) TextFields() []*Field {
-	//var facets []*Field
-	//for _, field := range idx.Fields {
-	//  if field.FieldType == Text {
-	//    facets = append(facets, field)
-	//  }
-	//}
-	facets := lo.Filter(idx.Fields, filterTextFields)
-	return facets
+	return lo.Filter(idx.Fields, filterTextFields)
 }
 
 func (idx *Index) SearchableFields() []string {
 	f := idx.TextFields()
 	return lo.Map(f, mapFieldAttr)
-}
-
-func mapFieldAttr(f *Field, _ int) string {
-	return f.Attribute
-}
-
-func filterTextFields(f *Field, _ int) bool {
-	return f.FieldType == Text
-}
-
-func filterFacetFields(f *Field, _ int) bool {
-	return f.FieldType == FacetField
 }
 
 // GetConfig returns a map of the Index's config.

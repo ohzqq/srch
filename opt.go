@@ -124,6 +124,6 @@ func DataFile(cfg string) Opt {
 		if err != nil {
 			log.Fatal(err)
 		}
-		idx.Data = data
+		idx.Source = NewSource(SliceSrc(data))
 	}
 }
