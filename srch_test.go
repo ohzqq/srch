@@ -29,7 +29,7 @@ func TestSearchResults(t *testing.T) {
 		FullText(books, "title"),
 		"fish",
 	)
-	data := res.GetData()
+	data := res.Data()
 	if len(data) != 8 {
 		t.Errorf("got %d, expected 8\n", len(data))
 	}
@@ -58,7 +58,7 @@ func TestIdxFilterSearch(t *testing.T) {
 	vals := make(url.Values)
 	vals.Set("authors", "amy lane")
 	r := i.Filter(vals)
-	data := r.GetData()
+	data := r.Data()
 	if len(data) != 4 {
 		t.Errorf("got %d, expected 4", len(data))
 	}

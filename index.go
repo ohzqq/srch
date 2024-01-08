@@ -42,9 +42,9 @@ func New(src Src, opts ...Opt) *Index {
 
 	switch {
 	case idx.search == nil:
-		idx.search = FullText(idx.GetData(), idx.SearchableFields()...)
+		idx.search = FullText(idx.Data(), idx.SearchableFields()...)
 	case idx.fuzzy:
-		idx.search = FuzzySearch(idx.GetData(), idx.SearchableFields()...)
+		idx.search = FuzzySearch(idx.Data(), idx.SearchableFields()...)
 	}
 
 	return idx
@@ -67,7 +67,7 @@ func CopyIndex(idx *Index, data []map[string]any) *Index {
 }
 
 func (idx *Index) BuildIndex() *Index {
-	for _, d := range idx.GetData() {
+	for _, d := range idx.Data() {
 		id := cast.ToUint32(d[idx.Identifier])
 		for _, f := range idx.Fields {
 			if val, ok := d[f.Attribute]; ok {

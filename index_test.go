@@ -31,7 +31,7 @@ func init() {
 
 	idx = New(FileSrc(testData), WithCfg(testCfgFile))
 
-	books = idx.GetData()
+	books = idx.Data()
 
 }
 
@@ -82,7 +82,7 @@ func TestNewIdxFromMap(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	data := idx.GetData()
+	data := idx.Data()
 	if len(data) != len(books) {
 		t.Errorf("got %d, expected 7174\v", len(data))
 	}

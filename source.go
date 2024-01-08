@@ -20,7 +20,7 @@ func NewSource(src Src) *Source {
 	}
 }
 
-func (src *Source) GetData() []map[string]any {
+func (src *Source) Data() []map[string]any {
 	return src.data()
 }
 

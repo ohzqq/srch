@@ -43,7 +43,7 @@ func FullText(data []map[string]any, fieldNames ...string) SearchFunc {
 			bits = append(bits, f.Search(q))
 		}
 		res := processBitResults(bits, "and")
-		return collectResults(idx.GetData(), cast.ToIntSlice(res.ToArray()))
+		return collectResults(idx.Data(), cast.ToIntSlice(res.ToArray()))
 	}
 }
 
@@ -110,7 +110,7 @@ func (idx *Index) Results() (*Index, error) {
 
 func (idx *Index) getResults(ids ...int) *Index {
 	if len(ids) > 0 {
-		idx.Source = NewSourceData(collectResults(idx.GetData(), ids))
+		idx.Source = NewSourceData(collectResults(idx.Data(), ids))
 		return idx
 	}
 	return idx
@@ -140,7 +140,7 @@ func (idx *Index) Choose() (*Index, error) {
 
 func (r *Index) String(i int) string {
 	s := lo.PickByKeys(
-		r.GetData()[i],
+		r.Data()[i],
 		r.SearchableFields(),
 	)
 	vals := cast.ToStringSlice(lo.Values(s))
@@ -148,7 +148,7 @@ func (r *Index) String(i int) string {
 }
 
 func (r *Index) Len() int {
-	return len(r.GetData())
+	return len(r.Data())
 }
 
 func (r *Index) FuzzyFind(q string) fuzzy.Matches {
