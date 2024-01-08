@@ -9,6 +9,7 @@ import (
 	"os"
 
 	"github.com/mitchellh/mapstructure"
+	"github.com/samber/lo"
 	"github.com/spf13/cast"
 	"github.com/spf13/viper"
 )
@@ -20,24 +21,22 @@ func init() {
 
 // Index is a structure for facets and data.
 type Index struct {
-	Data             []map[string]any `json:"data"`
-	SearchableFields []string         `json:"searchableFields"`
-	Fields           []*Field         `json:"fields"`
-	Query            Query            `json:"filters"`
-	Identifier       string           `json:"identifier"`
-	interactive      bool
-	fuzzy            bool
-	search           SearchFunc
+	Data        []map[string]any `json:"data"`
+	Fields      []*Field         `json:"fields"`
+	Query       Query            `json:"filters"`
+	Identifier  string           `json:"identifier"`
+	interactive bool
+	fuzzy       bool
+	search      SearchFunc
 }
 
 // New initializes an *Index with defaults: SearchableFields are
 // []string{"title"}.
 func New(src Src, opts ...Opt) *Index {
 	idx := &Index{
-		Data:             src(),
-		SearchableFields: []string{"title"},
-		search:           SearchFunc(src),
-		Identifier:       "id",
+		Data:       src(),
+		search:     SearchFunc(src),
+		Identifier: "id",
 	}
 
 	for _, opt := range opts {
@@ -47,7 +46,7 @@ func New(src Src, opts ...Opt) *Index {
 	idx.BuildIndex()
 
 	if idx.fuzzy {
-		idx.search = FuzzySearch(idx.Data, idx.SearchableFields...)
+		idx.search = FuzzySearch(idx.Data, idx.SearchableFields()...)
 	}
 
 	return idx
@@ -96,13 +95,43 @@ func (idx *Index) Filter(q any) *Index {
 }
 
 func (idx *Index) Facets() []*Field {
-	var facets []*Field
-	for _, field := range idx.Fields {
-		if field.FieldType == Taxonomy {
-			facets = append(facets, field)
-		}
-	}
+	//var facets []*Field
+	//for _, field := range idx.Fields {
+	//  if field.FieldType == Taxonomy {
+	//    facets = append(facets, field)
+	//  }
+	//}
+	facets := lo.Filter(idx.Fields, filterFacetFields)
+
 	return facets
+}
+
+func (idx *Index) TextFields() []*Field {
+	//var facets []*Field
+	//for _, field := range idx.Fields {
+	//  if field.FieldType == Text {
+	//    facets = append(facets, field)
+	//  }
+	//}
+	facets := lo.Filter(idx.Fields, filterTextFields)
+	return facets
+}
+
+func (idx *Index) SearchableFields() []string {
+	f := idx.TextFields()
+	return lo.Map(f, mapFieldAttr)
+}
+
+func mapFieldAttr(f *Field, _ int) string {
+	return f.Attribute
+}
+
+func filterTextFields(f *Field, _ int) bool {
+	return f.FieldType == Text
+}
+
+func filterFacetFields(f *Field, _ int) bool {
+	return f.FieldType == Facet
 }
 
 // GetConfig returns a map of the Index's config.
@@ -113,7 +142,7 @@ func (idx *Index) GetConfig() map[string]any {
 	}
 	return map[string]any{
 		"fields":           facets,
-		"searchableFields": idx.SearchableFields,
+		"searchableFields": idx.SearchableFields(),
 	}
 }
 

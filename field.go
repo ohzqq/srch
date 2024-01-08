@@ -10,8 +10,8 @@ import (
 type FieldType string
 
 const (
-	Taxonomy FieldType = "taxonomy"
-	Text     FieldType = "text"
+	Facet FieldType = "facet"
+	Text  FieldType = "text"
 )
 
 type Field struct {
@@ -31,11 +31,15 @@ func NewField(attr string, ft FieldType) *Field {
 }
 
 func NewTextField(attr string) *Field {
-	return NewField(attr, Text)
+	f := NewField(attr, Text)
+	f.Operator = "and"
+	return f
 }
 
 func NewTaxonomyField(attr string) *Field {
-	return NewField(attr, Taxonomy)
+	f := NewField(attr, Facet)
+	f.Operator = "or"
+	return f
 }
 
 func (f *Field) Add(value any, ids ...any) {
@@ -97,7 +101,7 @@ func (f *Field) Filter(filters ...string) *roaring.Bitmap {
 }
 
 func (f *Field) Search(text string) *roaring.Bitmap {
-	if f.FieldType == Taxonomy {
+	if f.FieldType == Facet {
 		if ids, ok := f.Items[text]; ok {
 			return ids
 		}

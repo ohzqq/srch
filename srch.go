@@ -153,7 +153,7 @@ func (idx *Index) Choose() (*Index, error) {
 func (r *Index) String(i int) string {
 	s := lo.PickByKeys(
 		cast.ToStringMap(r.Data[i]),
-		r.SearchableFields,
+		r.SearchableFields(),
 	)
 	vals := cast.ToStringSlice(lo.Values(s))
 	return strings.Join(vals, "\n")

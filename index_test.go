@@ -56,6 +56,15 @@ func TestNewIndexFunc(t *testing.T) {
 	//}
 }
 
+func TestIndexProps(t *testing.T) {
+	for _, f := range idx.Facets() {
+		fmt.Printf("attr %s\n", f.Attribute)
+	}
+	for _, f := range idx.TextFields() {
+		fmt.Printf("attr %s\n", f.Attribute)
+	}
+}
+
 func TestSearch(t *testing.T) {
 	i := Search(
 		books,
