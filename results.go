@@ -5,13 +5,13 @@ import (
 )
 
 type Results struct {
-	Data   []map[string]any
+	*Source
 	Facets []*Facet
 }
 
 type Facet struct {
 	*Field
-	Items []*FacetItem
+	Items []*FacetItem `json:"items"`
 }
 
 // FacetItem is a data structure for a Facet's item.
@@ -23,9 +23,12 @@ type FacetItem struct {
 
 func NewResults(data []map[string]any, facets ...*Field) *Results {
 	return &Results{
-		Data:   data,
+		Source: NewSourceData(data),
 		Facets: FieldsToFacets(facets),
 	}
+}
+
+func (r *Results) Filter() {
 }
 
 func NewFacet(field *Field) *Facet {

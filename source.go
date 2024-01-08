@@ -10,6 +10,22 @@ import (
 
 type Src func(args ...any) []map[string]any
 
+type Source struct {
+	Data []map[string]any `json:"data"`
+}
+
+func NewSource(src Src) *Source {
+	return &Source{
+		Data: src(),
+	}
+}
+
+func NewSourceData(data []map[string]any) *Source {
+	return &Source{
+		Data: data,
+	}
+}
+
 func SliceSrc(data []map[string]any) Src {
 	return func(...any) []map[string]any {
 		return data

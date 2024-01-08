@@ -107,7 +107,7 @@ func DataString(d string) Opt {
 // DataSlice sets the *Index.Data from a slice.
 func DataSlice(data []map[string]any) Opt {
 	return func(idx *Index) {
-		idx.Data = data
+		idx.Source = NewSourceData(data)
 	}
 }
 

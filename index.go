@@ -21,15 +21,18 @@ func init() {
 
 // Index is a structure for facets and data.
 type Index struct {
-	Data   []map[string]any `json:"data"`
 	search SearchFunc
+	*Source
 	*Config
 }
 
 // New initializes an *Index with defaults: SearchableFields are
 // []string{"title"}.
 func New(src Src, opts ...Opt) *Index {
-	idx := NewWithConfig(src(), DefaultConfig())
+	idx := &Index{
+		Source: NewSource(src),
+		Config: DefaultConfig(),
+	}
 
 	for _, opt := range opts {
 		opt(idx)
@@ -49,7 +52,9 @@ func New(src Src, opts ...Opt) *Index {
 
 func NewWithConfig(data []map[string]any, cfg *Config) *Index {
 	return &Index{
-		Data:   data,
+		Source: &Source{
+			Data: data,
+		},
 		Config: cfg,
 	}
 }
