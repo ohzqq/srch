@@ -1,3 +1,5 @@
+//go:build ignore
+
 package srch
 
 import (
@@ -45,15 +47,6 @@ func (f *Facet) GetItem(term string) *FacetItem {
 		}
 	}
 	return f.AddItem(term)
-}
-
-// GetConfig returns a map of a Facet's config.
-func (f *Field) GetConfig() map[string]any {
-	return map[string]any{
-		"attribute": f.Attribute,
-		"operator":  f.Operator,
-		"fieldType": f.FieldType,
-	}
 }
 
 // ListItems returns a string slice of all item values.

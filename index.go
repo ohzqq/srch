@@ -229,18 +229,18 @@ func CfgIndexFromMap(idx *Index, d map[string]any) error {
 	return nil
 }
 
-func parseFacetMap(f any) map[string]*Facet {
-	facets := make(map[string]*Facet)
-	for name, agg := range cast.ToStringMap(f) {
-		facet := NewFacet(name)
-		err := mapstructure.Decode(agg, facet)
-		if err != nil {
-			log.Fatal(err)
-		}
-		facets[name] = facet
-	}
-	return facets
-}
+//func parseFacetMap(f any) map[string]*Facet {
+//  facets := make(map[string]*Facet)
+//  for name, agg := range cast.ToStringMap(f) {
+//    facet := NewFacet(name)
+//    err := mapstructure.Decode(agg, facet)
+//    if err != nil {
+//      log.Fatal(err)
+//    }
+//    facets[name] = facet
+//  }
+//  return facets
+//}
 
 func exist(path string) bool {
 	if _, err := os.Stat(path); errors.Is(err, os.ErrNotExist) {

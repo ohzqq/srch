@@ -9,20 +9,6 @@ import (
 
 type index map[string][]int
 
-func TestFacetSearch(t *testing.T) {
-	facet := NewFacet("title")
-	for _, b := range books {
-		title := cast.ToString(b["title"])
-		for _, token := range Tokenizer(title) {
-			facet.AddItem(token, cast.ToString(b["id"]))
-		}
-	}
-	bits := facet.Filter("fish")
-	ids := bits.ToArray()
-	//filtered := FilteredItems(books, lo.ToAnySlice(ids))
-	fmt.Printf("%v\n", ids)
-}
-
 func TestIndexSearch(t *testing.T) {
 	index := make(index)
 	index.add(books)
