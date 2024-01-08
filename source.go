@@ -8,35 +8,35 @@ import (
 	"os"
 )
 
-type Src func() []map[string]any
+type DataSrc func() []map[string]any
 
-type Source struct {
-	data Src
+type Src struct {
+	data DataSrc
 }
 
-func NewSource(src Src) *Source {
-	return &Source{
+func NewSource(src DataSrc) *Src {
+	return &Src{
 		data: src,
 	}
 }
 
-func (src *Source) Data() []map[string]any {
+func (src *Src) Data() []map[string]any {
 	return src.data()
 }
 
-func NewSourceData(data []map[string]any) *Source {
-	return &Source{
+func NewSourceData(data []map[string]any) *Src {
+	return &Src{
 		data: SliceSrc(data),
 	}
 }
 
-func SliceSrc(data []map[string]any) Src {
+func SliceSrc(data []map[string]any) DataSrc {
 	return func() []map[string]any {
 		return data
 	}
 }
 
-func FileSrc(file ...string) Src {
+func FileSrc(file ...string) DataSrc {
 	return func() []map[string]any {
 		data, err := NewDataFromFiles(file...)
 		if err != nil {
@@ -46,7 +46,7 @@ func FileSrc(file ...string) Src {
 	}
 }
 
-func ReadDataSrc(r io.Reader) Src {
+func ReadDataSrc(r io.Reader) DataSrc {
 	return func() []map[string]any {
 		d, err := DecodeData(r)
 		if err != nil {

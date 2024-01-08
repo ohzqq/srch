@@ -74,7 +74,7 @@ func TestAudibleSearch(t *testing.T) {
 	//res.Print()
 }
 
-func audibleSrc(q string) Src {
+func audibleSrc(q string) DataSrc {
 	return func() []map[string]any {
 		return audibleApi(q)
 	}

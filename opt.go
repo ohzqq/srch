@@ -107,7 +107,7 @@ func DataString(d string) Opt {
 // DataSlice sets the *Index.Data from a slice.
 func DataSlice(data []map[string]any) Opt {
 	return func(idx *Index) {
-		idx.Source = NewSourceData(data)
+		idx.Src = NewSourceData(data)
 	}
 }
 
@@ -124,6 +124,6 @@ func DataFile(cfg string) Opt {
 		if err != nil {
 			log.Fatal(err)
 		}
-		idx.Source = NewSource(SliceSrc(data))
+		idx.Src = NewSource(SliceSrc(data))
 	}
 }
