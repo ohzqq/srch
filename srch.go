@@ -15,17 +15,16 @@ import (
 
 type SearchFunc func(...any) []map[string]any
 
-func Search(data []map[string]any, fields []*Field, fn SearchFunc, q Query) *Index {
-	idx := &Index{
-		Data: data,
-		Config: &Config{
-			Fields: fields,
-			search: fn,
-		},
-	}
-	idx.BuildIndex()
+func Search(data []map[string]any, fields []*Field, fn SearchFunc, q Query) *Results {
+	idx := New(
+		SliceSrc(data),
+		WithFields(fields),
+		WithSearch(fn),
+	)
+
 	idx.Data = idx.search(q)
-	return idx
+
+	return NewResults(idx.Data, idx.Facets()...)
 }
 
 func FullText(data []map[string]any, fieldNames ...string) SearchFunc {
@@ -38,8 +37,7 @@ func FullText(data []map[string]any, fieldNames ...string) SearchFunc {
 			return data
 		}
 
-		idx := New(SliceSrc(data), WithFields(fieldNames))
-		idx.BuildIndex()
+		idx := New(SliceSrc(data), WithTextFields(fieldNames))
 
 		var bits []*roaring.Bitmap
 		for _, field := range fieldNames {

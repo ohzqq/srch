@@ -21,30 +21,15 @@ func init() {
 
 // Index is a structure for facets and data.
 type Index struct {
-	Data []map[string]any `json:"data"`
+	Data   []map[string]any `json:"data"`
+	search SearchFunc
 	*Config
-}
-
-type Config struct {
-	Fields      []*Field `json:"fields"`
-	Query       Query    `json:"filters"`
-	Identifier  string   `json:"identifier"`
-	interactive bool
-	fuzzy       bool
-	search      SearchFunc
 }
 
 // New initializes an *Index with defaults: SearchableFields are
 // []string{"title"}.
 func New(src Src, opts ...Opt) *Index {
-	idx := &Index{
-		Data: src(),
-		Config: &Config{
-			search:     SearchFunc(src),
-			Identifier: "id",
-			Fields:     []*Field{NewTextField("title")},
-		},
-	}
+	idx := NewWithConfig(src(), DefaultConfig())
 
 	for _, opt := range opts {
 		opt(idx)
@@ -52,11 +37,21 @@ func New(src Src, opts ...Opt) *Index {
 
 	idx.BuildIndex()
 
-	if idx.fuzzy {
+	switch {
+	case idx.search == nil:
+		idx.search = FullText(idx.Data, idx.SearchableFields()...)
+	case idx.fuzzy:
 		idx.search = FuzzySearch(idx.Data, idx.SearchableFields()...)
 	}
 
 	return idx
+}
+
+func NewWithConfig(data []map[string]any, cfg *Config) *Index {
+	return &Index{
+		Data:   data,
+		Config: cfg,
+	}
 }
 
 // CopyIndex copies an index's config.

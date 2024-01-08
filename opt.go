@@ -59,6 +59,12 @@ func WithCfg(c any) Opt {
 	}
 }
 
+func WithFields(fields []*Field) Opt {
+	return func(idx *Index) {
+		idx.Fields = fields
+	}
+}
+
 func WithFacets(fields []string) Opt {
 	return func(idx *Index) {
 		for _, f := range fields {
@@ -67,7 +73,7 @@ func WithFacets(fields []string) Opt {
 	}
 }
 
-func WithFields(fields []string) Opt {
+func WithTextFields(fields []string) Opt {
 	return func(idx *Index) {
 		for _, f := range fields {
 			idx.Fields = append(idx.Fields, NewTextField(f))
@@ -95,8 +101,6 @@ func DataString(d string) Opt {
 		if err != nil {
 			log.Fatal(err)
 		}
-
-		idx.BuildIndex()
 	}
 }
 
@@ -104,7 +108,6 @@ func DataString(d string) Opt {
 func DataSlice(data []map[string]any) Opt {
 	return func(idx *Index) {
 		idx.Data = data
-		idx.BuildIndex()
 	}
 }
 
@@ -122,6 +125,5 @@ func DataFile(cfg string) Opt {
 			log.Fatal(err)
 		}
 		idx.Data = data
-		idx.BuildIndex()
 	}
 }

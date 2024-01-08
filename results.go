@@ -21,11 +21,26 @@ type FacetItem struct {
 	Count int    `json:"count"`
 }
 
+func NewResults(data []map[string]any, facets ...*Field) *Results {
+	return &Results{
+		Data:   data,
+		Facets: FieldsToFacets(facets),
+	}
+}
+
 func NewFacet(field *Field) *Facet {
 	return &Facet{
 		Field: field,
 		Items: FieldItemsToFacetItems(field.Items),
 	}
+}
+
+func FieldsToFacets(fields []*Field) []*Facet {
+	facets := make([]*Facet, len(fields))
+	for i, f := range fields {
+		facets[i] = NewFacet(f)
+	}
+	return facets
 }
 
 func FieldItemsToFacetItems(fi map[string]*roaring.Bitmap) []*FacetItem {

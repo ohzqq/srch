@@ -11,13 +11,58 @@ import (
 	"github.com/ohzqq/audible"
 )
 
+func testVals() url.Values {
+	vals := make(url.Values)
+	//vals.Add("tags", "abo")
+	//vals.Add("tags", "dnr")
+	//vals.Add("authors", "Alice Winters")
+	vals.Add("authors", "Amy Lane")
+	vals.Add("q", "fish")
+	return vals
+}
+
+func TestSearch(t *testing.T) {
+	i := Search(
+		books,
+		idx.Fields,
+		FullText(books, "title"),
+		Query(testVals()),
+	)
+	println(len(i.Data))
+}
+
+func TestIdxSearch(t *testing.T) {
+	t.SkipNow()
+	println("test idx search")
+	vals := testVals()
+	r := idx.Search(vals)
+	//fmt.Println(len(r.Data))
+	r.Print()
+}
+
+func TestIdxFilterSearch(t *testing.T) {
+	//t.SkipNow()
+	//vals := testVals()
+	//res := idx.Search(vals)
+
+	fn := FuzzySearch(books, "title")
+	res := fn("fish")
+	i := New(SliceSrc(res), WithCfg(testCfgFile))
+	vals := make(url.Values)
+	vals.Set("authors", "amy lane")
+	r := i.Filter(vals)
+	if len(r.Data) != 4 {
+		t.Errorf("got %d, expected 4", len(r.Data))
+	}
+}
+
 func TestAudibleSearch(t *testing.T) {
 	t.SkipNow()
 
 	a := New(
 		audibleSrc("sporemaggeddon"),
 		WithSearch(audibleSrch),
-		WithFields([]string{"Title"}),
+		WithTextFields([]string{"Title"}),
 		Interactive,
 	)
 	v := make(url.Values)
