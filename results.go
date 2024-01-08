@@ -28,9 +28,6 @@ func NewResults(data []map[string]any, facets ...*Field) *Results {
 	}
 }
 
-func (r *Results) Filter() {
-}
-
 func NewFacet(field *Field) *Facet {
 	return &Facet{
 		Field: field,

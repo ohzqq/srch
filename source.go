@@ -6,6 +6,9 @@ import (
 	"errors"
 	"io"
 	"os"
+
+	"github.com/RoaringBitmap/roaring"
+	"github.com/spf13/cast"
 )
 
 type DataSrc func() []map[string]any
@@ -22,6 +25,14 @@ func NewSource(src DataSrc) *Src {
 
 func (src *Src) Data() []map[string]any {
 	return src.data()
+}
+
+func (src *Src) Filter(ids []int) []map[string]any {
+	return collectResults(src.Data(), ids)
+}
+
+func (src *Src) FilterBitmap(bits *roaring.Bitmap) []map[string]any {
+	return collectResults(src.Data(), cast.ToIntSlice(bits.ToArray()))
 }
 
 func NewSourceData(data []map[string]any) *Src {
