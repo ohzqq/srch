@@ -15,6 +15,11 @@ import (
 
 type SearchFunc func(...any) []map[string]any
 
+type Results struct {
+	Data   []map[string]any
+	Facets []*Field
+}
+
 func Search(data []map[string]any, fields []*Field, fn SearchFunc, q Query) *Index {
 	idx := &Index{
 		Data:   data,

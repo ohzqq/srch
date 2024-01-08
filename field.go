@@ -10,8 +10,8 @@ import (
 type FieldType string
 
 const (
-	Facet FieldType = "facet"
-	Text  FieldType = "text"
+	FacetField FieldType = "facet"
+	Text       FieldType = "text"
 )
 
 type Field struct {
@@ -37,7 +37,7 @@ func NewTextField(attr string) *Field {
 }
 
 func NewTaxonomyField(attr string) *Field {
-	f := NewField(attr, Facet)
+	f := NewField(attr, FacetField)
 	f.Operator = "or"
 	return f
 }
@@ -91,17 +91,11 @@ func (f *Field) Filter(filters ...string) *roaring.Bitmap {
 	for _, filter := range filters {
 		bits = append(bits, f.Search(filter))
 	}
-
-	switch f.Operator {
-	case "and":
-		return roaring.ParAnd(viper.GetInt("workers"), bits...)
-	default:
-		return roaring.ParOr(viper.GetInt("workers"), bits...)
-	}
+	return f.processResults(bits)
 }
 
 func (f *Field) Search(text string) *roaring.Bitmap {
-	if f.FieldType == Facet {
+	if f.FieldType == FacetField {
 		if ids, ok := f.Items[text]; ok {
 			return ids
 		}
@@ -112,6 +106,10 @@ func (f *Field) Search(text string) *roaring.Bitmap {
 			bits = append(bits, ids)
 		}
 	}
+	return f.processResults(bits)
+}
+
+func (f *Field) processResults(bits []*roaring.Bitmap) *roaring.Bitmap {
 	switch f.Operator {
 	case "and":
 		return roaring.ParAnd(viper.GetInt("workers"), bits...)

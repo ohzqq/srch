@@ -131,7 +131,7 @@ func filterTextFields(f *Field, _ int) bool {
 }
 
 func filterFacetFields(f *Field, _ int) bool {
-	return f.FieldType == Facet
+	return f.FieldType == FacetField
 }
 
 // GetConfig returns a map of the Index's config.
