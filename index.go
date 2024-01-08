@@ -99,7 +99,7 @@ func (idx *Index) Filter(q any) *Index {
 }
 
 func (idx *Index) Facets() []*Field {
-	return lo.Filter(idx.Fields, filterFacetFields)
+	return FilterFacets(idx.Fields)
 }
 
 func (idx *Index) TextFields() []*Field {

@@ -38,15 +38,6 @@ func TestSearchResults(t *testing.T) {
 	}
 }
 
-func TestIdxSearch(t *testing.T) {
-	t.SkipNow()
-	println("test idx search")
-	vals := testVals()
-	r := idx.Search(vals)
-	//fmt.Println(len(r.Data))
-	r.Print()
-}
-
 func TestIdxFilterSearch(t *testing.T) {
 	//t.SkipNow()
 	//vals := testVals()
@@ -73,10 +64,8 @@ func TestAudibleSearch(t *testing.T) {
 		WithTextFields([]string{"Title"}),
 		Interactive,
 	)
-	v := make(url.Values)
-	v.Set("q", "amy lane fish")
-	res := a.Search(v)
-	println(res.Len())
+	res := a.Search("amy lane fish")
+	println(len(res.Data()))
 
 	//for i := 0; i < res.Len(); i++ {
 	//  println(res.String(i))
@@ -86,7 +75,7 @@ func TestAudibleSearch(t *testing.T) {
 }
 
 func audibleSrc(q string) Src {
-	return func(...any) []map[string]any {
+	return func() []map[string]any {
 		return audibleApi(q)
 	}
 }

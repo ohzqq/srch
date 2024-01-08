@@ -8,7 +8,7 @@ import (
 	"os"
 )
 
-type Src func(args ...any) []map[string]any
+type Src func() []map[string]any
 
 type Source struct {
 	data Src
@@ -31,13 +31,13 @@ func NewSourceData(data []map[string]any) *Source {
 }
 
 func SliceSrc(data []map[string]any) Src {
-	return func(...any) []map[string]any {
+	return func() []map[string]any {
 		return data
 	}
 }
 
 func FileSrc(file ...string) Src {
-	return func(...any) []map[string]any {
+	return func() []map[string]any {
 		data, err := NewDataFromFiles(file...)
 		if err != nil {
 			return []map[string]any{}
@@ -47,7 +47,7 @@ func FileSrc(file ...string) Src {
 }
 
 func ReadDataSrc(r io.Reader) Src {
-	return func(...any) []map[string]any {
+	return func() []map[string]any {
 		d, err := DecodeData(r)
 		if err != nil {
 			return []map[string]any{}

@@ -118,6 +118,14 @@ func processBitResults(bits []*roaring.Bitmap, operator string) *roaring.Bitmap 
 	}
 }
 
+func FilterFacets(fields []*Field) []*Field {
+	return lo.Filter(idx.Fields, filterFacetFields)
+}
+
+func FilterTextFields(fields []*Field) []*Field {
+	return lo.Filter(idx.Fields, filterTextFields)
+}
+
 func mapFieldAttr(f *Field, _ int) string {
 	return f.Attribute
 }

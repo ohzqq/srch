@@ -14,6 +14,10 @@ import (
 
 type SearchFunc func(string) []map[string]any
 
+func (idx *Index) Search(q string) *Results {
+	return Search(idx.Data(), idx.Fields, idx.search, q)
+}
+
 func Search(data []map[string]any, fields []*Field, fn SearchFunc, q string) *Results {
 	idx := New(
 		SliceSrc(data),
@@ -70,27 +74,6 @@ func GetSearchableFieldValues(data []map[string]any, fields []string) []string {
 		src[i] = strings.Join(vals, "\n")
 	}
 	return src
-}
-
-func (idx *Index) Search(q any) *Index {
-	filters, err := NewQuery(q)
-	if err != nil {
-		log.Fatal(err)
-	}
-	idx.Query = filters
-
-	res, err := idx.get(filters.Keywords())
-	if err != nil {
-		return idx
-	}
-
-	if !res.HasFacets() {
-		return res
-	}
-
-	res.BuildIndex()
-
-	return Filter(res)
 }
 
 func (idx *Index) get(q string) (*Index, error) {
