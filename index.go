@@ -110,18 +110,6 @@ func (idx *Index) SearchableFields() []string {
 	return SearchableFields(idx.Fields)
 }
 
-// GetConfig returns a map of the Index's config.
-func (idx *Index) GetConfig() map[string]any {
-	var facets []map[string]any
-	for _, f := range idx.Fields {
-		facets = append(facets, f.GetConfig())
-	}
-	return map[string]any{
-		"fields":           facets,
-		"searchableFields": idx.SearchableFields(),
-	}
-}
-
 // HasFacets returns true if facets are configured.
 func (idx *Index) HasFacets() bool {
 	return len(idx.Facets()) > 0

@@ -96,15 +96,6 @@ func (f *Field) addTerm(term string, ids []int) {
 	}
 }
 
-// GetConfig returns a map of a Facet's config.
-func (f *Field) GetConfig() map[string]any {
-	return map[string]any{
-		"attribute": f.Attribute,
-		"operator":  f.Operator,
-		"fieldType": f.FieldType,
-	}
-}
-
 func (f *Field) ListTokens() []string {
 	return lo.Keys(f.Items)
 }
