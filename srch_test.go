@@ -89,7 +89,7 @@ func TestSearchAndFilter(t *testing.T) {
 		t.Errorf("got %d, expected 8\n", len(res.Data))
 	}
 
-	q := "authors=amy+lane"
+	q := "authors=Amy+Lane"
 	f, err := idx.Filter(SliceSrc(res.Data), q)
 	if err != nil {
 		t.Error(err)

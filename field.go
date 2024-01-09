@@ -26,8 +26,16 @@ func NewField(attr string, ft FieldType) *Field {
 	return &Field{
 		Attribute: attr,
 		FieldType: ft,
+		Sep:       ".",
 		Items:     make(map[string]*roaring.Bitmap),
 	}
+}
+
+func CopyField(field *Field) *Field {
+	f := NewField(field.Attribute, field.FieldType)
+	f.Sep = field.Sep
+	f.Operator = field.Operator
+	return f
 }
 
 func NewTextField(attr string) *Field {

@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"log"
 	"os"
@@ -49,7 +48,6 @@ func (idx *Index) Filter(src DataSrc, q string) (*Results, error) {
 	if err != nil {
 		return nil, err
 	}
-	fmt.Printf("%v\n", len(data))
 	items := Filter(data, idx.Facets(), vals)
 	return NewResults(items, idx.Facets()...), nil
 }
@@ -74,34 +72,6 @@ func (idx *Index) buildIndex(data []map[string]any) *Index {
 	return idx
 }
 
-// NewIndex initializes an *Index with defaults: SearchableFields are
-// []string{"title"}.
-func NewIndex(src DataSrc, opts ...Opt) *Index {
-	idx := New(opts...)
-
-	//idx.BuildIndex()
-
-	return idx
-}
-
-// CopyIndex copies an index's config.
-func CopyIndex(idx *Index, data []map[string]any) *Index {
-	n := NewIndex(SliceSrc(data), WithCfg(idx.GetConfig()))
-	n.Query = idx.Query
-	n.search = idx.search
-	n.interactive = idx.interactive
-	return n
-}
-
-//func (idx *Index) GetData() []map[string]any {
-//  return idx.Data
-//}
-
-//func (idx *Index) BuildIndex() *Index {
-//  idx.Fields = IndexData(idx.Data, idx.Fields, idx.Identifier)
-//  return idx
-//}
-
 func (idx *Index) AddField(fields ...*Field) *Index {
 	idx.Fields = append(idx.Fields, fields...)
 	return idx
@@ -112,15 +82,22 @@ func IndexData(data []map[string]any, fields []*Field, ident ...string) []*Field
 	if len(ident) > 0 {
 		id = ident[0]
 	}
+
+	idx := make([]*Field, len(fields))
+	for i, f := range fields {
+		idx[i] = CopyField(f)
+	}
+
 	for _, d := range data {
 		id := cast.ToUint32(d[id])
-		for _, f := range fields {
+		for i, f := range fields {
 			if val, ok := d[f.Attribute]; ok {
-				f.Add(val, id)
+				idx[i].Add(val, id)
 			}
 		}
 	}
-	return fields
+
+	return idx
 }
 
 func IndexFacets(data []map[string]any, facets []string, ident ...string) []*Field {
