@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"log"
 	"os"
@@ -19,12 +20,12 @@ func init() {
 
 // Index is a structure for facets and data.
 type Index struct {
-	Data        []map[string]any
 	search      SearchFunc
 	Fields      []*Field `json:"fields"`
 	Query       Query    `json:"filters"`
 	Identifier  string   `json:"identifier"`
 	interactive bool
+	indexed     bool
 }
 
 func New(opts ...Opt) *Index {
@@ -42,20 +43,35 @@ func New(opts ...Opt) *Index {
 
 func (idx *Index) Filter(src DataSrc, q string) (*Results, error) {
 	data := src()
-	idx.indexFacets(data)
+	idx.buildIndex(data)
 
 	vals, err := ParseValues(q)
 	if err != nil {
 		return nil, err
 	}
+	fmt.Printf("%v\n", len(data))
 	items := Filter(data, idx.Facets(), vals)
-	res := NewResults(items, idx.Facets()...)
-
-	return res, nil
+	return NewResults(items, idx.Facets()...), nil
 }
 
-func (idx *Index) indexFacets(data []map[string]any) {
-	idx.Fields = IndexData(data, idx.Facets(), idx.Identifier)
+func (idx *Index) FullTextSearch(src DataSrc, q string) (*Results, error) {
+	data := src()
+	idx.buildIndex(data)
+	items := fullTextSearch(data, idx.TextFields(), q)
+	return NewResults(items), nil
+}
+
+func (idx *Index) indexFacets(data []map[string]any) []*Field {
+	return IndexData(data, idx.Facets(), idx.Identifier)
+}
+
+func (idx *Index) indexText(data []map[string]any) []*Field {
+	return IndexData(data, idx.TextFields(), idx.Identifier)
+}
+
+func (idx *Index) buildIndex(data []map[string]any) *Index {
+	idx.Fields = IndexData(data, idx.Fields, idx.Identifier)
+	return idx
 }
 
 // NewIndex initializes an *Index with defaults: SearchableFields are
@@ -77,14 +93,14 @@ func CopyIndex(idx *Index, data []map[string]any) *Index {
 	return n
 }
 
-func (idx *Index) GetData() []map[string]any {
-	return idx.Data
-}
+//func (idx *Index) GetData() []map[string]any {
+//  return idx.Data
+//}
 
-func (idx *Index) BuildIndex() *Index {
-	idx.Fields = IndexData(idx.Data, idx.Fields, idx.Identifier)
-	return idx
-}
+//func (idx *Index) BuildIndex() *Index {
+//  idx.Fields = IndexData(idx.Data, idx.Fields, idx.Identifier)
+//  return idx
+//}
 
 func (idx *Index) AddField(fields ...*Field) *Index {
 	idx.Fields = append(idx.Fields, fields...)
@@ -127,15 +143,15 @@ func (idx *Index) GetField(attr string) (*Field, error) {
 }
 
 // Filter idx.Data and re-calculate facets.
-func (idx *Index) FilterFacets(q any) *Index {
-	filters, err := NewQuery(q)
-	if err != nil {
-		log.Fatal(err)
-	}
+//func (idx *Index) FilterFacets(q any) *Index {
+//  filters, err := NewQuery(q)
+//  if err != nil {
+//    log.Fatal(err)
+//  }
 
-	idx.Query = filters
-	return FilterIndex(idx)
-}
+//  idx.Query = filters
+//  return FilterIndex(idx)
+//}
 
 func (idx *Index) Facets() []*Field {
 	return FilterFacets(idx.Fields)

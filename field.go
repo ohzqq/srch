@@ -47,12 +47,12 @@ func NewTextFields(names []string) []*Field {
 func NewFacets(names []string) []*Field {
 	fields := make([]*Field, len(names))
 	for i, f := range names {
-		fields[i] = NewTaxonomyField(f)
+		fields[i] = NewFacetField(f)
 	}
 	return fields
 }
 
-func NewTaxonomyField(attr string) *Field {
+func NewFacetField(attr string) *Field {
 	f := NewField(attr, FacetField)
 	f.Operator = "or"
 	return f

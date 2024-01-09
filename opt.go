@@ -99,7 +99,7 @@ func DataString(d string) Opt {
 // DataSlice sets the *Index.Data from a slice.
 func DataSlice(data []map[string]any) Opt {
 	return func(idx *Index) {
-		idx.Data = data
+		//idx.Data = data
 	}
 }
 
@@ -112,11 +112,11 @@ func DataFile(cfg string) Opt {
 		}
 		defer f.Close()
 
-		data, err := DecodeData(f)
-		if err != nil {
-			log.Fatal(err)
-		}
-		idx.Data = data
+		//data, err := DecodeData(f)
+		//if err != nil {
+		//log.Fatal(err)
+		//}
+		//idx.Data = data
 	}
 }
 

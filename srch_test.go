@@ -2,6 +2,7 @@ package srch
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/url"
 	"os"
@@ -69,61 +70,43 @@ func TestFilterData(t *testing.T) {
 	}
 }
 
-func TestSearchResults(t *testing.T) {
-	t.SkipNow()
-	res := SearchData(
-		books,
-		idx.Fields,
-		FullText(books, "title"),
-		"fish",
-	)
-	data := res.Data
-	if len(data) != 8 {
-		t.Errorf("got %d, expected 8\n", len(data))
+func TestFullTextSearch(t *testing.T) {
+	res, err := idx.FullTextSearch(SliceSrc(books), "fish")
+	if err != nil {
+		t.Error(err)
 	}
-	//for _, f := range res.Facets {
-	//  fmt.Printf("attr %s: %+v\n", f.Attribute, f.Items[0])
-	//}
-}
-
-func TestSearchSrc(t *testing.T) {
-	t.SkipNow()
-	data := FullTextSearch(books, "fish", "title")
-	//data := i.data
-	if len(data) != 8 {
-		t.Errorf("got %d, expected 8\n", len(data))
+	if len(res.Data) != 8 {
+		t.Errorf("got %d, expected 8\n", len(res.Data))
 	}
 }
 
-func TestIdxFilterSearch(t *testing.T) {
-	t.SkipNow()
-	//vals := testVals()
-	//res := idx.Search(vals)
-
-	fn := FuzzySearch(books, "title")
-	res := fn("fish")
-	i := NewIndex(SliceSrc(res), WithCfg(testCfgFile))
-	vals := make(url.Values)
-	vals.Set("authors", "amy lane")
-	r := i.FilterFacets(vals)
-	data := r.GetData()
-	if len(data) != 4 {
-		t.Errorf("got %d, expected 4", len(data))
+func TestSearchAndFilter(t *testing.T) {
+	res, err := idx.FullTextSearch(SliceSrc(books), "fish")
+	if err != nil {
+		t.Error(err)
 	}
+	if len(res.Data) != 8 {
+		t.Errorf("got %d, expected 8\n", len(res.Data))
+	}
+
+	q := "authors=amy+lane"
+	f, err := idx.Filter(SliceSrc(res.Data), q)
+	if err != nil {
+		t.Error(err)
+	}
+	//fmt.Printf("facets %+v\n", idx.Facets()[0])
+	fmt.Println(len(f.Data))
 }
 
 func TestAudibleSearch(t *testing.T) {
 	t.SkipNow()
 
-	a := NewIndex(
-		audibleSrc("sporemaggeddon"),
-		WithSearch(audibleSrch),
+	a := New(
 		WithTextFields([]string{"Title"}),
 		Interactive,
 	)
-	res := a.Search("amy lane fish")
 	println("audible search")
-	println(len(res.Data))
+	fmt.Printf("%v\n", a)
 
 	//for i := 0; i < res.Len(); i++ {
 	//  println(res.String(i))

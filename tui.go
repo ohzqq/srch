@@ -12,10 +12,10 @@ type TUI struct {
 type item string
 
 func Choose(idx *Index) ([]int, error) {
-	items := make([]list.Item, idx.Len())
-	for i := 0; i < idx.Len(); i++ {
-		items[i] = item(idx.String(i))
-	}
+	items := make([]list.Item, 3)
+	//for i := 0; i < idx.Len(); i++ {
+	//  items[i] = item(idx.String(i))
+	//}
 
 	s := &TUI{}
 	l := list.New(items, list.NewDefaultDelegate(), 100, 20)

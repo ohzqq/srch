@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"os"
 	"testing"
-
-	"github.com/mitchellh/mapstructure"
 )
 
 var idx = &Index{}
@@ -30,11 +28,11 @@ func TestData(t *testing.T) {
 	}
 }
 
-func TestNewIndex(t *testing.T) {
-	if idx.Len() != len(books) {
-		t.Errorf("got %d, expected %d\n", idx.Len(), len(books))
-	}
-}
+//func TestNewIndex(t *testing.T) {
+//  if idx.Len() != len(books) {
+//    t.Errorf("got %d, expected %d\n", idx.Len(), len(books))
+//  }
+//}
 
 func TestIndexProps(t *testing.T) {
 	if len(idx.Facets()) != 4 {
@@ -53,26 +51,6 @@ func TestIdxCfgString(t *testing.T) {
 	}
 	if len(istr.TextFields()) != 1 {
 		t.Errorf("got %d, expected 4\n", len(istr.TextFields()))
-	}
-}
-
-func TestNewIdxFromMap(t *testing.T) {
-	t.SkipNow()
-	d := make(map[string]any)
-	err := mapstructure.Decode(idx, &d)
-	if err != nil {
-		t.Error(err)
-	}
-	err = CfgIndexFromMap(idx, d)
-	if err != nil {
-		t.Error(err)
-	}
-	data := idx.GetData()
-	if len(data) != len(books) {
-		t.Errorf("got %d, expected 7174\v", len(data))
-	}
-	if len(idx.Facets()) != 2 {
-		t.Errorf("got %d facets, expected 2", len(idx.Facets()))
 	}
 }
 
