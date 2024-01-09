@@ -40,23 +40,23 @@ func New(opts ...Opt) *Index {
 	return idx
 }
 
-func (idx *Index) Filter(src DataSrc, q string) (*Results, error) {
-	data := src()
+func (idx *Index) IndexData(data []map[string]any) *Results {
 	idx.buildIndex(data)
-
-	vals, err := ParseValues(q)
-	if err != nil {
-		return nil, err
+	res := NewResults(data)
+	if idx.HasFacets() {
+		res.SetFacets(idx.Facets())
 	}
-	items := Filter(data, idx.Facets(), vals)
-	return NewResults(items, idx.Facets()...), nil
+	return res
 }
 
-func (idx *Index) FullTextSearch(src DataSrc, q string) (*Results, error) {
-	data := src()
-	idx.buildIndex(data)
-	items := fullTextSearch(data, idx.TextFields(), q)
-	return NewResults(items), nil
+func (idx *Index) FullTextSearch(src DataSrc, q string) *Results {
+	res := idx.IndexData(src())
+
+	if q == "" {
+		return res
+	}
+	r := fullTextSearch(res.Data, idx.TextFields(), q)
+	return idx.IndexData(r)
 }
 
 func (idx *Index) indexFacets(data []map[string]any) []*Field {

@@ -25,13 +25,6 @@ func Filter(data []map[string]any, facets []*Field, values url.Values) []map[str
 	return FilteredItems(data, lo.ToAnySlice(ids))
 }
 
-// FilterIndex takes an *Index, filters the data and calculates the facets. It
-// returns a new *Index.
-//func FilterIndex(idx *Index) *Index {
-//  data := Filter(idx.GetData(), idx.Facets(), idx.Query.Values())
-//  return CopyIndex(idx, data)
-//}
-
 // FilteredItems returns the subset of data.
 func FilteredItems(data []map[string]any, ids []any) []map[string]any {
 	items := make([]map[string]any, len(ids))

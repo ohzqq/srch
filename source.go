@@ -26,7 +26,7 @@ func FileSrc(file ...string) DataSrc {
 	}
 }
 
-func ReadDataSrc(r io.Reader) DataSrc {
+func ReaderSrc(r io.Reader) DataSrc {
 	return func() []map[string]any {
 		d, err := DecodeData(r)
 		if err != nil {

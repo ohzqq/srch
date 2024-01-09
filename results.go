@@ -21,11 +21,33 @@ type FacetItem struct {
 	Count int    `json:"count"`
 }
 
-func NewResults(data []map[string]any, facets ...*Field) *Results {
+func NewResults(data []map[string]any) *Results {
 	return &Results{
-		Data:   data,
-		Facets: FieldsToFacets(facets),
+		Data: data,
 	}
+}
+
+func (r *Results) Filter(q string) *Results {
+	vals, err := ParseValues(q)
+	if err != nil {
+		return r
+	}
+	r.SetData(Filter(r.Data, FacetsToFields(r.Facets), vals))
+	return r
+}
+
+func (r *Results) SetFacets(facets []*Field) *Results {
+	r.Facets = FieldsToFacets(facets)
+	return r
+}
+
+func (r *Results) SetData(data []map[string]any) *Results {
+	r.Data = data
+	return r
+}
+
+func (r *Results) Src() []map[string]any {
+	return r.Data
 }
 
 func NewFacet(field *Field) *Facet {
@@ -39,6 +61,14 @@ func FieldsToFacets(fields []*Field) []*Facet {
 	facets := make([]*Facet, len(fields))
 	for i, f := range fields {
 		facets[i] = NewFacet(f)
+	}
+	return facets
+}
+
+func FacetsToFields(fields []*Facet) []*Field {
+	facets := make([]*Field, len(fields))
+	for i, f := range fields {
+		facets[i] = f.Field
 	}
 	return facets
 }

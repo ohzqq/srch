@@ -49,15 +49,12 @@ func TestReadDataSrc(t *testing.T) {
 		t.Error(err)
 	}
 	defer f.Close()
-	src := ReadDataSrc(f)
+	src := ReaderSrc(f)
 	testFilterQueryString(t, src)
 }
 
 func testFilterQueryString(t *testing.T, src DataSrc) {
-	res, err := idx.Filter(src, testQueryString)
-	if err != nil {
-		t.Error(err)
-	}
+	res := idx.IndexData(src()).Filter(testQueryString)
 	if len(res.Data) != 2 {
 		t.Errorf("got %d, expected %d\n", len(res.Data), 2)
 	}
@@ -71,29 +68,20 @@ func TestFilterData(t *testing.T) {
 }
 
 func TestFullTextSearch(t *testing.T) {
-	res, err := idx.FullTextSearch(SliceSrc(books), "fish")
-	if err != nil {
-		t.Error(err)
-	}
+	res := idx.FullTextSearch(SliceSrc(books), "fish")
 	if len(res.Data) != 8 {
 		t.Errorf("got %d, expected 8\n", len(res.Data))
 	}
 }
 
 func TestSearchAndFilter(t *testing.T) {
-	res, err := idx.FullTextSearch(SliceSrc(books), "fish")
-	if err != nil {
-		t.Error(err)
-	}
+	res := idx.FullTextSearch(SliceSrc(books), "fish")
 	if len(res.Data) != 8 {
 		t.Errorf("got %d, expected 8\n", len(res.Data))
 	}
 
 	q := "authors=Amy+Lane"
-	f, err := idx.Filter(SliceSrc(res.Data), q)
-	if err != nil {
-		t.Error(err)
-	}
+	f := res.Filter(q)
 	//fmt.Printf("facets %+v\n", idx.Facets()[0])
 	fmt.Println(len(f.Data))
 }
