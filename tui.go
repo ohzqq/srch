@@ -3,6 +3,7 @@ package srch
 import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/ohzqq/bubbles/list"
+	"github.com/sahilm/fuzzy"
 )
 
 type TUI struct {
@@ -11,11 +12,8 @@ type TUI struct {
 
 type item string
 
-func Choose(idx *Index) ([]int, error) {
-	items := make([]list.Item, 3)
-	//for i := 0; i < idx.Len(); i++ {
-	//  items[i] = item(idx.String(i))
-	//}
+func Choose(src fuzzy.Source) ([]int, error) {
+	items := SrcToItems(src)
 
 	s := &TUI{}
 	l := list.New(items, list.NewDefaultDelegate(), 100, 20)
@@ -54,3 +52,11 @@ func (i item) Title() string {
 }
 
 func (i item) Description() string { return "" }
+
+func SrcToItems(src fuzzy.Source) []list.Item {
+	items := make([]list.Item, src.Len())
+	for i := 0; i < src.Len(); i++ {
+		items[i] = item(src.String(i))
+	}
+	return items
+}

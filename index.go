@@ -24,7 +24,6 @@ type Index struct {
 	Query       Query    `json:"filters"`
 	Identifier  string   `json:"identifier"`
 	interactive bool
-	indexed     bool
 }
 
 func New(opts ...Opt) *Index {
@@ -40,47 +39,26 @@ func New(opts ...Opt) *Index {
 	return idx
 }
 
-func (idx *Index) IndexData(data []map[string]any) *Results {
-	idx.buildIndex(data)
-	res := NewResults(data)
-	if idx.HasFacets() {
-		res.SetFacets(idx.Facets())
-	}
-	return res
+func (idx *Index) Index(data []map[string]any) *Results {
+	idx.Fields = IndexData(data, idx.Fields, idx.Identifier)
+	return NewResults(idx, data)
 }
 
-func (idx *Index) Search(src DataSrc, q string) *Results {
-	res := idx.IndexData(src())
-
+func (idx *Index) Search(q string, src ...DataSrc) *Results {
 	if idx.search != nil {
-		return NewResults(idx.search(q))
-	}
-
-	search := FullText(res.Data, idx.TextFields())
-	return idx.IndexData(search(q))
-}
-
-func (idx *Index) FullTextSearch(src DataSrc, q string) *Results {
-	res := idx.IndexData(src())
-
-	if q == "" {
+		res := idx.Index(idx.search(q))
 		return res
 	}
-	r := fullTextSearch(res.Data, idx.TextFields(), q)
-	return idx.IndexData(r)
-}
 
-func (idx *Index) indexFacets(data []map[string]any) []*Field {
-	return IndexData(data, idx.Facets(), idx.Identifier)
-}
+	if len(src) < 1 {
+		return &Results{}
+	}
 
-func (idx *Index) indexText(data []map[string]any) []*Field {
-	return IndexData(data, idx.TextFields(), idx.Identifier)
-}
+	res := idx.Index(src[0]())
+	search := FullText(res.Data, idx.TextFields())
 
-func (idx *Index) buildIndex(data []map[string]any) *Index {
-	idx.Fields = IndexData(data, idx.Fields, idx.Identifier)
-	return idx
+	ft := idx.Index(search(q))
+	return ft
 }
 
 func (idx *Index) AddField(fields ...*Field) *Index {
@@ -111,11 +89,6 @@ func IndexData(data []map[string]any, fields []*Field, ident ...string) []*Field
 	return idx
 }
 
-func IndexFacets(data []map[string]any, facets []string, ident ...string) []*Field {
-	fields := NewFacets(facets)
-	return IndexData(data, fields, ident...)
-}
-
 func (idx *Index) GetField(attr string) (*Field, error) {
 	for _, f := range idx.Fields {
 		if f.Attribute == attr {
@@ -124,17 +97,6 @@ func (idx *Index) GetField(attr string) (*Field, error) {
 	}
 	return nil, errors.New("no such field")
 }
-
-// Filter idx.Data and re-calculate facets.
-//func (idx *Index) FilterFacets(q any) *Index {
-//  filters, err := NewQuery(q)
-//  if err != nil {
-//    log.Fatal(err)
-//  }
-
-//  idx.Query = filters
-//  return FilterIndex(idx)
-//}
 
 func (idx *Index) Facets() []*Field {
 	return FilterFacets(idx.Fields)

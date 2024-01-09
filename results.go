@@ -1,12 +1,18 @@
 package srch
 
 import (
+	"strings"
+
 	"github.com/RoaringBitmap/roaring"
+	"github.com/samber/lo"
+	"github.com/spf13/cast"
 )
 
 type Results struct {
-	Data   []map[string]any
-	Facets []*Facet
+	idx              *Index
+	Data             []map[string]any `json:"data"`
+	Facets           []*Facet         `json:"facets"`
+	searchableFields []string
 }
 
 type Facet struct {
@@ -21,10 +27,15 @@ type FacetItem struct {
 	Count int    `json:"count"`
 }
 
-func NewResults(data []map[string]any) *Results {
-	return &Results{
+func NewResults(idx *Index, data []map[string]any) *Results {
+	res := &Results{
+		idx:  idx,
 		Data: data,
 	}
+	if idx.HasFacets() {
+		res.Facets = FieldsToFacets(idx.Facets())
+	}
+	return res
 }
 
 func (r *Results) Filter(q string) *Results {
@@ -32,12 +43,7 @@ func (r *Results) Filter(q string) *Results {
 	if err != nil {
 		return r
 	}
-	r.SetData(Filter(r.Data, FacetsToFields(r.Facets), vals))
-	return r
-}
-
-func (r *Results) SetFacets(facets []*Field) *Results {
-	r.Facets = FieldsToFacets(facets)
+	r.SetData(Filter(r.Data, r.idx.Facets(), vals))
 	return r
 }
 
@@ -48,6 +54,30 @@ func (r *Results) SetData(data []map[string]any) *Results {
 
 func (r *Results) Src() []map[string]any {
 	return r.Data
+}
+
+func (r *Results) Choose() (*Results, error) {
+	ids, err := Choose(r)
+	if err != nil {
+		return r, err
+	}
+
+	r.Data = collectResults(r.Data, ids)
+
+	return r, nil
+}
+
+func (r *Results) String(i int) string {
+	s := lo.PickByKeys(
+		r.Data[i],
+		r.idx.SearchableFields(),
+	)
+	vals := cast.ToStringSlice(lo.Values(s))
+	return strings.Join(vals, "\n")
+}
+
+func (r *Results) Len() int {
+	return len(r.Data)
 }
 
 func NewFacet(field *Field) *Facet {

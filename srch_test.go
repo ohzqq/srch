@@ -54,7 +54,7 @@ func TestReadDataSrc(t *testing.T) {
 }
 
 func testFilterQueryString(t *testing.T, src DataSrc) {
-	res := idx.IndexData(src()).Filter(testQueryString)
+	res := idx.Index(src()).Filter(testQueryString)
 	if len(res.Data) != 2 {
 		t.Errorf("got %d, expected %d\n", len(res.Data), 2)
 	}
@@ -68,14 +68,27 @@ func TestFilterData(t *testing.T) {
 }
 
 func TestFullTextSearch(t *testing.T) {
-	res := idx.Search(SliceSrc(books), "fish")
+	res := idx.Search("fish", SliceSrc(books))
 	if len(res.Data) != 8 {
 		t.Errorf("got %d, expected 8\n", len(res.Data))
 	}
 }
 
+func TestFullTextSearchChoose(t *testing.T) {
+	t.SkipNow()
+	res := idx.Search("fish", SliceSrc(books))
+	if len(res.Data) != 8 {
+		t.Errorf("got %d, expected 8\n", len(res.Data))
+	}
+	sel, err := res.Choose()
+	if err != nil {
+		t.Error(err)
+	}
+	fmt.Println(sel.Len())
+}
+
 func TestSearchAndFilter(t *testing.T) {
-	res := idx.Search(SliceSrc(books), "fish")
+	res := idx.Search("fish", SliceSrc(books))
 	if len(res.Data) != 8 {
 		t.Errorf("got %d, expected 8\n", len(res.Data))
 	}
@@ -87,14 +100,16 @@ func TestSearchAndFilter(t *testing.T) {
 }
 
 func TestAudibleSearch(t *testing.T) {
-	t.SkipNow()
-
 	a := New(
+		WithSearch(audibleSrch),
 		WithTextFields([]string{"Title"}),
 		Interactive,
 	)
 	println("audible search")
-	fmt.Printf("%v\n", a)
+
+	res := a.Search("amy lane fish")
+	fmt.Printf("num res %d\n", len(res.Data))
+	fmt.Printf("num res %v\n", res.searchableFields)
 
 	//for i := 0; i < res.Len(); i++ {
 	//  println(res.String(i))

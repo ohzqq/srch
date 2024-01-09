@@ -94,17 +94,6 @@ func collectResults(d []map[string]any, ids []int) []map[string]any {
 	return d
 }
 
-//func (idx *Index) Choose() (*Index, error) {
-//  ids, err := Choose(idx)
-//  if err != nil {
-//    return &Index{}, err
-//  }
-
-//  res := idx.getResults(ids...)
-
-//  return res, nil
-//}
-
 //func (r *Index) String(i int) string {
 //  s := lo.PickByKeys(
 //    r.GetData()[i],
