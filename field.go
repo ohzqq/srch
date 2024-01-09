@@ -135,11 +135,11 @@ func processBitResults(bits []*roaring.Bitmap, operator string) *roaring.Bitmap 
 }
 
 func FilterFacets(fields []*Field) []*Field {
-	return lo.Filter(idx.Fields, filterFacetFields)
+	return lo.Filter(fields, filterFacetFields)
 }
 
 func FilterTextFields(fields []*Field) []*Field {
-	return lo.Filter(idx.Fields, filterTextFields)
+	return lo.Filter(fields, filterTextFields)
 }
 
 func SearchableFields(fields []*Field) []string {

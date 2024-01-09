@@ -38,11 +38,14 @@ func TestIndexProps(t *testing.T) {
 	}
 }
 
-func TestIdxCfg(t *testing.T) {
-	//cfg := &Index{}
-	err := json.Unmarshal([]byte(testCfg), idx)
-	if err != nil {
-		t.Error(err)
+func TestIdxCfgString(t *testing.T) {
+	istr := New(CfgString(testCfg))
+	facets := FilterFacets(istr.Fields)
+	if len(istr.Facets()) != len(facets) {
+		t.Errorf("got %d, expected %d\n", len(istr.Facets()), len(facets))
+	}
+	if len(istr.TextFields()) != 1 {
+		t.Errorf("got %d, expected 4\n", len(istr.TextFields()))
 	}
 }
 
@@ -91,13 +94,20 @@ func TestData(t *testing.T) {
 }
 
 const testCfg = `{
-	"facets": [
+	"fields": [
 		{
-			"attribute": "tags",
+			"attribute": "title",
+			"fieldType": "text",
 			"operator": "and"
 		},
+		{ 
+			"fieldType": "facet",
+			"attribute": "series"
+		},
 		{
-			"attribute": "authors"
+			"fieldType": "facet",
+			"attribute": "tags",
+			"operator": "and"
 		}
 	]
 }
