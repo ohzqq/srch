@@ -20,8 +20,8 @@ func init() {
 
 // Index is a structure for facets and data.
 type Index struct {
+	src    DataSrc
 	search SearchFunc
-	*Src
 	*Config
 }
 
@@ -29,7 +29,7 @@ type Index struct {
 // []string{"title"}.
 func New(src DataSrc, opts ...Opt) *Index {
 	idx := &Index{
-		Src:    NewSource(src),
+		src:    src,
 		Config: DefaultConfig(),
 	}
 
@@ -44,7 +44,7 @@ func New(src DataSrc, opts ...Opt) *Index {
 
 func NewWithConfig(data []map[string]any, cfg *Config) *Index {
 	return &Index{
-		Src:    NewSource(SliceSrc(data)),
+		src:    SliceSrc(data),
 		Config: cfg,
 	}
 }
@@ -56,6 +56,10 @@ func CopyIndex(idx *Index, data []map[string]any) *Index {
 	n.search = idx.search
 	n.interactive = idx.interactive
 	return n
+}
+
+func (idx *Index) Data() []map[string]any {
+	return idx.src()
 }
 
 func (idx *Index) BuildIndex() *Index {

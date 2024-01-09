@@ -105,7 +105,7 @@ func (idx *Index) Results() (*Index, error) {
 
 func (idx *Index) getResults(ids ...int) *Index {
 	if len(ids) > 0 {
-		idx.Src = NewSourceData(collectResults(idx.Data(), ids))
+		idx.src = SliceSrc(collectResults(idx.Data(), ids))
 		return idx
 	}
 	return idx
