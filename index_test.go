@@ -17,15 +17,22 @@ const numBooks = 7174
 const testData = `testdata/data-dir/audiobooks.json`
 const testCfgFile = `testdata/config.json`
 const testCfgFileData = `testdata/config-with-data.json`
+const testQueryString = `tags=grumpy/sunshine&tags=enemies+to+lovers`
 
 func init() {
 	idx = New(DataFile(testData), WithCfg(testCfgFile))
-	books = idx.GetData()
+}
+
+func TestData(t *testing.T) {
+	books = loadData(t)
+	if len(books) != 7174 {
+		t.Errorf("got %d, expected 7174\v", len(books))
+	}
 }
 
 func TestNewIndex(t *testing.T) {
-	if idx.Len() != 7174 {
-		t.Errorf("got %d, expected 7174\n", idx.Len())
+	if idx.Len() != len(books) {
+		t.Errorf("got %d, expected %d\n", idx.Len(), len(books))
 	}
 }
 
@@ -84,13 +91,6 @@ func loadData(t *testing.T) []map[string]any {
 	books = books
 
 	return books
-}
-
-func TestData(t *testing.T) {
-	books := loadData(t)
-	if len(books) != 7174 {
-		t.Errorf("got %d, expected 7174\v", len(books))
-	}
 }
 
 const testCfg = `{

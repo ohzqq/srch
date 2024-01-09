@@ -41,8 +41,22 @@ func New(opts ...Opt) *Index {
 	return idx
 }
 
-//func (idx *Index) Filter(q string) *Results {
-//}
+func (idx *Index) Filter(data []map[string]any, q string) (*Results, error) {
+	idx.indexFacets(data)
+
+	vals, err := ParseValues(q)
+	if err != nil {
+		return nil, err
+	}
+	items := Filter(data, idx.Facets(), vals)
+	res := NewResults(items, idx.Facets()...)
+
+	return res, nil
+}
+
+func (idx *Index) indexFacets(data []map[string]any) {
+	idx.Fields = IndexData(data, idx.Facets(), idx.Identifier)
+}
 
 // NewIndex initializes an *Index with defaults: SearchableFields are
 // []string{"title"}.
@@ -68,14 +82,7 @@ func (idx *Index) GetData() []map[string]any {
 }
 
 func (idx *Index) BuildIndex() *Index {
-	for _, d := range idx.GetData() {
-		id := cast.ToUint32(d[idx.Identifier])
-		for _, f := range idx.Fields {
-			if val, ok := d[f.Attribute]; ok {
-				f.Add(val, id)
-			}
-		}
-	}
+	idx.Fields = IndexData(idx.Data, idx.Fields, idx.Identifier)
 	return idx
 }
 

@@ -39,11 +39,6 @@ func SearchData(data []map[string]any, fields []*Field, fn SearchFunc, q string)
 	return NewResults(r, idx.Facets()...)
 }
 
-func SearchSrc(src *Src, fields []*Field, q string) *Results {
-	search := FullText(src.Data(), SearchableFields(fields)...)
-	return NewResults(search(q), FilterFacets(fields)...)
-}
-
 func FullText(data []map[string]any, fieldNames ...string) SearchFunc {
 	return func(q string) []map[string]any {
 		return fullTextSearch(data, NewTextFields(fieldNames), q)

@@ -13,12 +13,39 @@ import (
 
 func testVals() url.Values {
 	vals := make(url.Values)
-	//vals.Add("tags", "abo")
-	//vals.Add("tags", "dnr")
+	vals.Add("tags", "abo")
+	vals.Add("tags", "dnr")
 	//vals.Add("authors", "Alice Winters")
-	vals.Add("authors", "Amy Lane")
-	vals.Add("q", "fish")
+	//vals.Add("authors", "Amy Lane")
+	//vals.Add("q", "fish")
 	return vals
+}
+
+func TestParseValues(t *testing.T) {
+	vals, err := ParseValues(testQueryString)
+	if err != nil {
+		t.Error(err)
+	}
+	if len(vals["tags"]) != 2 {
+		t.Errorf("got %d, expected 2", len(vals["tags"]))
+	}
+}
+
+func TestFilterQueryString(t *testing.T) {
+	res, err := idx.Filter(books, testQueryString)
+	if err != nil {
+		t.Error(err)
+	}
+	if len(res.Data) != 2 {
+		t.Errorf("got %d, expected %d\n", len(res.Data), 2)
+	}
+}
+
+func TestFilterData(t *testing.T) {
+	d := Filter(books, idx.Facets(), testVals())
+	if len(d) != 384 {
+		t.Errorf("got %d, expected %d\n", len(d), 384)
+	}
 }
 
 func TestSearchResults(t *testing.T) {
