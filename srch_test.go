@@ -23,7 +23,7 @@ func testVals() url.Values {
 }
 
 func TestSearchResults(t *testing.T) {
-	res := Search(
+	res := SearchData(
 		books,
 		idx.Fields,
 		FullText(books, "title"),
@@ -39,9 +39,8 @@ func TestSearchResults(t *testing.T) {
 }
 
 func TestSearchSrc(t *testing.T) {
-	src := NewSourceData(books)
-	res := SearchSrc(src, idx.Fields, "fish")
-	data := res.Data()
+	data := FullTextSearch(books, "fish", "title")
+	//data := i.data
 	if len(data) != 8 {
 		t.Errorf("got %d, expected 8\n", len(data))
 	}
@@ -85,7 +84,7 @@ func TestAudibleSearch(t *testing.T) {
 }
 
 func audibleSrc(q string) DataSrc {
-	return func(...string) []map[string]any {
+	return func() []map[string]any {
 		return audibleApi(q)
 	}
 }

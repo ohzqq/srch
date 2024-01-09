@@ -29,14 +29,14 @@ func init() {
 	//  log.Fatal(err)
 	//}
 
-	idx = New(FileSrc, WithCfg(testCfgFile))
+	idx = New(FileSrc(testData), WithCfg(testCfgFile))
 
 	books = idx.Data()
 
 }
 
 func TestNewIndexFunc(t *testing.T) {
-	i := New(FileSrc, CfgFile(testCfgFile))
+	i := New(FileSrc(testData), CfgFile(testCfgFile))
 	if i.Len() != 7174 {
 		t.Errorf("got %d, expected 7174\n", i.Len())
 	}

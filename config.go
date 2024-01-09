@@ -7,10 +7,3 @@ type Config struct {
 	interactive bool
 	fuzzy       bool
 }
-
-func DefaultConfig() *Config {
-	return &Config{
-		Identifier: "id",
-		Fields:     []*Field{NewTextField("title")},
-	}
-}

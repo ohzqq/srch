@@ -11,7 +11,7 @@ import (
 	"github.com/spf13/cast"
 )
 
-type DataSrc func(...string) []map[string]any
+type DataSrc func() []map[string]any
 
 type Src struct {
 	data DataSrc
@@ -42,21 +42,23 @@ func NewSourceData(data []map[string]any) *Src {
 }
 
 func SliceSrc(data []map[string]any) DataSrc {
-	return func(...string) []map[string]any {
+	return func() []map[string]any {
 		return data
 	}
 }
 
-func FileSrc(file ...string) []map[string]any {
-	data, err := NewDataFromFiles(file...)
-	if err != nil {
-		return []map[string]any{}
+func FileSrc(file ...string) DataSrc {
+	return func() []map[string]any {
+		data, err := NewDataFromFiles(file...)
+		if err != nil {
+			return []map[string]any{}
+		}
+		return data
 	}
-	return data
 }
 
 func ReadDataSrc(r io.Reader) DataSrc {
-	return func(...string) []map[string]any {
+	return func() []map[string]any {
 		d, err := DecodeData(r)
 		if err != nil {
 			return []map[string]any{}

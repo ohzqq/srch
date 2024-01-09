@@ -20,17 +20,24 @@ func init() {
 
 // Index is a structure for facets and data.
 type Index struct {
-	src    DataSrc
-	search SearchFunc
-	*Config
+	src         DataSrc
+	data        []map[string]any
+	search      SearchFunc
+	Fields      []*Field `json:"fields"`
+	Query       Query    `json:"filters"`
+	Identifier  string   `json:"identifier"`
+	interactive bool
+	fuzzy       bool
 }
 
 // New initializes an *Index with defaults: SearchableFields are
 // []string{"title"}.
 func New(src DataSrc, opts ...Opt) *Index {
 	idx := &Index{
-		src:    src,
-		Config: DefaultConfig(),
+		data:       src(),
+		src:        src,
+		Identifier: "id",
+		Fields:     []*Field{NewTextField("title")},
 	}
 
 	for _, opt := range opts {
@@ -40,13 +47,6 @@ func New(src DataSrc, opts ...Opt) *Index {
 	idx.BuildIndex()
 
 	return idx
-}
-
-func NewWithConfig(data []map[string]any, cfg *Config) *Index {
-	return &Index{
-		src:    SliceSrc(data),
-		Config: cfg,
-	}
 }
 
 // CopyIndex copies an index's config.
@@ -71,6 +71,49 @@ func (idx *Index) BuildIndex() *Index {
 			}
 		}
 	}
+	return idx
+}
+
+func DefaultIndex() *Index {
+	return &Index{
+		Identifier: "id",
+		Fields:     []*Field{NewTextField("title")},
+	}
+}
+
+func IndexData(data []map[string]any, fields []*Field, ident ...string) []*Field {
+	id := "id"
+	if len(ident) > 0 {
+		id = ident[0]
+	}
+	for _, d := range data {
+		id := cast.ToUint32(d[id])
+		for _, f := range fields {
+			if val, ok := d[f.Attribute]; ok {
+				f.Add(val, id)
+			}
+		}
+	}
+	return fields
+}
+
+func IndexFacets(data []map[string]any, facets []string, ident ...string) []*Field {
+	fields := NewFacets(facets)
+	return IndexData(data, fields, ident...)
+}
+
+func IndexText(data []map[string]any, text []string, ident ...string) []*Field {
+	fields := NewTextFields(text)
+	return IndexData(data, fields, ident...)
+}
+
+func BuildIndex(data []map[string]any, opts ...Opt) *Index {
+	idx := DefaultIndex()
+	idx.data = data
+	for _, opt := range opts {
+		opt(idx)
+	}
+	idx.Fields = IndexData(data, idx.Fields, idx.Identifier)
 	return idx
 }
 

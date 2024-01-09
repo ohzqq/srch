@@ -13,6 +13,11 @@ import (
 
 type SearchFunc func(string) []map[string]any
 
+func FullTextSearch(data []map[string]any, q string, fieldNames ...string) []map[string]any {
+	fields := IndexText(data, fieldNames, "id")
+	return fullTextSearch(data, fields, q)
+}
+
 func (idx *Index) Search(q string) *Results {
 	srch := idx.search
 	switch {
@@ -21,10 +26,10 @@ func (idx *Index) Search(q string) *Results {
 	case idx.fuzzy:
 		srch = FuzzySearch(idx.Data(), idx.SearchableFields()...)
 	}
-	return Search(idx.Data(), idx.Fields, srch, q)
+	return SearchData(idx.Data(), idx.Fields, srch, q)
 }
 
-func Search(data []map[string]any, fields []*Field, fn SearchFunc, q string) *Results {
+func SearchData(data []map[string]any, fields []*Field, fn SearchFunc, q string) *Results {
 	idx := New(
 		SliceSrc(data),
 		WithFields(fields),
@@ -43,11 +48,7 @@ func SearchSrc(src *Src, fields []*Field, q string) *Results {
 
 func FullText(data []map[string]any, fieldNames ...string) SearchFunc {
 	return func(q string) []map[string]any {
-		fields := make([]*Field, len(fieldNames))
-		for i, f := range fieldNames {
-			fields[i] = NewTextField(f)
-		}
-		return fullTextSearch(data, fields, q)
+		return fullTextSearch(data, NewTextFields(fieldNames), q)
 	}
 }
 
