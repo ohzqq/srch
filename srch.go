@@ -22,15 +22,13 @@ func (idx *Index) Search(q string) *Results {
 	srch := idx.search
 	switch {
 	case idx.search == nil:
-		srch = FullText(idx.Data(), idx.SearchableFields()...)
-	case idx.fuzzy:
-		srch = FuzzySearch(idx.Data(), idx.SearchableFields()...)
+		srch = FullText(idx.GetData(), idx.SearchableFields()...)
 	}
-	return SearchData(idx.Data(), idx.Fields, srch, q)
+	return SearchData(idx.GetData(), idx.Fields, srch, q)
 }
 
 func SearchData(data []map[string]any, fields []*Field, fn SearchFunc, q string) *Results {
-	idx := New(
+	idx := NewIndex(
 		SliceSrc(data),
 		WithFields(fields),
 		WithSearch(fn),
@@ -106,7 +104,7 @@ func (idx *Index) Results() (*Index, error) {
 
 func (idx *Index) getResults(ids ...int) *Index {
 	if len(ids) > 0 {
-		idx.src = SliceSrc(collectResults(idx.Data(), ids))
+		idx.Data = collectResults(idx.GetData(), ids)
 		return idx
 	}
 	return idx
@@ -136,7 +134,7 @@ func (idx *Index) Choose() (*Index, error) {
 
 func (r *Index) String(i int) string {
 	s := lo.PickByKeys(
-		r.Data()[i],
+		r.GetData()[i],
 		r.SearchableFields(),
 	)
 	vals := cast.ToStringSlice(lo.Values(s))
@@ -144,7 +142,7 @@ func (r *Index) String(i int) string {
 }
 
 func (r *Index) Len() int {
-	return len(r.Data())
+	return len(r.GetData())
 }
 
 func (r *Index) FuzzyFind(q string) fuzzy.Matches {

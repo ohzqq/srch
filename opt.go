@@ -61,35 +61,25 @@ func WithCfg(c any) Opt {
 
 func WithFields(fields []*Field) Opt {
 	return func(idx *Index) {
-		idx.Fields = fields
+		idx.AddField(fields...)
 	}
 }
 
 func WithFacets(fields []string) Opt {
 	return func(idx *Index) {
-		for _, f := range fields {
-			idx.Fields = append(idx.Fields, NewTaxonomyField(f))
-		}
+		idx.AddField(NewFacets(fields)...)
 	}
 }
 
 func WithTextFields(fields []string) Opt {
 	return func(idx *Index) {
-		for _, f := range fields {
-			idx.Fields = append(idx.Fields, NewTextField(f))
-		}
+		idx.AddField(NewTextFields(fields)...)
 	}
 }
 
 func WithSearch(s SearchFunc) Opt {
 	return func(idx *Index) {
 		idx.search = s
-	}
-}
-
-func WithFuzzySearch() Opt {
-	return func(idx *Index) {
-		idx.fuzzy = true
 	}
 }
 
@@ -107,7 +97,7 @@ func DataString(d string) Opt {
 // DataSlice sets the *Index.Data from a slice.
 func DataSlice(data []map[string]any) Opt {
 	return func(idx *Index) {
-		idx.src = SliceSrc(data)
+		idx.Data = data
 	}
 }
 
@@ -124,6 +114,6 @@ func DataFile(cfg string) Opt {
 		if err != nil {
 			log.Fatal(err)
 		}
-		idx.src = SliceSrc(data)
+		idx.Data = data
 	}
 }

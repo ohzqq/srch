@@ -53,11 +53,11 @@ func TestIdxFilterSearch(t *testing.T) {
 
 	fn := FuzzySearch(books, "title")
 	res := fn("fish")
-	i := New(SliceSrc(res), WithCfg(testCfgFile))
+	i := NewIndex(SliceSrc(res), WithCfg(testCfgFile))
 	vals := make(url.Values)
 	vals.Set("authors", "amy lane")
 	r := i.Filter(vals)
-	data := r.Data()
+	data := r.GetData()
 	if len(data) != 4 {
 		t.Errorf("got %d, expected 4", len(data))
 	}
@@ -66,7 +66,7 @@ func TestIdxFilterSearch(t *testing.T) {
 func TestAudibleSearch(t *testing.T) {
 	t.SkipNow()
 
-	a := New(
+	a := NewIndex(
 		audibleSrc("sporemaggeddon"),
 		WithSearch(audibleSrch),
 		WithTextFields([]string{"Title"}),

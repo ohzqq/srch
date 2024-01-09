@@ -20,50 +20,50 @@ func init() {
 
 // Index is a structure for facets and data.
 type Index struct {
-	src         DataSrc
-	data        []map[string]any
+	Data        []map[string]any
 	search      SearchFunc
 	Fields      []*Field `json:"fields"`
 	Query       Query    `json:"filters"`
 	Identifier  string   `json:"identifier"`
 	interactive bool
-	fuzzy       bool
 }
 
-// New initializes an *Index with defaults: SearchableFields are
-// []string{"title"}.
-func New(src DataSrc, opts ...Opt) *Index {
+func New(opts ...Opt) *Index {
 	idx := &Index{
-		data:       src(),
-		src:        src,
 		Identifier: "id",
 		Fields:     []*Field{NewTextField("title")},
 	}
-
 	for _, opt := range opts {
 		opt(idx)
 	}
+	return idx
+}
 
-	idx.BuildIndex()
+// NewIndex initializes an *Index with defaults: SearchableFields are
+// []string{"title"}.
+func NewIndex(src DataSrc, opts ...Opt) *Index {
+	idx := New(opts...)
+
+	//idx.BuildIndex()
 
 	return idx
 }
 
 // CopyIndex copies an index's config.
 func CopyIndex(idx *Index, data []map[string]any) *Index {
-	n := New(SliceSrc(data), WithCfg(idx.GetConfig()))
+	n := NewIndex(SliceSrc(data), WithCfg(idx.GetConfig()))
 	n.Query = idx.Query
 	n.search = idx.search
 	n.interactive = idx.interactive
 	return n
 }
 
-func (idx *Index) Data() []map[string]any {
-	return idx.src()
+func (idx *Index) GetData() []map[string]any {
+	return idx.Data
 }
 
 func (idx *Index) BuildIndex() *Index {
-	for _, d := range idx.Data() {
+	for _, d := range idx.GetData() {
 		id := cast.ToUint32(d[idx.Identifier])
 		for _, f := range idx.Fields {
 			if val, ok := d[f.Attribute]; ok {
@@ -74,11 +74,9 @@ func (idx *Index) BuildIndex() *Index {
 	return idx
 }
 
-func DefaultIndex() *Index {
-	return &Index{
-		Identifier: "id",
-		Fields:     []*Field{NewTextField("title")},
-	}
+func (idx *Index) AddField(fields ...*Field) *Index {
+	idx.Fields = append(idx.Fields, fields...)
+	return idx
 }
 
 func IndexData(data []map[string]any, fields []*Field, ident ...string) []*Field {
@@ -108,8 +106,8 @@ func IndexText(data []map[string]any, text []string, ident ...string) []*Field {
 }
 
 func BuildIndex(data []map[string]any, opts ...Opt) *Index {
-	idx := DefaultIndex()
-	idx.data = data
+	idx := New()
+	idx.Data = data
 	for _, opt := range opts {
 		opt(idx)
 	}

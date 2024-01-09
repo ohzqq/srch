@@ -22,7 +22,7 @@ func Filter(idx *Index) *Index {
 	filtered := roaring.ParOr(viper.GetInt("workers"), bits...)
 	ids := filtered.ToArray()
 
-	d := FilteredItems(idx.Data(), lo.ToAnySlice(ids))
+	d := FilteredItems(idx.GetData(), lo.ToAnySlice(ids))
 	return CopyIndex(idx, d)
 }
 

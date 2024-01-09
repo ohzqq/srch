@@ -29,14 +29,14 @@ func init() {
 	//  log.Fatal(err)
 	//}
 
-	idx = New(FileSrc(testData), WithCfg(testCfgFile))
+	idx = NewIndex(FileSrc(testData), WithCfg(testCfgFile))
 
-	books = idx.Data()
+	books = idx.GetData()
 
 }
 
 func TestNewIndexFunc(t *testing.T) {
-	i := New(FileSrc(testData), CfgFile(testCfgFile))
+	i := NewIndex(FileSrc(testData), CfgFile(testCfgFile))
 	if i.Len() != 7174 {
 		t.Errorf("got %d, expected 7174\n", i.Len())
 	}
@@ -82,7 +82,7 @@ func TestNewIdxFromMap(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	data := idx.Data()
+	data := idx.GetData()
 	if len(data) != len(books) {
 		t.Errorf("got %d, expected 7174\v", len(data))
 	}
