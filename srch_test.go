@@ -68,14 +68,14 @@ func TestFilterData(t *testing.T) {
 }
 
 func TestFullTextSearch(t *testing.T) {
-	res := idx.FullTextSearch(SliceSrc(books), "fish")
+	res := idx.Search(SliceSrc(books), "fish")
 	if len(res.Data) != 8 {
 		t.Errorf("got %d, expected 8\n", len(res.Data))
 	}
 }
 
 func TestSearchAndFilter(t *testing.T) {
-	res := idx.FullTextSearch(SliceSrc(books), "fish")
+	res := idx.Search(SliceSrc(books), "fish")
 	if len(res.Data) != 8 {
 		t.Errorf("got %d, expected 8\n", len(res.Data))
 	}

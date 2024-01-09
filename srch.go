@@ -12,9 +12,15 @@ import (
 
 type SearchFunc func(string) []map[string]any
 
-func FullText(data []map[string]any, q string, fieldNames ...string) []map[string]any {
-	fields := IndexText(data, fieldNames, "id")
-	return fullTextSearch(data, fields, q)
+func FullText(data []map[string]any, fields []*Field) SearchFunc {
+	return func(q string) []map[string]any {
+		return fullTextSearch(data, fields, q)
+	}
+}
+
+func IndexText(data []map[string]any, text []string, ident ...string) []*Field {
+	fields := NewTextFields(text)
+	return IndexData(data, fields, ident...)
 }
 
 func fullTextSearch(data []map[string]any, fields []*Field, q string) []map[string]any {

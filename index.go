@@ -49,6 +49,17 @@ func (idx *Index) IndexData(data []map[string]any) *Results {
 	return res
 }
 
+func (idx *Index) Search(src DataSrc, q string) *Results {
+	res := idx.IndexData(src())
+
+	if idx.search != nil {
+		return NewResults(idx.search(q))
+	}
+
+	search := FullText(res.Data, idx.TextFields())
+	return idx.IndexData(search(q))
+}
+
 func (idx *Index) FullTextSearch(src DataSrc, q string) *Results {
 	res := idx.IndexData(src())
 
@@ -102,11 +113,6 @@ func IndexData(data []map[string]any, fields []*Field, ident ...string) []*Field
 
 func IndexFacets(data []map[string]any, facets []string, ident ...string) []*Field {
 	fields := NewFacets(facets)
-	return IndexData(data, fields, ident...)
-}
-
-func IndexText(data []map[string]any, text []string, ident ...string) []*Field {
-	fields := NewTextFields(text)
 	return IndexData(data, fields, ident...)
 }
 

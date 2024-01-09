@@ -1,3 +1,5 @@
+//go:build ignore
+
 package cmd
 
 import (
@@ -63,10 +65,10 @@ By default, results are printed to stdout as json.
 			if err != nil {
 				log.Fatal(err)
 			}
-			src = srch.ReadDataSrc(bytes.NewBufferString(j))
+			src = srch.ReaderSrc(bytes.NewBufferString(j))
 		default:
 			in := cmd.InOrStdin()
-			src = srch.ReadDataSrc(in)
+			src = srch.ReaderSrc(in)
 		}
 
 		if cfgFile != "" {
