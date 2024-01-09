@@ -10,10 +10,6 @@ import (
 
 type DataSrc func() []map[string]any
 
-type Src struct {
-	data DataSrc
-}
-
 func SliceSrc(data []map[string]any) DataSrc {
 	return func() []map[string]any {
 		return data

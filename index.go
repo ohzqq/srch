@@ -8,7 +8,6 @@ import (
 	"log"
 	"os"
 
-	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/cast"
 	"github.com/spf13/viper"
 )
@@ -41,7 +40,8 @@ func New(opts ...Opt) *Index {
 	return idx
 }
 
-func (idx *Index) Filter(data []map[string]any, q string) (*Results, error) {
+func (idx *Index) Filter(src DataSrc, q string) (*Results, error) {
+	data := src()
 	idx.indexFacets(data)
 
 	vals, err := ParseValues(q)
@@ -115,16 +115,6 @@ func IndexFacets(data []map[string]any, facets []string, ident ...string) []*Fie
 func IndexText(data []map[string]any, text []string, ident ...string) []*Field {
 	fields := NewTextFields(text)
 	return IndexData(data, fields, ident...)
-}
-
-func BuildIndex(data []map[string]any, opts ...Opt) *Index {
-	idx := New()
-	idx.Data = data
-	for _, opt := range opts {
-		opt(idx)
-	}
-	idx.Fields = IndexData(data, idx.Fields, idx.Identifier)
-	return idx
 }
 
 func (idx *Index) GetField(attr string) (*Field, error) {
@@ -217,84 +207,6 @@ func (idx *Index) PrettyPrint() {
 		log.Fatal(err)
 	}
 }
-
-// CfgIndex configures an *Index.
-func CfgIndex(idx *Index, cfg any) {
-	switch val := cfg.(type) {
-	case []byte:
-		err := CfgIndexFromBytes(idx, val)
-		if err != nil {
-			log.Printf("cfg error: %v, using defaults\n", err)
-		}
-		return
-	case string:
-		if exist(val) {
-			err := CfgIndexFromFile(idx, val)
-			if err != nil {
-				log.Printf("cfg error: %v, using defaults\n", err)
-			}
-			return
-		} else {
-			err := CfgIndexFromBytes(idx, []byte(val))
-			if err != nil {
-				log.Printf("cfg error: %v, using defaults\n", err)
-			}
-			return
-		}
-	case map[string]any:
-		err := CfgIndexFromMap(idx, val)
-		if err != nil {
-			log.Printf("cfg error: %v, using defaults\n", err)
-		}
-	}
-}
-
-// CfgIndexFromFile initializes an index from files.
-func CfgIndexFromFile(idx *Index, cfg string) error {
-	f, err := os.Open(cfg)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-
-	err = idx.Decode(f)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// CfgIndexFromBytes initializes an index from a json formatted string.
-func CfgIndexFromBytes(idx *Index, d []byte) error {
-	err := idx.Decode(bytes.NewBuffer(d))
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-// CfgIndexFromMap initalizes an index from a map[string]any.
-func CfgIndexFromMap(idx *Index, d map[string]any) error {
-	err := mapstructure.Decode(d, idx)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-//func parseFacetMap(f any) map[string]*Facet {
-//  facets := make(map[string]*Facet)
-//  for name, agg := range cast.ToStringMap(f) {
-//    facet := NewFacet(name)
-//    err := mapstructure.Decode(agg, facet)
-//    if err != nil {
-//      log.Fatal(err)
-//    }
-//    facets[name] = facet
-//  }
-//  return facets
-//}
 
 func exist(path string) bool {
 	if _, err := os.Stat(path); errors.Is(err, os.ErrNotExist) {

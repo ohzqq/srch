@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/url"
+	"os"
 	"os/exec"
 	"testing"
 
@@ -31,8 +32,28 @@ func TestParseValues(t *testing.T) {
 	}
 }
 
-func TestFilterQueryString(t *testing.T) {
-	res, err := idx.Filter(books, testQueryString)
+func TestFileSrc(t *testing.T) {
+	src := FileSrc(testData)
+	testFilterQueryString(t, src)
+}
+
+func TestSliceSrc(t *testing.T) {
+	src := SliceSrc(books)
+	testFilterQueryString(t, src)
+}
+
+func TestReadDataSrc(t *testing.T) {
+	f, err := os.Open(testData)
+	if err != nil {
+		t.Error(err)
+	}
+	defer f.Close()
+	src := ReadDataSrc(f)
+	testFilterQueryString(t, src)
+}
+
+func testFilterQueryString(t *testing.T, src DataSrc) {
+	res, err := idx.Filter(src, testQueryString)
 	if err != nil {
 		t.Error(err)
 	}
