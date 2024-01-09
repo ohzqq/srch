@@ -5,7 +5,7 @@ import (
 )
 
 type Results struct {
-	*Src
+	Data   []map[string]any
 	Facets []*Facet
 }
 
@@ -23,7 +23,7 @@ type FacetItem struct {
 
 func NewResults(data []map[string]any, facets ...*Field) *Results {
 	return &Results{
-		Src:    NewSourceData(data),
+		Data:   data,
 		Facets: FieldsToFacets(facets),
 	}
 }

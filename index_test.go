@@ -2,7 +2,6 @@ package srch
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 	"testing"
 
@@ -20,46 +19,22 @@ const testCfgFile = `testdata/config.json`
 const testCfgFileData = `testdata/config-with-data.json`
 
 func init() {
-	//var err error
-	//idx, err = New(testCfgFile,
-	//DataFile(testData),
-	////WithSearch(testS),
-	//)
-	//if err != nil {
-	//  log.Fatal(err)
-	//}
-
-	idx = NewIndex(FileSrc(testData), WithCfg(testCfgFile))
-
+	idx = New(DataFile(testData), WithCfg(testCfgFile))
 	books = idx.GetData()
-
 }
 
-func TestNewIndexFunc(t *testing.T) {
-	i := NewIndex(FileSrc(testData), CfgFile(testCfgFile))
-	if i.Len() != 7174 {
-		t.Errorf("got %d, expected 7174\n", i.Len())
+func TestNewIndex(t *testing.T) {
+	if idx.Len() != 7174 {
+		t.Errorf("got %d, expected 7174\n", idx.Len())
 	}
-	if len(i.Facets()) != 4 {
-		t.Errorf("got %d, expected 4\n", len(i.Facets()))
-	}
-	field, err := i.GetField("tags")
-	if err != nil {
-		t.Error(err)
-	}
-	res := field.Filter("abo", "dnr")
-	fmt.Printf("%v\n", len(res.ToArray()))
-	//for _, f := range idx.Fields {
-	//  fmt.Printf("%#v\n", f)
-	//}
 }
 
 func TestIndexProps(t *testing.T) {
-	for _, f := range idx.Facets() {
-		fmt.Printf("attr %s\n", f.Attribute)
+	if len(idx.Facets()) != 4 {
+		t.Errorf("got %d, expected 4\n", len(idx.Facets()))
 	}
-	for _, f := range idx.TextFields() {
-		fmt.Printf("attr %s\n", f.Attribute)
+	if len(idx.TextFields()) != 1 {
+		t.Errorf("got %d, expected 4\n", len(idx.TextFields()))
 	}
 }
 

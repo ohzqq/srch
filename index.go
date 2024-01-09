@@ -31,13 +31,18 @@ type Index struct {
 func New(opts ...Opt) *Index {
 	idx := &Index{
 		Identifier: "id",
-		Fields:     []*Field{NewTextField("title")},
 	}
 	for _, opt := range opts {
 		opt(idx)
 	}
+	if len(idx.Fields) < 1 {
+		idx.Fields = []*Field{NewTextField("title")}
+	}
 	return idx
 }
+
+//func (idx *Index) Filter(q string) *Results {
+//}
 
 // NewIndex initializes an *Index with defaults: SearchableFields are
 // []string{"title"}.
@@ -125,14 +130,14 @@ func (idx *Index) GetField(attr string) (*Field, error) {
 }
 
 // Filter idx.Data and re-calculate facets.
-func (idx *Index) Filter(q any) *Index {
+func (idx *Index) FilterFacets(q any) *Index {
 	filters, err := NewQuery(q)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	idx.Query = filters
-	return Filter(idx)
+	return FilterIndex(idx)
 }
 
 func (idx *Index) Facets() []*Field {
