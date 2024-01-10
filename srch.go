@@ -7,20 +7,25 @@ import (
 	"github.com/spf13/cast"
 )
 
-//func FuzzySearch(data []map[string]any, fields ...string) SearchFunc {
-//  return func(q string) []map[string]any {
-//    if q == "" {
-//      return data
-//    }
+func GetFieldsFromSlice(items []map[string]any, names []string) []*Field {
+	if len(items) < 1 {
+		return []*Field{}
+	}
 
-//    src := GetSearchableFieldValues(data, fields)
-//    var res []map[string]any
-//    for _, m := range fuzzy.Find(q, src) {
-//      res = append(res, data[m.Index])
-//    }
-//    return res
-//  }
-//}
+	item := items[0]
+
+	if len(names) < 1 {
+		names = lo.Keys(item)
+	}
+
+	var fields []*Field
+	for _, f := range names {
+		if _, ok := item[f]; ok {
+			fields = append(fields, NewTextField(f))
+		}
+	}
+	return fields
+}
 
 func GetSearchableFieldValues(data []map[string]any, fields []string) []string {
 	src := make([]string, len(data))

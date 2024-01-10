@@ -16,34 +16,28 @@ func SliceMapSrc(data []map[string]any) DataSrc {
 	}
 }
 
-func StringSliceSrc(data []string) DataSrc {
-	return func() []map[string]any {
-		d := make([]map[string]any, len(data))
-		for i, item := range data {
-			d[i] = map[string]any{"title": item}
-		}
-		return d
+func StringSliceSrc(data []string) []map[string]any {
+	d := make([]map[string]any, len(data))
+	for i, item := range data {
+		d[i] = map[string]any{"title": item}
 	}
+	return d
 }
 
-func FileSrc(file ...string) DataSrc {
-	return func() []map[string]any {
-		data, err := NewDataFromFiles(file...)
-		if err != nil {
-			return []map[string]any{}
-		}
-		return data
+func FileSrc(file ...string) []map[string]any {
+	data, err := NewDataFromFiles(file...)
+	if err != nil {
+		return []map[string]any{}
 	}
+	return data
 }
 
-func ReaderSrc(r io.Reader) DataSrc {
-	return func() []map[string]any {
-		d, err := DecodeData(r)
-		if err != nil {
-			return []map[string]any{}
-		}
-		return d
+func ReaderSrc(r io.Reader) []map[string]any {
+	d, err := DecodeData(r)
+	if err != nil {
+		return []map[string]any{}
 	}
+	return d
 }
 
 // DecodeData decodes data from a io.Reader.

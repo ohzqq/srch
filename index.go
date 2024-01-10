@@ -7,8 +7,11 @@ import (
 	"io"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/RoaringBitmap/roaring"
+	"github.com/samber/lo"
+	"github.com/spf13/cast"
 	"github.com/spf13/viper"
 )
 
@@ -20,8 +23,9 @@ func init() {
 // Index is a structure for facets and data.
 type Index struct {
 	search SearchFunc
-	Fields []*Field `json:"fields"`
-	Query  Query    `json:"filters"`
+	Fields []*Field         `json:"fields"`
+	Data   []map[string]any `json:"data"`
+	Facets []*Facet         `json:"facets"`
 }
 
 type SearchFunc func(string) []map[string]any
@@ -37,23 +41,30 @@ func New(opts ...Opt) *Index {
 	return idx
 }
 
-func (idx *Index) Index(data []map[string]any) *Results {
-	idx.Fields = IndexData(data, idx.Fields)
-	return NewResults(idx, data)
+func (idx *Index) Index(src []map[string]any) *Index {
+	idx.Data = src
+	idx.Fields = IndexData(idx.Data, idx.Fields)
+	if idx.HasFacets() {
+		idx.Facets = FieldsToFacets(idx.FacetFields())
+	}
+	return idx
 }
 
-func (idx *Index) Search(q string, src ...DataSrc) *Results {
-	if idx.search != nil {
-		return idx.Index(idx.search(q))
+func (idx *Index) Search(q string) *Index {
+	if idx.search == nil {
+		idx.search = FullTextSrchFunc(idx.Data, idx.Fields)
 	}
+	res := idx.search(q)
+	return New(WithFields(idx.Fields)).Index(res)
+}
 
-	if len(src) < 1 {
-		return &Results{idx: idx}
+func (idx *Index) Filter(q string) *Index {
+	vals, err := ParseValues(q)
+	if err != nil {
+		return idx
 	}
-
-	res := idx.Index(src[0]())
-	search := FullTextSrchFunc(res.Data, idx.TextFields())
-	return idx.Index(search(q))
+	data := Filter(idx.Data, idx.FacetFields(), vals)
+	return New(WithFields(idx.Fields)).Index(data)
 }
 
 func (idx *Index) AddField(fields ...*Field) *Index {
@@ -86,7 +97,31 @@ func (idx *Index) GetField(attr string) (*Field, error) {
 	return nil, errors.New("no such field")
 }
 
-func (idx *Index) Facets() []*Field {
+func (idx *Index) Choose() (*Index, error) {
+	ids, err := Choose(idx)
+	if err != nil {
+		return idx, err
+	}
+
+	res := collectResults(idx.Data, ids)
+
+	return New(WithFields(idx.Fields)).Index(res), nil
+}
+
+func (idx *Index) String(i int) string {
+	s := lo.PickByKeys(
+		idx.Data[i],
+		idx.SearchableFields(),
+	)
+	vals := cast.ToStringSlice(lo.Values(s))
+	return strings.Join(vals, "\n")
+}
+
+func (idx *Index) Len() int {
+	return len(idx.Data)
+}
+
+func (idx *Index) FacetFields() []*Field {
 	return FilterFacets(idx.Fields)
 }
 
@@ -100,7 +135,7 @@ func (idx *Index) SearchableFields() []string {
 
 // HasFacets returns true if facets are configured.
 func (idx *Index) HasFacets() bool {
-	return len(idx.Facets()) > 0
+	return len(idx.FacetFields()) > 0
 }
 
 // Decode unmarshals json from an io.Reader.

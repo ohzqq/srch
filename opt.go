@@ -81,41 +81,6 @@ func WithSearch(s SearchFunc) Opt {
 	}
 }
 
-// DataString sets the *Index.Data from a json formatted string.
-func DataString(d string) Opt {
-	return func(idx *Index) {
-		buf := bytes.NewBufferString(d)
-		err := idx.Decode(buf)
-		if err != nil {
-			log.Fatal(err)
-		}
-	}
-}
-
-// DataSlice sets the *Index.Data from a slice.
-func DataSlice(data []map[string]any) Opt {
-	return func(idx *Index) {
-		//idx.Data = data
-	}
-}
-
-// DataFile sets the *Index.Data from a json file.
-func DataFile(cfg string) Opt {
-	return func(idx *Index) {
-		f, err := os.Open(cfg)
-		if err != nil {
-			log.Fatal(err)
-		}
-		defer f.Close()
-
-		//data, err := DecodeData(f)
-		//if err != nil {
-		//log.Fatal(err)
-		//}
-		//idx.Data = data
-	}
-}
-
 // CfgIndex configures an *Index.
 func CfgIndex(idx *Index, cfg any) {
 	switch val := cfg.(type) {

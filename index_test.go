@@ -2,6 +2,7 @@ package srch
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"testing"
 )
@@ -18,7 +19,8 @@ const testCfgFileData = `testdata/config-with-data.json`
 const testQueryString = `tags=grumpy/sunshine&tags=enemies+to+lovers`
 
 func init() {
-	idx = New(DataFile(testData), WithCfg(testCfgFile))
+	idx = New(WithCfg(testCfgFile))
+	idx.Index(FileSrc(testData))
 }
 
 func TestData(t *testing.T) {
@@ -35,19 +37,26 @@ func TestData(t *testing.T) {
 //}
 
 func TestIndexProps(t *testing.T) {
-	if len(idx.Facets()) != 4 {
-		t.Errorf("got %d, expected 4\n", len(idx.Facets()))
+	if len(idx.FacetFields()) != 4 {
+		t.Errorf("got %d, expected 4\n", len(idx.FacetFields()))
 	}
 	if len(idx.TextFields()) != 1 {
 		t.Errorf("got %d, expected 4\n", len(idx.TextFields()))
 	}
 }
 
+func TestRecursiveSearch(t *testing.T) {
+	idx.search = FullTextSrchFunc(idx.Data, idx.TextFields())
+	res := idx.Search("fish")
+	fmt.Printf("after search %d\n", len(res.Data))
+	fmt.Printf("after search %+v\n", res.Facets[0].Items[0])
+}
+
 func TestIdxCfgString(t *testing.T) {
 	istr := New(CfgString(testCfg))
 	facets := FilterFacets(istr.Fields)
-	if len(istr.Facets()) != len(facets) {
-		t.Errorf("got %d, expected %d\n", len(istr.Facets()), len(facets))
+	if len(istr.FacetFields()) != len(facets) {
+		t.Errorf("got %d, expected %d\n", len(istr.FacetFields()), len(facets))
 	}
 	if len(istr.TextFields()) != 1 {
 		t.Errorf("got %d, expected 4\n", len(istr.TextFields()))
