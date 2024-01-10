@@ -36,11 +36,6 @@ func FullTextFunc(data []map[string]any, fields []*Field) SearchFunc {
 	}
 }
 
-func IndexText(data []map[string]any, text []string) []*Field {
-	fields := NewTextFields(text)
-	return IndexData(data, fields)
-}
-
 func fullTextSearch(data []map[string]any, fields []*Field, q string) []map[string]any {
 	if q == "" {
 		return data
