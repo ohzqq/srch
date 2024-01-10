@@ -12,22 +12,22 @@ import (
 
 type SearchFunc func(string) []map[string]any
 
-func FullText(data []map[string]any, q string, text ...string) *Results {
+func FullText(data []map[string]any, q string, fields ...string) *Results {
 	idx := New()
 
 	if len(data) < 1 {
 		return NewResults(idx, data)
 	}
 
-	if len(text) < 1 {
-		text = lo.Keys(data[0])
+	if len(fields) < 1 {
+		fields = lo.Keys(data[0])
 	}
 
-	for _, t := range text {
+	for _, t := range fields {
 		idx.AddField(NewTextField(t))
 	}
 
-	return idx.Search(q, SliceSrc(data))
+	return idx.Search(q, SliceMapSrc(data))
 }
 
 func FullTextFunc(data []map[string]any, fields []*Field) SearchFunc {

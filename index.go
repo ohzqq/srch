@@ -19,11 +19,9 @@ func init() {
 
 // Index is a structure for facets and data.
 type Index struct {
-	search      SearchFunc
-	Fields      []*Field `json:"fields"`
-	Query       Query    `json:"filters"`
-	Identifier  string   `json:"identifier"`
-	interactive bool
+	search SearchFunc
+	Fields []*Field `json:"fields"`
+	Query  Query    `json:"filters"`
 }
 
 func New(opts ...Opt) *Index {

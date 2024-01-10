@@ -11,7 +11,6 @@ import (
 
 	"github.com/mitchellh/mapstructure"
 	"github.com/ohzqq/audible"
-	"github.com/samber/lo"
 )
 
 func testVals() url.Values {
@@ -40,7 +39,7 @@ func TestFileSrc(t *testing.T) {
 }
 
 func TestSliceSrc(t *testing.T) {
-	src := SliceSrc(books)
+	src := SliceMapSrc(books)
 	testFilterQueryString(t, src)
 }
 
@@ -55,11 +54,12 @@ func TestReadDataSrc(t *testing.T) {
 }
 
 func TestGenericFullTextSearch(t *testing.T) {
-	data := make([]map[string]any, len(books))
+	data := make([]string, len(books))
 	for i, book := range books {
-		data[i] = lo.PickByKeys(book, []string{"title"})
+		data[i] = book["title"].(string)
 	}
-	res := FullText(data, "fish")
+	ft := New()
+	res := ft.Search("fish", StringSliceSrc(data))
 	fmt.Printf("gen text %v\n", res.String(0))
 }
 
@@ -78,7 +78,7 @@ func TestFilterData(t *testing.T) {
 }
 
 func TestFullTextSearch(t *testing.T) {
-	res := idx.Search("fish", SliceSrc(books))
+	res := idx.Search("fish", SliceMapSrc(books))
 	if len(res.Data) != 8 {
 		t.Errorf("got %d, expected 8\n", len(res.Data))
 	}
@@ -86,7 +86,7 @@ func TestFullTextSearch(t *testing.T) {
 
 func TestFullTextSearchChoose(t *testing.T) {
 	t.SkipNow()
-	res := idx.Search("fish", SliceSrc(books))
+	res := idx.Search("fish", SliceMapSrc(books))
 	if len(res.Data) != 8 {
 		t.Errorf("got %d, expected 8\n", len(res.Data))
 	}
@@ -98,7 +98,7 @@ func TestFullTextSearchChoose(t *testing.T) {
 }
 
 func TestSearchAndFilter(t *testing.T) {
-	res := idx.Search("fish", SliceSrc(books))
+	res := idx.Search("fish", SliceMapSrc(books))
 	if len(res.Data) != 8 {
 		t.Errorf("got %d, expected 8\n", len(res.Data))
 	}
@@ -113,7 +113,6 @@ func TestAudibleSearch(t *testing.T) {
 	a := New(
 		WithSearch(audibleSrch),
 		WithTextFields([]string{"Title"}),
-		Interactive,
 	)
 	println("audible search")
 

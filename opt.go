@@ -11,10 +11,6 @@ import (
 
 type Opt func(*Index)
 
-func Interactive(s *Index) {
-	s.interactive = true
-}
-
 func CfgFile(file string) Opt {
 	return func(idx *Index) {
 		err := CfgIndexFromFile(idx, file)

@@ -10,9 +10,19 @@ import (
 
 type DataSrc func() []map[string]any
 
-func SliceSrc(data []map[string]any) DataSrc {
+func SliceMapSrc(data []map[string]any) DataSrc {
 	return func() []map[string]any {
 		return data
+	}
+}
+
+func StringSliceSrc(data []string) DataSrc {
+	return func() []map[string]any {
+		d := make([]map[string]any, len(data))
+		for i, item := range data {
+			d[i] = map[string]any{"title": item}
+		}
+		return d
 	}
 }
 
