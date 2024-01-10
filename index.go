@@ -24,6 +24,8 @@ type Index struct {
 	Query  Query    `json:"filters"`
 }
 
+type SearchFunc func(string) []map[string]any
+
 func New(opts ...Opt) *Index {
 	idx := &Index{}
 	for _, opt := range opts {
@@ -42,19 +44,16 @@ func (idx *Index) Index(data []map[string]any) *Results {
 
 func (idx *Index) Search(q string, src ...DataSrc) *Results {
 	if idx.search != nil {
-		res := idx.Index(idx.search(q))
-		return res
+		return idx.Index(idx.search(q))
 	}
 
 	if len(src) < 1 {
-		return &Results{}
+		return &Results{idx: idx}
 	}
 
 	res := idx.Index(src[0]())
-	search := FullTextFunc(res.Data, idx.TextFields())
-
-	ft := idx.Index(search(q))
-	return ft
+	search := FullTextSrchFunc(res.Data, idx.TextFields())
+	return idx.Index(search(q))
 }
 
 func (idx *Index) AddField(fields ...*Field) *Index {
