@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"net/url"
-	"os"
 	"os/exec"
 	"testing"
 
@@ -33,25 +32,6 @@ func TestParseValues(t *testing.T) {
 	}
 }
 
-func TestFileSrc(t *testing.T) {
-	src := FileSrc(testData)
-	testFilterQueryString(t, src)
-}
-
-func TestSliceSrc(t *testing.T) {
-	testFilterQueryString(t, books)
-}
-
-func TestReadDataSrc(t *testing.T) {
-	f, err := os.Open(testData)
-	if err != nil {
-		t.Error(err)
-	}
-	defer f.Close()
-	src := ReaderSrc(f)
-	testFilterQueryString(t, src)
-}
-
 func TestFuzzySearch(t *testing.T) {
 	data := make([]map[string]any, len(books))
 	for i, book := range books {
@@ -72,14 +52,16 @@ func TestGenericFullTextSearch(t *testing.T) {
 	}
 }
 
-func testFilterQueryString(t *testing.T, src []map[string]any) {
-	res := idx.GetResults(src).Filter(testQueryString)
+func TestFilterQueryString(t *testing.T) {
+	idx.Index(books)
+	res := idx.Filter(testQueryString)
 	if len(res.Data) != 2 {
 		t.Errorf("got %d, expected %d\n", len(res.Data), 2)
 	}
 }
 
 func TestFilterData(t *testing.T) {
+	idx.Index(books)
 	d := Filter(books, idx.FacetFields(), testVals())
 	if len(d) != 384 {
 		t.Errorf("got %d, expected %d\n", len(d), 384)
@@ -87,7 +69,7 @@ func TestFilterData(t *testing.T) {
 }
 
 func TestFullTextSearch(t *testing.T) {
-	res := idx.SearchData("fish", SliceMapSrc(books))
+	res := idx.Search("fish")
 	if len(res.Data) != 8 {
 		t.Errorf("got %d, expected 8\n", len(res.Data))
 	}
@@ -95,7 +77,7 @@ func TestFullTextSearch(t *testing.T) {
 
 func TestFullTextSearchChoose(t *testing.T) {
 	t.SkipNow()
-	res := idx.SearchData("fish", SliceMapSrc(books))
+	res := idx.Search("fish")
 	if len(res.Data) != 8 {
 		t.Errorf("got %d, expected 8\n", len(res.Data))
 	}
@@ -107,7 +89,7 @@ func TestFullTextSearchChoose(t *testing.T) {
 }
 
 func TestSearchAndFilter(t *testing.T) {
-	res := idx.SearchData("fish", SliceMapSrc(books))
+	res := idx.Search("fish")
 	if len(res.Data) != 8 {
 		t.Errorf("got %d, expected 8\n", len(res.Data))
 	}

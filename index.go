@@ -7,8 +7,11 @@ import (
 	"io"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/RoaringBitmap/roaring"
+	"github.com/samber/lo"
+	"github.com/spf13/cast"
 	"github.com/spf13/viper"
 )
 
@@ -47,11 +50,6 @@ func (idx *Index) Opts(opts ...Opt) Opt {
 	return prev
 }
 
-func (idx *Index) GetResults(data []map[string]any) *Results {
-	idx.Fields = IndexData(data, idx.Fields)
-	return NewResults(idx, data)
-}
-
 func (idx *Index) Index(src []map[string]any) *Index {
 	idx.Data = src
 	idx.Fields = IndexData(idx.Data, idx.Fields)
@@ -67,21 +65,15 @@ func (idx *Index) Search(q string) *Index {
 	}
 	res := idx.search(q)
 	return New(WithFields(idx.Fields)).Index(res)
-
 }
 
-func (idx *Index) SearchData(q string, src ...DataSrc) *Results {
-	if idx.search != nil {
-		return idx.GetResults(idx.search(q))
+func (idx *Index) Filter(q string) *Index {
+	vals, err := ParseValues(q)
+	if err != nil {
+		return idx
 	}
-
-	if len(src) < 1 {
-		return &Results{idx: idx}
-	}
-
-	res := idx.Index(src[0]())
-	search := FullTextSrchFunc(res.Data, idx.TextFields())
-	return idx.GetResults(search(q))
+	data := Filter(idx.Data, idx.FacetFields(), vals)
+	return New(WithFields(idx.Fields)).Index(data)
 }
 
 func (idx *Index) AddField(fields ...*Field) *Index {
@@ -112,6 +104,30 @@ func (idx *Index) GetField(attr string) (*Field, error) {
 		}
 	}
 	return nil, errors.New("no such field")
+}
+
+func (idx *Index) Choose() (*Index, error) {
+	ids, err := Choose(idx)
+	if err != nil {
+		return idx, err
+	}
+
+	res := collectResults(idx.Data, ids)
+
+	return New(WithFields(idx.Fields)).Index(res), nil
+}
+
+func (idx *Index) String(i int) string {
+	s := lo.PickByKeys(
+		idx.Data[i],
+		idx.SearchableFields(),
+	)
+	vals := cast.ToStringSlice(lo.Values(s))
+	return strings.Join(vals, "\n")
+}
+
+func (idx *Index) Len() int {
+	return len(idx.Data)
 }
 
 func (idx *Index) FacetFields() []*Field {
