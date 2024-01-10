@@ -42,14 +42,6 @@ func New(opts ...Opt) *Index {
 	return idx
 }
 
-func (idx *Index) Opts(opts ...Opt) Opt {
-	var prev Opt
-	for _, opt := range opts {
-		prev = opt(idx)
-	}
-	return prev
-}
-
 func (idx *Index) Index(src []map[string]any) *Index {
 	idx.Data = src
 	idx.Fields = IndexData(idx.Data, idx.Fields)

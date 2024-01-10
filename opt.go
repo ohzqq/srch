@@ -9,25 +9,23 @@ import (
 	"github.com/mitchellh/mapstructure"
 )
 
-type Opt func(*Index) Opt
+type Opt func(*Index)
 
 func CfgFile(file string) Opt {
-	return func(idx *Index) Opt {
+	return func(idx *Index) {
 		err := CfgIndexFromFile(idx, file)
 		if err != nil {
 			log.Printf("cfg error: %v, using defaults\n", err)
 		}
-		return CfgFile(file)
 	}
 }
 
 func CfgMap(m map[string]any) Opt {
-	return func(idx *Index) Opt {
+	return func(idx *Index) {
 		err := CfgIndexFromMap(idx, m)
 		if err != nil {
 			log.Printf("cfg error: %v, using defaults\n", err)
 		}
-		return CfgMap(m)
 	}
 }
 
@@ -36,58 +34,50 @@ func CfgString(cfg string) Opt {
 }
 
 func CfgBytes(cfg []byte) Opt {
-	return func(idx *Index) Opt {
+	return func(idx *Index) {
 		err := CfgIndexFromBytes(idx, cfg)
 		if err != nil {
 			log.Printf("cfg error: %v, using defaults\n", err)
 		}
-		return CfgBytes(cfg)
 	}
 }
 
 func ReadCfg(r io.Reader) Opt {
-	return func(idx *Index) Opt {
+	return func(idx *Index) {
 		err := idx.Decode(r)
 		if err != nil {
 			log.Printf("cfg error: %v, using defaults\n", err)
 		}
-		return ReadCfg(r)
 	}
 }
 
 func WithCfg(c any) Opt {
-	return func(idx *Index) Opt {
+	return func(idx *Index) {
 		CfgIndex(idx, c)
-		return WithCfg(c)
 	}
 }
 
 func WithFields(fields []*Field) Opt {
-	return func(idx *Index) Opt {
+	return func(idx *Index) {
 		idx.AddField(fields...)
-		return WithFields(fields)
 	}
 }
 
 func WithFacets(fields []string) Opt {
-	return func(idx *Index) Opt {
+	return func(idx *Index) {
 		idx.AddField(NewFacets(fields)...)
-		return WithFacets(fields)
 	}
 }
 
 func WithTextFields(fields []string) Opt {
-	return func(idx *Index) Opt {
+	return func(idx *Index) {
 		idx.AddField(NewTextFields(fields)...)
-		return WithTextFields(fields)
 	}
 }
 
 func WithSearch(s SearchFunc) Opt {
-	return func(idx *Index) Opt {
-		search := idx.search
+	return func(idx *Index) {
 		idx.search = s
-		return WithSearch(search)
 	}
 }
 
