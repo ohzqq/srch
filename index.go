@@ -24,7 +24,6 @@ func init() {
 type Index struct {
 	search SearchFunc
 	Fields []*Field         `json:"fields"`
-	Query  Query            `json:"filters"`
 	Data   []map[string]any `json:"data"`
 	Facets []*Facet         `json:"facets"`
 }
