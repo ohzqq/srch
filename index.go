@@ -8,7 +8,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/spf13/cast"
+	"github.com/RoaringBitmap/roaring"
 	"github.com/spf13/viper"
 )
 
@@ -27,9 +27,7 @@ type Index struct {
 }
 
 func New(opts ...Opt) *Index {
-	idx := &Index{
-		Identifier: "id",
-	}
+	idx := &Index{}
 	for _, opt := range opts {
 		opt(idx)
 	}
@@ -40,7 +38,7 @@ func New(opts ...Opt) *Index {
 }
 
 func (idx *Index) Index(data []map[string]any) *Results {
-	idx.Fields = IndexData(data, idx.Fields, idx.Identifier)
+	idx.Fields = IndexData(data, idx.Fields)
 	return NewResults(idx, data)
 }
 
@@ -55,7 +53,7 @@ func (idx *Index) Search(q string, src ...DataSrc) *Results {
 	}
 
 	res := idx.Index(src[0]())
-	search := FullText(res.Data, idx.TextFields())
+	search := FullTextFunc(res.Data, idx.TextFields())
 
 	ft := idx.Index(search(q))
 	return ft
@@ -66,27 +64,20 @@ func (idx *Index) AddField(fields ...*Field) *Index {
 	return idx
 }
 
-func IndexData(data []map[string]any, fields []*Field, ident ...string) []*Field {
-	id := "id"
-	if len(ident) > 0 {
-		id = ident[0]
+func IndexData(data []map[string]any, fields []*Field) []*Field {
+	for _, f := range fields {
+		f.Items = make(map[string]*roaring.Bitmap)
 	}
 
-	idx := make([]*Field, len(fields))
-	for i, f := range fields {
-		idx[i] = CopyField(f)
-	}
-
-	for _, d := range data {
-		id := cast.ToUint32(d[id])
+	for id, d := range data {
 		for i, f := range fields {
 			if val, ok := d[f.Attribute]; ok {
-				idx[i].Add(val, id)
+				fields[i].Add(val, uint32(id))
 			}
 		}
 	}
 
-	return idx
+	return fields
 }
 
 func (idx *Index) GetField(attr string) (*Field, error) {

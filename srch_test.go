@@ -11,6 +11,7 @@ import (
 
 	"github.com/mitchellh/mapstructure"
 	"github.com/ohzqq/audible"
+	"github.com/samber/lo"
 )
 
 func testVals() url.Values {
@@ -51,6 +52,15 @@ func TestReadDataSrc(t *testing.T) {
 	defer f.Close()
 	src := ReaderSrc(f)
 	testFilterQueryString(t, src)
+}
+
+func TestGenericFullTextSearch(t *testing.T) {
+	data := make([]map[string]any, len(books))
+	for i, book := range books {
+		data[i] = lo.PickByKeys(book, []string{"title"})
+	}
+	res := FullText(data, "fish")
+	fmt.Printf("gen text %v\n", res.String(0))
 }
 
 func testFilterQueryString(t *testing.T, src DataSrc) {
