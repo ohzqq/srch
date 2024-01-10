@@ -5,30 +5,23 @@ import (
 	"github.com/samber/lo"
 )
 
-func FuzzyFind(data []map[string]any, q string, fields ...string) *Results {
+func FuzzyFind(data []map[string]any, q string, fields ...string) *Index {
 	idx := New()
 
-	res := NewResults(idx, data)
 	if len(data) < 1 {
-		return res
+		return idx
 	}
 
-	if len(fields) < 1 {
-		fields = lo.Keys(data[0])
-	}
+	idx.AddField(GetFieldsFromSlice(data, fields)...)
 
-	for _, t := range fields {
-		res.idx.AddField(NewTextField(t))
-	}
-
-	matches := getFuzzyMatches(res, q)
+	matches := getFuzzyMatches(idx, q)
 	fr := getFuzzyResults(data, matches)
 
-	return NewResults(idx, fr)
+	return New(WithFields(idx.Fields)).Index(fr)
 }
 
-func getFuzzyMatches(res *Results, q string) fuzzy.Matches {
-	return fuzzy.FindFrom(q, res)
+func getFuzzyMatches(idx *Index, q string) fuzzy.Matches {
+	return fuzzy.FindFrom(q, idx)
 }
 
 func getFuzzyMatchIndexes(matches fuzzy.Matches) []int {
