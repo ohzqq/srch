@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/url"
+	"os"
 	"os/exec"
 	"testing"
 
@@ -14,67 +15,110 @@ import (
 
 func testVals() url.Values {
 	vals := make(url.Values)
-	//vals.Add("tags", "abo")
-	//vals.Add("tags", "dnr")
+	vals.Add("tags", "abo")
+	vals.Add("tags", "dnr")
 	//vals.Add("authors", "Alice Winters")
-	vals.Add("authors", "Amy Lane")
-	vals.Add("q", "fish")
+	//vals.Add("authors", "Amy Lane")
+	//vals.Add("q", "fish")
 	return vals
 }
 
-func TestSearchResults(t *testing.T) {
-	res := Search(
-		books,
-		idx.Fields,
-		FullText(books, "title"),
-		"fish",
-	)
+func TestParseValues(t *testing.T) {
+	vals, err := ParseValues(testQueryString)
+	if err != nil {
+		t.Error(err)
+	}
+	if len(vals["tags"]) != 2 {
+		t.Errorf("got %d, expected 2", len(vals["tags"]))
+	}
+}
+
+func TestFileSrc(t *testing.T) {
+	src := FileSrc(testData)
+	testFilterQueryString(t, src)
+}
+
+func TestSliceSrc(t *testing.T) {
+	src := SliceMapSrc(books)
+	testFilterQueryString(t, src)
+}
+
+func TestReadDataSrc(t *testing.T) {
+	f, err := os.Open(testData)
+	if err != nil {
+		t.Error(err)
+	}
+	defer f.Close()
+	src := ReaderSrc(f)
+	testFilterQueryString(t, src)
+}
+
+func TestGenericFullTextSearch(t *testing.T) {
+	data := make([]string, len(books))
+	for i, book := range books {
+		data[i] = book["title"].(string)
+	}
+	ft := New()
+	res := ft.Search("fish", StringSliceSrc(data))
+	fmt.Printf("gen text %v\n", res.String(0))
+}
+
+func testFilterQueryString(t *testing.T, src DataSrc) {
+	res := idx.Index(src()).Filter(testQueryString)
+	if len(res.Data) != 2 {
+		t.Errorf("got %d, expected %d\n", len(res.Data), 2)
+	}
+}
+
+func TestFilterData(t *testing.T) {
+	d := Filter(books, idx.Facets(), testVals())
+	if len(d) != 384 {
+		t.Errorf("got %d, expected %d\n", len(d), 384)
+	}
+}
+
+func TestFullTextSearch(t *testing.T) {
+	res := idx.Search("fish", SliceMapSrc(books))
 	if len(res.Data) != 8 {
 		t.Errorf("got %d, expected 8\n", len(res.Data))
 	}
-	for _, f := range res.Facets {
-		fmt.Printf("attr %s: %+v\n", f.Attribute, f.Items[0])
-	}
 }
 
-func TestIdxSearch(t *testing.T) {
+func TestFullTextSearchChoose(t *testing.T) {
 	t.SkipNow()
-	println("test idx search")
-	vals := testVals()
-	r := idx.Search(vals)
-	//fmt.Println(len(r.Data))
-	r.Print()
+	res := idx.Search("fish", SliceMapSrc(books))
+	if len(res.Data) != 8 {
+		t.Errorf("got %d, expected 8\n", len(res.Data))
+	}
+	sel, err := res.Choose()
+	if err != nil {
+		t.Error(err)
+	}
+	fmt.Println(sel.Len())
 }
 
-func TestIdxFilterSearch(t *testing.T) {
-	//t.SkipNow()
-	//vals := testVals()
-	//res := idx.Search(vals)
-
-	fn := FuzzySearch(books, "title")
-	res := fn("fish")
-	i := New(SliceSrc(res), WithCfg(testCfgFile))
-	vals := make(url.Values)
-	vals.Set("authors", "amy lane")
-	r := i.Filter(vals)
-	if len(r.Data) != 4 {
-		t.Errorf("got %d, expected 4", len(r.Data))
+func TestSearchAndFilter(t *testing.T) {
+	res := idx.Search("fish", SliceMapSrc(books))
+	if len(res.Data) != 8 {
+		t.Errorf("got %d, expected 8\n", len(res.Data))
 	}
+
+	q := "authors=Amy+Lane"
+	f := res.Filter(q)
+	//fmt.Printf("facets %+v\n", idx.Facets()[0])
+	fmt.Println(len(f.Data))
 }
 
 func TestAudibleSearch(t *testing.T) {
-	t.SkipNow()
-
 	a := New(
-		audibleSrc("sporemaggeddon"),
 		WithSearch(audibleSrch),
 		WithTextFields([]string{"Title"}),
-		Interactive,
 	)
-	v := make(url.Values)
-	v.Set("q", "amy lane fish")
-	res := a.Search(v)
-	println(res.Len())
+	println("audible search")
+
+	res := a.Search("amy lane fish")
+	fmt.Printf("num res %d\n", len(res.Data))
+	fmt.Printf("num res %v\n", res.searchableFields)
 
 	//for i := 0; i < res.Len(); i++ {
 	//  println(res.String(i))
@@ -83,8 +127,8 @@ func TestAudibleSearch(t *testing.T) {
 	//res.Print()
 }
 
-func audibleSrc(q string) Src {
-	return func(...any) []map[string]any {
+func audibleSrc(q string) DataSrc {
+	return func() []map[string]any {
 		return audibleApi(q)
 	}
 }

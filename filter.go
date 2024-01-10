@@ -1,18 +1,18 @@
 package srch
 
 import (
+	"net/url"
+
 	"github.com/RoaringBitmap/roaring"
 	"github.com/samber/lo"
 	"github.com/spf13/cast"
 	"github.com/spf13/viper"
 )
 
-// Filter takes an *Index, filters the data and calculates the facets. It
-// returns a new *Index.
-func Filter(idx *Index) *Index {
+func Filter(data []map[string]any, facets []*Field, values url.Values) []map[string]any {
 	var bits []*roaring.Bitmap
-	for name, filters := range idx.Query {
-		for _, facet := range idx.Facets() {
+	for name, filters := range values {
+		for _, facet := range facets {
 			if facet.Attribute == name {
 				bits = append(bits, facet.Filter(filters...))
 			}
@@ -22,8 +22,7 @@ func Filter(idx *Index) *Index {
 	filtered := roaring.ParOr(viper.GetInt("workers"), bits...)
 	ids := filtered.ToArray()
 
-	d := FilteredItems(idx.Data, lo.ToAnySlice(ids))
-	return CopyIndex(idx, d)
+	return FilteredItems(data, lo.ToAnySlice(ids))
 }
 
 // FilteredItems returns the subset of data.

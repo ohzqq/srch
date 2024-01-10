@@ -5,13 +5,11 @@ import (
 	"io"
 	"log"
 	"os"
+
+	"github.com/mitchellh/mapstructure"
 )
 
 type Opt func(*Index)
-
-func Interactive(s *Index) {
-	s.interactive = true
-}
 
 func CfgFile(file string) Opt {
 	return func(idx *Index) {
@@ -61,35 +59,25 @@ func WithCfg(c any) Opt {
 
 func WithFields(fields []*Field) Opt {
 	return func(idx *Index) {
-		idx.Fields = fields
+		idx.AddField(fields...)
 	}
 }
 
 func WithFacets(fields []string) Opt {
 	return func(idx *Index) {
-		for _, f := range fields {
-			idx.Fields = append(idx.Fields, NewTaxonomyField(f))
-		}
+		idx.AddField(NewFacets(fields)...)
 	}
 }
 
 func WithTextFields(fields []string) Opt {
 	return func(idx *Index) {
-		for _, f := range fields {
-			idx.Fields = append(idx.Fields, NewTextField(f))
-		}
+		idx.AddField(NewTextFields(fields)...)
 	}
 }
 
 func WithSearch(s SearchFunc) Opt {
 	return func(idx *Index) {
 		idx.search = s
-	}
-}
-
-func WithFuzzySearch() Opt {
-	return func(idx *Index) {
-		idx.fuzzy = true
 	}
 }
 
@@ -107,7 +95,7 @@ func DataString(d string) Opt {
 // DataSlice sets the *Index.Data from a slice.
 func DataSlice(data []map[string]any) Opt {
 	return func(idx *Index) {
-		idx.Data = data
+		//idx.Data = data
 	}
 }
 
@@ -120,10 +108,75 @@ func DataFile(cfg string) Opt {
 		}
 		defer f.Close()
 
-		data, err := DecodeData(f)
-		if err != nil {
-			log.Fatal(err)
-		}
-		idx.Data = data
+		//data, err := DecodeData(f)
+		//if err != nil {
+		//log.Fatal(err)
+		//}
+		//idx.Data = data
 	}
+}
+
+// CfgIndex configures an *Index.
+func CfgIndex(idx *Index, cfg any) {
+	switch val := cfg.(type) {
+	case []byte:
+		err := CfgIndexFromBytes(idx, val)
+		if err != nil {
+			log.Printf("cfg error: %v, using defaults\n", err)
+		}
+		return
+	case string:
+		if exist(val) {
+			err := CfgIndexFromFile(idx, val)
+			if err != nil {
+				log.Printf("cfg error: %v, using defaults\n", err)
+			}
+			return
+		} else {
+			err := CfgIndexFromBytes(idx, []byte(val))
+			if err != nil {
+				log.Printf("cfg error: %v, using defaults\n", err)
+			}
+			return
+		}
+	case map[string]any:
+		err := CfgIndexFromMap(idx, val)
+		if err != nil {
+			log.Printf("cfg error: %v, using defaults\n", err)
+		}
+	}
+}
+
+// CfgIndexFromFile initializes an index from files.
+func CfgIndexFromFile(idx *Index, cfg string) error {
+	f, err := os.Open(cfg)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	err = idx.Decode(f)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// CfgIndexFromBytes initializes an index from a json formatted string.
+func CfgIndexFromBytes(idx *Index, d []byte) error {
+	err := idx.Decode(bytes.NewBuffer(d))
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// CfgIndexFromMap initalizes an index from a map[string]any.
+func CfgIndexFromMap(idx *Index, d map[string]any) error {
+	err := mapstructure.Decode(d, idx)
+	if err != nil {
+		return err
+	}
+	return nil
 }

@@ -8,16 +8,26 @@ import (
 	"os"
 )
 
-type Src func(args ...any) []map[string]any
+type DataSrc func() []map[string]any
 
-func SliceSrc(data []map[string]any) Src {
-	return func(...any) []map[string]any {
+func SliceMapSrc(data []map[string]any) DataSrc {
+	return func() []map[string]any {
 		return data
 	}
 }
 
-func FileSrc(file ...string) Src {
-	return func(...any) []map[string]any {
+func StringSliceSrc(data []string) DataSrc {
+	return func() []map[string]any {
+		d := make([]map[string]any, len(data))
+		for i, item := range data {
+			d[i] = map[string]any{"title": item}
+		}
+		return d
+	}
+}
+
+func FileSrc(file ...string) DataSrc {
+	return func() []map[string]any {
 		data, err := NewDataFromFiles(file...)
 		if err != nil {
 			return []map[string]any{}
@@ -26,8 +36,8 @@ func FileSrc(file ...string) Src {
 	}
 }
 
-func ReadDataSrc(r io.Reader) Src {
-	return func(...any) []map[string]any {
+func ReaderSrc(r io.Reader) DataSrc {
+	return func() []map[string]any {
 		d, err := DecodeData(r)
 		if err != nil {
 			return []map[string]any{}

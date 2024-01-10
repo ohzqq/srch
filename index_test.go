@@ -2,11 +2,8 @@ package srch
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 	"testing"
-
-	"github.com/mitchellh/mapstructure"
 )
 
 var idx = &Index{}
@@ -18,75 +15,42 @@ const numBooks = 7174
 const testData = `testdata/data-dir/audiobooks.json`
 const testCfgFile = `testdata/config.json`
 const testCfgFileData = `testdata/config-with-data.json`
+const testQueryString = `tags=grumpy/sunshine&tags=enemies+to+lovers`
 
 func init() {
-	//var err error
-	//idx, err = New(testCfgFile,
-	//DataFile(testData),
-	////WithSearch(testS),
-	//)
-	//if err != nil {
-	//  log.Fatal(err)
-	//}
-
-	idx = New(FileSrc(testData), WithCfg(testCfgFile))
-
-	books = idx.Data
-
+	idx = New(DataFile(testData), WithCfg(testCfgFile))
 }
 
-func TestNewIndexFunc(t *testing.T) {
-	i := New(FileSrc(testData), CfgFile(testCfgFile))
-	if i.Len() != 7174 {
-		t.Errorf("got %d, expected 7174\n", i.Len())
+func TestData(t *testing.T) {
+	books = loadData(t)
+	if len(books) != 7174 {
+		t.Errorf("got %d, expected 7174\v", len(books))
 	}
-	if len(i.Facets()) != 4 {
-		t.Errorf("got %d, expected 4\n", len(i.Facets()))
-	}
-	field, err := i.GetField("tags")
-	if err != nil {
-		t.Error(err)
-	}
-	res := field.Filter("abo", "dnr")
-	fmt.Printf("%v\n", len(res.ToArray()))
-	//for _, f := range idx.Fields {
-	//  fmt.Printf("%#v\n", f)
-	//}
 }
+
+//func TestNewIndex(t *testing.T) {
+//  if idx.Len() != len(books) {
+//    t.Errorf("got %d, expected %d\n", idx.Len(), len(books))
+//  }
+//}
 
 func TestIndexProps(t *testing.T) {
-	for _, f := range idx.Facets() {
-		fmt.Printf("attr %s\n", f.Attribute)
+	if len(idx.Facets()) != 4 {
+		t.Errorf("got %d, expected 4\n", len(idx.Facets()))
 	}
-	for _, f := range idx.TextFields() {
-		fmt.Printf("attr %s\n", f.Attribute)
-	}
-}
-
-func TestIdxCfg(t *testing.T) {
-	//cfg := &Index{}
-	err := json.Unmarshal([]byte(testCfg), idx)
-	if err != nil {
-		t.Error(err)
+	if len(idx.TextFields()) != 1 {
+		t.Errorf("got %d, expected 4\n", len(idx.TextFields()))
 	}
 }
 
-func TestNewIdxFromMap(t *testing.T) {
-	t.SkipNow()
-	d := make(map[string]any)
-	err := mapstructure.Decode(idx, &d)
-	if err != nil {
-		t.Error(err)
+func TestIdxCfgString(t *testing.T) {
+	istr := New(CfgString(testCfg))
+	facets := FilterFacets(istr.Fields)
+	if len(istr.Facets()) != len(facets) {
+		t.Errorf("got %d, expected %d\n", len(istr.Facets()), len(facets))
 	}
-	err = CfgIndexFromMap(idx, d)
-	if err != nil {
-		t.Error(err)
-	}
-	if len(idx.Data) != len(books) {
-		t.Errorf("got %d, expected 7174\v", len(idx.Data))
-	}
-	if len(idx.Facets()) != 2 {
-		t.Errorf("got %d facets, expected 2", len(idx.Facets()))
+	if len(istr.TextFields()) != 1 {
+		t.Errorf("got %d, expected 4\n", len(istr.TextFields()))
 	}
 }
 
@@ -107,21 +71,21 @@ func loadData(t *testing.T) []map[string]any {
 	return books
 }
 
-func TestData(t *testing.T) {
-	books := loadData(t)
-	if len(books) != 7174 {
-		t.Errorf("got %d, expected 7174\v", len(books))
-	}
-}
-
 const testCfg = `{
-	"facets": [
+	"fields": [
 		{
-			"attribute": "tags",
+			"attribute": "title",
+			"fieldType": "text",
 			"operator": "and"
 		},
+		{ 
+			"fieldType": "facet",
+			"attribute": "series"
+		},
 		{
-			"attribute": "authors"
+			"fieldType": "facet",
+			"attribute": "tags",
+			"operator": "and"
 		}
 	]
 }

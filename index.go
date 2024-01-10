@@ -8,9 +8,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/mitchellh/mapstructure"
-	"github.com/samber/lo"
-	"github.com/spf13/cast"
+	"github.com/RoaringBitmap/roaring"
 	"github.com/spf13/viper"
 )
 
@@ -21,59 +19,62 @@ func init() {
 
 // Index is a structure for facets and data.
 type Index struct {
-	Data   []map[string]any `json:"data"`
 	search SearchFunc
-	*Config
+	Fields []*Field `json:"fields"`
+	Query  Query    `json:"filters"`
 }
 
-// New initializes an *Index with defaults: SearchableFields are
-// []string{"title"}.
-func New(src Src, opts ...Opt) *Index {
-	idx := NewWithConfig(src(), DefaultConfig())
+type SearchFunc func(string) []map[string]any
 
+func New(opts ...Opt) *Index {
+	idx := &Index{}
 	for _, opt := range opts {
 		opt(idx)
 	}
-
-	idx.BuildIndex()
-
-	switch {
-	case idx.search == nil:
-		idx.search = FullText(idx.Data, idx.SearchableFields()...)
-	case idx.fuzzy:
-		idx.search = FuzzySearch(idx.Data, idx.SearchableFields()...)
+	if len(idx.Fields) < 1 {
+		idx.Fields = []*Field{NewTextField("title")}
 	}
-
 	return idx
 }
 
-func NewWithConfig(data []map[string]any, cfg *Config) *Index {
-	return &Index{
-		Data:   data,
-		Config: cfg,
+func (idx *Index) Index(data []map[string]any) *Results {
+	idx.Fields = IndexData(data, idx.Fields)
+	return NewResults(idx, data)
+}
+
+func (idx *Index) Search(q string, src ...DataSrc) *Results {
+	if idx.search != nil {
+		return idx.Index(idx.search(q))
 	}
+
+	if len(src) < 1 {
+		return &Results{idx: idx}
+	}
+
+	res := idx.Index(src[0]())
+	search := FullTextSrchFunc(res.Data, idx.TextFields())
+	return idx.Index(search(q))
 }
 
-// CopyIndex copies an index's config.
-func CopyIndex(idx *Index, data []map[string]any) *Index {
-	n := New(SliceSrc(data), WithCfg(idx.GetConfig()))
-	n.Data = data
-	n.Query = idx.Query
-	n.search = idx.search
-	n.interactive = idx.interactive
-	return n
+func (idx *Index) AddField(fields ...*Field) *Index {
+	idx.Fields = append(idx.Fields, fields...)
+	return idx
 }
 
-func (idx *Index) BuildIndex() *Index {
-	for _, d := range idx.Data {
-		id := cast.ToUint32(d[idx.Identifier])
-		for _, f := range idx.Fields {
+func IndexData(data []map[string]any, fields []*Field) []*Field {
+	for _, f := range fields {
+		f.Items = make(map[string]*roaring.Bitmap)
+	}
+
+	for id, d := range data {
+		for i, f := range fields {
 			if val, ok := d[f.Attribute]; ok {
-				f.Add(val, id)
+				fields[i].Add(val, uint32(id))
 			}
 		}
 	}
-	return idx
+
+	return fields
 }
 
 func (idx *Index) GetField(attr string) (*Field, error) {
@@ -85,67 +86,16 @@ func (idx *Index) GetField(attr string) (*Field, error) {
 	return nil, errors.New("no such field")
 }
 
-// Filter idx.Data and re-calculate facets.
-func (idx *Index) Filter(q any) *Index {
-	filters, err := NewQuery(q)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	idx.Query = filters
-	return Filter(idx)
-}
-
 func (idx *Index) Facets() []*Field {
-	//var facets []*Field
-	//for _, field := range idx.Fields {
-	//  if field.FieldType == Taxonomy {
-	//    facets = append(facets, field)
-	//  }
-	//}
-	facets := lo.Filter(idx.Fields, filterFacetFields)
-
-	return facets
+	return FilterFacets(idx.Fields)
 }
 
 func (idx *Index) TextFields() []*Field {
-	//var facets []*Field
-	//for _, field := range idx.Fields {
-	//  if field.FieldType == Text {
-	//    facets = append(facets, field)
-	//  }
-	//}
-	facets := lo.Filter(idx.Fields, filterTextFields)
-	return facets
+	return FilterTextFields(idx.Fields)
 }
 
 func (idx *Index) SearchableFields() []string {
-	f := idx.TextFields()
-	return lo.Map(f, mapFieldAttr)
-}
-
-func mapFieldAttr(f *Field, _ int) string {
-	return f.Attribute
-}
-
-func filterTextFields(f *Field, _ int) bool {
-	return f.FieldType == Text
-}
-
-func filterFacetFields(f *Field, _ int) bool {
-	return f.FieldType == FacetField
-}
-
-// GetConfig returns a map of the Index's config.
-func (idx *Index) GetConfig() map[string]any {
-	var facets []map[string]any
-	for _, f := range idx.Fields {
-		facets = append(facets, f.GetConfig())
-	}
-	return map[string]any{
-		"fields":           facets,
-		"searchableFields": idx.SearchableFields(),
-	}
+	return SearchableFields(idx.Fields)
 }
 
 // HasFacets returns true if facets are configured.
@@ -194,84 +144,6 @@ func (idx *Index) PrettyPrint() {
 		log.Fatal(err)
 	}
 }
-
-// CfgIndex configures an *Index.
-func CfgIndex(idx *Index, cfg any) {
-	switch val := cfg.(type) {
-	case []byte:
-		err := CfgIndexFromBytes(idx, val)
-		if err != nil {
-			log.Printf("cfg error: %v, using defaults\n", err)
-		}
-		return
-	case string:
-		if exist(val) {
-			err := CfgIndexFromFile(idx, val)
-			if err != nil {
-				log.Printf("cfg error: %v, using defaults\n", err)
-			}
-			return
-		} else {
-			err := CfgIndexFromBytes(idx, []byte(val))
-			if err != nil {
-				log.Printf("cfg error: %v, using defaults\n", err)
-			}
-			return
-		}
-	case map[string]any:
-		err := CfgIndexFromMap(idx, val)
-		if err != nil {
-			log.Printf("cfg error: %v, using defaults\n", err)
-		}
-	}
-}
-
-// CfgIndexFromFile initializes an index from files.
-func CfgIndexFromFile(idx *Index, cfg string) error {
-	f, err := os.Open(cfg)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-
-	err = idx.Decode(f)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// CfgIndexFromBytes initializes an index from a json formatted string.
-func CfgIndexFromBytes(idx *Index, d []byte) error {
-	err := idx.Decode(bytes.NewBuffer(d))
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-// CfgIndexFromMap initalizes an index from a map[string]any.
-func CfgIndexFromMap(idx *Index, d map[string]any) error {
-	err := mapstructure.Decode(d, idx)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-//func parseFacetMap(f any) map[string]*Facet {
-//  facets := make(map[string]*Facet)
-//  for name, agg := range cast.ToStringMap(f) {
-//    facet := NewFacet(name)
-//    err := mapstructure.Decode(agg, facet)
-//    if err != nil {
-//      log.Fatal(err)
-//    }
-//    facets[name] = facet
-//  }
-//  return facets
-//}
 
 func exist(path string) bool {
 	if _, err := os.Stat(path); errors.Is(err, os.ErrNotExist) {

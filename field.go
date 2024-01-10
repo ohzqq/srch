@@ -26,8 +26,16 @@ func NewField(attr string, ft FieldType) *Field {
 	return &Field{
 		Attribute: attr,
 		FieldType: ft,
+		Sep:       ".",
 		Items:     make(map[string]*roaring.Bitmap),
 	}
+}
+
+func CopyField(field *Field) *Field {
+	f := NewField(field.Attribute, field.FieldType)
+	f.Sep = field.Sep
+	f.Operator = field.Operator
+	return f
 }
 
 func NewTextField(attr string) *Field {
@@ -36,7 +44,23 @@ func NewTextField(attr string) *Field {
 	return f
 }
 
-func NewTaxonomyField(attr string) *Field {
+func NewTextFields(names []string) []*Field {
+	fields := make([]*Field, len(names))
+	for i, f := range names {
+		fields[i] = NewTextField(f)
+	}
+	return fields
+}
+
+func NewFacets(names []string) []*Field {
+	fields := make([]*Field, len(names))
+	for i, f := range names {
+		fields[i] = NewFacetField(f)
+	}
+	return fields
+}
+
+func NewFacetField(attr string) *Field {
 	f := NewField(attr, FacetField)
 	f.Operator = "or"
 	return f
@@ -69,15 +93,6 @@ func (f *Field) addTerm(term string, ids []int) {
 		if !f.Items[term].ContainsInt(id) {
 			f.Items[term].AddInt(id)
 		}
-	}
-}
-
-// GetConfig returns a map of a Facet's config.
-func (f *Field) GetConfig() map[string]any {
-	return map[string]any{
-		"attribute": f.Attribute,
-		"operator":  f.Operator,
-		"fieldType": f.FieldType,
 	}
 }
 
@@ -116,4 +131,29 @@ func processBitResults(bits []*roaring.Bitmap, operator string) *roaring.Bitmap 
 	default:
 		return roaring.ParOr(viper.GetInt("workers"), bits...)
 	}
+}
+
+func FilterFacets(fields []*Field) []*Field {
+	return lo.Filter(fields, filterFacetFields)
+}
+
+func FilterTextFields(fields []*Field) []*Field {
+	return lo.Filter(fields, filterTextFields)
+}
+
+func SearchableFields(fields []*Field) []string {
+	f := FilterTextFields(fields)
+	return lo.Map(f, mapFieldAttr)
+}
+
+func mapFieldAttr(f *Field, _ int) string {
+	return f.Attribute
+}
+
+func filterTextFields(f *Field, _ int) bool {
+	return f.FieldType == Text
+}
+
+func filterFacetFields(f *Field, _ int) bool {
+	return f.FieldType == FacetField
 }
