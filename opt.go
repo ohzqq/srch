@@ -9,23 +9,25 @@ import (
 	"github.com/mitchellh/mapstructure"
 )
 
-type Opt func(*Index)
+type Opt func(*Index) Opt
 
 func CfgFile(file string) Opt {
-	return func(idx *Index) {
+	return func(idx *Index) Opt {
 		err := CfgIndexFromFile(idx, file)
 		if err != nil {
 			log.Printf("cfg error: %v, using defaults\n", err)
 		}
+		return CfgFile(file)
 	}
 }
 
 func CfgMap(m map[string]any) Opt {
-	return func(idx *Index) {
+	return func(idx *Index) Opt {
 		err := CfgIndexFromMap(idx, m)
 		if err != nil {
 			log.Printf("cfg error: %v, using defaults\n", err)
 		}
+		return CfgMap(m)
 	}
 }
 
@@ -34,85 +36,58 @@ func CfgString(cfg string) Opt {
 }
 
 func CfgBytes(cfg []byte) Opt {
-	return func(idx *Index) {
+	return func(idx *Index) Opt {
 		err := CfgIndexFromBytes(idx, cfg)
 		if err != nil {
 			log.Printf("cfg error: %v, using defaults\n", err)
 		}
+		return CfgBytes(cfg)
 	}
 }
 
 func ReadCfg(r io.Reader) Opt {
-	return func(idx *Index) {
+	return func(idx *Index) Opt {
 		err := idx.Decode(r)
 		if err != nil {
 			log.Printf("cfg error: %v, using defaults\n", err)
 		}
+		return ReadCfg(r)
 	}
 }
 
 func WithCfg(c any) Opt {
-	return func(idx *Index) {
+	return func(idx *Index) Opt {
 		CfgIndex(idx, c)
+		return WithCfg(c)
 	}
 }
 
 func WithFields(fields []*Field) Opt {
-	return func(idx *Index) {
+	return func(idx *Index) Opt {
 		idx.AddField(fields...)
+		return WithFields(fields)
 	}
 }
 
 func WithFacets(fields []string) Opt {
-	return func(idx *Index) {
+	return func(idx *Index) Opt {
 		idx.AddField(NewFacets(fields)...)
+		return WithFacets(fields)
 	}
 }
 
 func WithTextFields(fields []string) Opt {
-	return func(idx *Index) {
+	return func(idx *Index) Opt {
 		idx.AddField(NewTextFields(fields)...)
+		return WithTextFields(fields)
 	}
 }
 
 func WithSearch(s SearchFunc) Opt {
-	return func(idx *Index) {
+	return func(idx *Index) Opt {
+		search := idx.search
 		idx.search = s
-	}
-}
-
-// DataString sets the *Index.Data from a json formatted string.
-func DataString(d string) Opt {
-	return func(idx *Index) {
-		buf := bytes.NewBufferString(d)
-		err := idx.Decode(buf)
-		if err != nil {
-			log.Fatal(err)
-		}
-	}
-}
-
-// DataSlice sets the *Index.Data from a slice.
-func DataSlice(data []map[string]any) Opt {
-	return func(idx *Index) {
-		//idx.Data = data
-	}
-}
-
-// DataFile sets the *Index.Data from a json file.
-func DataFile(cfg string) Opt {
-	return func(idx *Index) {
-		f, err := os.Open(cfg)
-		if err != nil {
-			log.Fatal(err)
-		}
-		defer f.Close()
-
-		//data, err := DecodeData(f)
-		//if err != nil {
-		//log.Fatal(err)
-		//}
-		//idx.Data = data
+		return WithSearch(search)
 	}
 }
 

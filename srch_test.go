@@ -39,8 +39,7 @@ func TestFileSrc(t *testing.T) {
 }
 
 func TestSliceSrc(t *testing.T) {
-	src := SliceMapSrc(books)
-	testFilterQueryString(t, src)
+	testFilterQueryString(t, books)
 }
 
 func TestReadDataSrc(t *testing.T) {
@@ -63,19 +62,18 @@ func TestFuzzySearch(t *testing.T) {
 }
 
 func TestGenericFullTextSearch(t *testing.T) {
-	data := make([]string, len(books))
+	data := make([]map[string]any, len(books))
 	for i, book := range books {
-		data[i] = book["title"].(string)
+		data[i] = map[string]any{"title": book["title"]}
 	}
-	ft := New()
-	res := ft.Search("fish", StringSliceSrc(data))
-	if res.Len() != 8 {
-		t.Errorf("got %d, expected %d\n", res.Len(), 8)
+	ft := FullText(data, "fish")
+	if len(ft.Data) != 8 {
+		t.Errorf("got %d, expected %d\n", len(ft.Data), 8)
 	}
 }
 
-func testFilterQueryString(t *testing.T, src DataSrc) {
-	res := idx.Index(src()).Filter(testQueryString)
+func testFilterQueryString(t *testing.T, src []map[string]any) {
+	res := idx.GetResults(src).Filter(testQueryString)
 	if len(res.Data) != 2 {
 		t.Errorf("got %d, expected %d\n", len(res.Data), 2)
 	}
@@ -89,7 +87,7 @@ func TestFilterData(t *testing.T) {
 }
 
 func TestFullTextSearch(t *testing.T) {
-	res := idx.Search("fish", SliceMapSrc(books))
+	res := idx.SearchData("fish", SliceMapSrc(books))
 	if len(res.Data) != 8 {
 		t.Errorf("got %d, expected 8\n", len(res.Data))
 	}
@@ -97,7 +95,7 @@ func TestFullTextSearch(t *testing.T) {
 
 func TestFullTextSearchChoose(t *testing.T) {
 	t.SkipNow()
-	res := idx.Search("fish", SliceMapSrc(books))
+	res := idx.SearchData("fish", SliceMapSrc(books))
 	if len(res.Data) != 8 {
 		t.Errorf("got %d, expected 8\n", len(res.Data))
 	}
@@ -109,7 +107,7 @@ func TestFullTextSearchChoose(t *testing.T) {
 }
 
 func TestSearchAndFilter(t *testing.T) {
-	res := idx.Search("fish", SliceMapSrc(books))
+	res := idx.SearchData("fish", SliceMapSrc(books))
 	if len(res.Data) != 8 {
 		t.Errorf("got %d, expected 8\n", len(res.Data))
 	}
@@ -129,7 +127,6 @@ func TestAudibleSearch(t *testing.T) {
 
 	res := a.Search("amy lane fish")
 	fmt.Printf("num res %d\n", len(res.Data))
-	fmt.Printf("num res %v\n", res.searchableFields)
 
 	//for i := 0; i < res.Len(); i++ {
 	//  println(res.String(i))

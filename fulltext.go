@@ -10,22 +10,17 @@ import (
 	"github.com/spf13/cast"
 )
 
-func FullText(data []map[string]any, q string, fields ...string) *Results {
+func FullText(data []map[string]any, q string, fields ...string) *Index {
 	idx := New()
 
 	if len(data) < 1 {
-		return NewResults(idx, data)
+		return idx
 	}
 
-	if len(fields) < 1 {
-		fields = lo.Keys(data[0])
-	}
+	idx.AddField(GetFieldsFromSlice(data, fields)...)
+	idx.Index(data)
 
-	for _, t := range fields {
-		idx.AddField(NewTextField(t))
-	}
-
-	return idx.Search(q, SliceMapSrc(data))
+	return idx.Search(q)
 }
 
 func FullTextSrchFunc(data []map[string]any, fields []*Field) SearchFunc {

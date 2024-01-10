@@ -39,15 +39,40 @@ func New(opts ...Opt) *Index {
 	return idx
 }
 
-func (idx *Index) Index(data []map[string]any) *Results {
-	idx.Data = data
+func (idx *Index) Opts(opts ...Opt) Opt {
+	var prev Opt
+	for _, opt := range opts {
+		prev = opt(idx)
+	}
+	return prev
+}
+
+func (idx *Index) GetResults(data []map[string]any) *Results {
 	idx.Fields = IndexData(data, idx.Fields)
 	return NewResults(idx, data)
 }
 
-func (idx *Index) Search(q string, src ...DataSrc) *Results {
+func (idx *Index) Index(src []map[string]any) *Index {
+	idx.Data = src
+	idx.Fields = IndexData(idx.Data, idx.Fields)
+	if idx.HasFacets() {
+		idx.Facets = FieldsToFacets(idx.FacetFields())
+	}
+	return idx
+}
+
+func (idx *Index) Search(q string) *Index {
+	if idx.search == nil {
+		idx.search = FullTextSrchFunc(idx.Data, idx.Fields)
+	}
+	res := idx.search(q)
+	return New(WithFields(idx.Fields)).Index(res)
+
+}
+
+func (idx *Index) SearchData(q string, src ...DataSrc) *Results {
 	if idx.search != nil {
-		return idx.Index(idx.search(q))
+		return idx.GetResults(idx.search(q))
 	}
 
 	if len(src) < 1 {
@@ -56,7 +81,7 @@ func (idx *Index) Search(q string, src ...DataSrc) *Results {
 
 	res := idx.Index(src[0]())
 	search := FullTextSrchFunc(res.Data, idx.TextFields())
-	return idx.Index(search(q))
+	return idx.GetResults(search(q))
 }
 
 func (idx *Index) AddField(fields ...*Field) *Index {
