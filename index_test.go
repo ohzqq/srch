@@ -35,8 +35,8 @@ func TestData(t *testing.T) {
 //}
 
 func TestIndexProps(t *testing.T) {
-	if len(idx.Facets()) != 4 {
-		t.Errorf("got %d, expected 4\n", len(idx.Facets()))
+	if len(idx.FacetFields()) != 4 {
+		t.Errorf("got %d, expected 4\n", len(idx.FacetFields()))
 	}
 	if len(idx.TextFields()) != 1 {
 		t.Errorf("got %d, expected 4\n", len(idx.TextFields()))
@@ -46,8 +46,8 @@ func TestIndexProps(t *testing.T) {
 func TestIdxCfgString(t *testing.T) {
 	istr := New(CfgString(testCfg))
 	facets := FilterFacets(istr.Fields)
-	if len(istr.Facets()) != len(facets) {
-		t.Errorf("got %d, expected %d\n", len(istr.Facets()), len(facets))
+	if len(istr.FacetFields()) != len(facets) {
+		t.Errorf("got %d, expected %d\n", len(istr.FacetFields()), len(facets))
 	}
 	if len(istr.TextFields()) != 1 {
 		t.Errorf("got %d, expected 4\n", len(istr.TextFields()))

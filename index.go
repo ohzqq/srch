@@ -20,8 +20,10 @@ func init() {
 // Index is a structure for facets and data.
 type Index struct {
 	search SearchFunc
-	Fields []*Field `json:"fields"`
-	Query  Query    `json:"filters"`
+	Fields []*Field         `json:"fields"`
+	Query  Query            `json:"filters"`
+	Data   []map[string]any `json:"data"`
+	Facets []*Facet         `json:"facets"`
 }
 
 type SearchFunc func(string) []map[string]any
@@ -38,6 +40,7 @@ func New(opts ...Opt) *Index {
 }
 
 func (idx *Index) Index(data []map[string]any) *Results {
+	idx.Data = data
 	idx.Fields = IndexData(data, idx.Fields)
 	return NewResults(idx, data)
 }
@@ -86,7 +89,7 @@ func (idx *Index) GetField(attr string) (*Field, error) {
 	return nil, errors.New("no such field")
 }
 
-func (idx *Index) Facets() []*Field {
+func (idx *Index) FacetFields() []*Field {
 	return FilterFacets(idx.Fields)
 }
 
@@ -100,7 +103,7 @@ func (idx *Index) SearchableFields() []string {
 
 // HasFacets returns true if facets are configured.
 func (idx *Index) HasFacets() bool {
-	return len(idx.Facets()) > 0
+	return len(idx.FacetFields()) > 0
 }
 
 // Decode unmarshals json from an io.Reader.

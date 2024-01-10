@@ -33,7 +33,7 @@ func NewResults(idx *Index, data []map[string]any) *Results {
 		Data: data,
 	}
 	if idx.HasFacets() {
-		res.Facets = FieldsToFacets(idx.Facets())
+		res.Facets = FieldsToFacets(idx.FacetFields())
 	}
 	return res
 }
@@ -43,7 +43,7 @@ func (r *Results) Filter(q string) *Results {
 	if err != nil {
 		return r
 	}
-	r.SetData(Filter(r.Data, r.idx.Facets(), vals))
+	r.SetData(Filter(r.Data, r.idx.FacetFields(), vals))
 	return r
 }
 

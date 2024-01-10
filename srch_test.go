@@ -53,6 +53,15 @@ func TestReadDataSrc(t *testing.T) {
 	testFilterQueryString(t, src)
 }
 
+func TestFuzzySearch(t *testing.T) {
+	data := make([]map[string]any, len(books))
+	for i, book := range books {
+		data[i] = map[string]any{"title": book["title"]}
+	}
+	m := FuzzyFind(data, "fish")
+	fmt.Printf("gen text %v\n", m.Len())
+}
+
 func TestGenericFullTextSearch(t *testing.T) {
 	data := make([]string, len(books))
 	for i, book := range books {
@@ -60,7 +69,9 @@ func TestGenericFullTextSearch(t *testing.T) {
 	}
 	ft := New()
 	res := ft.Search("fish", StringSliceSrc(data))
-	fmt.Printf("gen text %v\n", res.String(0))
+	if res.Len() != 8 {
+		t.Errorf("got %d, expected %d\n", res.Len(), 8)
+	}
 }
 
 func testFilterQueryString(t *testing.T, src DataSrc) {
@@ -71,7 +82,7 @@ func testFilterQueryString(t *testing.T, src DataSrc) {
 }
 
 func TestFilterData(t *testing.T) {
-	d := Filter(books, idx.Facets(), testVals())
+	d := Filter(books, idx.FacetFields(), testVals())
 	if len(d) != 384 {
 		t.Errorf("got %d, expected %d\n", len(d), 384)
 	}
