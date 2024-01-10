@@ -21,6 +21,7 @@ const testQueryString = `tags=grumpy/sunshine&tags=enemies+to+lovers`
 func init() {
 	idx = New(WithCfg(testCfgFile))
 	idx.Index(FileSrc(testData))
+	books = idx.Data
 }
 
 func TestData(t *testing.T) {

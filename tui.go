@@ -1,6 +1,8 @@
 package srch
 
 import (
+	"net/url"
+
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/ohzqq/bubbles/list"
 	"github.com/sahilm/fuzzy"
@@ -8,13 +10,32 @@ import (
 
 type TUI struct {
 	*list.Model
+	*Index
 }
 
 type item string
 
-func Choose(src fuzzy.Source) ([]int, error) {
-	items := SrcToItems(src)
+func Choose(idx *Index) ([]int, error) {
 
+	items := SrcToItems(idx)
+
+	return NewList(items)
+}
+
+func FilterFacet(facet *Facet) string {
+	items := SrcToItems(facet)
+	sel, err := NewList(items)
+	if err != nil {
+		return ""
+	}
+	vals := make(url.Values)
+	for _, s := range sel {
+		vals.Add(facet.Attribute, items[s].FilterValue())
+	}
+	return vals.Encode()
+}
+
+func NewList(items []list.Item) ([]int, error) {
 	s := &TUI{}
 	l := list.New(items, list.NewDefaultDelegate(), 100, 20)
 	s.Model = &l

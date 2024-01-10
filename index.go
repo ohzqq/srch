@@ -97,6 +97,15 @@ func (idx *Index) GetField(attr string) (*Field, error) {
 	return nil, errors.New("no such field")
 }
 
+func (idx *Index) GetFacet(attr string) (*Facet, error) {
+	for _, f := range idx.Facets {
+		if f.Attribute == attr {
+			return f, nil
+		}
+	}
+	return nil, errors.New("no such field")
+}
+
 func (idx *Index) Choose() (*Index, error) {
 	ids, err := Choose(idx)
 	if err != nil {
