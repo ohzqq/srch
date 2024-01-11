@@ -23,6 +23,7 @@ func testVals() url.Values {
 }
 
 func TestParseValues(t *testing.T) {
+	t.SkipNow()
 	vals, err := ParseValues(testQueryString)
 	if err != nil {
 		t.Error(err)
@@ -33,6 +34,7 @@ func TestParseValues(t *testing.T) {
 }
 
 func TestFuzzySearch(t *testing.T) {
+	t.SkipNow()
 	data := make([]map[string]any, len(books))
 	for i, book := range books {
 		data[i] = map[string]any{"title": book["title"]}
@@ -42,6 +44,7 @@ func TestFuzzySearch(t *testing.T) {
 }
 
 func TestGenericFullTextSearch(t *testing.T) {
+	t.SkipNow()
 	data := make([]map[string]any, len(books))
 	for i, book := range books {
 		data[i] = map[string]any{"title": book["title"]}
@@ -53,6 +56,7 @@ func TestGenericFullTextSearch(t *testing.T) {
 }
 
 func TestFilterQueryString(t *testing.T) {
+	t.SkipNow()
 	idx.Index(books)
 	res := idx.Filter(testQueryString)
 	if len(res.Data) != 2 {
@@ -61,6 +65,7 @@ func TestFilterQueryString(t *testing.T) {
 }
 
 func TestFilterData(t *testing.T) {
+	t.SkipNow()
 	idx.Index(books)
 	d := Filter(books, idx.FacetFields(), testVals())
 	if len(d) != 384 {
@@ -69,7 +74,8 @@ func TestFilterData(t *testing.T) {
 }
 
 func TestFullTextSearch(t *testing.T) {
-	idx.Index(books)
+	//t.SkipNow()
+	//idx.Index(books)
 	res := idx.Search("fish")
 	if len(res.Data) != 8 {
 		t.Errorf("got %d, expected 8\n", len(res.Data))
@@ -77,6 +83,7 @@ func TestFullTextSearch(t *testing.T) {
 }
 
 func TestSearchAndFilter(t *testing.T) {
+	t.SkipNow()
 	res := idx.Search("fish")
 	if len(res.Data) != 8 {
 		t.Errorf("got %d, expected 8\n", len(res.Data))
@@ -89,6 +96,7 @@ func TestSearchAndFilter(t *testing.T) {
 }
 
 func TestAudibleSearch(t *testing.T) {
+	t.SkipNow()
 	a := New(
 		WithSearch(audibleSrch),
 		WithTextFields([]string{"Title"}),

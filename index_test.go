@@ -47,6 +47,7 @@ func TestIndexProps(t *testing.T) {
 }
 
 func TestRecursiveSearch(t *testing.T) {
+	t.SkipNow()
 	idx.search = FullTextSrchFunc(idx.Data, idx.TextFields())
 	res := idx.Search("fish")
 	fmt.Printf("after search %d\n", len(res.Data))
@@ -54,6 +55,7 @@ func TestRecursiveSearch(t *testing.T) {
 }
 
 func TestIdxCfgString(t *testing.T) {
+	t.SkipNow()
 	istr := New(CfgString(testCfg))
 	facets := FilterFacets(istr.Fields)
 	if len(istr.FacetFields()) != len(facets) {

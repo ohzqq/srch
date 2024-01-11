@@ -52,10 +52,10 @@ func (idx *Index) Index(src []map[string]any) *Index {
 
 func (idx *Index) Search(q string) *Index {
 	if idx.search == nil {
-		idx.search = FullTextSrchFunc(idx.Data, idx.Fields)
+		idx.search = FullTextSrchFunc(idx.Data, idx.TextFields())
 	}
 	res := idx.search(q)
-	return New(WithFields(idx.Fields)).Index(res)
+	return idx.Copy().Index(res)
 }
 
 func (idx *Index) Filter(q string) *Index {
@@ -64,7 +64,7 @@ func (idx *Index) Filter(q string) *Index {
 		return idx
 	}
 	data := Filter(idx.Data, idx.FacetFields(), vals)
-	return New(WithFields(idx.Fields)).Index(data)
+	return idx.Copy().Index(data)
 }
 
 func (idx *Index) AddField(fields ...*Field) *Index {
@@ -121,6 +121,15 @@ func (idx *Index) Len() int {
 
 func (idx *Index) FacetFields() []*Field {
 	return FilterFacets(idx.Fields)
+}
+
+func (idx *Index) FilterByID(ids []int) *Index {
+	data := FilterDataByID(idx.Data, ids)
+	return idx.Copy().Index(data)
+}
+
+func (idx *Index) Copy() *Index {
+	return New(WithFields(idx.Fields))
 }
 
 func (idx *Index) TextFields() []*Field {

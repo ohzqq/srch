@@ -28,6 +28,12 @@ func Choose(idx *srch.Index) (*srch.Index, error) {
 	if err != nil {
 		return idx, err
 	}
+
+	if len(sel) < 1 {
+		return idx, nil
+	}
+
+	return idx.FilterByID(sel), nil
 }
 
 func FilterFacet(facet *srch.Facet) string {
@@ -93,13 +99,13 @@ func SrcToItems(src fuzzy.Source) []list.Item {
 func SrcToStringSlice(src fuzzy.Source) []string {
 	items := make([]string, src.Len())
 	for i := 0; i < src.Len(); i++ {
-		items[i] = item(src.String(i))
+		items[i] = src.String(i)
 	}
 	return items
 }
 
 func StringSliceToItems(src []string) []list.Item {
-	items := make([]string, len(src))
+	items := make([]list.Item, len(src))
 	for i, d := range src {
 		items[i] = item(d)
 	}
