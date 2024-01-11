@@ -76,29 +76,6 @@ func TestFullTextSearch(t *testing.T) {
 	}
 }
 
-func TestChooseFacet(t *testing.T) {
-	//t.SkipNow()
-	idx.Index(books)
-	res := idx.Search("fish")
-	auth, err := res.GetFacet("authors")
-	if err != nil {
-		t.Error(err)
-	}
-}
-
-func TestFullTextSearchChoose(t *testing.T) {
-	t.SkipNow()
-	res := idx.Search("fish")
-	if len(res.Data) != 8 {
-		t.Errorf("got %d, expected 8\n", len(res.Data))
-	}
-	sel, err := res.Choose()
-	if err != nil {
-		t.Error(err)
-	}
-	fmt.Println(sel.Len())
-}
-
 func TestSearchAndFilter(t *testing.T) {
 	res := idx.Search("fish")
 	if len(res.Data) != 8 {

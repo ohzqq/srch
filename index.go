@@ -106,17 +106,6 @@ func (idx *Index) GetFacet(attr string) (*Facet, error) {
 	return nil, errors.New("no such field")
 }
 
-func (idx *Index) Choose() (*Index, error) {
-	ids, err := Choose(idx)
-	if err != nil {
-		return idx, err
-	}
-
-	res := collectResults(idx.Data, ids)
-
-	return New(WithFields(idx.Fields)).Index(res), nil
-}
-
 func (idx *Index) String(i int) string {
 	s := lo.PickByKeys(
 		idx.Data[i],

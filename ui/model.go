@@ -24,7 +24,10 @@ func NewTUI(idx *srch.Index) *TUI {
 
 func Choose(idx *srch.Index) (*srch.Index, error) {
 	items := SrcToItems(idx)
-	sel := NewList(items)
+	sel, err := NewList(items)
+	if err != nil {
+		return idx, err
+	}
 }
 
 func FilterFacet(facet *srch.Facet) string {

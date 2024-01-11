@@ -31,7 +31,7 @@ func getFuzzyMatchIndexes(matches fuzzy.Matches) []int {
 }
 
 func getFuzzyResults(data []map[string]any, matches fuzzy.Matches) []map[string]any {
-	return collectResults(data, getFuzzyMatchIndexes(matches))
+	return FilterDataByID(data, getFuzzyMatchIndexes(matches))
 }
 
 //func FuzzySearch(data []map[string]any, fields ...string) SearchFunc {
