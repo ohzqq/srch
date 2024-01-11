@@ -16,7 +16,6 @@ const numBooks = 7174
 const testData = `testdata/data-dir/audiobooks.json`
 const testCfgFile = `testdata/config.json`
 const testCfgFileData = `testdata/config-with-data.json`
-const testQueryString = `tags=grumpy/sunshine&tags=enemies+to+lovers`
 
 func init() {
 	idx = New(WithCfg(testCfgFile))

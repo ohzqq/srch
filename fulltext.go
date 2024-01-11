@@ -53,11 +53,23 @@ func Tokenizer(str string) []string {
 }
 
 func FacetTokenizer(val any) []string {
-	tokens := lowerCase(cast.ToStringSlice(val))
+	tokens := cast.ToStringSlice(val)
 	for i, token := range tokens {
-		tokens[i] = stripNonAlphaNumeric(token)
+		tokens[i] = normalizeText(token)
 	}
 	return tokens
+}
+
+func normalizeText(token string) string {
+	fields := lowerCase(strings.Split(token, " "))
+	for t, term := range fields {
+		if len(term) == 1 {
+			fields[t] = term
+		} else {
+			fields[t] = stripNonAlphaNumeric(term)
+		}
+	}
+	return strings.Join(fields, " ")
 }
 
 func rmStopWords(tokens []string) []string {
@@ -76,7 +88,8 @@ func stripNonAlphaNumeric(token string) string {
 	for _, b := range s {
 		if ('a' <= b && b <= 'z') ||
 			('A' <= b && b <= 'Z') ||
-			('0' <= b && b <= '9') {
+			('0' <= b && b <= '9') ||
+			b == ' ' {
 			s[n] = b
 			n++
 		}

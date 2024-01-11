@@ -12,6 +12,8 @@ import (
 	"github.com/ohzqq/audible"
 )
 
+const testQueryString = `tags=grumpy/sunshine&tags=enemies+to+lovers`
+
 func testVals() url.Values {
 	vals := make(url.Values)
 	vals.Add("tags", "abo")
@@ -55,10 +57,20 @@ func TestGenericFullTextSearch(t *testing.T) {
 	}
 }
 
+func parseValueTest(t *testing.T, q string) {
+	_, err := ParseValues(q)
+	if err != nil {
+		t.Error(err)
+	}
+}
+
 func TestFilterQueryString(t *testing.T) {
-	t.SkipNow()
+	//t.SkipNow()
+	q := "series=#gaymers"
+	parseValueTest(t, q)
+
 	idx.Index(books)
-	res := idx.Filter(testQueryString)
+	res := idx.Filter(q)
 	if len(res.Data) != 2 {
 		t.Errorf("got %d, expected %d\n", len(res.Data), 2)
 	}
@@ -75,7 +87,7 @@ func TestFilterData(t *testing.T) {
 
 func TestFullTextSearch(t *testing.T) {
 	//t.SkipNow()
-	//idx.Index(books)
+	idx.Index(books)
 	res := idx.Search("fish")
 	if len(res.Data) != 8 {
 		t.Errorf("got %d, expected 8\n", len(res.Data))

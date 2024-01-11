@@ -71,7 +71,7 @@ func (f *Field) Add(value any, ids ...any) {
 		f.addFullText(cast.ToString(value), cast.ToIntSlice(ids))
 		return
 	}
-	for _, val := range cast.ToStringSlice(value) {
+	for _, val := range FacetTokenizer(value) {
 		f.addTerm(val, cast.ToIntSlice(ids))
 	}
 }
@@ -111,7 +111,7 @@ func (f *Field) Filter(filters ...string) *roaring.Bitmap {
 
 func (f *Field) Search(text string) *roaring.Bitmap {
 	if f.FieldType == FacetField {
-		if ids, ok := f.Items[text]; ok {
+		if ids, ok := f.Items[normalizeText(text)]; ok {
 			return ids
 		}
 	}
