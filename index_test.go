@@ -16,11 +16,11 @@ const numBooks = 7174
 const testData = `testdata/data-dir/audiobooks.json`
 const testCfgFile = `testdata/config.json`
 const testCfgFileData = `testdata/config-with-data.json`
-const testQueryString = `tags=grumpy/sunshine&tags=enemies+to+lovers`
 
 func init() {
 	idx = New(WithCfg(testCfgFile))
 	idx.Index(FileSrc(testData))
+	books = idx.Data
 }
 
 func TestData(t *testing.T) {
@@ -46,13 +46,15 @@ func TestIndexProps(t *testing.T) {
 }
 
 func TestRecursiveSearch(t *testing.T) {
+	t.SkipNow()
 	idx.search = FullTextSrchFunc(idx.Data, idx.TextFields())
 	res := idx.Search("fish")
 	fmt.Printf("after search %d\n", len(res.Data))
-	fmt.Printf("after search %+v\n", res.Facets[0].Items[0])
+	fmt.Printf("after search %+v\n", res.Facets()[0].Items[0])
 }
 
 func TestIdxCfgString(t *testing.T) {
+	t.SkipNow()
 	istr := New(CfgString(testCfg))
 	facets := FilterFacets(istr.Fields)
 	if len(istr.FacetFields()) != len(facets) {

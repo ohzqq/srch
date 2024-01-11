@@ -25,7 +25,6 @@ type Index struct {
 	search SearchFunc
 	Fields []*Field         `json:"fields"`
 	Data   []map[string]any `json:"data"`
-	Facets []*Facet         `json:"facets"`
 }
 
 type SearchFunc func(string) []map[string]any
@@ -44,18 +43,19 @@ func New(opts ...Opt) *Index {
 func (idx *Index) Index(src []map[string]any) *Index {
 	idx.Data = src
 	idx.Fields = IndexData(idx.Data, idx.Fields)
-	if idx.HasFacets() {
-		idx.Facets = FieldsToFacets(idx.FacetFields())
-	}
 	return idx
+}
+
+func (idx *Index) Facets() []*Facet {
+	return FieldsToFacets(idx.FacetFields())
 }
 
 func (idx *Index) Search(q string) *Index {
 	if idx.search == nil {
-		idx.search = FullTextSrchFunc(idx.Data, idx.Fields)
+		idx.search = FullTextSrchFunc(idx.Data, idx.TextFields())
 	}
 	res := idx.search(q)
-	return New(WithFields(idx.Fields)).Index(res)
+	return idx.Copy().Index(res)
 }
 
 func (idx *Index) Filter(q string) *Index {
@@ -64,7 +64,7 @@ func (idx *Index) Filter(q string) *Index {
 		return idx
 	}
 	data := Filter(idx.Data, idx.FacetFields(), vals)
-	return New(WithFields(idx.Fields)).Index(data)
+	return idx.Copy().Index(data)
 }
 
 func (idx *Index) AddField(fields ...*Field) *Index {
@@ -97,15 +97,13 @@ func (idx *Index) GetField(attr string) (*Field, error) {
 	return nil, errors.New("no such field")
 }
 
-func (idx *Index) Choose() (*Index, error) {
-	ids, err := Choose(idx)
-	if err != nil {
-		return idx, err
+func (idx *Index) GetFacet(attr string) (*Facet, error) {
+	for _, f := range idx.Fields {
+		if f.Attribute == attr {
+			return NewFacet(f), nil
+		}
 	}
-
-	res := collectResults(idx.Data, ids)
-
-	return New(WithFields(idx.Fields)).Index(res), nil
+	return nil, errors.New("no such field")
 }
 
 func (idx *Index) String(i int) string {
@@ -123,6 +121,15 @@ func (idx *Index) Len() int {
 
 func (idx *Index) FacetFields() []*Field {
 	return FilterFacets(idx.Fields)
+}
+
+func (idx *Index) FilterByID(ids []int) *Index {
+	data := FilterDataByID(idx.Data, ids)
+	return idx.Copy().Index(data)
+}
+
+func (idx *Index) Copy() *Index {
+	return New(WithFields(idx.Fields))
 }
 
 func (idx *Index) TextFields() []*Field {

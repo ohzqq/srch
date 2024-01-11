@@ -69,7 +69,7 @@ func GetSearchableFieldValues(data []map[string]any, fields []string) []string {
 	return src
 }
 
-func collectResults(d []map[string]any, ids []int) []map[string]any {
+func FilterDataByID(d []map[string]any, ids []int) []map[string]any {
 	if len(ids) > 0 {
 		data := make([]map[string]any, len(ids))
 		for i, id := range ids {
