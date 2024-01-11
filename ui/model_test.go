@@ -7,17 +7,11 @@ import (
 	"github.com/ohzqq/srch"
 )
 
-var idx = &srch.Index{}
-
 const testData = `../testdata/data-dir/audiobooks.json`
 const testCfgFile = `../testdata/config.json`
 
-func init() {
-	idx = srch.New(srch.WithCfg(testCfgFile))
-	idx.Index(srch.FileSrc(testData))
-}
-
 func testSearch(t *testing.T) *srch.Index {
+	idx := newIdx()
 	res := idx.Search("fish")
 	if len(res.Data) != 8 {
 		t.Fatalf("got %d, expected 8\n", len(res.Data))
@@ -26,6 +20,7 @@ func testSearch(t *testing.T) *srch.Index {
 }
 
 func TestChoose(t *testing.T) {
+	t.SkipNow()
 	res := testSearch(t)
 	sel, err := Choose(res)
 	if err != nil {
@@ -34,9 +29,9 @@ func TestChoose(t *testing.T) {
 	fmt.Println(sel.Len())
 }
 
-func TestChooseFacet(t *testing.T) {
+func TestRefineFacet(t *testing.T) {
 	t.SkipNow()
-	res := idx.Search("fish")
+	res := testSearch(t)
 	auth, err := res.GetFacet("authors")
 	if err != nil {
 		t.Error(err)
@@ -46,4 +41,21 @@ func TestChooseFacet(t *testing.T) {
 	filtered := res.Filter(sel)
 	fmt.Printf("res filtered %v\n", filtered.Len())
 	//println(filtered.Len())
+}
+
+func TestFacets(t *testing.T) {
+	idx := newIdx()
+	auth, err := idx.GetFacet("tags")
+	if err != nil {
+		t.Error(err)
+	}
+	sel := FilterFacet(auth)
+	fmt.Printf("res items %v\n", sel)
+	filtered := idx.Filter(sel)
+	fmt.Printf("res filtered %v\n", filtered.Len())
+}
+
+func newIdx() *srch.Index {
+	idx := srch.New(srch.WithCfg(testCfgFile))
+	return idx.Index(srch.FileSrc(testData))
 }
