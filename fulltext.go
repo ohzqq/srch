@@ -43,7 +43,7 @@ func searchFullText(data []map[string]any, fields []*Field, q string) []map[stri
 
 func Tokenizer(str string) []string {
 	var tokens []string
-	for _, token := range strings.FieldsFunc(str, splitFields) {
+	for _, token := range strings.FieldsFunc(str, NotAlphaNumeric) {
 		token := strings.ToLower(token)
 		if !lo.Contains(stopWords, token) {
 			tokens = append(tokens, token)
@@ -52,7 +52,47 @@ func Tokenizer(str string) []string {
 	return stemmerFilter(tokens)
 }
 
-func splitFields(c rune) bool {
+func FacetTokenizer(val any) []string {
+	tokens := lowerCase(cast.ToStringSlice(val))
+	for i, token := range tokens {
+		tokens[i] = stripNonAlphaNumeric(token)
+	}
+	return tokens
+}
+
+func rmStopWords(tokens []string) []string {
+	var words []string
+	for _, token := range tokens {
+		if !lo.Contains(stopWords, token) {
+			words = append(words, token)
+		}
+	}
+	return words
+}
+
+func stripNonAlphaNumeric(token string) string {
+	s := []byte(token)
+	n := 0
+	for _, b := range s {
+		if ('a' <= b && b <= 'z') ||
+			('A' <= b && b <= 'Z') ||
+			('0' <= b && b <= '9') {
+			s[n] = b
+			n++
+		}
+	}
+	return string(s[:n])
+}
+
+func lowerCase(tokens []string) []string {
+	lower := make([]string, len(tokens))
+	for i, str := range tokens {
+		lower[i] = strings.ToLower(str)
+	}
+	return lower
+}
+
+func NotAlphaNumeric(c rune) bool {
 	return !unicode.IsLetter(c) && !unicode.IsNumber(c)
 }
 
