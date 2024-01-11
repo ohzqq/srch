@@ -169,6 +169,14 @@ func (idx *Index) JSON() []byte {
 	return buf.Bytes()
 }
 
+func (idx *Index) MarshalJSON() ([]byte, error) {
+	res := map[string]any{
+		"data":   idx.Data,
+		"facets": idx.Facets(),
+	}
+	return json.Marshal(res)
+}
+
 // Print writes Index json to stdout.
 func (idx *Index) Print() {
 	err := idx.Encode(os.Stdout)

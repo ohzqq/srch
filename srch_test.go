@@ -74,6 +74,11 @@ func TestFilterQueryString(t *testing.T) {
 	if len(res.Data) != 2 {
 		t.Errorf("got %d, expected %d\n", len(res.Data), 2)
 	}
+	d, err := json.Marshal(res)
+	if err != nil {
+		t.Error(err)
+	}
+	println(string(d))
 }
 
 func TestFilterData(t *testing.T) {

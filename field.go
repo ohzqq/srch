@@ -7,22 +7,22 @@ import (
 	"github.com/spf13/viper"
 )
 
-type FieldType string
-
 const (
-	FacetField FieldType = "facet"
-	Text       FieldType = "text"
+	FacetField = "facet"
+	Text       = "text"
+	OrFacet    = "orFacet"
+	AndFacet   = "andFacet"
 )
 
 type Field struct {
-	Attribute string    `json:"attribute"`
-	Operator  string    `json:"operator,omitempty"`
-	Sep       string    `json:"-"`
-	FieldType FieldType `json:"fieldType"`
-	Items     map[string]*roaring.Bitmap
+	Attribute string                     `json:"attribute"`
+	Operator  string                     `json:"operator,omitempty"`
+	Sep       string                     `json:"-"`
+	FieldType string                     `json:"fieldType"`
+	Items     map[string]*roaring.Bitmap `json:"-"`
 }
 
-func NewField(attr string, ft FieldType) *Field {
+func NewField(attr string, ft string) *Field {
 	return &Field{
 		Attribute: attr,
 		FieldType: ft,
