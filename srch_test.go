@@ -84,11 +84,6 @@ func TestChooseFacet(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	sel := FilterFacet(auth)
-	fmt.Printf("res items %v\n", sel)
-	filtered := res.Filter(sel)
-	fmt.Printf("res filtered %v\n", filtered.Len())
-	//println(filtered.Len())
 }
 
 func TestFullTextSearchChoose(t *testing.T) {

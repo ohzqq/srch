@@ -22,9 +22,9 @@ func NewTUI(idx *srch.Index) *TUI {
 	}
 }
 
-func Choose(idx *srch.Index) ([]int, error) {
+func Choose(idx *srch.Index) (*srch.Index, error) {
 	items := SrcToItems(idx)
-	return NewList(items)
+	sel := NewList(items)
 }
 
 func FilterFacet(facet *srch.Facet) string {
