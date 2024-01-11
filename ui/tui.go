@@ -1,28 +1,33 @@
-package srch
+package ui
 
 import (
 	"net/url"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/ohzqq/bubbles/list"
+	"github.com/ohzqq/srch"
 	"github.com/sahilm/fuzzy"
 )
 
 type TUI struct {
 	*list.Model
-	*Index
+	*srch.Index
 }
 
 type item string
 
-func Choose(idx *Index) ([]int, error) {
+func NewTUI(idx *srch.Index) *TUI {
+	return &TUI{
+		Index: idx,
+	}
+}
 
+func Choose(idx *srch.Index) ([]int, error) {
 	items := SrcToItems(idx)
-
 	return NewList(items)
 }
 
-func FilterFacet(facet *Facet) string {
+func FilterFacet(facet *srch.Facet) string {
 	items := SrcToItems(facet)
 	sel, err := NewList(items)
 	if err != nil {
@@ -78,6 +83,22 @@ func SrcToItems(src fuzzy.Source) []list.Item {
 	items := make([]list.Item, src.Len())
 	for i := 0; i < src.Len(); i++ {
 		items[i] = item(src.String(i))
+	}
+	return items
+}
+
+func SrcToStringSlice(src fuzzy.Source) []string {
+	items := make([]string, src.Len())
+	for i := 0; i < src.Len(); i++ {
+		items[i] = item(src.String(i))
+	}
+	return items
+}
+
+func StringSliceToItems(src []string) []list.Item {
+	items := make([]string, len(src))
+	for i, d := range src {
+		items[i] = item(d)
 	}
 	return items
 }
