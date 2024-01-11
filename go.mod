@@ -48,7 +48,7 @@ require (
 	github.com/muesli/termenv v0.15.2 // indirect
 	github.com/ohzqq/audible v0.0.1 // indirect
 	github.com/ohzqq/avtools v0.1.47 // indirect
-	github.com/ohzqq/bubbles v0.16.422 // indirect
+	github.com/ohzqq/bubbles v0.16.423 // indirect
 	github.com/ohzqq/cdb v0.0.111 // indirect
 	github.com/ohzqq/dur v0.0.22 // indirect
 	github.com/ohzqq/facet v0.0.0-20231228212744-f1a013dcbb7a // indirect
