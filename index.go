@@ -25,7 +25,6 @@ type Index struct {
 	search SearchFunc
 	Fields []*Field         `json:"fields"`
 	Data   []map[string]any `json:"data"`
-	Facets []*Facet         `json:"facets"`
 }
 
 type SearchFunc func(string) []map[string]any
@@ -44,10 +43,11 @@ func New(opts ...Opt) *Index {
 func (idx *Index) Index(src []map[string]any) *Index {
 	idx.Data = src
 	idx.Fields = IndexData(idx.Data, idx.Fields)
-	if idx.HasFacets() {
-		idx.Facets = FieldsToFacets(idx.FacetFields())
-	}
 	return idx
+}
+
+func (idx *Index) Facets() []*Facet {
+	return FieldsToFacets(idx.FacetFields())
 }
 
 func (idx *Index) Search(q string) *Index {
@@ -98,9 +98,9 @@ func (idx *Index) GetField(attr string) (*Field, error) {
 }
 
 func (idx *Index) GetFacet(attr string) (*Facet, error) {
-	for _, f := range idx.Facets {
+	for _, f := range idx.Fields {
 		if f.Attribute == attr {
-			return f, nil
+			return NewFacet(f), nil
 		}
 	}
 	return nil, errors.New("no such field")

@@ -50,7 +50,7 @@ func TestRecursiveSearch(t *testing.T) {
 	idx.search = FullTextSrchFunc(idx.Data, idx.TextFields())
 	res := idx.Search("fish")
 	fmt.Printf("after search %d\n", len(res.Data))
-	fmt.Printf("after search %+v\n", res.Facets[0].Items[0])
+	fmt.Printf("after search %+v\n", res.Facets()[0].Items[0])
 }
 
 func TestIdxCfgString(t *testing.T) {

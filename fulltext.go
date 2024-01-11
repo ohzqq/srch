@@ -11,13 +11,12 @@ import (
 )
 
 func FullText(data []map[string]any, q string, fields ...string) *Index {
-	idx := New()
+	idx := New(WithTextFields(fields))
 
 	if len(data) < 1 {
 		return idx
 	}
 
-	idx.AddField(GetFieldsFromSlice(data, fields)...)
 	idx.Index(data)
 
 	return idx.Search(q)
