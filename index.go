@@ -34,13 +34,13 @@ func New(opts ...Opt) *Index {
 	for _, opt := range opts {
 		opt(idx)
 	}
-	if len(idx.Fields) < 1 {
-		idx.Fields = []*Field{NewTextField("title")}
-	}
 	return idx
 }
 
 func (idx *Index) Index(src []map[string]any) *Index {
+	if len(idx.Fields) < 1 {
+		idx.Fields = []*Field{NewTextField("title")}
+	}
 	idx.Data = src
 	idx.Fields = IndexData(idx.Data, idx.Fields)
 	return idx

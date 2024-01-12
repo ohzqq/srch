@@ -10,8 +10,8 @@ import (
 const (
 	FacetField = "facet"
 	Text       = "text"
-	OrFacet    = "orFacet"
-	AndFacet   = "andFacet"
+	OrFacet    = "or"
+	AndFacet   = "and"
 )
 
 type Field struct {
@@ -23,12 +23,19 @@ type Field struct {
 }
 
 func NewField(attr string, ft string) *Field {
-	return &Field{
+	f := &Field{
 		Attribute: attr,
 		FieldType: ft,
 		Sep:       ".",
 		Items:     make(map[string]*roaring.Bitmap),
 	}
+	switch ft {
+	case OrFacet:
+		f.Operator = "or"
+	case AndFacet, Text, FacetField:
+		f.Operator = "and"
+	}
+	return f
 }
 
 func CopyField(field *Field) *Field {
