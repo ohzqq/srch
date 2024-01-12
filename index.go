@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"log"
+	"net/url"
 	"os"
 	"strings"
 
@@ -25,12 +27,15 @@ type Index struct {
 	search SearchFunc
 	Fields []*Field         `json:"fields"`
 	Data   []map[string]any `json:"data"`
+	Query  url.Values       `json:"query"`
 }
 
 type SearchFunc func(string) []map[string]any
 
 func New(opts ...Opt) *Index {
-	idx := &Index{}
+	idx := &Index{
+		Query: make(url.Values),
+	}
 	for _, opt := range opts {
 		opt(idx)
 	}
@@ -38,6 +43,7 @@ func New(opts ...Opt) *Index {
 }
 
 func (idx *Index) Index(src []map[string]any) *Index {
+	fmt.Printf("vals %v\n", len(idx.FacetFields()))
 	if len(idx.Fields) < 1 {
 		idx.Fields = []*Field{NewTextField("title")}
 	}
@@ -54,6 +60,7 @@ func (idx *Index) Search(q string) *Index {
 	if idx.search == nil {
 		idx.search = FullTextSrchFunc(idx.Data, idx.TextFields())
 	}
+	idx.Query.Set("q", q)
 	res := idx.search(q)
 	return idx.Copy().Index(res)
 }
@@ -119,6 +126,14 @@ func (idx *Index) Len() int {
 	return len(idx.Data)
 }
 
+func (idx *Index) AddFieldsFromValues(cfg url.Values) *Index {
+	return CfgFieldsFromValues(idx, cfg)
+}
+
+func (idx *Index) CfgString() string {
+	return idx.Query.Encode()
+}
+
 func (idx *Index) FacetFields() []*Field {
 	return FilterFacets(idx.Fields)
 }
@@ -147,10 +162,11 @@ func (idx *Index) HasFacets() bool {
 
 // Decode unmarshals json from an io.Reader.
 func (idx *Index) Decode(r io.Reader) error {
-	err := json.NewDecoder(r).Decode(idx)
+	err := json.NewDecoder(r).Decode(&idx.Query)
 	if err != nil {
 		return err
 	}
+	idx.AddFieldsFromValues(idx.Query)
 	return nil
 }
 
@@ -173,6 +189,7 @@ func (idx *Index) MarshalJSON() ([]byte, error) {
 	res := map[string]any{
 		"data":   idx.Data,
 		"facets": idx.Facets(),
+		"query":  idx.Query.Encode(),
 	}
 	return json.Marshal(res)
 }

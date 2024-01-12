@@ -162,5 +162,7 @@ func filterTextFields(f *Field, _ int) bool {
 }
 
 func filterFacetFields(f *Field, _ int) bool {
-	return f.FieldType == FacetField
+	return f.FieldType == FacetField ||
+		f.FieldType == OrFacet ||
+		f.FieldType == AndFacet
 }

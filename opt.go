@@ -114,16 +114,22 @@ func CfgIndex(idx *Index, cfg any) {
 	}
 }
 
-// ReadIdxCfg reads an *Index's config.
-func ReadIdxCfg(r io.Reader) (*Index, error) {
-	cfg := make(url.Values)
-	err := yaml.NewDecoder(r).Decode(&cfg)
+func ParseCfgQuery(q string) (*Index, error) {
+	v, err := url.ParseQuery(testValuesCfg)
 	if err != nil {
-		return &Index{}, err
+		return New(), err
 	}
+	return CfgIndexFromValues(v)
+}
 
+func CfgIndexFromValues(cfg url.Values) (*Index, error) {
 	idx := New()
+	idx.Query = cfg
+	CfgFieldsFromValues(idx, cfg)
+	return idx, nil
+}
 
+func CfgFieldsFromValues(idx *Index, cfg url.Values) *Index {
 	if cfg.Has("field") {
 		for _, f := range cfg["field"] {
 			idx.AddField(NewTextField(f))
@@ -139,7 +145,18 @@ func ReadIdxCfg(r io.Reader) (*Index, error) {
 			idx.AddField(NewField(f, AndFacet))
 		}
 	}
-	return idx, nil
+	return idx
+}
+
+// ReadIdxCfg reads an *Index's config.
+func ReadIdxCfg(r io.Reader) (*Index, error) {
+	cfg := make(url.Values)
+	err := yaml.NewDecoder(r).Decode(&cfg)
+	if err != nil {
+		return &Index{}, err
+	}
+
+	return CfgIndexFromValues(cfg)
 }
 
 // CfgIndexFromFile initializes an index from files.
