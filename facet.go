@@ -1,6 +1,8 @@
 package srch
 
 import (
+	"slices"
+
 	"github.com/RoaringBitmap/roaring"
 	"github.com/sahilm/fuzzy"
 )
@@ -19,10 +21,22 @@ type FacetItem struct {
 }
 
 func NewFacet(field *Field) *Facet {
-	return &Facet{
+	f := &Facet{
 		Field: field,
 		Items: FieldItemsToFacetItems(field.Items),
 	}
+
+	switch f.SortBy {
+	case "count":
+		slices.SortFunc(f.Items, sortByCountFunc)
+	case "value":
+	}
+
+	//if f.Order == "desc" {
+	//  slices.Reverse(f.Items)
+	//}
+
+	return f
 }
 
 func FieldsToFacets(fields []*Field) []*Facet {
@@ -47,6 +61,22 @@ func FieldItemsToFacetItems(fi map[string]*roaring.Bitmap) []*FacetItem {
 		items = append(items, NewFacetItem(label, len(bits.ToArray())))
 	}
 	return items
+}
+
+func SortItemsByCount(items []*FacetItem) []*FacetItem {
+	slices.SortFunc(items, sortByCountFunc)
+	return items
+}
+
+func sortByCountFunc(a *FacetItem, b *FacetItem) int {
+	switch {
+	case a.Count > b.Count:
+		return 1
+	case a.Count == b.Count:
+		return 0
+	default:
+		return -1
+	}
 }
 
 // NewFacetItem initializes an item with a value and string slice of related data

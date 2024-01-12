@@ -162,11 +162,12 @@ func (idx *Index) HasFacets() bool {
 
 // Decode unmarshals json from an io.Reader.
 func (idx *Index) Decode(r io.Reader) error {
-	err := json.NewDecoder(r).Decode(&idx.Query)
+	err := json.NewDecoder(r).Decode(idx)
+	//err := json.NewDecoder(r).Decode(&idx.Query)
 	if err != nil {
 		return err
 	}
-	idx.AddFieldsFromValues(idx.Query)
+	//idx.AddFieldsFromValues(idx.Query)
 	return nil
 }
 

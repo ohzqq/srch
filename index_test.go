@@ -14,7 +14,7 @@ var books []map[string]any
 const numBooks = 7174
 
 const testData = `testdata/data-dir/audiobooks.json`
-const testCfgFile = `testdata/config.json`
+const testCfgFile = `testdata/config-old.json`
 const testYAMLCfgFile = `testdata/config.yaml`
 const testCfgFileData = `testdata/config-with-data.json`
 

@@ -47,7 +47,7 @@ func TestFuzzySearch(t *testing.T) {
 }
 
 func TestGenericFullTextSearch(t *testing.T) {
-	t.SkipNow()
+	//t.SkipNow()
 	data := make([]map[string]any, len(books))
 	for i, book := range books {
 		data[i] = map[string]any{"title": book["title"]}
@@ -66,7 +66,7 @@ func parseValueTest(t *testing.T, q string) {
 }
 
 func TestFilterQueryString(t *testing.T) {
-	//t.SkipNow()
+	t.SkipNow()
 	q := "series=#gaymers"
 	parseValueTest(t, q)
 
@@ -97,6 +97,11 @@ func TestFullTextSearch(t *testing.T) {
 	res := idx.Search("fish")
 	if len(res.Data) != 8 {
 		t.Errorf("got %d, expected 8\n", len(res.Data))
+	}
+	for _, facet := range idx.Facets() {
+		for _, item := range facet.Items {
+			fmt.Printf("%s: %d\n", item.Value, item.Count)
+		}
 	}
 }
 

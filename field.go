@@ -15,10 +15,12 @@ const (
 )
 
 type Field struct {
-	Attribute string                     `json:"attribute"`
-	Operator  string                     `json:"operator,omitempty"`
-	Sep       string                     `json:"-"`
-	FieldType string                     `json:"fieldType"`
+	Attribute string `json:"attribute"`
+	Operator  string `json:"operator,omitempty"`
+	Sep       string `json:"-"`
+	FieldType string `json:"fieldType"`
+	SortBy    string
+	Order     string
 	Items     map[string]*roaring.Bitmap `json:"-"`
 }
 
@@ -27,6 +29,8 @@ func NewField(attr string, ft string) *Field {
 		Attribute: attr,
 		FieldType: ft,
 		Sep:       ".",
+		SortBy:    "count",
+		Order:     "desc",
 		Items:     make(map[string]*roaring.Bitmap),
 	}
 	switch ft {
