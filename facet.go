@@ -12,10 +12,10 @@ type Facet struct {
 
 // FacetItem is a data structure for a Facet's item.
 type FacetItem struct {
-	Value string `json:"value"`
-	Label string `json:"label"`
-	Count int    `json:"count"`
-	fuzzy.Match
+	Value       string `json:"value"`
+	Label       string `json:"label"`
+	Count       int    `json:"count"`
+	fuzzy.Match `json:"-"`
 }
 
 func NewFacet(field *Field) *Facet {

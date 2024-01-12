@@ -7,28 +7,35 @@ import (
 	"github.com/spf13/viper"
 )
 
-type FieldType string
-
 const (
-	FacetField FieldType = "facet"
-	Text       FieldType = "text"
+	FacetField = "facet"
+	Text       = "text"
+	OrFacet    = "or"
+	AndFacet   = "and"
 )
 
 type Field struct {
-	Attribute string    `json:"attribute"`
-	Operator  string    `json:"operator,omitempty"`
-	Sep       string    `json:"-"`
-	FieldType FieldType `json:"fieldType"`
-	Items     map[string]*roaring.Bitmap
+	Attribute string                     `json:"attribute"`
+	Operator  string                     `json:"operator,omitempty"`
+	Sep       string                     `json:"-"`
+	FieldType string                     `json:"fieldType"`
+	Items     map[string]*roaring.Bitmap `json:"-"`
 }
 
-func NewField(attr string, ft FieldType) *Field {
-	return &Field{
+func NewField(attr string, ft string) *Field {
+	f := &Field{
 		Attribute: attr,
 		FieldType: ft,
 		Sep:       ".",
 		Items:     make(map[string]*roaring.Bitmap),
 	}
+	switch ft {
+	case OrFacet:
+		f.Operator = "or"
+	case AndFacet, Text, FacetField:
+		f.Operator = "and"
+	}
+	return f
 }
 
 func CopyField(field *Field) *Field {
@@ -155,5 +162,7 @@ func filterTextFields(f *Field, _ int) bool {
 }
 
 func filterFacetFields(f *Field, _ int) bool {
-	return f.FieldType == FacetField
+	return f.FieldType == FacetField ||
+		f.FieldType == OrFacet ||
+		f.FieldType == AndFacet
 }
