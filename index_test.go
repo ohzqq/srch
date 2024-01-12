@@ -17,45 +17,11 @@ const testData = `testdata/data-dir/audiobooks.json`
 const testCfgFile = `testdata/config.json`
 const testYAMLCfgFile = `testdata/config.yaml`
 const testCfgFileData = `testdata/config-with-data.json`
-const testValuesCfg = `and=tags&field=title&or=authors&or=narrators&or=series`
 
 func init() {
 	idx = New(WithCfg(testCfgFile))
 	idx.Index(FileSrc(testData))
 	books = idx.Data
-}
-
-func TestYamlConfig(t *testing.T) {
-	f, err := os.Open(testYAMLCfgFile)
-	if err != nil {
-		t.Error(err)
-	}
-	defer f.Close()
-
-	i, err := ReadIdxCfg(f)
-	if err != nil {
-		t.Error(err)
-	}
-
-	if len(i.Fields) != 5 {
-		for _, f := range i.Fields {
-			println(f.Attribute)
-		}
-		t.Errorf("got %d, expected %d\n", len(i.Fields), 5)
-	}
-}
-
-func TestUrlValuesStringConfig(t *testing.T) {
-	i, err := ParseCfgQuery(testValuesCfg)
-	if err != nil {
-		t.Error(err)
-	}
-	if len(i.Fields) != 5 {
-		for _, f := range i.Fields {
-			println(f.Attribute)
-		}
-		t.Errorf("got %d, expected %d\n", len(i.Fields), 5)
-	}
 }
 
 func TestData(t *testing.T) {

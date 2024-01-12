@@ -13,6 +13,7 @@ import (
 )
 
 const testQueryString = `tags=grumpy/sunshine&tags=enemies+to+lovers`
+const testSearchString = `q=amy+lane`
 
 func testVals() url.Values {
 	vals := make(url.Values)
