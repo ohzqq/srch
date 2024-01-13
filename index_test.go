@@ -19,7 +19,7 @@ const testYAMLCfgFile = `testdata/config.yaml`
 const testCfgFileData = `testdata/config-with-data.json`
 
 func init() {
-	idx = New(WithCfg(testCfgFile))
+	idx = OldNew(WithCfg(testCfgFile))
 	idx.Index(FileSrc(testData))
 	books = idx.Data
 }
@@ -56,7 +56,7 @@ func TestRecursiveSearch(t *testing.T) {
 
 func TestIdxCfgString(t *testing.T) {
 	t.SkipNow()
-	istr := New(CfgString(testCfg))
+	istr := OldNew(CfgString(testCfg))
 	facets := FilterFacets(istr.Fields)
 	if len(istr.FacetFields()) != len(facets) {
 		t.Errorf("got %d, expected %d\n", len(istr.FacetFields()), len(facets))

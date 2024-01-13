@@ -121,7 +121,7 @@ func TestSearchAndFilter(t *testing.T) {
 
 func TestAudibleSearch(t *testing.T) {
 	t.SkipNow()
-	a := New(
+	a := OldNew(
 		WithSearch(audibleSrch),
 		WithTextFields([]string{"Title"}),
 	)

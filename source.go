@@ -6,6 +6,7 @@ import (
 	"errors"
 	"io"
 	"os"
+	"path/filepath"
 )
 
 type DataSrc func() []map[string]any
@@ -38,6 +39,14 @@ func ReaderSrc(r io.Reader) []map[string]any {
 		return []map[string]any{}
 	}
 	return d
+}
+
+func DirSrc(dir string) ([]map[string]any, error) {
+	files, err := filepath.Glob(dir + "*.json")
+	if err != nil {
+		return nil, err
+	}
+	return NewDataFromFiles(files...)
 }
 
 // DecodeData decodes data from a io.Reader.

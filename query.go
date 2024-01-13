@@ -1,6 +1,9 @@
 package srch
 
-import "net/url"
+import (
+	"errors"
+	"net/url"
+)
 
 type Query url.Values
 
@@ -9,7 +12,7 @@ func NewQuery(queries ...string) url.Values {
 	for _, query := range queries {
 		vals, err := url.ParseQuery(query)
 		if err != nil {
-			break
+			continue
 		}
 		for k, val := range vals {
 			for _, v := range val {
@@ -23,13 +26,36 @@ func NewQuery(queries ...string) url.Values {
 func ParseCfgQuery(q string) (*Index, error) {
 	v, err := url.ParseQuery(testValuesCfg)
 	if err != nil {
-		return New(), err
+		return OldNew(), err
 	}
 	return CfgIndexFromValues(v)
 }
 
+func GetDataFile(q *url.Values) (string, error) {
+	if q.Has("data_file") {
+		d := q.Get("data_file")
+		q.Del("data_file")
+		return d, nil
+	}
+	return "", errors.New("no data in query")
+}
+
+func GetData(q *url.Values) ([]map[string]any, error) {
+	var data []map[string]any
+	var err error
+	switch {
+	case q.Has("data_file"):
+		data, err = dataFromFile(q.Get("data_file"))
+		q.Del("data_file")
+	case q.Has("data_dir"):
+		data, err = DirSrc(q.Get("data_dir"))
+		q.Del("data_dir")
+	}
+	return data, err
+}
+
 func CfgIndexFromValues(cfg url.Values) (*Index, error) {
-	idx := New()
+	idx := OldNew()
 	idx.Query = cfg
 	CfgFieldsFromValues(idx, cfg)
 	return idx, nil

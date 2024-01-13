@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"log"
 	"net/url"
@@ -32,7 +31,7 @@ type Index struct {
 
 type SearchFunc func(string) []map[string]any
 
-func New(opts ...Opt) *Index {
+func OldNew(opts ...Opt) *Index {
 	idx := &Index{
 		Query: make(url.Values),
 	}
@@ -42,8 +41,18 @@ func New(opts ...Opt) *Index {
 	return idx
 }
 
+func New(q ...string) *Index {
+	idx := &Index{
+		Query: NewQuery(q...),
+	}
+	data, err := GetData(&idx.Query)
+	if err == nil {
+		idx.Data = data
+	}
+	return idx
+}
+
 func (idx *Index) Index(src []map[string]any) *Index {
-	fmt.Printf("vals %v\n", len(idx.FacetFields()))
 	if len(idx.Fields) < 1 {
 		idx.Fields = []*Field{NewTextField("title")}
 	}
@@ -144,7 +153,7 @@ func (idx *Index) FilterByID(ids []int) *Index {
 }
 
 func (idx *Index) Copy() *Index {
-	return New(WithFields(idx.Fields))
+	return OldNew(WithFields(idx.Fields))
 }
 
 func (idx *Index) TextFields() []*Field {

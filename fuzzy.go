@@ -6,7 +6,7 @@ import (
 )
 
 func FuzzyFind(data []map[string]any, q string, fields ...string) *Index {
-	idx := New()
+	idx := OldNew()
 
 	if len(data) < 1 {
 		return idx
@@ -17,7 +17,7 @@ func FuzzyFind(data []map[string]any, q string, fields ...string) *Index {
 	matches := getFuzzyMatches(idx, q)
 	fr := getFuzzyResults(data, matches)
 
-	return New(WithFields(idx.Fields)).Index(fr)
+	return OldNew(WithFields(idx.Fields)).Index(fr)
 }
 
 func getFuzzyMatches(idx *Index, q string) fuzzy.Matches {
