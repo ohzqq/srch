@@ -3,6 +3,8 @@ package srch
 import (
 	"errors"
 	"net/url"
+
+	"github.com/spf13/cast"
 )
 
 type Query url.Values
@@ -84,4 +86,42 @@ func FieldsFromQuery(cfg url.Values) []*Field {
 func CfgFieldsFromValues(idx *Index, cfg url.Values) *Index {
 	idx.Fields = FieldsFromQuery(cfg)
 	return idx
+}
+
+// ParseValues takes an interface{} and returns a url.Values.
+func ParseValues(f any) (url.Values, error) {
+	filters := make(url.Values)
+	var err error
+	switch val := f.(type) {
+	case url.Values:
+		return val, nil
+	case []byte:
+		return ParseQueryBytes(val)
+	case string:
+		return ParseQueryString(val)
+	default:
+		filters, err = cast.ToStringMapStringSliceE(val)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return filters, nil
+}
+
+// ParseQueryString parses an encoded filter string.
+func ParseQueryString(val string) (url.Values, error) {
+	q, err := url.ParseQuery(val)
+	if err != nil {
+		return nil, err
+	}
+	return q, err
+}
+
+// ParseQueryBytes parses a byte slice to url.Values.
+func ParseQueryBytes(val []byte) (url.Values, error) {
+	filters, err := cast.ToStringMapStringSliceE(string(val))
+	if err != nil {
+		return nil, err
+	}
+	return url.Values(filters), err
 }

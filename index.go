@@ -41,9 +41,13 @@ func OldNew(opts ...Opt) *Index {
 	return idx
 }
 
-func New(q ...string) *Index {
+func New(q string, srch ...SearchFunc) *Index {
 	idx := &Index{
-		Query: NewQuery(q...),
+		Query: NewQuery(q),
+	}
+
+	if len(srch) > 0 {
+		idx.search = srch[0]
 	}
 
 	idx.AddField(FieldsFromQuery(idx.Query)...)
@@ -51,6 +55,10 @@ func New(q ...string) *Index {
 	data, err := GetDataFromQuery(&idx.Query)
 	if err == nil {
 		idx.Index(data)
+	}
+
+	if idx.Query.Has("q") {
+		return idx.Search(idx.Query.Get("q"))
 	}
 
 	return idx
@@ -74,8 +82,8 @@ func (idx *Index) Search(q string) *Index {
 		idx.search = FullTextSrchFunc(idx.Data, idx.TextFields())
 	}
 	idx.Query.Set("q", q)
-	res := idx.search(q)
-	return idx.Copy().Index(res)
+	data := idx.search(q)
+	return idx.Copy().Index(data)
 }
 
 func (idx *Index) Filter(q string) *Index {

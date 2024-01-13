@@ -1,6 +1,7 @@
 package srch
 
 import (
+	"fmt"
 	"net/url"
 	"testing"
 )
@@ -12,7 +13,8 @@ func TestNewQuery(t *testing.T) {
 	if l := len(q); l != 6 {
 		t.Errorf("got %v, expected %d\n,%v\n", l, 6, q)
 	}
-	i := New(testValuesCfg, testQueryString, testSearchString)
+	query := fmt.Sprintf("%s&%s&%s", testValuesCfg, testQueryString, testSearchString)
+	i := New(query)
 	if i.Len() != 7174 {
 		t.Errorf("got %d, expected 7174\v", i.Len())
 	}
