@@ -32,27 +32,34 @@ type Index struct {
 type SearchFunc func(string) []map[string]any
 
 func New(q string, srch ...SearchFunc) *Index {
-	idx := &Index{
-		Query: NewQuery(q),
-	}
-
-	if q == "" {
-		idx.Query = make(url.Values)
-	}
+	idx := &Index{}
+	idx.ParseQuery(q)
 
 	if len(srch) > 0 {
 		idx.search = srch[0]
 	}
 
+	if idx.Query.Has("q") {
+		return idx.Search(idx.Query.Get("q"))
+	}
+
+	return idx
+}
+
+func (idx *Index) ParseQuery(q string) *Index {
+	if q == "" {
+		return idx.SetQuery(make(url.Values))
+	}
+	return idx.SetQuery(NewQuery(q))
+}
+
+func (idx *Index) SetQuery(q url.Values) *Index {
+	idx.Query = q
 	idx.AddField(FieldsFromQuery(idx.Query)...)
 
 	data, err := GetDataFromQuery(&idx.Query)
 	if err == nil {
-		idx.Index(data)
-	}
-
-	if idx.Query.Has("q") {
-		return idx.Search(idx.Query.Get("q"))
+		return idx.Index(data)
 	}
 
 	return idx
@@ -210,6 +217,34 @@ func (idx *Index) JSON() []byte {
 		return []byte("{}")
 	}
 	return buf.Bytes()
+}
+
+func (idx *Index) UnmarshalJSON(d []byte) error {
+	un := make(map[string]json.RawMessage)
+	err := json.Unmarshal(d, &un)
+	if err != nil {
+		return err
+	}
+
+	if msg, ok := un["query"]; ok {
+		var q string
+		err := json.Unmarshal(msg, &q)
+		if err != nil {
+			return err
+		}
+		idx.ParseQuery(q)
+	}
+
+	if msg, ok := un["data"]; ok {
+		var data []map[string]any
+		err := json.Unmarshal(msg, &data)
+		if err != nil {
+			return err
+		}
+		idx.Index(data)
+	}
+
+	return nil
 }
 
 func (idx *Index) MarshalJSON() ([]byte, error) {

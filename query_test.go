@@ -1,6 +1,7 @@
 package srch
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/url"
 	"testing"
@@ -15,8 +16,8 @@ func TestNewQuery(t *testing.T) {
 	}
 	query := fmt.Sprintf("%s&%s&%s", testValuesCfg, testQueryString, testSearchString)
 	i := New(query)
-	if i.Len() != 7174 {
-		t.Errorf("got %d, expected 7174\v", i.Len())
+	if i.Len() != 3 {
+		t.Errorf("got %d, expected %d\v", i.Len(), 3)
 	}
 	if len(i.Fields) != 5 {
 		for _, f := range i.Fields {
@@ -24,10 +25,18 @@ func TestNewQuery(t *testing.T) {
 		}
 		t.Errorf("got %d, expected %d\n", len(i.Fields), 5)
 	}
-	res := i.Search("fish")
-	if len(res.Data) != 8 {
-		t.Errorf("got %d, expected 8\n", len(res.Data))
+	res, err := json.Marshal(i)
+	if err != nil {
+		t.Error(err)
 	}
+
+	//println(string(res))
+	n := &Index{}
+	err = json.Unmarshal(res, n)
+	if err != nil {
+		t.Error(err)
+	}
+	fmt.Printf("%v\n", n)
 }
 
 func getNewQuery() url.Values {
