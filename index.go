@@ -31,19 +31,13 @@ type Index struct {
 
 type SearchFunc func(string) []map[string]any
 
-func OldNew(opts ...Opt) *Index {
-	idx := &Index{
-		Query: make(url.Values),
-	}
-	for _, opt := range opts {
-		opt(idx)
-	}
-	return idx
-}
-
 func New(q string, srch ...SearchFunc) *Index {
 	idx := &Index{
 		Query: NewQuery(q),
+	}
+
+	if q == "" {
+		idx.Query = make(url.Values)
 	}
 
 	if len(srch) > 0 {
@@ -143,6 +137,14 @@ func (idx *Index) String(i int) string {
 	return strings.Join(vals, "\n")
 }
 
+func (idx *Index) FieldsString() string {
+	fq := idx.Query
+	fq.Del("data_file")
+	fq.Del("data_dir")
+	fq.Del("q")
+	return fq.Encode()
+}
+
 func (idx *Index) Len() int {
 	return len(idx.Data)
 }
@@ -165,7 +167,10 @@ func (idx *Index) FilterByID(ids []int) *Index {
 }
 
 func (idx *Index) Copy() *Index {
-	return OldNew(WithFields(idx.Fields))
+	return &Index{
+		Fields: idx.Fields,
+		Query:  idx.Query,
+	}
 }
 
 func (idx *Index) TextFields() []*Field {

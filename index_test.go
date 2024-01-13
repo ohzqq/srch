@@ -3,7 +3,6 @@ package srch
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"os"
 	"testing"
 )
@@ -20,12 +19,8 @@ const testYAMLCfgFile = `testdata/config.yaml`
 const testCfgFileData = `testdata/config-with-data.json`
 
 func init() {
-	idx = OldNew(WithCfg(testCfgFile))
-	d, err := FileSrc(testData)
-	if err != nil {
-		log.Fatalf("no data")
-	}
-	idx.Index(d)
+	query := fmt.Sprintf("%s&%s&%s", testValuesCfg, testQueryString, testSearchString)
+	idx = New(query)
 	books = idx.Data
 }
 
@@ -57,18 +52,6 @@ func TestRecursiveSearch(t *testing.T) {
 	res := idx.Search("fish")
 	fmt.Printf("after search %d\n", len(res.Data))
 	fmt.Printf("after search %+v\n", res.Facets()[0].Items[0])
-}
-
-func TestIdxCfgString(t *testing.T) {
-	t.SkipNow()
-	istr := OldNew(CfgString(testCfg))
-	facets := FilterFacets(istr.Fields)
-	if len(istr.FacetFields()) != len(facets) {
-		t.Errorf("got %d, expected %d\n", len(istr.FacetFields()), len(facets))
-	}
-	if len(istr.TextFields()) != 1 {
-		t.Errorf("got %d, expected 4\n", len(istr.TextFields()))
-	}
 }
 
 func loadData(t *testing.T) []map[string]any {

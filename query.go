@@ -28,7 +28,7 @@ func NewQuery(queries ...string) url.Values {
 func ParseCfgQuery(q string) (*Index, error) {
 	v, err := url.ParseQuery(testValuesCfg)
 	if err != nil {
-		return OldNew(), err
+		return New(q), err
 	}
 	return CfgIndexFromValues(v)
 }
@@ -57,8 +57,7 @@ func GetDataFromQuery(q *url.Values) ([]map[string]any, error) {
 }
 
 func CfgIndexFromValues(cfg url.Values) (*Index, error) {
-	idx := OldNew()
-	idx.Query = cfg
+	idx := New(cfg.Encode())
 	CfgFieldsFromValues(idx, cfg)
 	return idx, nil
 }

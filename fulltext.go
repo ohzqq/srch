@@ -11,7 +11,6 @@ import (
 )
 
 func FullText(data []map[string]any, q string, fields ...string) *Index {
-	//idx := OldNew(WithTextFields(fields))
 	idx := New(q)
 
 	if len(data) < 1 {
