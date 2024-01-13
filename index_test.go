@@ -3,6 +3,7 @@ package srch
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 	"testing"
 )
@@ -20,7 +21,11 @@ const testCfgFileData = `testdata/config-with-data.json`
 
 func init() {
 	idx = OldNew(WithCfg(testCfgFile))
-	idx.Index(FileSrc(testData))
+	d, err := FileSrc(testData)
+	if err != nil {
+		log.Fatalf("no data")
+	}
+	idx.Index(d)
 	books = idx.Data
 }
 
