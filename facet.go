@@ -28,7 +28,7 @@ func NewFacet(field *Field) *Facet {
 
 	switch f.SortBy {
 	case "count":
-		slices.SortFunc(f.Items, sortByCountFunc)
+		//slices.SortFunc(f.Items, sortByCountFunc)
 	case "value":
 	}
 

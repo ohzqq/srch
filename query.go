@@ -35,21 +35,27 @@ func CfgIndexFromValues(cfg url.Values) (*Index, error) {
 	return idx, nil
 }
 
-func CfgFieldsFromValues(idx *Index, cfg url.Values) *Index {
+func FieldsFromQuery(cfg url.Values) []*Field {
+	var fields []*Field
 	if cfg.Has("field") {
 		for _, f := range cfg["field"] {
-			idx.AddField(NewTextField(f))
+			fields = append(fields, NewTextField(f))
 		}
 	}
 	if cfg.Has("or") {
 		for _, f := range cfg["or"] {
-			idx.AddField(NewField(f, OrFacet))
+			fields = append(fields, NewField(f, OrFacet))
 		}
 	}
 	if cfg.Has("and") {
 		for _, f := range cfg["and"] {
-			idx.AddField(NewField(f, AndFacet))
+			fields = append(fields, NewField(f, AndFacet))
 		}
 	}
+	return fields
+}
+
+func CfgFieldsFromValues(idx *Index, cfg url.Values) *Index {
+	idx.Fields = FieldsFromQuery(cfg)
 	return idx
 }

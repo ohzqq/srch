@@ -98,11 +98,12 @@ func TestFullTextSearch(t *testing.T) {
 	if len(res.Data) != 8 {
 		t.Errorf("got %d, expected 8\n", len(res.Data))
 	}
-	for _, facet := range idx.Facets() {
-		for _, item := range facet.Items {
-			fmt.Printf("%s: %d\n", item.Value, item.Count)
-		}
-	}
+	//for _, facet := range idx.Facets() {
+	//  for _, item := range facet.Items {
+	//    fmt.Printf("%s: %d\n", item.Value, item.Count)
+	//  }
+	//}
+
 }
 
 func TestSearchAndFilter(t *testing.T) {
