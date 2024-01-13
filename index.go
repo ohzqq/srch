@@ -187,15 +187,15 @@ func (idx *Index) HasFacets() bool {
 }
 
 // Decode unmarshals json from an io.Reader.
-func (idx *Index) Decode(r io.Reader) error {
-	err := json.NewDecoder(r).Decode(idx)
-	//err := json.NewDecoder(r).Decode(&idx.Query)
-	if err != nil {
-		return err
-	}
-	//idx.AddFieldsFromValues(idx.Query)
-	return nil
-}
+//func (idx *Index) Decode(r io.Reader) error {
+//  err := json.NewDecoder(r).Decode(idx)
+//  //err := json.NewDecoder(r).Decode(&idx.Query)
+//  if err != nil {
+//    return err
+//  }
+//  //idx.AddFieldsFromValues(idx.Query)
+//  return nil
+//}
 
 // Encode marshals json from an io.Writer.
 func (idx *Index) Encode(w io.Writer) error {
