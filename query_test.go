@@ -16,6 +16,16 @@ func TestNewQuery(t *testing.T) {
 	if i.Len() != 7174 {
 		t.Errorf("got %d, expected 7174\v", i.Len())
 	}
+	if len(i.Fields) != 5 {
+		for _, f := range i.Fields {
+			println(f.Attribute)
+		}
+		t.Errorf("got %d, expected %d\n", len(i.Fields), 5)
+	}
+	res := i.Search("fish")
+	if len(res.Data) != 8 {
+		t.Errorf("got %d, expected 8\n", len(res.Data))
+	}
 }
 
 func getNewQuery() url.Values {

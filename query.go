@@ -40,7 +40,7 @@ func GetDataFile(q *url.Values) (string, error) {
 	return "", errors.New("no data in query")
 }
 
-func GetData(q *url.Values) ([]map[string]any, error) {
+func GetDataFromQuery(q *url.Values) ([]map[string]any, error) {
 	var data []map[string]any
 	var err error
 	switch {

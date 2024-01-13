@@ -45,9 +45,12 @@ func New(q ...string) *Index {
 	idx := &Index{
 		Query: NewQuery(q...),
 	}
-	data, err := GetData(&idx.Query)
+
+	idx.Fields = FieldsFromQuery(idx.Query)
+
+	data, err := GetDataFromQuery(&idx.Query)
 	if err == nil {
-		idx.Data = data
+		idx.Index(data)
 	}
 	return idx
 }
