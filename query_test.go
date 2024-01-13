@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-const testValuesCfg = `and=tags:count:desc&field=title&or=authors&or=narrators&or=series&data_dir=testdata/data-dir/`
+const testValuesCfg = `and=tags&field=title&or=authors&or=narrators&or=series&data_dir=testdata/data-dir/`
 
 func TestNewQuery(t *testing.T) {
 	q := getNewQuery()
