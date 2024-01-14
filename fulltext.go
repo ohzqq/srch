@@ -40,23 +40,31 @@ func searchFullText(data []map[string]any, fields []*Field, q string) []map[stri
 	return FilterDataByID(data, cast.ToIntSlice(res.ToArray()))
 }
 
-func Tokenizer(str string) []string {
+func Tokenizer(str string) []*FacetItem {
 	var tokens []string
+	var items []*FacetItem
 	for _, token := range strings.FieldsFunc(str, NotAlphaNumeric) {
-		token := strings.ToLower(token)
-		if !lo.Contains(stopWords, token) {
-			tokens = append(tokens, token)
+		lower := strings.ToLower(token)
+		if !lo.Contains(stopWords, lower) {
+			items = append(items, NewFacetItem(token))
+			tokens = append(tokens, lower)
 		}
 	}
-	return stemmerFilter(tokens)
+	for i, t := range stemmerFilter(tokens) {
+		items[i].Value = t
+	}
+	return items
 }
 
-func FacetTokenizer(val any) []string {
+func FacetTokenizer(val any) []*FacetItem {
 	tokens := cast.ToStringSlice(val)
+	items := make([]*FacetItem, len(tokens))
 	for i, token := range tokens {
 		tokens[i] = normalizeText(token)
+		items[i] = NewFacetItem(token)
+		items[i].Value = normalizeText(token)
 	}
-	return tokens
+	return items
 }
 
 func normalizeText(token string) string {

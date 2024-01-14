@@ -30,6 +30,8 @@ func TestNewQuery(t *testing.T) {
 		t.Error(err)
 	}
 
+	i.PrettyPrint()
+
 	//println(string(res))
 	n := &Index{}
 	err = json.Unmarshal(res, n)

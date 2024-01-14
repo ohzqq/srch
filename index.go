@@ -1,10 +1,8 @@
 package srch
 
 import (
-	"bytes"
 	"encoding/json"
 	"errors"
-	"io"
 	"log"
 	"net/url"
 	"os"
@@ -193,32 +191,6 @@ func (idx *Index) HasFacets() bool {
 	return len(idx.FacetFields()) > 0
 }
 
-// Decode unmarshals json from an io.Reader.
-//func (idx *Index) Decode(r io.Reader) error {
-//  err := json.NewDecoder(r).Decode(idx)
-//  //err := json.NewDecoder(r).Decode(&idx.Query)
-//  if err != nil {
-//    return err
-//  }
-//  //idx.AddFieldsFromValues(idx.Query)
-//  return nil
-//}
-
-// Encode marshals json from an io.Writer.
-func (idx *Index) Encode(w io.Writer) error {
-	return json.NewEncoder(w).Encode(idx)
-}
-
-// JSON marshals an Index to json.
-func (idx *Index) JSON() []byte {
-	var buf bytes.Buffer
-	err := idx.Encode(&buf)
-	if err != nil {
-		return []byte("{}")
-	}
-	return buf.Bytes()
-}
-
 func (idx *Index) UnmarshalJSON(d []byte) error {
 	un := make(map[string]json.RawMessage)
 	err := json.Unmarshal(d, &un)
@@ -256,9 +228,19 @@ func (idx *Index) MarshalJSON() ([]byte, error) {
 	return json.Marshal(res)
 }
 
+// JSON marshals an Index to json.
+func (idx *Index) JSON() []byte {
+	d, err := json.Marshal(idx)
+	if err != nil {
+		return []byte{}
+	}
+	return d
+}
+
 // Print writes Index json to stdout.
 func (idx *Index) Print() {
-	err := idx.Encode(os.Stdout)
+	enc := json.NewEncoder(os.Stdout)
+	err := enc.Encode(idx)
 	if err != nil {
 		log.Fatal(err)
 	}

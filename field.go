@@ -22,6 +22,7 @@ type Field struct {
 	SortBy    string
 	Order     string
 	Items     map[string]*roaring.Bitmap `json:"-"`
+	lex       map[string]*FacetItem
 }
 
 func NewField(attr string, ft string) *Field {
@@ -31,6 +32,7 @@ func NewField(attr string, ft string) *Field {
 		Sep:       ".",
 		SortBy:    "count",
 		Order:     "desc",
+		lex:       make(map[string]*FacetItem),
 		Items:     make(map[string]*roaring.Bitmap),
 	}
 	switch ft {
@@ -93,16 +95,18 @@ func (f *Field) addFullText(text string, ids []int) {
 	}
 }
 
-func (f *Field) addTerm(term string, ids []int) {
+func (f *Field) addTerm(item *FacetItem, ids []int) {
 	if f.Items == nil {
 		f.Items = make(map[string]*roaring.Bitmap)
+		f.lex = make(map[string]*FacetItem)
 	}
-	if _, ok := f.Items[term]; !ok {
-		f.Items[term] = roaring.New()
+	if _, ok := f.Items[item.Value]; !ok {
+		f.Items[item.Value] = roaring.New()
+		f.lex[item.Value] = item
 	}
 	for _, id := range ids {
-		if !f.Items[term].ContainsInt(id) {
-			f.Items[term].AddInt(id)
+		if !f.Items[item.Value].ContainsInt(id) {
+			f.Items[item.Value].AddInt(id)
 		}
 	}
 }
@@ -128,7 +132,7 @@ func (f *Field) Search(text string) *roaring.Bitmap {
 	}
 	var bits []*roaring.Bitmap
 	for _, token := range Tokenizer(text) {
-		if ids, ok := f.Items[token]; ok {
+		if ids, ok := f.Items[token.Value]; ok {
 			bits = append(bits, ids)
 		}
 	}

@@ -58,7 +58,7 @@ func FacetsToFields(fields []*Facet) []*Field {
 func FieldItemsToFacetItems(fi map[string]*roaring.Bitmap) []*FacetItem {
 	var items []*FacetItem
 	for label, bits := range fi {
-		items = append(items, NewFacetItem(label, len(bits.ToArray())))
+		items = append(items, OldFacetItem(label, len(bits.ToArray())))
 	}
 	return items
 }
@@ -79,13 +79,20 @@ func sortByCountFunc(a *FacetItem, b *FacetItem) int {
 	}
 }
 
-// NewFacetItem initializes an item with a value and string slice of related data
+// OldFacetItem initializes an item with a value and string slice of related data
 // items.
-func NewFacetItem(name string, count int) *FacetItem {
+func OldFacetItem(name string, count int) *FacetItem {
 	return &FacetItem{
 		Value: name,
 		Label: name,
 		Count: count,
+	}
+}
+
+func NewFacetItem(label string) *FacetItem {
+	return &FacetItem{
+		Value: label,
+		Label: label,
 	}
 }
 
