@@ -60,7 +60,6 @@ func FacetTokenizer(val any) []*FacetItem {
 	tokens := cast.ToStringSlice(val)
 	items := make([]*FacetItem, len(tokens))
 	for i, token := range tokens {
-		tokens[i] = normalizeText(token)
 		items[i] = NewFacetItem(token)
 		items[i].Value = normalizeText(token)
 	}

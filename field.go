@@ -95,8 +95,8 @@ func (f *Field) addFullText(text string, ids []int) {
 
 func (f *Field) ItemsWithCount() []*FacetItem {
 	var items []*FacetItem
-	for k, bits := range f.Items {
-		f.Items[k].Count = len(bits.bits.ToArray())
+	for k, item := range f.Items {
+		f.Items[k].Count = len(item.bits.ToArray())
 		items = append(items, f.Items[k])
 	}
 	return items
