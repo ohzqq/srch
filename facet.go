@@ -24,7 +24,7 @@ type FacetItem struct {
 func NewFacet(field *Field) *Facet {
 	f := &Facet{
 		Field: field,
-		Items: field.FacetItems(),
+		Items: field.ItemsWithCount(),
 	}
 
 	switch f.SortBy {
