@@ -11,10 +11,9 @@ import (
 )
 
 const (
-	FacetField = "facet"
-	Text       = "text"
-	OrFacet    = "or"
-	AndFacet   = "and"
+	Text     = "text"
+	OrFacet  = "or"
+	AndFacet = "and"
 )
 
 type Field struct {
@@ -39,7 +38,7 @@ func NewField(attr string, ft string) *Field {
 	switch ft {
 	case OrFacet:
 		f.Operator = "or"
-	case AndFacet, Text, FacetField:
+	case AndFacet, Text:
 		f.Operator = "and"
 	}
 	return f
@@ -69,15 +68,9 @@ func NewTextFields(names []string) []*Field {
 func NewFacets(names []string) []*Field {
 	fields := make([]*Field, len(names))
 	for i, f := range names {
-		fields[i] = NewFacetField(f)
+		fields[i] = NewField(f, OrFacet)
 	}
 	return fields
-}
-
-func NewFacetField(attr string) *Field {
-	f := NewField(attr, FacetField)
-	f.Operator = "or"
-	return f
 }
 
 func (f *Field) Add(value any, ids ...any) {
@@ -142,7 +135,7 @@ func (f *Field) Filter(filters ...string) *roaring.Bitmap {
 }
 
 func (f *Field) Search(text string) *roaring.Bitmap {
-	if f.FieldType == FacetField {
+	if f.FieldType == AndFacet || f.FieldType == OrFacet {
 		if item, ok := f.Items[normalizeText(text)]; ok {
 			return item.bits
 		}
@@ -187,8 +180,7 @@ func filterTextFields(f *Field, _ int) bool {
 }
 
 func filterFacetFields(f *Field, _ int) bool {
-	return f.FieldType == FacetField ||
-		f.FieldType == OrFacet ||
+	return f.FieldType == OrFacet ||
 		f.FieldType == AndFacet
 }
 
