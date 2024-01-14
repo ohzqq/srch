@@ -1,6 +1,7 @@
 package srch
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/url"
 	"testing"
@@ -25,20 +26,20 @@ func TestNewQuery(t *testing.T) {
 		}
 		t.Errorf("got %d, expected %d\n", len(i.Fields), 5)
 	}
-	//res, err := json.Marshal(i)
-	//if err != nil {
-	//  t.Error(err)
-	//}
+	res, err := json.Marshal(i)
+	if err != nil {
+		t.Error(err)
+	}
 
-	//i.PrettyPrint()
+	i.PrettyPrint()
 
-	//println(string(res))
-	//n := &Index{}
-	//err = json.Unmarshal(res, n)
-	//if err != nil {
-	//t.Error(err)
-	//}
-	//fmt.Printf("%v\n", n)
+	println(string(res))
+	n := &Index{}
+	err = json.Unmarshal(res, n)
+	if err != nil {
+		t.Error(err)
+	}
+	fmt.Printf("%v\n", n)
 }
 
 func getNewQuery() url.Values {

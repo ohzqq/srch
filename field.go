@@ -1,6 +1,7 @@
 package srch
 
 import (
+	"encoding/json"
 	"slices"
 	"strings"
 
@@ -24,6 +25,22 @@ type Field struct {
 	SortBy    string
 	Order     string
 	Items     map[string]*FacetItem `json:"-"`
+}
+
+func (f *Field) MarshalJSON() ([]byte, error) {
+	field := map[string]any{
+		"attribute": f.Attribute,
+		"operator":  f.Operator,
+		"sort_by":   f.SortBy,
+		"order":     f.Order,
+		"items":     f.ItemsWithCount(),
+	}
+
+	d, err := json.Marshal(field)
+	if err != nil {
+		return nil, err
+	}
+	return d, nil
 }
 
 func NewField(attr string, ft string) *Field {
@@ -91,8 +108,7 @@ func (f *Field) addFullText(text string, ids []int) {
 
 func (f *Field) ItemsWithCount() []*FacetItem {
 	var items []*FacetItem
-	for k, item := range f.Items {
-		f.Items[k].Count = len(item.bits.ToArray())
+	for k, _ := range f.Items {
 		items = append(items, f.Items[k])
 	}
 	switch f.SortBy {

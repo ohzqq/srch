@@ -123,15 +123,6 @@ func (idx *Index) GetField(attr string) (*Field, error) {
 	return nil, errors.New("no such field")
 }
 
-func (idx *Index) GetFacet(attr string) (*Facet, error) {
-	for _, f := range idx.Fields {
-		if f.Attribute == attr {
-			return NewFacet(f), nil
-		}
-	}
-	return nil, errors.New("no such field")
-}
-
 func (idx *Index) String(i int) string {
 	s := lo.PickByKeys(
 		idx.Data[i],
@@ -221,7 +212,7 @@ func (idx *Index) UnmarshalJSON(d []byte) error {
 func (idx *Index) MarshalJSON() ([]byte, error) {
 	res := map[string]any{
 		"data":   idx.Data,
-		"facets": idx.Facets(),
+		"facets": idx.FacetFields(),
 		"query":  idx.Query.Encode(),
 	}
 	return json.Marshal(res)

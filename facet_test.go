@@ -41,7 +41,7 @@ func TestSortFacets(t *testing.T) {
 		t.Errorf("got %d, expected %d\v", i.Len(), 3)
 	}
 
-	tags, err := i.GetFacet("tags")
+	tags, err := i.GetField("tags")
 	if err != nil {
 		t.Error(err)
 	}
@@ -52,7 +52,7 @@ func TestSortFacets(t *testing.T) {
 		t.Errorf("wrong Order %s\n", v)
 	}
 
-	authors, err := i.GetFacet("authors")
+	authors, err := i.GetField("authors")
 	if err != nil {
 		t.Error(err)
 	}
@@ -64,6 +64,6 @@ func TestSortFacets(t *testing.T) {
 	}
 
 	for _, item := range authors.Items {
-		fmt.Printf("%s: count %d\n", item.Label, item.Count)
+		fmt.Printf("%s: count %d\n", item.Label, item.Count())
 	}
 }

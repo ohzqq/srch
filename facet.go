@@ -1,6 +1,7 @@
 package srch
 
 import (
+	"encoding/json"
 	"slices"
 
 	"github.com/RoaringBitmap/roaring"
@@ -16,9 +17,25 @@ type Facet struct {
 type FacetItem struct {
 	Value       string `json:"value"`
 	Label       string `json:"label"`
-	Count       int    `json:"count"`
 	bits        *roaring.Bitmap
 	fuzzy.Match `json:"-"`
+}
+
+func (f *FacetItem) MarshalJSON() ([]byte, error) {
+	item := map[string]any{
+		"value": f.Value,
+		"label": f.Label,
+		"count": f.Count(),
+	}
+	d, err := json.Marshal(item)
+	if err != nil {
+		return nil, err
+	}
+	return d, nil
+}
+
+func (f *FacetItem) Count() int {
+	return len(f.bits.ToArray())
 }
 
 func NewFacet(field *Field) *Facet {
@@ -26,17 +43,6 @@ func NewFacet(field *Field) *Facet {
 		Field: field,
 		Items: field.ItemsWithCount(),
 	}
-
-	switch f.SortBy {
-	case "count":
-		//slices.SortFunc(f.Items, sortByCountFunc)
-	case "value":
-	}
-
-	//if f.Order == "desc" {
-	//  slices.Reverse(f.Items)
-	//}
-
 	return f
 }
 
@@ -56,14 +62,6 @@ func FacetsToFields(fields []*Facet) []*Field {
 	return facets
 }
 
-func FieldItemsToFacetItems(fi map[string]*roaring.Bitmap) []*FacetItem {
-	var items []*FacetItem
-	for label, bits := range fi {
-		items = append(items, OldFacetItem(label, len(bits.ToArray())))
-	}
-	return items
-}
-
 func SortItemsByCount(items []*FacetItem) []*FacetItem {
 	slices.SortFunc(items, sortByCountFunc)
 	return items
@@ -75,10 +73,12 @@ func SortItemsByLabel(items []*FacetItem) []*FacetItem {
 }
 
 func sortByCountFunc(a *FacetItem, b *FacetItem) int {
+	aC := a.Count()
+	bC := b.Count()
 	switch {
-	case a.Count < b.Count:
+	case aC < bC:
 		return 1
-	case a.Count == b.Count:
+	case aC == bC:
 		return 0
 	default:
 		return -1
@@ -93,16 +93,6 @@ func sortByLabelFunc(a *FacetItem, b *FacetItem) int {
 		return 0
 	default:
 		return -1
-	}
-}
-
-// OldFacetItem initializes an item with a value and string slice of related data
-// items.
-func OldFacetItem(name string, count int) *FacetItem {
-	return &FacetItem{
-		Value: name,
-		Label: name,
-		Count: count,
 	}
 }
 
