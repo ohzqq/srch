@@ -69,11 +69,27 @@ func SortItemsByCount(items []*FacetItem) []*FacetItem {
 	return items
 }
 
+func SortItemsByLabel(items []*FacetItem) []*FacetItem {
+	slices.SortFunc(items, sortByLabelFunc)
+	return items
+}
+
 func sortByCountFunc(a *FacetItem, b *FacetItem) int {
 	switch {
-	case a.Count > b.Count:
+	case a.Count < b.Count:
 		return 1
 	case a.Count == b.Count:
+		return 0
+	default:
+		return -1
+	}
+}
+
+func sortByLabelFunc(a *FacetItem, b *FacetItem) int {
+	switch {
+	case a.Label < b.Label:
+		return 1
+	case a.Label == b.Label:
 		return 0
 	default:
 		return -1

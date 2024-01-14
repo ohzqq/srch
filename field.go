@@ -1,6 +1,9 @@
 package srch
 
 import (
+	"slices"
+	"strings"
+
 	"github.com/RoaringBitmap/roaring"
 	"github.com/samber/lo"
 	"github.com/spf13/cast"
@@ -21,18 +24,18 @@ type Field struct {
 	FieldType string `json:"fieldType"`
 	SortBy    string
 	Order     string
-	Items     map[string]*FacetItem `json"-"`
+	Items     map[string]*FacetItem `json:"-"`
 }
 
 func NewField(attr string, ft string) *Field {
 	f := &Field{
-		Attribute: attr,
 		FieldType: ft,
 		Sep:       ".",
 		SortBy:    "count",
 		Order:     "desc",
 		Items:     make(map[string]*FacetItem),
 	}
+	parseAttr(f, attr)
 	switch ft {
 	case OrFacet:
 		f.Operator = "or"
@@ -98,6 +101,15 @@ func (f *Field) ItemsWithCount() []*FacetItem {
 	for k, item := range f.Items {
 		f.Items[k].Count = len(item.bits.ToArray())
 		items = append(items, f.Items[k])
+	}
+	switch f.SortBy {
+	case "label":
+		SortItemsByLabel(items)
+	default:
+		SortItemsByCount(items)
+	}
+	if f.Order == "asc" {
+		slices.Reverse(items)
 	}
 	return items
 }
@@ -178,4 +190,24 @@ func filterFacetFields(f *Field, _ int) bool {
 	return f.FieldType == FacetField ||
 		f.FieldType == OrFacet ||
 		f.FieldType == AndFacet
+}
+
+func parseAttr(field *Field, attr string) {
+	i := 0
+	for attr != "" {
+		var a string
+		a, attr, _ = strings.Cut(attr, ":")
+		if a == "" {
+			continue
+		}
+		switch i {
+		case 0:
+			field.Attribute = a
+		case 1:
+			field.SortBy = a
+		case 2:
+			field.Order = a
+		}
+		i++
+	}
 }
