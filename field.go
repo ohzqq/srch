@@ -95,6 +95,15 @@ func (f *Field) addFullText(text string, ids []int) {
 	}
 }
 
+func (f *Field) FacetItems() []*FacetItem {
+	var items []*FacetItem
+	for k, bits := range f.Items {
+		f.lex[k].Count = len(bits.ToArray())
+		items = append(items, f.lex[k])
+	}
+	return items
+}
+
 func (f *Field) addTerm(item *FacetItem, ids []int) {
 	if f.Items == nil {
 		f.Items = make(map[string]*roaring.Bitmap)
