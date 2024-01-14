@@ -17,6 +17,7 @@ type FacetItem struct {
 	Value       string `json:"value"`
 	Label       string `json:"label"`
 	Count       int    `json:"count"`
+	bits        *roaring.Bitmap
 	fuzzy.Match `json:"-"`
 }
 
@@ -93,6 +94,7 @@ func NewFacetItem(label string) *FacetItem {
 	return &FacetItem{
 		Value: label,
 		Label: label,
+		bits:  roaring.New(),
 	}
 }
 

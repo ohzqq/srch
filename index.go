@@ -8,7 +8,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/RoaringBitmap/roaring"
 	"github.com/samber/lo"
 	"github.com/spf13/cast"
 	"github.com/spf13/viper"
@@ -101,7 +100,7 @@ func (idx *Index) AddField(fields ...*Field) *Index {
 
 func IndexData(data []map[string]any, fields []*Field) []*Field {
 	for _, f := range fields {
-		f.Items = make(map[string]*roaring.Bitmap)
+		f.lex = make(map[string]*FacetItem)
 	}
 
 	for id, d := range data {

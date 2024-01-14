@@ -10,6 +10,7 @@ import (
 const testValuesCfg = `and=tags&field=title&or=authors&or=narrators&or=series&data_dir=testdata/data-dir/`
 
 func TestNewQuery(t *testing.T) {
+	//t.SkipNow()
 	q := getNewQuery()
 	if l := len(q); l != 6 {
 		t.Errorf("got %v, expected %d\n,%v\n", l, 6, q)
