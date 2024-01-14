@@ -13,6 +13,7 @@ import (
 )
 
 const testQueryString = `tags=grumpy/sunshine&tags=enemies+to+lovers`
+const testSearchString = `q=amy+lane`
 
 func testVals() url.Values {
 	vals := make(url.Values)
@@ -46,7 +47,7 @@ func TestFuzzySearch(t *testing.T) {
 }
 
 func TestGenericFullTextSearch(t *testing.T) {
-	t.SkipNow()
+	//t.SkipNow()
 	data := make([]map[string]any, len(books))
 	for i, book := range books {
 		data[i] = map[string]any{"title": book["title"]}
@@ -65,7 +66,7 @@ func parseValueTest(t *testing.T, q string) {
 }
 
 func TestFilterQueryString(t *testing.T) {
-	//t.SkipNow()
+	t.SkipNow()
 	q := "series=#gaymers"
 	parseValueTest(t, q)
 
@@ -97,6 +98,12 @@ func TestFullTextSearch(t *testing.T) {
 	if len(res.Data) != 8 {
 		t.Errorf("got %d, expected 8\n", len(res.Data))
 	}
+	//for _, facet := range idx.Facets() {
+	//  for _, item := range facet.Items {
+	//    fmt.Printf("%s: %d\n", item.Value, item.Count)
+	//  }
+	//}
+
 }
 
 func TestSearchAndFilter(t *testing.T) {
@@ -114,13 +121,17 @@ func TestSearchAndFilter(t *testing.T) {
 
 func TestAudibleSearch(t *testing.T) {
 	t.SkipNow()
-	a := New(
-		WithSearch(audibleSrch),
-		WithTextFields([]string{"Title"}),
-	)
+	//a := OldNew(
+	//  WithSearch(audibleSrch),
+	//  WithTextFields([]string{"Title"}),
+	//)
+
+	q := "field=Title&q=amy+lane+fish"
+	res := New(q, audibleSrch)
+
 	println("audible search")
 
-	res := a.Search("amy lane fish")
+	//res := a.Search("amy lane fish")
 	fmt.Printf("num res %d\n", len(res.Data))
 
 	//for i := 0; i < res.Len(); i++ {
@@ -128,12 +139,6 @@ func TestAudibleSearch(t *testing.T) {
 	//}
 
 	//res.Print()
-}
-
-func audibleSrc(q string) DataSrc {
-	return func() []map[string]any {
-		return audibleApi(q)
-	}
 }
 
 func audibleSrch(q string) []map[string]any {

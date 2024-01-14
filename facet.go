@@ -1,6 +1,8 @@
 package srch
 
 import (
+	"slices"
+
 	"github.com/RoaringBitmap/roaring"
 	"github.com/sahilm/fuzzy"
 )
@@ -15,14 +17,27 @@ type FacetItem struct {
 	Value       string `json:"value"`
 	Label       string `json:"label"`
 	Count       int    `json:"count"`
+	bits        *roaring.Bitmap
 	fuzzy.Match `json:"-"`
 }
 
 func NewFacet(field *Field) *Facet {
-	return &Facet{
+	f := &Facet{
 		Field: field,
-		Items: FieldItemsToFacetItems(field.Items),
+		Items: field.ItemsWithCount(),
 	}
+
+	switch f.SortBy {
+	case "count":
+		//slices.SortFunc(f.Items, sortByCountFunc)
+	case "value":
+	}
+
+	//if f.Order == "desc" {
+	//  slices.Reverse(f.Items)
+	//}
+
+	return f
 }
 
 func FieldsToFacets(fields []*Field) []*Facet {
@@ -44,18 +59,42 @@ func FacetsToFields(fields []*Facet) []*Field {
 func FieldItemsToFacetItems(fi map[string]*roaring.Bitmap) []*FacetItem {
 	var items []*FacetItem
 	for label, bits := range fi {
-		items = append(items, NewFacetItem(label, len(bits.ToArray())))
+		items = append(items, OldFacetItem(label, len(bits.ToArray())))
 	}
 	return items
 }
 
-// NewFacetItem initializes an item with a value and string slice of related data
+func SortItemsByCount(items []*FacetItem) []*FacetItem {
+	slices.SortFunc(items, sortByCountFunc)
+	return items
+}
+
+func sortByCountFunc(a *FacetItem, b *FacetItem) int {
+	switch {
+	case a.Count > b.Count:
+		return 1
+	case a.Count == b.Count:
+		return 0
+	default:
+		return -1
+	}
+}
+
+// OldFacetItem initializes an item with a value and string slice of related data
 // items.
-func NewFacetItem(name string, count int) *FacetItem {
+func OldFacetItem(name string, count int) *FacetItem {
 	return &FacetItem{
 		Value: name,
 		Label: name,
 		Count: count,
+	}
+}
+
+func NewFacetItem(label string) *FacetItem {
+	return &FacetItem{
+		Value: label,
+		Label: label,
+		bits:  roaring.New(),
 	}
 }
 

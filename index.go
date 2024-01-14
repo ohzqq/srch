@@ -1,17 +1,13 @@
 package srch
 
 import (
-	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
-	"io"
 	"log"
 	"net/url"
 	"os"
 	"strings"
 
-	"github.com/RoaringBitmap/roaring"
 	"github.com/samber/lo"
 	"github.com/spf13/cast"
 	"github.com/spf13/viper"
@@ -32,18 +28,41 @@ type Index struct {
 
 type SearchFunc func(string) []map[string]any
 
-func New(opts ...Opt) *Index {
-	idx := &Index{
-		Query: make(url.Values),
+func New(q string, srch ...SearchFunc) *Index {
+	idx := &Index{}
+	idx.ParseQuery(q)
+
+	if len(srch) > 0 {
+		idx.search = srch[0]
 	}
-	for _, opt := range opts {
-		opt(idx)
+
+	if idx.Query.Has("q") {
+		return idx.Search(idx.Query.Get("q"))
 	}
+
+	return idx
+}
+
+func (idx *Index) ParseQuery(q string) *Index {
+	if q == "" {
+		return idx.SetQuery(make(url.Values))
+	}
+	return idx.SetQuery(NewQuery(q))
+}
+
+func (idx *Index) SetQuery(q url.Values) *Index {
+	idx.Query = q
+	idx.AddField(FieldsFromQuery(idx.Query)...)
+
+	data, err := GetDataFromQuery(&idx.Query)
+	if err == nil {
+		return idx.Index(data)
+	}
+
 	return idx
 }
 
 func (idx *Index) Index(src []map[string]any) *Index {
-	fmt.Printf("vals %v\n", len(idx.FacetFields()))
 	if len(idx.Fields) < 1 {
 		idx.Fields = []*Field{NewTextField("title")}
 	}
@@ -61,8 +80,8 @@ func (idx *Index) Search(q string) *Index {
 		idx.search = FullTextSrchFunc(idx.Data, idx.TextFields())
 	}
 	idx.Query.Set("q", q)
-	res := idx.search(q)
-	return idx.Copy().Index(res)
+	data := idx.search(q)
+	return idx.Copy().Index(data)
 }
 
 func (idx *Index) Filter(q string) *Index {
@@ -81,7 +100,7 @@ func (idx *Index) AddField(fields ...*Field) *Index {
 
 func IndexData(data []map[string]any, fields []*Field) []*Field {
 	for _, f := range fields {
-		f.Items = make(map[string]*roaring.Bitmap)
+		f.Items = make(map[string]*FacetItem)
 	}
 
 	for id, d := range data {
@@ -122,6 +141,14 @@ func (idx *Index) String(i int) string {
 	return strings.Join(vals, "\n")
 }
 
+func (idx *Index) FieldsString() string {
+	fq := idx.Query
+	fq.Del("data_file")
+	fq.Del("data_dir")
+	fq.Del("q")
+	return fq.Encode()
+}
+
 func (idx *Index) Len() int {
 	return len(idx.Data)
 }
@@ -144,7 +171,10 @@ func (idx *Index) FilterByID(ids []int) *Index {
 }
 
 func (idx *Index) Copy() *Index {
-	return New(WithFields(idx.Fields))
+	return &Index{
+		Fields: idx.Fields,
+		Query:  idx.Query,
+	}
 }
 
 func (idx *Index) TextFields() []*Field {
@@ -160,29 +190,32 @@ func (idx *Index) HasFacets() bool {
 	return len(idx.FacetFields()) > 0
 }
 
-// Decode unmarshals json from an io.Reader.
-func (idx *Index) Decode(r io.Reader) error {
-	err := json.NewDecoder(r).Decode(&idx.Query)
+func (idx *Index) UnmarshalJSON(d []byte) error {
+	un := make(map[string]json.RawMessage)
+	err := json.Unmarshal(d, &un)
 	if err != nil {
 		return err
 	}
-	idx.AddFieldsFromValues(idx.Query)
-	return nil
-}
 
-// Encode marshals json from an io.Writer.
-func (idx *Index) Encode(w io.Writer) error {
-	return json.NewEncoder(w).Encode(idx)
-}
-
-// JSON marshals an Index to json.
-func (idx *Index) JSON() []byte {
-	var buf bytes.Buffer
-	err := idx.Encode(&buf)
-	if err != nil {
-		return []byte("{}")
+	if msg, ok := un["query"]; ok {
+		var q string
+		err := json.Unmarshal(msg, &q)
+		if err != nil {
+			return err
+		}
+		idx.ParseQuery(q)
 	}
-	return buf.Bytes()
+
+	if msg, ok := un["data"]; ok {
+		var data []map[string]any
+		err := json.Unmarshal(msg, &data)
+		if err != nil {
+			return err
+		}
+		idx.Index(data)
+	}
+
+	return nil
 }
 
 func (idx *Index) MarshalJSON() ([]byte, error) {
@@ -194,9 +227,19 @@ func (idx *Index) MarshalJSON() ([]byte, error) {
 	return json.Marshal(res)
 }
 
+// JSON marshals an Index to json.
+func (idx *Index) JSON() []byte {
+	d, err := json.Marshal(idx)
+	if err != nil {
+		return []byte{}
+	}
+	return d
+}
+
 // Print writes Index json to stdout.
 func (idx *Index) Print() {
-	err := idx.Encode(os.Stdout)
+	enc := json.NewEncoder(os.Stdout)
+	err := enc.Encode(idx)
 	if err != nil {
 		log.Fatal(err)
 	}

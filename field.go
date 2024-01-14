@@ -15,11 +15,13 @@ const (
 )
 
 type Field struct {
-	Attribute string                     `json:"attribute"`
-	Operator  string                     `json:"operator,omitempty"`
-	Sep       string                     `json:"-"`
-	FieldType string                     `json:"fieldType"`
-	Items     map[string]*roaring.Bitmap `json:"-"`
+	Attribute string `json:"attribute"`
+	Operator  string `json:"operator,omitempty"`
+	Sep       string `json:"-"`
+	FieldType string `json:"fieldType"`
+	SortBy    string
+	Order     string
+	Items     map[string]*FacetItem `json"-"`
 }
 
 func NewField(attr string, ft string) *Field {
@@ -27,7 +29,9 @@ func NewField(attr string, ft string) *Field {
 		Attribute: attr,
 		FieldType: ft,
 		Sep:       ".",
-		Items:     make(map[string]*roaring.Bitmap),
+		SortBy:    "count",
+		Order:     "desc",
+		Items:     make(map[string]*FacetItem),
 	}
 	switch ft {
 	case OrFacet:
@@ -89,16 +93,25 @@ func (f *Field) addFullText(text string, ids []int) {
 	}
 }
 
-func (f *Field) addTerm(term string, ids []int) {
-	if f.Items == nil {
-		f.Items = make(map[string]*roaring.Bitmap)
+func (f *Field) ItemsWithCount() []*FacetItem {
+	var items []*FacetItem
+	for k, item := range f.Items {
+		f.Items[k].Count = len(item.bits.ToArray())
+		items = append(items, f.Items[k])
 	}
-	if _, ok := f.Items[term]; !ok {
-		f.Items[term] = roaring.New()
+	return items
+}
+
+func (f *Field) addTerm(item *FacetItem, ids []int) {
+	if f.Items == nil {
+		f.Items = make(map[string]*FacetItem)
+	}
+	if _, ok := f.Items[item.Value]; !ok {
+		f.Items[item.Value] = item
 	}
 	for _, id := range ids {
-		if !f.Items[term].ContainsInt(id) {
-			f.Items[term].AddInt(id)
+		if !f.Items[item.Value].bits.ContainsInt(id) {
+			f.Items[item.Value].bits.AddInt(id)
 		}
 	}
 }
@@ -118,14 +131,14 @@ func (f *Field) Filter(filters ...string) *roaring.Bitmap {
 
 func (f *Field) Search(text string) *roaring.Bitmap {
 	if f.FieldType == FacetField {
-		if ids, ok := f.Items[normalizeText(text)]; ok {
-			return ids
+		if item, ok := f.Items[normalizeText(text)]; ok {
+			return item.bits
 		}
 	}
 	var bits []*roaring.Bitmap
 	for _, token := range Tokenizer(text) {
-		if ids, ok := f.Items[token]; ok {
-			bits = append(bits, ids)
+		if ids, ok := f.Items[token.Value]; ok {
+			bits = append(bits, ids.bits)
 		}
 	}
 	return processBitResults(bits, f.Operator)

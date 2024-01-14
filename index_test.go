@@ -14,48 +14,14 @@ var books []map[string]any
 const numBooks = 7174
 
 const testData = `testdata/data-dir/audiobooks.json`
-const testCfgFile = `testdata/config.json`
+const testCfgFile = `testdata/config-old.json`
 const testYAMLCfgFile = `testdata/config.yaml`
 const testCfgFileData = `testdata/config-with-data.json`
-const testValuesCfg = `and=tags&field=title&or=authors&or=narrators&or=series`
 
 func init() {
-	idx = New(WithCfg(testCfgFile))
-	idx.Index(FileSrc(testData))
+	query := fmt.Sprintf("%s&%s&%s", testValuesCfg, testQueryString, testSearchString)
+	idx = New(query)
 	books = idx.Data
-}
-
-func TestYamlConfig(t *testing.T) {
-	f, err := os.Open(testYAMLCfgFile)
-	if err != nil {
-		t.Error(err)
-	}
-	defer f.Close()
-
-	i, err := ReadIdxCfg(f)
-	if err != nil {
-		t.Error(err)
-	}
-
-	if len(i.Fields) != 5 {
-		for _, f := range i.Fields {
-			println(f.Attribute)
-		}
-		t.Errorf("got %d, expected %d\n", len(i.Fields), 5)
-	}
-}
-
-func TestUrlValuesStringConfig(t *testing.T) {
-	i, err := ParseCfgQuery(testValuesCfg)
-	if err != nil {
-		t.Error(err)
-	}
-	if len(i.Fields) != 5 {
-		for _, f := range i.Fields {
-			println(f.Attribute)
-		}
-		t.Errorf("got %d, expected %d\n", len(i.Fields), 5)
-	}
 }
 
 func TestData(t *testing.T) {
@@ -86,18 +52,6 @@ func TestRecursiveSearch(t *testing.T) {
 	res := idx.Search("fish")
 	fmt.Printf("after search %d\n", len(res.Data))
 	fmt.Printf("after search %+v\n", res.Facets()[0].Items[0])
-}
-
-func TestIdxCfgString(t *testing.T) {
-	t.SkipNow()
-	istr := New(CfgString(testCfg))
-	facets := FilterFacets(istr.Fields)
-	if len(istr.FacetFields()) != len(facets) {
-		t.Errorf("got %d, expected %d\n", len(istr.FacetFields()), len(facets))
-	}
-	if len(istr.TextFields()) != 1 {
-		t.Errorf("got %d, expected 4\n", len(istr.TextFields()))
-	}
 }
 
 func loadData(t *testing.T) []map[string]any {
