@@ -40,7 +40,7 @@ func ParseFieldsFromValues(cfg url.Values) []*Field {
 	var fields []*Field
 	if cfg.Has("field") {
 		for _, f := range cfg["field"] {
-			fields = append(fields, NewTextField(f))
+			fields = append(fields, NewField(f, Text))
 		}
 	}
 	if cfg.Has("or") {

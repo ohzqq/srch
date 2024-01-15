@@ -48,7 +48,7 @@ func GetFieldsFromData(items []map[string]any, names []string) []*Field {
 	var fields []*Field
 	for _, f := range names {
 		if _, ok := item[f]; ok {
-			fields = append(fields, NewTextField(f))
+			fields = append(fields, NewField(f, Text))
 		}
 	}
 	return fields

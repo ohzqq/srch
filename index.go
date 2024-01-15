@@ -81,7 +81,7 @@ func (idx *Index) SetQuery(q url.Values) *Index {
 
 func (idx *Index) Index(src []map[string]any) *Index {
 	if len(idx.Fields) < 1 {
-		idx.Fields = []*Field{NewTextField("title")}
+		idx.Fields = []*Field{NewField("title", Text)}
 	}
 	idx.Data = src
 	if idx.Query.Has("sort_by") {
@@ -118,6 +118,13 @@ func (idx *Index) Filter(q string) *Index {
 	return idx.Copy().Index(data)
 }
 
+func (idx *Index) Copy() *Index {
+	return &Index{
+		Fields: idx.Fields,
+		Query:  idx.Query,
+	}
+}
+
 func (idx *Index) AddField(fields ...*Field) *Index {
 	idx.Fields = append(idx.Fields, fields...)
 	return idx
@@ -130,13 +137,6 @@ func (idx *Index) GetField(attr string) (*Field, error) {
 		}
 	}
 	return nil, errors.New("no such field")
-}
-
-func (idx *Index) Copy() *Index {
-	return &Index{
-		Fields: idx.Fields,
-		Query:  idx.Query,
-	}
 }
 
 // HasFacets returns true if facets are configured.
