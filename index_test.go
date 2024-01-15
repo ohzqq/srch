@@ -41,9 +41,9 @@ func TestSortIndex(t *testing.T) {
 	q := getNewQuery()
 	i := New(q.Encode())
 	i.Sort()
-	for _, d := range i.Data {
-		fmt.Printf("%s\n", d["title"])
-	}
+	//for _, d := range i.Data {
+	//  fmt.Printf("%s\n", d["title"])
+	//}
 }
 
 func TestIndexProps(t *testing.T) {

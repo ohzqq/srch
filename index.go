@@ -84,23 +84,6 @@ func (idx *Index) Sort() {
 	}
 }
 
-func sortDataByField(data []map[string]any, field string) []map[string]any {
-	fn := func(a, b map[string]any) int {
-		x := cast.ToString(a[field])
-		y := cast.ToString(b[field])
-		switch {
-		case x > y:
-			return 1
-		case x == y:
-			return 0
-		default:
-			return -1
-		}
-	}
-	slices.SortFunc(data, fn)
-	return data
-}
-
 func (idx *Index) Facets() []*Field {
 	return FilterFacets(idx.Fields)
 }
@@ -176,10 +159,6 @@ func (idx *Index) Len() int {
 
 func (idx *Index) AddFieldsFromValues(cfg url.Values) *Index {
 	return CfgFieldsFromValues(idx, cfg)
-}
-
-func (idx *Index) CfgString() string {
-	return idx.Query.Encode()
 }
 
 func (idx *Index) FilterByID(ids []int) *Index {
@@ -277,4 +256,21 @@ func exist(path string) bool {
 		return false
 	}
 	return true
+}
+
+func sortDataByField(data []map[string]any, field string) []map[string]any {
+	fn := func(a, b map[string]any) int {
+		x := cast.ToString(a[field])
+		y := cast.ToString(b[field])
+		switch {
+		case x > y:
+			return 1
+		case x == y:
+			return 0
+		default:
+			return -1
+		}
+	}
+	slices.SortFunc(data, fn)
+	return data
 }
