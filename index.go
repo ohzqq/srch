@@ -38,8 +38,6 @@ func New(q any, srch ...SearchFunc) *Index {
 	}
 
 	switch {
-	//case idx.HasFilters():
-	//  return idx.Filter(idx.Filters())
 	case idx.Query.Has("q"):
 		return idx.Search(idx.Query.Get("q"))
 	}

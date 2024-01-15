@@ -147,8 +147,6 @@ By default, results are printed to stdout as json.
 			idx = idx.Search(keywords)
 		}
 
-		//idx = idx.Filter(q)
-
 		if cmd.Flags().Changed("ui") {
 			idx, err = ui.Choose(idx)
 			if err != nil {
