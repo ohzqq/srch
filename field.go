@@ -91,6 +91,26 @@ func NewFacets(names []string) []*Field {
 	return fields
 }
 
+func (f *Field) Items() []*FacetItem {
+	var items []*FacetItem
+	for k, _ := range f.items {
+		items = append(items, f.items[k])
+	}
+	if f.FieldType == Text {
+		return items
+	}
+	switch f.SortBy {
+	case "label":
+		SortItemsByLabel(items)
+	default:
+		SortItemsByCount(items)
+	}
+	if f.Order == "asc" {
+		slices.Reverse(items)
+	}
+	return items
+}
+
 func (f *Field) Add(value any, ids ...any) {
 	if f.FieldType == Text {
 		f.addFullText(cast.ToString(value), cast.ToIntSlice(ids))
@@ -105,23 +125,6 @@ func (f *Field) addFullText(text string, ids []int) {
 	for _, token := range Tokenizer(text) {
 		f.addTerm(token, ids)
 	}
-}
-
-func (f *Field) Items() []*FacetItem {
-	var items []*FacetItem
-	for k, _ := range f.items {
-		items = append(items, f.items[k])
-	}
-	switch f.SortBy {
-	case "label":
-		SortItemsByLabel(items)
-	default:
-		SortItemsByCount(items)
-	}
-	if f.Order == "asc" {
-		slices.Reverse(items)
-	}
-	return items
 }
 
 func (f *Field) addTerm(item *FacetItem, ids []int) {

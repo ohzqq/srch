@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/url"
 	"os"
+	"slices"
 	"strings"
 
 	"github.com/samber/lo"
@@ -67,8 +68,37 @@ func (idx *Index) Index(src []map[string]any) *Index {
 		idx.Fields = []*Field{NewTextField("title")}
 	}
 	idx.Data = src
+	if idx.Query.Has("sort_by") {
+		idx.Sort()
+	}
 	idx.Fields = IndexData(idx.Data, idx.Fields)
 	return idx
+}
+
+func (idx *Index) Sort() {
+	sortDataByField(idx.Data, idx.Query.Get("sort_by"))
+	if idx.Query.Has("order") {
+		if idx.Query.Get("order") == "desc" {
+			slices.Reverse(idx.Data)
+		}
+	}
+}
+
+func sortDataByField(data []map[string]any, field string) []map[string]any {
+	fn := func(a, b map[string]any) int {
+		x := cast.ToString(a[field])
+		y := cast.ToString(b[field])
+		switch {
+		case x > y:
+			return 1
+		case x == y:
+			return 0
+		default:
+			return -1
+		}
+	}
+	slices.SortFunc(data, fn)
+	return data
 }
 
 func (idx *Index) Facets() []*Field {

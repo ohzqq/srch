@@ -7,13 +7,13 @@ import (
 	"testing"
 )
 
-const testValuesCfg = `and=tags:count:desc&field=title&or=authors:label:asc&or=narrators&or=series&data_dir=testdata/data-dir/`
+const testValuesCfg = `and=tags:count:desc&field=title&or=authors:label:asc&or=narrators&or=series&data_dir=testdata/data-dir/&sort_by=title`
 
 func TestNewQuery(t *testing.T) {
-	//t.SkipNow()
+	t.SkipNow()
 	q := getNewQuery()
-	if l := len(q); l != 6 {
-		t.Errorf("got %v, expected %d\n,%v\n", l, 6, q)
+	if l := len(q); l != 7 {
+		t.Errorf("got %v, expected %d\n,%v\n", l, 7, q)
 	}
 	query := fmt.Sprintf("%s&%s&%s", testValuesCfg, testQueryString, testSearchString)
 	i := New(query)

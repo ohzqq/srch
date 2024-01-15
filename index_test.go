@@ -37,6 +37,15 @@ func TestData(t *testing.T) {
 //  }
 //}
 
+func TestSortIndex(t *testing.T) {
+	q := getNewQuery()
+	i := New(q.Encode())
+	i.Sort()
+	for _, d := range i.Data {
+		fmt.Printf("%s\n", d["title"])
+	}
+}
+
 func TestIndexProps(t *testing.T) {
 	if len(idx.Facets()) != 4 {
 		t.Errorf("got %d, expected 4\n", len(idx.Facets()))

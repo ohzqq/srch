@@ -1,7 +1,6 @@
 package srch
 
 import (
-	"fmt"
 	"testing"
 )
 
@@ -63,7 +62,7 @@ func TestSortFacets(t *testing.T) {
 		t.Errorf("wrong Order %s\n", v)
 	}
 
-	for _, item := range authors.items {
-		fmt.Printf("%s: count %d\n", item.Label, item.Count())
-	}
+	//for _, item := range authors.items {
+	//  fmt.Printf("%s: count %d\n", item.Label, item.Count())
+	//}
 }
