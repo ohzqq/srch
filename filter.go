@@ -2,7 +2,6 @@ package srch
 
 import (
 	"net/url"
-	"strings"
 
 	"github.com/RoaringBitmap/roaring"
 	"github.com/samber/lo"
@@ -37,34 +36,4 @@ func FilteredItems(data []map[string]any, ids []any) []map[string]any {
 		}
 	}
 	return items
-}
-
-func GetFieldsFromSlice(items []map[string]any, names []string) []*Field {
-	if len(items) < 1 {
-		return []*Field{}
-	}
-
-	item := items[0]
-
-	if len(names) < 1 {
-		names = lo.Keys(item)
-	}
-
-	var fields []*Field
-	for _, f := range names {
-		if _, ok := item[f]; ok {
-			fields = append(fields, NewTextField(f))
-		}
-	}
-	return fields
-}
-
-func GetSearchableFieldValues(data []map[string]any, fields []string) []string {
-	src := make([]string, len(data))
-	for i, d := range data {
-		s := lo.PickByKeys(d, fields)
-		vals := cast.ToStringSlice(lo.Values(s))
-		src[i] = strings.Join(vals, "\n")
-	}
-	return src
 }

@@ -12,7 +12,7 @@ func FuzzyFind(data []map[string]any, q string, fields ...string) *Index {
 		return idx
 	}
 
-	idx.AddField(GetFieldsFromSlice(data, fields)...)
+	idx.AddField(GetFieldsFromData(data, fields)...)
 
 	matches := getFuzzyMatches(idx, q)
 	fr := getFuzzyResults(data, matches)
@@ -32,4 +32,24 @@ func getFuzzyMatchIndexes(matches fuzzy.Matches) []any {
 
 func getFuzzyResults(data []map[string]any, matches fuzzy.Matches) []map[string]any {
 	return FilteredItems(data, getFuzzyMatchIndexes(matches))
+}
+
+func GetFieldsFromData(items []map[string]any, names []string) []*Field {
+	if len(items) < 1 {
+		return []*Field{}
+	}
+
+	item := items[0]
+
+	if len(names) < 1 {
+		names = lo.Keys(item)
+	}
+
+	var fields []*Field
+	for _, f := range names {
+		if _, ok := item[f]; ok {
+			fields = append(fields, NewTextField(f))
+		}
+	}
+	return fields
 }
