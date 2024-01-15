@@ -28,22 +28,6 @@ type Field struct {
 	items     map[string]*FacetItem `json:"-"`
 }
 
-func (f *Field) MarshalJSON() ([]byte, error) {
-	field := map[string]any{
-		"attribute": f.Attribute,
-		"operator":  f.Operator,
-		"sort_by":   f.SortBy,
-		"order":     f.Order,
-		"items":     f.Items(),
-	}
-
-	d, err := json.Marshal(field)
-	if err != nil {
-		return nil, err
-	}
-	return d, nil
-}
-
 func NewField(attr string, ft string) *Field {
 	f := &Field{
 		FieldType: ft,
@@ -69,16 +53,10 @@ func CopyField(field *Field) *Field {
 	return f
 }
 
-func NewTextField(attr string) *Field {
-	f := NewField(attr, Text)
-	f.Operator = "and"
-	return f
-}
-
 func NewTextFields(names []string) []*Field {
 	fields := make([]*Field, len(names))
 	for i, f := range names {
-		fields[i] = NewTextField(f)
+		fields[i] = NewField(f, Text)
 	}
 	return fields
 }
@@ -89,6 +67,22 @@ func NewFacets(names []string) []*Field {
 		fields[i] = NewField(f, OrFacet)
 	}
 	return fields
+}
+
+func (f *Field) MarshalJSON() ([]byte, error) {
+	field := map[string]any{
+		"attribute": f.Attribute,
+		"operator":  f.Operator,
+		"sort_by":   f.SortBy,
+		"order":     f.Order,
+		"items":     f.Items(),
+	}
+
+	d, err := json.Marshal(field)
+	if err != nil {
+		return nil, err
+	}
+	return d, nil
 }
 
 func (f *Field) Items() []*FacetItem {
@@ -169,6 +163,15 @@ func (f *Field) Search(text string) *roaring.Bitmap {
 	return processBitResults(bits, f.Operator)
 }
 
+func processBitResults(bits []*roaring.Bitmap, operator string) *roaring.Bitmap {
+	switch operator {
+	case "and":
+		return roaring.ParAnd(viper.GetInt("workers"), bits...)
+	default:
+		return roaring.ParOr(viper.GetInt("workers"), bits...)
+	}
+}
+
 // GetItem returns an *FacetItem.
 func (f *Field) GetItem(term string) *FacetItem {
 	for _, item := range f.Items() {
@@ -213,15 +216,6 @@ func (f *Field) String(i int) string {
 // Len returns the number of items, to satisfy the fuzzy.Source interface.
 func (f *Field) Len() int {
 	return len(f.Items())
-}
-
-func processBitResults(bits []*roaring.Bitmap, operator string) *roaring.Bitmap {
-	switch operator {
-	case "and":
-		return roaring.ParAnd(viper.GetInt("workers"), bits...)
-	default:
-		return roaring.ParOr(viper.GetInt("workers"), bits...)
-	}
 }
 
 func FilterFacets(fields []*Field) []*Field {

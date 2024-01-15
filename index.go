@@ -44,8 +44,24 @@ func New(q string, srch ...SearchFunc) *Index {
 	return idx
 }
 
-func (idx *Index) ParseQuery(q string) *Index {
-	if q == "" {
+func IndexData(data []map[string]any, fields []*Field) []*Field {
+	for _, f := range fields {
+		f.items = make(map[string]*FacetItem)
+	}
+
+	for id, d := range data {
+		for i, f := range fields {
+			if val, ok := d[f.Attribute]; ok {
+				fields[i].Add(val, uint32(id))
+			}
+		}
+	}
+
+	return fields
+}
+
+func (idx *Index) ParseQuery(q any) *Index {
+	if q == nil {
 		return idx.SetQuery(make(url.Values))
 	}
 	return idx.SetQuery(NewQuery(q))
@@ -53,7 +69,7 @@ func (idx *Index) ParseQuery(q string) *Index {
 
 func (idx *Index) SetQuery(q url.Values) *Index {
 	idx.Query = q
-	idx.AddField(FieldsFromQuery(idx.Query)...)
+	idx.AddField(ParseFieldsFromValues(idx.Query)...)
 
 	data, err := GetDataFromQuery(&idx.Query)
 	if err == nil {
@@ -65,7 +81,7 @@ func (idx *Index) SetQuery(q url.Values) *Index {
 
 func (idx *Index) Index(src []map[string]any) *Index {
 	if len(idx.Fields) < 1 {
-		idx.Fields = []*Field{NewTextField("title")}
+		idx.Fields = []*Field{NewField("title", Text)}
 	}
 	idx.Data = src
 	if idx.Query.Has("sort_by") {
@@ -82,27 +98,6 @@ func (idx *Index) Sort() {
 			slices.Reverse(idx.Data)
 		}
 	}
-}
-
-func sortDataByField(data []map[string]any, field string) []map[string]any {
-	fn := func(a, b map[string]any) int {
-		x := cast.ToString(a[field])
-		y := cast.ToString(b[field])
-		switch {
-		case x > y:
-			return 1
-		case x == y:
-			return 0
-		default:
-			return -1
-		}
-	}
-	slices.SortFunc(data, fn)
-	return data
-}
-
-func (idx *Index) Facets() []*Field {
-	return FilterFacets(idx.Fields)
 }
 
 func (idx *Index) Search(q string) *Index {
@@ -123,25 +118,16 @@ func (idx *Index) Filter(q string) *Index {
 	return idx.Copy().Index(data)
 }
 
+func (idx *Index) Copy() *Index {
+	return &Index{
+		Fields: idx.Fields,
+		Query:  idx.Query,
+	}
+}
+
 func (idx *Index) AddField(fields ...*Field) *Index {
 	idx.Fields = append(idx.Fields, fields...)
 	return idx
-}
-
-func IndexData(data []map[string]any, fields []*Field) []*Field {
-	for _, f := range fields {
-		f.items = make(map[string]*FacetItem)
-	}
-
-	for id, d := range data {
-		for i, f := range fields {
-			if val, ok := d[f.Attribute]; ok {
-				fields[i].Add(val, uint32(id))
-			}
-		}
-	}
-
-	return fields
 }
 
 func (idx *Index) GetField(attr string) (*Field, error) {
@@ -153,45 +139,13 @@ func (idx *Index) GetField(attr string) (*Field, error) {
 	return nil, errors.New("no such field")
 }
 
-func (idx *Index) String(i int) string {
-	s := lo.PickByKeys(
-		idx.Data[i],
-		idx.SearchableFields(),
-	)
-	vals := cast.ToStringSlice(lo.Values(s))
-	return strings.Join(vals, "\n")
+// HasFacets returns true if facets are configured.
+func (idx *Index) HasFacets() bool {
+	return len(idx.Facets()) > 0
 }
 
-func (idx *Index) FieldsString() string {
-	fq := idx.Query
-	fq.Del("data_file")
-	fq.Del("data_dir")
-	fq.Del("q")
-	return fq.Encode()
-}
-
-func (idx *Index) Len() int {
-	return len(idx.Data)
-}
-
-func (idx *Index) AddFieldsFromValues(cfg url.Values) *Index {
-	return CfgFieldsFromValues(idx, cfg)
-}
-
-func (idx *Index) CfgString() string {
-	return idx.Query.Encode()
-}
-
-func (idx *Index) FilterByID(ids []int) *Index {
-	data := FilterDataByID(idx.Data, ids)
-	return idx.Copy().Index(data)
-}
-
-func (idx *Index) Copy() *Index {
-	return &Index{
-		Fields: idx.Fields,
-		Query:  idx.Query,
-	}
+func (idx *Index) Facets() []*Field {
+	return FilterFacets(idx.Fields)
 }
 
 func (idx *Index) TextFields() []*Field {
@@ -200,11 +154,6 @@ func (idx *Index) TextFields() []*Field {
 
 func (idx *Index) SearchableFields() []string {
 	return SearchableFields(idx.Fields)
-}
-
-// HasFacets returns true if facets are configured.
-func (idx *Index) HasFacets() bool {
-	return len(idx.Facets()) > 0
 }
 
 func (idx *Index) UnmarshalJSON(d []byte) error {
@@ -272,9 +221,41 @@ func (idx *Index) PrettyPrint() {
 	}
 }
 
+// String satisfies the fuzzy.Source interface.
+func (idx *Index) String(i int) string {
+	s := lo.PickByKeys(
+		idx.Data[i],
+		idx.SearchableFields(),
+	)
+	vals := cast.ToStringSlice(lo.Values(s))
+	return strings.Join(vals, "\n")
+}
+
+// Len satisfies the fuzzy.Source interface.
+func (idx *Index) Len() int {
+	return len(idx.Data)
+}
+
 func exist(path string) bool {
 	if _, err := os.Stat(path); errors.Is(err, os.ErrNotExist) {
 		return false
 	}
 	return true
+}
+
+func sortDataByField(data []map[string]any, field string) []map[string]any {
+	fn := func(a, b map[string]any) int {
+		x := cast.ToString(a[field])
+		y := cast.ToString(b[field])
+		switch {
+		case x > y:
+			return 1
+		case x == y:
+			return 0
+		default:
+			return -1
+		}
+	}
+	slices.SortFunc(data, fn)
+	return data
 }

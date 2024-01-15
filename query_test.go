@@ -45,16 +45,3 @@ func TestNewQuery(t *testing.T) {
 func getNewQuery() url.Values {
 	return NewQuery(testValuesCfg, testQueryString, testSearchString)
 }
-
-func TestUrlValuesStringConfig(t *testing.T) {
-	i, err := ParseCfgQuery(testValuesCfg)
-	if err != nil {
-		t.Error(err)
-	}
-	if len(i.Fields) != 5 {
-		for _, f := range i.Fields {
-			println(f.Attribute)
-		}
-		t.Errorf("got %d, expected %d\n", len(i.Fields), 5)
-	}
-}
