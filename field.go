@@ -24,7 +24,7 @@ type Field struct {
 	FieldType string `json:"fieldType"`
 	SortBy    string
 	Order     string
-	Items     map[string]*FacetItem `json:"-"`
+	items     map[string]*FacetItem `json:"-"`
 }
 
 func (f *Field) MarshalJSON() ([]byte, error) {
@@ -33,7 +33,7 @@ func (f *Field) MarshalJSON() ([]byte, error) {
 		"operator":  f.Operator,
 		"sort_by":   f.SortBy,
 		"order":     f.Order,
-		"items":     f.ItemsWithCount(),
+		"items":     f.Items(),
 	}
 
 	d, err := json.Marshal(field)
@@ -49,7 +49,7 @@ func NewField(attr string, ft string) *Field {
 		Sep:       ".",
 		SortBy:    "count",
 		Order:     "desc",
-		Items:     make(map[string]*FacetItem),
+		items:     make(map[string]*FacetItem),
 	}
 	parseAttr(f, attr)
 	switch ft {
@@ -106,10 +106,10 @@ func (f *Field) addFullText(text string, ids []int) {
 	}
 }
 
-func (f *Field) ItemsWithCount() []*FacetItem {
+func (f *Field) Items() []*FacetItem {
 	var items []*FacetItem
-	for k, _ := range f.Items {
-		items = append(items, f.Items[k])
+	for k, _ := range f.items {
+		items = append(items, f.items[k])
 	}
 	switch f.SortBy {
 	case "label":
@@ -124,21 +124,21 @@ func (f *Field) ItemsWithCount() []*FacetItem {
 }
 
 func (f *Field) addTerm(item *FacetItem, ids []int) {
-	if f.Items == nil {
-		f.Items = make(map[string]*FacetItem)
+	if f.items == nil {
+		f.items = make(map[string]*FacetItem)
 	}
-	if _, ok := f.Items[item.Value]; !ok {
-		f.Items[item.Value] = item
+	if _, ok := f.items[item.Value]; !ok {
+		f.items[item.Value] = item
 	}
 	for _, id := range ids {
-		if !f.Items[item.Value].bits.ContainsInt(id) {
-			f.Items[item.Value].bits.AddInt(id)
+		if !f.items[item.Value].bits.ContainsInt(id) {
+			f.items[item.Value].bits.AddInt(id)
 		}
 	}
 }
 
 func (f *Field) ListTokens() []string {
-	return lo.Keys(f.Items)
+	return lo.Keys(f.items)
 }
 
 // Filter applies the listed filters to the facet.
@@ -152,13 +152,13 @@ func (f *Field) Filter(filters ...string) *roaring.Bitmap {
 
 func (f *Field) Search(text string) *roaring.Bitmap {
 	if f.FieldType == AndFacet || f.FieldType == OrFacet {
-		if item, ok := f.Items[normalizeText(text)]; ok {
+		if item, ok := f.items[normalizeText(text)]; ok {
 			return item.bits
 		}
 	}
 	var bits []*roaring.Bitmap
 	for _, token := range Tokenizer(text) {
-		if ids, ok := f.Items[token.Value]; ok {
+		if ids, ok := f.items[token.Value]; ok {
 			bits = append(bits, ids.bits)
 		}
 	}

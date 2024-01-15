@@ -100,7 +100,7 @@ func (idx *Index) AddField(fields ...*Field) *Index {
 
 func IndexData(data []map[string]any, fields []*Field) []*Field {
 	for _, f := range fields {
-		f.Items = make(map[string]*FacetItem)
+		f.items = make(map[string]*FacetItem)
 	}
 
 	for id, d := range data {

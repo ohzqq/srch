@@ -41,7 +41,7 @@ func (f *FacetItem) Count() int {
 func NewFacet(field *Field) *Facet {
 	f := &Facet{
 		Field: field,
-		Items: field.ItemsWithCount(),
+		Items: field.Items(),
 	}
 	return f
 }
