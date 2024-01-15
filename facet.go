@@ -16,6 +16,14 @@ type FacetItem struct {
 	fuzzy.Match `json:"-"`
 }
 
+func NewFacetItem(label string) *FacetItem {
+	return &FacetItem{
+		Value: label,
+		Label: label,
+		bits:  roaring.New(),
+	}
+}
+
 func (f *FacetItem) MarshalJSON() ([]byte, error) {
 	item := map[string]any{
 		"value": f.Value,
@@ -64,13 +72,5 @@ func sortByLabelFunc(a *FacetItem, b *FacetItem) int {
 		return 0
 	default:
 		return -1
-	}
-}
-
-func NewFacetItem(label string) *FacetItem {
-	return &FacetItem{
-		Value: label,
-		Label: label,
-		bits:  roaring.New(),
 	}
 }
