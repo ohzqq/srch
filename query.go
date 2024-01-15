@@ -1,7 +1,6 @@
 package srch
 
 import (
-	"errors"
 	"net/url"
 
 	"github.com/spf13/cast"
@@ -10,7 +9,7 @@ import (
 func NewQuery(queries ...string) url.Values {
 	q := make(url.Values)
 	for _, query := range queries {
-		vals, err := url.ParseQuery(query)
+		vals, err := ParseValues(query)
 		if err != nil {
 			continue
 		}
@@ -21,23 +20,6 @@ func NewQuery(queries ...string) url.Values {
 		}
 	}
 	return q
-}
-
-func ParseCfgQuery(q string) (*Index, error) {
-	v, err := url.ParseQuery(testValuesCfg)
-	if err != nil {
-		return New(q), err
-	}
-	return CfgIndexFromValues(v)
-}
-
-func GetDataFile(q *url.Values) (string, error) {
-	if q.Has("data_file") {
-		d := q.Get("data_file")
-		q.Del("data_file")
-		return d, nil
-	}
-	return "", errors.New("no data in query")
 }
 
 func GetDataFromQuery(q *url.Values) ([]map[string]any, error) {
@@ -54,13 +36,7 @@ func GetDataFromQuery(q *url.Values) ([]map[string]any, error) {
 	return data, err
 }
 
-func CfgIndexFromValues(cfg url.Values) (*Index, error) {
-	idx := New(cfg.Encode())
-	CfgFieldsFromValues(idx, cfg)
-	return idx, nil
-}
-
-func FieldsFromQuery(cfg url.Values) []*Field {
+func ParseFieldsFromValues(cfg url.Values) []*Field {
 	var fields []*Field
 	if cfg.Has("field") {
 		for _, f := range cfg["field"] {
@@ -81,7 +57,7 @@ func FieldsFromQuery(cfg url.Values) []*Field {
 }
 
 func CfgFieldsFromValues(idx *Index, cfg url.Values) *Index {
-	idx.Fields = FieldsFromQuery(cfg)
+	idx.AddField(ParseFieldsFromValues(cfg)...)
 	return idx
 }
 
