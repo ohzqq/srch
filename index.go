@@ -106,10 +106,16 @@ func (idx *Index) Search(q string) *Index {
 	}
 	idx.Query.Set("q", q)
 	data := idx.search(q)
-	return idx.Copy().Index(data)
+	res := idx.Copy().Index(data)
+
+	if idx.HasFilters() {
+		return idx.Filter(idx.Filters())
+	}
+
+	return res
 }
 
-func (idx *Index) Filter(q string) *Index {
+func (idx *Index) Filter(q any) *Index {
 	vals, err := ParseValues(q)
 	if err != nil {
 		return idx
@@ -137,6 +143,24 @@ func (idx *Index) GetField(attr string) (*Field, error) {
 		}
 	}
 	return nil, errors.New("no such field")
+}
+
+func (idx *Index) HasFilters() bool {
+	return len(idx.Filters()) > 0
+}
+
+func (idx *Index) Filters() url.Values {
+	res := []string{
+		"and",
+		"or",
+		"field",
+		"q",
+		"sort_by",
+		"order",
+		"data_file",
+		"data_dir",
+	}
+	return lo.OmitByKeys(idx.Query, res)
 }
 
 // HasFacets returns true if facets are configured.
