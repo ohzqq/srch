@@ -56,11 +56,6 @@ func ParseFieldsFromValues(cfg url.Values) []*Field {
 	return fields
 }
 
-func CfgFieldsFromValues(idx *Index, cfg url.Values) *Index {
-	idx.AddField(ParseFieldsFromValues(cfg)...)
-	return idx
-}
-
 // ParseValues takes an interface{} and returns a url.Values.
 func ParseValues(f any) (url.Values, error) {
 	filters := make(url.Values)

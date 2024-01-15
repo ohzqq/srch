@@ -69,7 +69,7 @@ func (idx *Index) ParseQuery(q string) *Index {
 
 func (idx *Index) SetQuery(q url.Values) *Index {
 	idx.Query = q
-	CfgFieldsFromValues(idx, q)
+	idx.AddField(ParseFieldsFromValues(idx.Query)...)
 
 	data, err := GetDataFromQuery(&idx.Query)
 	if err == nil {
