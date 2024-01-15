@@ -155,11 +155,11 @@ By default, results are printed to stdout as json.
 		}
 
 		if p, err := cmd.Flags().GetBool("pretty"); err == nil && p {
-			println(idx.Len())
-			//idx.PrettyPrint()
+			//println(idx.Len())
+			idx.PrettyPrint()
 		} else {
-			println(idx.Len())
-			//idx.Print()
+			//println(idx.Len())
+			idx.Print()
 		}
 	},
 }

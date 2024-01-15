@@ -34,9 +34,9 @@ func Choose(idx *srch.Index) (*srch.Index, error) {
 		return idx, nil
 	}
 
-	idx.Data = srch.FilteredItems(idx.Data, lo.ToAnySlice(sel))
+	res := srch.FilteredItems(idx.Data, lo.ToAnySlice(sel))
 
-	return idx, nil
+	return idx.Index(res), nil
 }
 
 func FilterFacet(facet *srch.Field) string {
