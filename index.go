@@ -37,8 +37,28 @@ func New(q any, srch ...SearchFunc) *Index {
 		idx.search = srch[0]
 	}
 
-	if idx.Query.Has("q") {
+	switch {
+	//case idx.HasFilters():
+	//  return idx.Filter(idx.Filters())
+	case idx.Query.Has("q"):
 		return idx.Search(idx.Query.Get("q"))
+	}
+
+	return idx
+}
+
+func (idx *Index) Index(src []map[string]any) *Index {
+	if len(idx.Fields) < 1 {
+		idx.Fields = []*Field{NewField("title", Text)}
+	}
+	idx.Data = src
+	if idx.Query.Has("sort_by") {
+		idx.Sort()
+	}
+	idx.Fields = IndexData(idx.Data, idx.Fields)
+
+	if idx.HasFilters() {
+		idx.Data = Filter(idx.Data, idx.Facets(), idx.Filters())
 	}
 
 	return idx
@@ -52,7 +72,7 @@ func IndexData(data []map[string]any, fields []*Field) []*Field {
 	for id, d := range data {
 		for i, f := range fields {
 			if val, ok := d[f.Attribute]; ok {
-				fields[i].Add(val, uint32(id))
+				fields[i].Add(val, id)
 			}
 		}
 	}
@@ -76,18 +96,6 @@ func (idx *Index) SetQuery(q url.Values) *Index {
 		return idx.Index(data)
 	}
 
-	return idx
-}
-
-func (idx *Index) Index(src []map[string]any) *Index {
-	if len(idx.Fields) < 1 {
-		idx.Fields = []*Field{NewField("title", Text)}
-	}
-	idx.Data = src
-	if idx.Query.Has("sort_by") {
-		idx.Sort()
-	}
-	idx.Fields = IndexData(idx.Data, idx.Fields)
 	return idx
 }
 

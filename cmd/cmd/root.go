@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/ohzqq/srch"
+	"github.com/ohzqq/srch/ui"
 	"github.com/samber/lo"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -107,7 +108,6 @@ By default, results are printed to stdout as json.
 			}
 		}
 
-		fmt.Printf("%+v\n", q)
 		idx = srch.New(q)
 
 		switch {
@@ -135,16 +135,25 @@ By default, results are printed to stdout as json.
 				log.Fatal(err)
 			}
 		default:
-			//in := cmd.InOrStdin()
-			//data, err = srch.ReaderSrc(in)
-			//if err != nil {
-			//log.Fatal(err)
-			//}
+			in := cmd.InOrStdin()
+			data, err = srch.ReaderSrc(in)
+			if err != nil {
+				log.Fatal(err)
+			}
 		}
 		idx = idx.Index(data)
 
 		if keywords != "" {
 			idx = idx.Search(keywords)
+		}
+
+		//idx = idx.Filter(q)
+
+		if cmd.Flags().Changed("ui") {
+			idx, err = ui.Choose(idx)
+			if err != nil {
+				log.Fatal(err)
+			}
 		}
 
 		if p, err := cmd.Flags().GetBool("pretty"); err == nil && p {

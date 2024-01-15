@@ -7,6 +7,7 @@ import (
 	"github.com/ohzqq/bubbles/list"
 	"github.com/ohzqq/srch"
 	"github.com/sahilm/fuzzy"
+	"github.com/samber/lo"
 )
 
 type TUI struct {
@@ -33,10 +34,12 @@ func Choose(idx *srch.Index) (*srch.Index, error) {
 		return idx, nil
 	}
 
-	return idx.FilterByID(sel), nil
+	idx.Data = srch.FilteredItems(idx.Data, lo.ToAnySlice(sel))
+
+	return idx, nil
 }
 
-func FilterFacet(facet *srch.Facet) string {
+func FilterFacet(facet *srch.Field) string {
 	items := SrcToItems(facet)
 	sel, err := NewList(items)
 	if err != nil {

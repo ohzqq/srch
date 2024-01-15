@@ -150,10 +150,17 @@ func (f *Field) Filter(filters ...string) *roaring.Bitmap {
 
 func (f *Field) Search(text string) *roaring.Bitmap {
 	if f.FieldType == AndFacet || f.FieldType == OrFacet {
+		//fmt.Printf("items %+v\n", f.items)
+		//for k, _ := range f.items {
+		//  println(k)
+		//}
+
 		if item, ok := f.items[normalizeText(text)]; ok {
+			//println(normalizeText(text))
 			return item.bits
 		}
 	}
+
 	var bits []*roaring.Bitmap
 	for _, token := range Tokenizer(text) {
 		if ids, ok := f.items[token.Value]; ok {
