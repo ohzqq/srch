@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/RoaringBitmap/roaring"
+	"github.com/sahilm/fuzzy"
 	"github.com/samber/lo"
 	"github.com/spf13/cast"
 	"github.com/spf13/viper"
@@ -163,6 +164,52 @@ func (f *Field) Search(text string) *roaring.Bitmap {
 		}
 	}
 	return processBitResults(bits, f.Operator)
+}
+
+// GetItem returns an *FacetItem.
+func (f *Field) GetItem(term string) *FacetItem {
+	for _, item := range f.Items() {
+		if term == item.Label {
+			return item
+		}
+	}
+	return &FacetItem{}
+}
+
+// ListItems returns a string slice of all item values.
+func (f *Field) ListItems() []string {
+	var items []string
+	for _, item := range f.Items() {
+		items = append(items, item.Label)
+	}
+	return items
+}
+
+// FuzzyFindItem fuzzy finds an item's value and returns possible matches.
+func (f *Field) FuzzyFindItem(term string) []*FacetItem {
+	matches := f.FuzzyMatches(term)
+	items := make([]*FacetItem, len(matches))
+	for i, match := range matches {
+		item := f.Items()[match.Index]
+		item.Match = match
+		items[i] = item
+	}
+	return items
+}
+
+// FuzzyMatches returns the fuzzy.Matches of the search.
+func (f *Field) FuzzyMatches(term string) fuzzy.Matches {
+	return fuzzy.FindFrom(term, f)
+}
+
+// String returns an Item.Value, to satisfy the fuzzy.Source interface.
+func (f *Field) String(i int) string {
+	return f.Items()[i].Label
+}
+
+// Len returns the number of items, to satisfy the fuzzy.Source interface.
+func (f *Field) Len() int {
+	return len(f.Items())
 }
 
 func processBitResults(bits []*roaring.Bitmap, operator string) *roaring.Bitmap {

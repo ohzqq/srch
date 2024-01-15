@@ -71,8 +71,8 @@ func (idx *Index) Index(src []map[string]any) *Index {
 	return idx
 }
 
-func (idx *Index) Facets() []*Facet {
-	return FieldsToFacets(idx.FacetFields())
+func (idx *Index) Facets() []*Field {
+	return FilterFacets(idx.Fields)
 }
 
 func (idx *Index) Search(q string) *Index {
@@ -89,7 +89,7 @@ func (idx *Index) Filter(q string) *Index {
 	if err != nil {
 		return idx
 	}
-	data := Filter(idx.Data, idx.FacetFields(), vals)
+	data := Filter(idx.Data, idx.Facets(), vals)
 	return idx.Copy().Index(data)
 }
 
@@ -152,10 +152,6 @@ func (idx *Index) CfgString() string {
 	return idx.Query.Encode()
 }
 
-func (idx *Index) FacetFields() []*Field {
-	return FilterFacets(idx.Fields)
-}
-
 func (idx *Index) FilterByID(ids []int) *Index {
 	data := FilterDataByID(idx.Data, ids)
 	return idx.Copy().Index(data)
@@ -178,7 +174,7 @@ func (idx *Index) SearchableFields() []string {
 
 // HasFacets returns true if facets are configured.
 func (idx *Index) HasFacets() bool {
-	return len(idx.FacetFields()) > 0
+	return len(idx.Facets()) > 0
 }
 
 func (idx *Index) UnmarshalJSON(d []byte) error {
@@ -212,7 +208,7 @@ func (idx *Index) UnmarshalJSON(d []byte) error {
 func (idx *Index) MarshalJSON() ([]byte, error) {
 	res := map[string]any{
 		"data":   idx.Data,
-		"facets": idx.FacetFields(),
+		"facets": idx.Facets(),
 		"query":  idx.Query.Encode(),
 	}
 	return json.Marshal(res)
