@@ -7,8 +7,6 @@ import (
 	"github.com/spf13/cast"
 )
 
-type Query url.Values
-
 func NewQuery(queries ...string) url.Values {
 	q := make(url.Values)
 	for _, query := range queries {

@@ -85,7 +85,7 @@ func TestFilterQueryString(t *testing.T) {
 func TestFilterData(t *testing.T) {
 	t.SkipNow()
 	idx.Index(books)
-	d := Filter(books, idx.FacetFields(), testVals())
+	d := Filter(books, idx.Facets(), testVals())
 	if len(d) != 384 {
 		t.Errorf("got %d, expected %d\n", len(d), 384)
 	}

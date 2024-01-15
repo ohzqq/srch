@@ -1,17 +1,21 @@
 package srch
 
 import (
+	"encoding/json"
+	"slices"
+	"strings"
+
 	"github.com/RoaringBitmap/roaring"
+	"github.com/sahilm/fuzzy"
 	"github.com/samber/lo"
 	"github.com/spf13/cast"
 	"github.com/spf13/viper"
 )
 
 const (
-	FacetField = "facet"
-	Text       = "text"
-	OrFacet    = "or"
-	AndFacet   = "and"
+	Text     = "text"
+	OrFacet  = "or"
+	AndFacet = "and"
 )
 
 type Field struct {
@@ -21,22 +25,38 @@ type Field struct {
 	FieldType string `json:"fieldType"`
 	SortBy    string
 	Order     string
-	Items     map[string]*FacetItem `json"-"`
+	items     map[string]*FacetItem `json:"-"`
+}
+
+func (f *Field) MarshalJSON() ([]byte, error) {
+	field := map[string]any{
+		"attribute": f.Attribute,
+		"operator":  f.Operator,
+		"sort_by":   f.SortBy,
+		"order":     f.Order,
+		"items":     f.Items(),
+	}
+
+	d, err := json.Marshal(field)
+	if err != nil {
+		return nil, err
+	}
+	return d, nil
 }
 
 func NewField(attr string, ft string) *Field {
 	f := &Field{
-		Attribute: attr,
 		FieldType: ft,
 		Sep:       ".",
 		SortBy:    "count",
 		Order:     "desc",
-		Items:     make(map[string]*FacetItem),
+		items:     make(map[string]*FacetItem),
 	}
+	parseAttr(f, attr)
 	switch ft {
 	case OrFacet:
 		f.Operator = "or"
-	case AndFacet, Text, FacetField:
+	case AndFacet, Text:
 		f.Operator = "and"
 	}
 	return f
@@ -66,15 +86,29 @@ func NewTextFields(names []string) []*Field {
 func NewFacets(names []string) []*Field {
 	fields := make([]*Field, len(names))
 	for i, f := range names {
-		fields[i] = NewFacetField(f)
+		fields[i] = NewField(f, OrFacet)
 	}
 	return fields
 }
 
-func NewFacetField(attr string) *Field {
-	f := NewField(attr, FacetField)
-	f.Operator = "or"
-	return f
+func (f *Field) Items() []*FacetItem {
+	var items []*FacetItem
+	for k, _ := range f.items {
+		items = append(items, f.items[k])
+	}
+	if f.FieldType == Text {
+		return items
+	}
+	switch f.SortBy {
+	case "label":
+		SortItemsByLabel(items)
+	default:
+		SortItemsByCount(items)
+	}
+	if f.Order == "asc" {
+		slices.Reverse(items)
+	}
+	return items
 }
 
 func (f *Field) Add(value any, ids ...any) {
@@ -93,31 +127,22 @@ func (f *Field) addFullText(text string, ids []int) {
 	}
 }
 
-func (f *Field) ItemsWithCount() []*FacetItem {
-	var items []*FacetItem
-	for k, item := range f.Items {
-		f.Items[k].Count = len(item.bits.ToArray())
-		items = append(items, f.Items[k])
-	}
-	return items
-}
-
 func (f *Field) addTerm(item *FacetItem, ids []int) {
-	if f.Items == nil {
-		f.Items = make(map[string]*FacetItem)
+	if f.items == nil {
+		f.items = make(map[string]*FacetItem)
 	}
-	if _, ok := f.Items[item.Value]; !ok {
-		f.Items[item.Value] = item
+	if _, ok := f.items[item.Value]; !ok {
+		f.items[item.Value] = item
 	}
 	for _, id := range ids {
-		if !f.Items[item.Value].bits.ContainsInt(id) {
-			f.Items[item.Value].bits.AddInt(id)
+		if !f.items[item.Value].bits.ContainsInt(id) {
+			f.items[item.Value].bits.AddInt(id)
 		}
 	}
 }
 
 func (f *Field) ListTokens() []string {
-	return lo.Keys(f.Items)
+	return lo.Keys(f.items)
 }
 
 // Filter applies the listed filters to the facet.
@@ -130,18 +155,64 @@ func (f *Field) Filter(filters ...string) *roaring.Bitmap {
 }
 
 func (f *Field) Search(text string) *roaring.Bitmap {
-	if f.FieldType == FacetField {
-		if item, ok := f.Items[normalizeText(text)]; ok {
+	if f.FieldType == AndFacet || f.FieldType == OrFacet {
+		if item, ok := f.items[normalizeText(text)]; ok {
 			return item.bits
 		}
 	}
 	var bits []*roaring.Bitmap
 	for _, token := range Tokenizer(text) {
-		if ids, ok := f.Items[token.Value]; ok {
+		if ids, ok := f.items[token.Value]; ok {
 			bits = append(bits, ids.bits)
 		}
 	}
 	return processBitResults(bits, f.Operator)
+}
+
+// GetItem returns an *FacetItem.
+func (f *Field) GetItem(term string) *FacetItem {
+	for _, item := range f.Items() {
+		if term == item.Label {
+			return item
+		}
+	}
+	return &FacetItem{}
+}
+
+// ListItems returns a string slice of all item values.
+func (f *Field) ListItems() []string {
+	var items []string
+	for _, item := range f.Items() {
+		items = append(items, item.Label)
+	}
+	return items
+}
+
+// FuzzyFindItem fuzzy finds an item's value and returns possible matches.
+func (f *Field) FuzzyFindItem(term string) []*FacetItem {
+	matches := f.FuzzyMatches(term)
+	items := make([]*FacetItem, len(matches))
+	for i, match := range matches {
+		item := f.Items()[match.Index]
+		item.Match = match
+		items[i] = item
+	}
+	return items
+}
+
+// FuzzyMatches returns the fuzzy.Matches of the search.
+func (f *Field) FuzzyMatches(term string) fuzzy.Matches {
+	return fuzzy.FindFrom(term, f)
+}
+
+// String returns an Item.Value, to satisfy the fuzzy.Source interface.
+func (f *Field) String(i int) string {
+	return f.Items()[i].Label
+}
+
+// Len returns the number of items, to satisfy the fuzzy.Source interface.
+func (f *Field) Len() int {
+	return len(f.Items())
 }
 
 func processBitResults(bits []*roaring.Bitmap, operator string) *roaring.Bitmap {
@@ -175,7 +246,26 @@ func filterTextFields(f *Field, _ int) bool {
 }
 
 func filterFacetFields(f *Field, _ int) bool {
-	return f.FieldType == FacetField ||
-		f.FieldType == OrFacet ||
+	return f.FieldType == OrFacet ||
 		f.FieldType == AndFacet
+}
+
+func parseAttr(field *Field, attr string) {
+	i := 0
+	for attr != "" {
+		var a string
+		a, attr, _ = strings.Cut(attr, ":")
+		if a == "" {
+			continue
+		}
+		switch i {
+		case 0:
+			field.Attribute = a
+		case 1:
+			field.SortBy = a
+		case 2:
+			field.Order = a
+		}
+		i++
+	}
 }

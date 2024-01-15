@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/url"
 	"os"
+	"slices"
 	"strings"
 
 	"github.com/samber/lo"
@@ -67,12 +68,41 @@ func (idx *Index) Index(src []map[string]any) *Index {
 		idx.Fields = []*Field{NewTextField("title")}
 	}
 	idx.Data = src
+	if idx.Query.Has("sort_by") {
+		idx.Sort()
+	}
 	idx.Fields = IndexData(idx.Data, idx.Fields)
 	return idx
 }
 
-func (idx *Index) Facets() []*Facet {
-	return FieldsToFacets(idx.FacetFields())
+func (idx *Index) Sort() {
+	sortDataByField(idx.Data, idx.Query.Get("sort_by"))
+	if idx.Query.Has("order") {
+		if idx.Query.Get("order") == "desc" {
+			slices.Reverse(idx.Data)
+		}
+	}
+}
+
+func sortDataByField(data []map[string]any, field string) []map[string]any {
+	fn := func(a, b map[string]any) int {
+		x := cast.ToString(a[field])
+		y := cast.ToString(b[field])
+		switch {
+		case x > y:
+			return 1
+		case x == y:
+			return 0
+		default:
+			return -1
+		}
+	}
+	slices.SortFunc(data, fn)
+	return data
+}
+
+func (idx *Index) Facets() []*Field {
+	return FilterFacets(idx.Fields)
 }
 
 func (idx *Index) Search(q string) *Index {
@@ -89,7 +119,7 @@ func (idx *Index) Filter(q string) *Index {
 	if err != nil {
 		return idx
 	}
-	data := Filter(idx.Data, idx.FacetFields(), vals)
+	data := Filter(idx.Data, idx.Facets(), vals)
 	return idx.Copy().Index(data)
 }
 
@@ -100,7 +130,7 @@ func (idx *Index) AddField(fields ...*Field) *Index {
 
 func IndexData(data []map[string]any, fields []*Field) []*Field {
 	for _, f := range fields {
-		f.Items = make(map[string]*FacetItem)
+		f.items = make(map[string]*FacetItem)
 	}
 
 	for id, d := range data {
@@ -118,15 +148,6 @@ func (idx *Index) GetField(attr string) (*Field, error) {
 	for _, f := range idx.Fields {
 		if f.Attribute == attr {
 			return f, nil
-		}
-	}
-	return nil, errors.New("no such field")
-}
-
-func (idx *Index) GetFacet(attr string) (*Facet, error) {
-	for _, f := range idx.Fields {
-		if f.Attribute == attr {
-			return NewFacet(f), nil
 		}
 	}
 	return nil, errors.New("no such field")
@@ -161,10 +182,6 @@ func (idx *Index) CfgString() string {
 	return idx.Query.Encode()
 }
 
-func (idx *Index) FacetFields() []*Field {
-	return FilterFacets(idx.Fields)
-}
-
 func (idx *Index) FilterByID(ids []int) *Index {
 	data := FilterDataByID(idx.Data, ids)
 	return idx.Copy().Index(data)
@@ -187,7 +204,7 @@ func (idx *Index) SearchableFields() []string {
 
 // HasFacets returns true if facets are configured.
 func (idx *Index) HasFacets() bool {
-	return len(idx.FacetFields()) > 0
+	return len(idx.Facets()) > 0
 }
 
 func (idx *Index) UnmarshalJSON(d []byte) error {

@@ -1,18 +1,19 @@
 package srch
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/url"
 	"testing"
 )
 
-const testValuesCfg = `and=tags&field=title&or=authors&or=narrators&or=series&data_dir=testdata/data-dir/`
+const testValuesCfg = `and=tags:count:desc&field=title&or=authors:label:asc&or=narrators&or=series&data_dir=testdata/data-dir/&sort_by=title`
 
 func TestNewQuery(t *testing.T) {
-	//t.SkipNow()
+	t.SkipNow()
 	q := getNewQuery()
-	if l := len(q); l != 6 {
-		t.Errorf("got %v, expected %d\n,%v\n", l, 6, q)
+	if l := len(q); l != 7 {
+		t.Errorf("got %v, expected %d\n,%v\n", l, 7, q)
 	}
 	query := fmt.Sprintf("%s&%s&%s", testValuesCfg, testQueryString, testSearchString)
 	i := New(query)
@@ -25,20 +26,20 @@ func TestNewQuery(t *testing.T) {
 		}
 		t.Errorf("got %d, expected %d\n", len(i.Fields), 5)
 	}
-	//res, err := json.Marshal(i)
-	//if err != nil {
-	//  t.Error(err)
-	//}
+	res, err := json.Marshal(i)
+	if err != nil {
+		t.Error(err)
+	}
 
-	//i.PrettyPrint()
+	i.PrettyPrint()
 
-	//println(string(res))
-	//n := &Index{}
-	//err = json.Unmarshal(res, n)
-	//if err != nil {
-	//t.Error(err)
-	//}
-	//fmt.Printf("%v\n", n)
+	println(string(res))
+	n := &Index{}
+	err = json.Unmarshal(res, n)
+	if err != nil {
+		t.Error(err)
+	}
+	fmt.Printf("%v\n", n)
 }
 
 func getNewQuery() url.Values {

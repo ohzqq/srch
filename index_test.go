@@ -37,9 +37,18 @@ func TestData(t *testing.T) {
 //  }
 //}
 
+func TestSortIndex(t *testing.T) {
+	q := getNewQuery()
+	i := New(q.Encode())
+	i.Sort()
+	for _, d := range i.Data {
+		fmt.Printf("%s\n", d["title"])
+	}
+}
+
 func TestIndexProps(t *testing.T) {
-	if len(idx.FacetFields()) != 4 {
-		t.Errorf("got %d, expected 4\n", len(idx.FacetFields()))
+	if len(idx.Facets()) != 4 {
+		t.Errorf("got %d, expected 4\n", len(idx.Facets()))
 	}
 	if len(idx.TextFields()) != 1 {
 		t.Errorf("got %d, expected 4\n", len(idx.TextFields()))
@@ -51,7 +60,6 @@ func TestRecursiveSearch(t *testing.T) {
 	idx.search = FullTextSrchFunc(idx.Data, idx.TextFields())
 	res := idx.Search("fish")
 	fmt.Printf("after search %d\n", len(res.Data))
-	fmt.Printf("after search %+v\n", res.Facets()[0].Items[0])
 }
 
 func loadData(t *testing.T) []map[string]any {

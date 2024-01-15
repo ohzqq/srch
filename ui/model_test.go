@@ -56,6 +56,6 @@ func TestFacets(t *testing.T) {
 }
 
 func newIdx() *srch.Index {
-	idx := srch.New(srch.WithCfg(testCfgFile))
+	idx := srch.OldNew(srch.WithCfg(testCfgFile))
 	return idx.Index(srch.FileSrc(testData))
 }
