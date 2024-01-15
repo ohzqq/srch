@@ -42,12 +42,12 @@ func (f *FacetItem) Count() int {
 }
 
 func SortItemsByCount(items []*FacetItem) []*FacetItem {
-	slices.SortFunc(items, sortByCountFunc)
+	slices.SortStableFunc(items, sortByCountFunc)
 	return items
 }
 
 func SortItemsByLabel(items []*FacetItem) []*FacetItem {
-	slices.SortFunc(items, sortByLabelFunc)
+	slices.SortStableFunc(items, sortByLabelFunc)
 	return items
 }
 

@@ -57,6 +57,8 @@ func (idx *Index) Index(src []map[string]any) *Index {
 
 	if idx.HasFilters() {
 		idx.Data = Filter(idx.Data, idx.Facets(), idx.Filters())
+		idx.Fields = IndexData(idx.Data, idx.Fields)
+		return idx
 	}
 
 	return idx

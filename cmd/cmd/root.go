@@ -14,7 +14,6 @@ import (
 )
 
 var (
-	cfgFile   string
 	dataFiles []string
 )
 
@@ -54,8 +53,6 @@ By default, results are printed to stdout as json.
 			if q.Has("q") {
 				keywords = q.Get("q")
 			}
-			//doResults(idx)
-			//return
 		}
 
 		if cmd.Flags().Changed("search") {
@@ -147,25 +144,30 @@ By default, results are printed to stdout as json.
 			idx = idx.Search(keywords)
 		}
 
+		field, err := idx.GetField("tags")
+		if err != nil {
+			log.Fatal(err)
+		}
+		for i, item := range field.Items() {
+			fmt.Printf("string %s, val %s, label %s\n", field.String(i), item.Value, item.Label)
+		}
+
 		if cmd.Flags().Changed("ui") {
-			idx, err = ui.Choose(idx)
+			tui := ui.NewTUI(idx)
+			idx, err = tui.Facet("tags")
 			if err != nil {
 				log.Fatal(err)
 			}
 		}
 
 		if p, err := cmd.Flags().GetBool("pretty"); err == nil && p {
-			//println(idx.Len())
-			idx.PrettyPrint()
+			println(idx.Len())
+			//idx.PrettyPrint()
 		} else {
-			//println(idx.Len())
-			idx.Print()
+			println(idx.Len())
+			//idx.Print()
 		}
 	},
-}
-
-func doResults(idx *srch.Index) {
-	println(idx.Len())
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -179,8 +181,6 @@ func Execute() {
 
 func init() {
 	cobra.OnInitialize(initConfig)
-
-	rootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "", "json formatted config file")
 
 	rootCmd.PersistentFlags().StringSliceVarP(&dataFiles, "index", "i", []string{}, "list of data files to index")
 	rootCmd.PersistentFlags().StringP("dir", "d", "", "directory of data files")
@@ -208,14 +208,5 @@ func init() {
 }
 
 func initConfig() {
-	if cfgFile != "" {
-		viper.SetConfigFile(cfgFile)
-	}
-
 	viper.AutomaticEnv()
-
-	// If a config file is found, read it in.
-	if err := viper.ReadInConfig(); err == nil {
-		fmt.Fprintln(os.Stderr, "Using config file:", viper.ConfigFileUsed())
-	}
 }

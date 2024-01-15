@@ -87,7 +87,7 @@ func (f *Field) MarshalJSON() ([]byte, error) {
 
 func (f *Field) Items() []*FacetItem {
 	var items []*FacetItem
-	for k, _ := range f.items {
+	for _, k := range f.sortedKeys() {
 		items = append(items, f.items[k])
 	}
 	if f.FieldType == Text {
@@ -103,6 +103,12 @@ func (f *Field) Items() []*FacetItem {
 		slices.Reverse(items)
 	}
 	return items
+}
+
+func (f *Field) sortedKeys() []string {
+	keys := lo.Keys(f.items)
+	slices.Sort(keys)
+	return keys
 }
 
 func (f *Field) Add(value any, ids ...any) {

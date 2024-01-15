@@ -11,16 +11,65 @@ import (
 )
 
 type TUI struct {
-	*list.Model
 	*srch.Index
+	*Model
+	facets map[string]*Model
+}
+
+type Model struct {
+	*list.Model
 }
 
 type item string
 
 func NewTUI(idx *srch.Index) *TUI {
-	return &TUI{
-		Index: idx,
+	tui := &TUI{
+		Index:  idx,
+		facets: make(map[string]*Model),
 	}
+
+	tui.Model = newList(idx)
+
+	for _, f := range idx.Facets() {
+		tui.facets[f.Attribute] = FacetModel(f)
+	}
+	return tui
+}
+
+func (ui *TUI) Choose() (*srch.Index, error) {
+	sel := ui.Model.Choose()
+	if len(sel) < 1 {
+		return ui.Index, nil
+	}
+
+	res := srch.FilteredItems(ui.Index.Data, lo.ToAnySlice(sel))
+
+	return ui.Index.Index(res), nil
+}
+
+func (ui *TUI) Facet(attr string) (*srch.Index, error) {
+	var m *Model
+	if _, ok := ui.facets[attr]; !ok {
+		return ui.Index, nil
+	}
+	m = ui.facets[attr]
+	sel := m.Choose()
+
+	vals := make(url.Values)
+	for _, s := range sel {
+		vals.Add(attr, m.Items()[s].FilterValue())
+	}
+	return ui.Index.Filter(vals), nil
+}
+
+func (ui *Model) Choose() []int {
+	p := tea.NewProgram(ui)
+	_, err := p.Run()
+	if err != nil {
+		return nil
+	}
+
+	return ui.ToggledItems()
 }
 
 func Choose(idx *srch.Index) (*srch.Index, error) {
@@ -39,6 +88,19 @@ func Choose(idx *srch.Index) (*srch.Index, error) {
 	return idx.Index(res), nil
 }
 
+func FacetModel(facet *srch.Field) *Model {
+	return newList(facet)
+}
+
+func newList(src fuzzy.Source) *Model {
+	items := SrcToItems(src)
+	l := list.New(items, list.NewDefaultDelegate(), 100, 20)
+	l.SetNoLimit()
+	return &Model{
+		Model: &l,
+	}
+}
+
 func FilterFacet(facet *srch.Field) string {
 	items := SrcToItems(facet)
 	sel, err := NewList(items)
@@ -53,7 +115,7 @@ func FilterFacet(facet *srch.Field) string {
 }
 
 func NewList(items []list.Item) ([]int, error) {
-	s := &TUI{}
+	s := &Model{}
 	l := list.New(items, list.NewDefaultDelegate(), 100, 20)
 	s.Model = &l
 	s.SetNoLimit()
@@ -67,9 +129,9 @@ func NewList(items []list.Item) ([]int, error) {
 	return s.ToggledItems(), nil
 }
 
-func (m *TUI) Init() tea.Cmd { return nil }
+func (m *Model) Init() tea.Cmd { return nil }
 
-func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		if msg.String() == "enter" {
