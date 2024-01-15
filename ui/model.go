@@ -47,10 +47,10 @@ func (ui *TUI) Choose() (*srch.Index, error) {
 	return ui.Index.Index(res), nil
 }
 
-func (ui *TUI) Facet(attr string) (*srch.Index, error) {
+func (ui *TUI) Facet(attr string) url.Values {
 	var m *Model
 	if _, ok := ui.facets[attr]; !ok {
-		return ui.Index, nil
+		return url.Values{}
 	}
 	m = ui.facets[attr]
 	sel := m.Choose()
@@ -59,7 +59,7 @@ func (ui *TUI) Facet(attr string) (*srch.Index, error) {
 	for _, s := range sel {
 		vals.Add(attr, m.Items()[s].FilterValue())
 	}
-	return ui.Index.Filter(vals), nil
+	return vals
 }
 
 func (ui *Model) Choose() []int {

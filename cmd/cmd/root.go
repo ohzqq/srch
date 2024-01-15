@@ -154,10 +154,9 @@ By default, results are printed to stdout as json.
 
 		if cmd.Flags().Changed("ui") {
 			tui := ui.NewTUI(idx)
-			idx, err = tui.Facet("tags")
-			if err != nil {
-				log.Fatal(err)
-			}
+			filter := tui.Facet("tags")
+			filter = tui.Facet("tags")
+			println(filter)
 		}
 
 		if p, err := cmd.Flags().GetBool("pretty"); err == nil && p {
