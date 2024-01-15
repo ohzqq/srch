@@ -57,7 +57,13 @@ func Tokenizer(str string) []*FacetItem {
 }
 
 func FacetTokenizer(val any) []*FacetItem {
-	tokens := cast.ToStringSlice(val)
+	var tokens []string
+	switch v := val.(type) {
+	case string:
+		tokens = append(tokens, v)
+	default:
+		tokens = cast.ToStringSlice(v)
+	}
 	items := make([]*FacetItem, len(tokens))
 	for i, token := range tokens {
 		items[i] = NewFacetItem(token)
