@@ -44,6 +44,22 @@ func New(q string, srch ...SearchFunc) *Index {
 	return idx
 }
 
+func IndexData(data []map[string]any, fields []*Field) []*Field {
+	for _, f := range fields {
+		f.items = make(map[string]*FacetItem)
+	}
+
+	for id, d := range data {
+		for i, f := range fields {
+			if val, ok := d[f.Attribute]; ok {
+				fields[i].Add(val, uint32(id))
+			}
+		}
+	}
+
+	return fields
+}
+
 func (idx *Index) ParseQuery(q string) *Index {
 	if q == "" {
 		return idx.SetQuery(make(url.Values))
@@ -84,10 +100,6 @@ func (idx *Index) Sort() {
 	}
 }
 
-func (idx *Index) Facets() []*Field {
-	return FilterFacets(idx.Fields)
-}
-
 func (idx *Index) Search(q string) *Index {
 	if idx.search == nil {
 		idx.search = FullTextSrchFunc(idx.Data, idx.TextFields())
@@ -111,22 +123,6 @@ func (idx *Index) AddField(fields ...*Field) *Index {
 	return idx
 }
 
-func IndexData(data []map[string]any, fields []*Field) []*Field {
-	for _, f := range fields {
-		f.items = make(map[string]*FacetItem)
-	}
-
-	for id, d := range data {
-		for i, f := range fields {
-			if val, ok := d[f.Attribute]; ok {
-				fields[i].Add(val, uint32(id))
-			}
-		}
-	}
-
-	return fields
-}
-
 func (idx *Index) GetField(attr string) (*Field, error) {
 	for _, f := range idx.Fields {
 		if f.Attribute == attr {
@@ -134,31 +130,6 @@ func (idx *Index) GetField(attr string) (*Field, error) {
 		}
 	}
 	return nil, errors.New("no such field")
-}
-
-func (idx *Index) String(i int) string {
-	s := lo.PickByKeys(
-		idx.Data[i],
-		idx.SearchableFields(),
-	)
-	vals := cast.ToStringSlice(lo.Values(s))
-	return strings.Join(vals, "\n")
-}
-
-func (idx *Index) FieldsString() string {
-	fq := idx.Query
-	fq.Del("data_file")
-	fq.Del("data_dir")
-	fq.Del("q")
-	return fq.Encode()
-}
-
-func (idx *Index) Len() int {
-	return len(idx.Data)
-}
-
-func (idx *Index) AddFieldsFromValues(cfg url.Values) *Index {
-	return CfgFieldsFromValues(idx, cfg)
 }
 
 func (idx *Index) FilterByID(ids []int) *Index {
@@ -173,17 +144,21 @@ func (idx *Index) Copy() *Index {
 	}
 }
 
+// HasFacets returns true if facets are configured.
+func (idx *Index) HasFacets() bool {
+	return len(idx.Facets()) > 0
+}
+
+func (idx *Index) Facets() []*Field {
+	return FilterFacets(idx.Fields)
+}
+
 func (idx *Index) TextFields() []*Field {
 	return FilterTextFields(idx.Fields)
 }
 
 func (idx *Index) SearchableFields() []string {
 	return SearchableFields(idx.Fields)
-}
-
-// HasFacets returns true if facets are configured.
-func (idx *Index) HasFacets() bool {
-	return len(idx.Facets()) > 0
 }
 
 func (idx *Index) UnmarshalJSON(d []byte) error {
@@ -249,6 +224,21 @@ func (idx *Index) PrettyPrint() {
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+// String satisfies the fuzzy.Source interface.
+func (idx *Index) String(i int) string {
+	s := lo.PickByKeys(
+		idx.Data[i],
+		idx.SearchableFields(),
+	)
+	vals := cast.ToStringSlice(lo.Values(s))
+	return strings.Join(vals, "\n")
+}
+
+// Len satisfies the fuzzy.Source interface.
+func (idx *Index) Len() int {
+	return len(idx.Data)
 }
 
 func exist(path string) bool {
