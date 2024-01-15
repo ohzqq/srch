@@ -163,6 +163,15 @@ func (f *Field) Search(text string) *roaring.Bitmap {
 	return processBitResults(bits, f.Operator)
 }
 
+func processBitResults(bits []*roaring.Bitmap, operator string) *roaring.Bitmap {
+	switch operator {
+	case "and":
+		return roaring.ParAnd(viper.GetInt("workers"), bits...)
+	default:
+		return roaring.ParOr(viper.GetInt("workers"), bits...)
+	}
+}
+
 // GetItem returns an *FacetItem.
 func (f *Field) GetItem(term string) *FacetItem {
 	for _, item := range f.Items() {
@@ -207,15 +216,6 @@ func (f *Field) String(i int) string {
 // Len returns the number of items, to satisfy the fuzzy.Source interface.
 func (f *Field) Len() int {
 	return len(f.Items())
-}
-
-func processBitResults(bits []*roaring.Bitmap, operator string) *roaring.Bitmap {
-	switch operator {
-	case "and":
-		return roaring.ParAnd(viper.GetInt("workers"), bits...)
-	default:
-		return roaring.ParOr(viper.GetInt("workers"), bits...)
-	}
 }
 
 func FilterFacets(fields []*Field) []*Field {
