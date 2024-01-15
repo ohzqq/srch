@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-const testValuesCfg = `and=tags:count:desc&field=title&or=authors:label:asc&or=narrators&or=series&data_dir=testdata/data-dir/&sort_by=title`
+const testValuesCfg = `and=tags:count:desc&field=title&or=authors:label:asc&or=narrators&or=series&data_file=testdata/data-dir/audiobooks.json&sort_by=title`
 
 func TestNewQuery(t *testing.T) {
 	t.SkipNow()

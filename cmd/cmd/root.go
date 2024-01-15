@@ -1,15 +1,11 @@
-//go:build ignore
-
 package cmd
 
 import (
-	"bytes"
 	"fmt"
 	"log"
+	"net/url"
 	"os"
-	"path/filepath"
 
-	"github.com/ohzqq/facet"
 	"github.com/ohzqq/srch"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -18,7 +14,6 @@ import (
 var (
 	cfgFile   string
 	dataFiles []string
-	idx       = &facet.Index{}
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -42,10 +37,43 @@ By default, results are printed to stdout as json.
 		var (
 			err     error
 			filters string
-			opts    []srch.Opt
-			src     srch.Src
-			q       = make(srch.Query)
+			q       = make(url.Values)
+			idx     *Index
 		)
+
+		if cmd.Flags().Changed("ui") {
+			opts = append(opts, srch.Interactive)
+		}
+
+		if cmd.Flags().Changed("query") {
+			query, err = cmd.Flags().GetString("query")
+			if err != nil {
+				log.Fatal(err)
+			}
+			q = srch.NewQuery(query)
+		}
+
+		if cmd.Flags().Changed("or") {
+			or, err := cmd.Flags().GetStringSlice("or")
+			if err != nil {
+				log.Fatal(err)
+			}
+			for _, o := range or {
+				q.Add("or", o)
+			}
+		}
+
+		if cmd.Flags().Changed("and") {
+			and, err := cmd.Flags().GetStringSlice("and")
+			if err != nil {
+				log.Fatal(err)
+			}
+			for _, o := range and {
+				q.Add("and", o)
+			}
+		}
+
+		idx = srch.New(q)
 
 		switch {
 		case cmd.Flags().Changed("dir"):
@@ -53,43 +81,18 @@ By default, results are printed to stdout as json.
 			if err != nil {
 				log.Fatal(err)
 			}
-			m, err := filepath.Glob(filepath.Join(dir, "/*"))
-			if err != nil {
-				log.Fatal(err)
-			}
-			src = srch.FileSrc(m...)
+			idx.Index(srch.DirSrc(dir))
 		case len(dataFiles) > 0:
-			src = srch.FileSrc(dataFiles...)
+			idx.Index(srch.FileSrc(dataFiles...))
 		case cmd.Flags().Changed("json"):
 			j, err := cmd.Flags().GetString("json")
 			if err != nil {
 				log.Fatal(err)
 			}
-			src = srch.ReaderSrc(bytes.NewBufferString(j))
+			idx.Index(srch.StringSrc(j))
 		default:
 			in := cmd.InOrStdin()
-			src = srch.ReaderSrc(in)
-		}
-
-		if cfgFile != "" {
-			opts = append(opts, srch.CfgFile(cfgFile))
-		}
-
-		if cmd.Flags().Changed("ui") {
-			opts = append(opts, srch.Interactive)
-		}
-
-		idx := srch.New(src, opts...)
-
-		if cmd.Flags().Changed("filter") {
-			filters, err = cmd.Flags().GetString("filter")
-			if err != nil {
-				log.Fatal(err)
-			}
-			q, err = srch.NewQuery(filters)
-			if err != nil {
-				log.Fatal(err)
-			}
+			idx.Index(srch.ReaderSrc(in))
 		}
 
 		if cmd.Flags().Changed("search") {
@@ -97,11 +100,7 @@ By default, results are printed to stdout as json.
 			if err != nil {
 				log.Fatal(err)
 			}
-			q.Set("q", kw)
-		}
-
-		if q.String() != "" {
-			idx = idx.Search(q.Values())
+			idx = idx.Search(kw)
 		}
 
 		if p, err := cmd.Flags().GetBool("pretty"); err == nil && p {
@@ -137,8 +136,10 @@ func init() {
 
 	rootCmd.PersistentFlags().Bool("ui", false, "select results in a tui")
 
-	rootCmd.PersistentFlags().StringP("filter", "f", "", "encoded query/filter string (eg. color=red&color=pink&category=post")
+	rootCmd.PersistentFlags().StringP("query", "q", "", "encoded query/filter string (eg. color=red&color=pink&category=post")
 	rootCmd.PersistentFlags().StringP("search", "s", "", "search index")
+	rootCmd.PersistentFlags().StringSliceP("or", "o", "", "disjunctive facets")
+	rootCmd.PersistentFlags().StringSliceP("and", "a", "", "conjunctive facets")
 
 	rootCmd.PersistentFlags().Bool("pretty", false, "pretty print json output")
 

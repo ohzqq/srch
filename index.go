@@ -29,7 +29,7 @@ type Index struct {
 
 type SearchFunc func(string) []map[string]any
 
-func New(q string, srch ...SearchFunc) *Index {
+func New(q any, srch ...SearchFunc) *Index {
 	idx := &Index{}
 	idx.ParseQuery(q)
 
