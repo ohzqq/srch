@@ -37,7 +37,7 @@ func searchFullText(data []map[string]any, fields []*Field, q string) []map[stri
 		bits = append(bits, field.Search(q))
 	}
 	res := processBitResults(bits, "and")
-	return FilterDataByID(data, cast.ToIntSlice(res.ToArray()))
+	return FilteredItems(data, lo.ToAnySlice(res.ToArray()))
 }
 
 func Tokenizer(str string) []*FacetItem {

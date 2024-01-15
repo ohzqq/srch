@@ -24,12 +24,12 @@ func getFuzzyMatches(idx *Index, q string) fuzzy.Matches {
 	return fuzzy.FindFrom(q, idx)
 }
 
-func getFuzzyMatchIndexes(matches fuzzy.Matches) []int {
-	return lo.Map(matches, func(m fuzzy.Match, _ int) int {
+func getFuzzyMatchIndexes(matches fuzzy.Matches) []any {
+	return lo.Map(matches, func(m fuzzy.Match, _ int) any {
 		return m.Index
 	})
 }
 
 func getFuzzyResults(data []map[string]any, matches fuzzy.Matches) []map[string]any {
-	return FilterDataByID(data, getFuzzyMatchIndexes(matches))
+	return FilteredItems(data, getFuzzyMatchIndexes(matches))
 }

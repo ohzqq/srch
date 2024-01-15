@@ -132,11 +132,6 @@ func (idx *Index) GetField(attr string) (*Field, error) {
 	return nil, errors.New("no such field")
 }
 
-func (idx *Index) FilterByID(ids []int) *Index {
-	data := FilterDataByID(idx.Data, ids)
-	return idx.Copy().Index(data)
-}
-
 func (idx *Index) Copy() *Index {
 	return &Index{
 		Fields: idx.Fields,
