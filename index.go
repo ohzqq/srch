@@ -60,8 +60,8 @@ func IndexData(data []map[string]any, fields []*Field) []*Field {
 	return fields
 }
 
-func (idx *Index) ParseQuery(q string) *Index {
-	if q == "" {
+func (idx *Index) ParseQuery(q any) *Index {
+	if q == nil {
 		return idx.SetQuery(make(url.Values))
 	}
 	return idx.SetQuery(NewQuery(q))

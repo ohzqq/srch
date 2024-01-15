@@ -6,7 +6,7 @@ import (
 	"github.com/spf13/cast"
 )
 
-func NewQuery(queries ...string) url.Values {
+func NewQuery(queries ...any) url.Values {
 	q := make(url.Values)
 	for _, query := range queries {
 		vals, err := ParseValues(query)
