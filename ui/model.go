@@ -47,10 +47,10 @@ func (ui *TUI) Choose() (*srch.Index, error) {
 	return ui.Index.Index(res), nil
 }
 
-func (ui *TUI) Facet(attr string) url.Values {
+func (ui *TUI) Facet(attr string) string {
 	var m *Model
 	if _, ok := ui.facets[attr]; !ok {
-		return url.Values{}
+		return ""
 	}
 	m = ui.facets[attr]
 	sel := m.Choose()
@@ -59,7 +59,7 @@ func (ui *TUI) Facet(attr string) url.Values {
 	for _, s := range sel {
 		vals.Add(attr, m.Items()[s].FilterValue())
 	}
-	return vals
+	return vals.Encode()
 }
 
 func (ui *Model) Choose() []int {
@@ -70,6 +70,14 @@ func (ui *Model) Choose() []int {
 	}
 
 	return ui.ToggledItems()
+}
+
+func (ui *TUI) listFacets() []string {
+	return lo.Keys(ui.facets)
+}
+
+func (ui *TUI) FacetMenu() *Model {
+	return newModel(StringSliceToItems(ui.listFacets()))
 }
 
 func Choose(idx *srch.Index) (*srch.Index, error) {
@@ -93,7 +101,10 @@ func FacetModel(facet *srch.Field) *Model {
 }
 
 func newList(src fuzzy.Source) *Model {
-	items := SrcToItems(src)
+	return newModel(SrcToItems(src))
+}
+
+func newModel(items []list.Item) *Model {
 	l := list.New(items, list.NewDefaultDelegate(), 100, 20)
 	l.SetNoLimit()
 	return &Model{
@@ -134,7 +145,7 @@ func (m *Model) Init() tea.Cmd { return nil }
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		if msg.String() == "enter" {
+		if msg.String() == "enter" && !m.Model.SettingFilter() {
 			return m, tea.Quit
 		}
 	}
