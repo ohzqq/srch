@@ -29,7 +29,7 @@ type Index struct {
 
 type SearchFunc func(string) []map[string]any
 
-func New(q string, srch ...SearchFunc) *Index {
+func New(q any, srch ...SearchFunc) *Index {
 	idx := &Index{}
 	idx.ParseQuery(q)
 
@@ -37,8 +37,26 @@ func New(q string, srch ...SearchFunc) *Index {
 		idx.search = srch[0]
 	}
 
-	if idx.Query.Has("q") {
+	switch {
+	case idx.Query.Has("q"):
 		return idx.Search(idx.Query.Get("q"))
+	}
+
+	return idx
+}
+
+func (idx *Index) Index(src []map[string]any) *Index {
+	if len(idx.Fields) < 1 {
+		idx.Fields = []*Field{NewField("title", Text)}
+	}
+	idx.Data = src
+	if idx.Query.Has("sort_by") {
+		idx.Sort()
+	}
+	idx.Fields = IndexData(idx.Data, idx.Fields)
+
+	if idx.HasFilters() {
+		return idx.Filter(idx.Filters())
 	}
 
 	return idx
@@ -52,7 +70,7 @@ func IndexData(data []map[string]any, fields []*Field) []*Field {
 	for id, d := range data {
 		for i, f := range fields {
 			if val, ok := d[f.Attribute]; ok {
-				fields[i].Add(val, uint32(id))
+				fields[i].Add(val, id)
 			}
 		}
 	}
@@ -79,18 +97,6 @@ func (idx *Index) SetQuery(q url.Values) *Index {
 	return idx
 }
 
-func (idx *Index) Index(src []map[string]any) *Index {
-	if len(idx.Fields) < 1 {
-		idx.Fields = []*Field{NewField("title", Text)}
-	}
-	idx.Data = src
-	if idx.Query.Has("sort_by") {
-		idx.Sort()
-	}
-	idx.Fields = IndexData(idx.Data, idx.Fields)
-	return idx
-}
-
 func (idx *Index) Sort() {
 	sortDataByField(idx.Data, idx.Query.Get("sort_by"))
 	if idx.Query.Has("order") {
@@ -106,23 +112,27 @@ func (idx *Index) Search(q string) *Index {
 	}
 	idx.Query.Set("q", q)
 	data := idx.search(q)
-	return idx.Copy().Index(data)
+	res := idx.Copy().Index(data)
+
+	if idx.HasFilters() {
+		return idx.Filter(idx.Filters())
+	}
+
+	return res
 }
 
-func (idx *Index) Filter(q string) *Index {
+func (idx *Index) Filter(q any) *Index {
 	vals, err := ParseValues(q)
 	if err != nil {
 		return idx
 	}
-	data := Filter(idx.Data, idx.Facets(), vals)
-	return idx.Copy().Index(data)
+	idx.Data = Filter(idx.Data, idx.Facets(), vals)
+	idx.Fields = IndexData(idx.Data, idx.Fields)
+	return idx
 }
 
 func (idx *Index) Copy() *Index {
-	return &Index{
-		Fields: idx.Fields,
-		Query:  idx.Query,
-	}
+	return New(idx.Query)
 }
 
 func (idx *Index) AddField(fields ...*Field) *Index {
@@ -139,6 +149,24 @@ func (idx *Index) GetField(attr string) (*Field, error) {
 	return nil, errors.New("no such field")
 }
 
+func (idx *Index) HasFilters() bool {
+	return len(idx.Filters()) > 0
+}
+
+func (idx *Index) Filters() url.Values {
+	res := []string{
+		"and",
+		"or",
+		"field",
+		"q",
+		"sort_by",
+		"order",
+		"data_file",
+		"data_dir",
+	}
+	return lo.OmitByKeys(idx.Query, res)
+}
+
 // HasFacets returns true if facets are configured.
 func (idx *Index) HasFacets() bool {
 	return len(idx.Facets()) > 0
@@ -146,6 +174,15 @@ func (idx *Index) HasFacets() bool {
 
 func (idx *Index) Facets() []*Field {
 	return FilterFacets(idx.Fields)
+}
+
+func (idx *Index) FacetLabels() []string {
+	f := idx.Facets()
+	facets := make([]string, len(f))
+	for i, facet := range f {
+		facets[i] = facet.Attribute
+	}
+	return facets
 }
 
 func (idx *Index) TextFields() []*Field {

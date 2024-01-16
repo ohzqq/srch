@@ -27,7 +27,8 @@ func GetDataFromQuery(q *url.Values) ([]map[string]any, error) {
 	var err error
 	switch {
 	case q.Has("data_file"):
-		data, err = dataFromFile(q.Get("data_file"))
+		qu := *q
+		data, err = FileSrc(qu["data_file"]...)
 		q.Del("data_file")
 	case q.Has("data_dir"):
 		data, err = DirSrc(q.Get("data_dir"))

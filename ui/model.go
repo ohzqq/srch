@@ -1,81 +1,40 @@
 package ui
 
 import (
-	"net/url"
-
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/londek/reactea"
 	"github.com/ohzqq/bubbles/list"
-	"github.com/ohzqq/srch"
 	"github.com/sahilm/fuzzy"
 )
 
-type TUI struct {
+type Model struct {
+	reactea.BasicComponent
+
 	*list.Model
-	*srch.Index
 }
 
 type item string
 
-func NewTUI(idx *srch.Index) *TUI {
-	return &TUI{
-		Index: idx,
+func NewModel(items []list.Item) *Model {
+	return &Model{
+		Model: newListModel(items),
 	}
 }
 
-func Choose(idx *srch.Index) (*srch.Index, error) {
-	items := SrcToItems(idx)
-	sel, err := NewList(items)
-	if err != nil {
-		return idx, err
-	}
-
-	if len(sel) < 1 {
-		return idx, nil
-	}
-
-	return idx.FilterByID(sel), nil
-}
-
-func FilterFacet(facet *srch.Facet) string {
-	items := SrcToItems(facet)
-	sel, err := NewList(items)
-	if err != nil {
-		return ""
-	}
-	vals := make(url.Values)
-	for _, s := range sel {
-		vals.Add(facet.Attribute, items[s].FilterValue())
-	}
-	return vals.Encode()
-}
-
-func NewList(items []list.Item) ([]int, error) {
-	s := &TUI{}
+func newListModel(items []list.Item) *list.Model {
 	l := list.New(items, list.NewDefaultDelegate(), 100, 20)
-	s.Model = &l
-	s.SetNoLimit()
-
-	p := tea.NewProgram(s)
-	_, err := p.Run()
-	if err != nil {
-		return nil, err
-	}
-
-	return s.ToggledItems(), nil
+	l.SetNoLimit()
+	return &l
 }
 
-func (m *TUI) Init() tea.Cmd { return nil }
-
-func (m *TUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	switch msg := msg.(type) {
-	case tea.KeyMsg:
-		if msg.String() == "enter" {
-			return m, tea.Quit
-		}
-	}
+func (m *Model) Update(msg tea.Msg) tea.Cmd {
 	l, cmd := m.Model.Update(msg)
 	m.Model = &l
-	return m, cmd
+	return cmd
+}
+
+func (m *Model) Render(w, h int) string {
+	return m.Model.View()
 }
 
 func (i item) FilterValue() string {
