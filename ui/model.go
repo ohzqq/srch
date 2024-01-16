@@ -24,11 +24,15 @@ type Props struct {
 }
 
 func NewModel(items []list.Item) *Model {
+	return &Model{
+		Model: newListModel(items),
+	}
+}
+
+func newListModel(items []list.Item) *list.Model {
 	l := list.New(items, list.NewDefaultDelegate(), 100, 20)
 	l.SetNoLimit()
-	return &Model{
-		Model: &l,
-	}
+	return &l
 }
 
 func (ui *Model) Choose() []int {
@@ -103,17 +107,11 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
-		case "f":
-			reactea.SetCurrentRoute("facetMenu")
-			//println("facetMenu")
-			return m.NewStatusMessage("facetMenu")
+		//case "f":
+		//reactea.SetCurrentRoute("facetMenu")
+		//println("facetMenu")
+		//return m.NewStatusMessage("facetMenu")
 		case "enter":
-			if !m.Model.SettingFilter() {
-				if !m.MultiSelectable() {
-					m.ToggleItem()
-				}
-				return tea.Quit
-			}
 		}
 	}
 	l, cmd := m.Model.Update(msg)

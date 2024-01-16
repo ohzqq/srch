@@ -2,7 +2,6 @@ package ui
 
 import (
 	"net/url"
-	"slices"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/londek/reactea"
@@ -19,41 +18,74 @@ type App struct {
 
 	*srch.Index
 	*Model
-	facets     map[string]*Model
+	og         *srch.Index
 	facetModel *Model
 	query      url.Values
+	facet      string
 }
 
 func New(idx *srch.Index) *App {
 	tui := &App{
-		Index:      idx,
-		facets:     make(map[string]*Model),
-		query:      make(url.Values),
+		Index: idx,
+		og:    idx.Copy().Index(idx.Data),
+		//query:      make(url.Values),
 		mainRouter: router.New(),
 	}
-	//tui.facetModel = tui.FacetMenu()
 
 	tui.Model = newList(idx)
 
-	for _, f := range idx.Facets() {
-		tui.facets[f.Attribute] = FacetModel(f)
-	}
 	return tui
 }
 
 func (c *App) Init(reactea.NoProps) tea.Cmd {
 	return c.mainRouter.Init(map[string]router.RouteInitializer{
 		"default": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
-			component := NewModel(SrcToItems(c.Index))
+			component := NewIdx(c.Index)
 
-			return component, component.Init(Props{})
+			return component, component.Init(IdxProps{
+				ClearFilters: c.ClearFilters,
+			})
+		},
+		"filtered": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
+			idx := c.Index
+			if c.query != nil {
+				idx = c.Filter(c.query)
+			}
+			component := NewIdx(idx)
+
+			return component, component.Init(IdxProps{
+				ClearFilters: c.ClearFilters,
+			})
 		},
 		"facetMenu": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
-			component := NewModel(StringSliceToItems(c.listFacets()))
+			component := NewFacetMenu(c.FacetLabels())
 
-			return component, component.Init(Props{})
+			return component, component.Init(FacetMenuProps{
+				SetFacet: c.SetFacet,
+			})
+		},
+		"facet": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
+			f, _ := c.GetField(c.facet)
+			component := NewFacet(f)
+
+			return component, component.Init(FacetProps{
+				SetFilters: c.SetFilters,
+			})
 		},
 	})
+}
+
+func (c *App) SetFacet(label string) {
+	c.facet = label
+}
+
+func (c *App) SetFilters(filters url.Values) {
+	c.query = filters
+}
+
+func (c *App) ClearFilters() {
+	c.query = nil
+	c.Index = c.og
 }
 
 func (c *App) Render(w, h int) string {
@@ -78,49 +110,9 @@ func (ui *App) Choose() (*srch.Index, error) {
 	return ui.Index.Index(res), nil
 }
 
-func (ui *App) Facet(attr string) string {
-	var m *Model
-	if _, ok := ui.facets[attr]; !ok {
-		return ""
-	}
-	m = ui.facets[attr]
-	sel := m.Choose()
-
-	vals := make(url.Values)
-	for _, s := range sel {
-		vals.Add(attr, m.Items()[s].FilterValue())
-	}
-	return vals.Encode()
-}
-
-func (ui *App) FacetMenu() string {
-	facets := ui.listFacets()
-	m := ui.facetMenu()
-	var sel int
-	for _, s := range m.Choose() {
-		sel = s
-	}
-	return facets[sel]
-}
-
-func (ui *App) listFacets() []string {
-	facets := lo.Keys(ui.facets)
-	slices.Sort(facets)
-	return facets
-}
-
-func (ui *App) facetMenu() *Model {
-	facets := ui.listFacets()
-	m := NewModel(StringSliceToItems(facets))
-	m.SetLimit(1)
-	return m
-}
-
 func (ui *App) Update(msg tea.Msg) tea.Cmd {
 	//var cmds []tea.Cmd
 	switch msg := msg.(type) {
-	case SelectedFacetMsg:
-		return ui.FilterFacetCmd(string(msg))
 	case tea.KeyMsg:
 		switch msg.String() {
 		//case "f":
@@ -134,20 +126,4 @@ func (ui *App) Update(msg tea.Msg) tea.Cmd {
 
 	//return tea.Batch(cmds...)
 	return ui.mainRouter.Update(msg)
-}
-
-type SelectedFacetMsg string
-
-func (ui *App) SelectFacetCmd() tea.Msg {
-	facet := ui.FacetMenu()
-	return SelectedFacetMsg(facet)
-}
-
-type FilterFacetMsg string
-
-func (ui *App) FilterFacetCmd(attr string) tea.Cmd {
-	return func() tea.Msg {
-		filter := ui.Facet(attr)
-		return FilterFacetMsg(filter)
-	}
 }

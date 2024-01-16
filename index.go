@@ -128,6 +128,12 @@ func (idx *Index) Filter(q any) *Index {
 	if err != nil {
 		return idx
 	}
+	//for k, vals := range vals {
+	//  for _, val := range vals {
+	//    idx.Query.Set(k, val)
+	//  }
+	//}
+
 	data := Filter(idx.Data, idx.Facets(), vals)
 	return idx.Copy().Index(data)
 }
@@ -178,6 +184,15 @@ func (idx *Index) HasFacets() bool {
 
 func (idx *Index) Facets() []*Field {
 	return FilterFacets(idx.Fields)
+}
+
+func (idx *Index) FacetLabels() []string {
+	f := idx.Facets()
+	facets := make([]string, len(f))
+	for i, facet := range f {
+		facets[i] = facet.Attribute
+	}
+	return facets
 }
 
 func (idx *Index) TextFields() []*Field {
