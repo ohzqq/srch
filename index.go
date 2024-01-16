@@ -56,9 +56,7 @@ func (idx *Index) Index(src []map[string]any) *Index {
 	idx.Fields = IndexData(idx.Data, idx.Fields)
 
 	if idx.HasFilters() {
-		idx.Data = Filter(idx.Data, idx.Facets(), idx.Filters())
-		idx.Fields = IndexData(idx.Data, idx.Fields)
-		return idx
+		return idx.Filter(idx.Filters())
 	}
 
 	return idx
@@ -128,21 +126,13 @@ func (idx *Index) Filter(q any) *Index {
 	if err != nil {
 		return idx
 	}
-	//for k, vals := range vals {
-	//  for _, val := range vals {
-	//    idx.Query.Set(k, val)
-	//  }
-	//}
-
-	data := Filter(idx.Data, idx.Facets(), vals)
-	return idx.Copy().Index(data)
+	idx.Data = Filter(idx.Data, idx.Facets(), vals)
+	idx.Fields = IndexData(idx.Data, idx.Fields)
+	return idx
 }
 
 func (idx *Index) Copy() *Index {
-	return &Index{
-		Fields: idx.Fields,
-		Query:  idx.Query,
-	}
+	return New(idx.Query)
 }
 
 func (idx *Index) AddField(fields ...*Field) *Index {

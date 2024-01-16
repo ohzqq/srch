@@ -32,7 +32,7 @@ func New(idx *srch.Index) *App {
 		mainRouter: router.New(),
 	}
 
-	tui.Model = newList(idx)
+	tui.Model = NewModel(SrcToItems(idx))
 
 	return tui
 }
