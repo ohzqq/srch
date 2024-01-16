@@ -14,7 +14,8 @@ type Idx struct {
 }
 
 type IdxProps struct {
-	ClearFilters func()
+	ClearFilters  func()
+	SetSelections func(*srch.Index)
 }
 
 func NewIdx(idx *srch.Index) *Idx {
@@ -36,6 +37,8 @@ func (m *Idx) Update(msg tea.Msg) tea.Cmd {
 		switch msg.String() {
 		case "enter":
 			if !m.Model.SettingFilter() {
+				m.Props().SetSelections(m.Index)
+				return reactea.Destroy
 			}
 		case "f":
 			reactea.SetCurrentRoute("facetMenu")

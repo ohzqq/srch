@@ -153,13 +153,13 @@ By default, results are printed to stdout as json.
 
 		if cmd.Flags().Changed("ui") {
 			tui := ui.New(idx)
-			i, err := tui.Choose()
+			idx, err = tui.Choose()
 			if err != nil {
 				log.Fatal(err)
 			}
 			//filter := tui.Facet(facet)
 			//filter = tui.Facet("tags")
-			println(i.Len())
+			println(tui.Filters.Encode())
 		}
 
 		if p, err := cmd.Flags().GetBool("pretty"); err == nil && p {
