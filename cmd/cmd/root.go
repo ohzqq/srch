@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"fmt"
 	"log"
 	"net/url"
 	"os"
@@ -144,19 +143,23 @@ By default, results are printed to stdout as json.
 			idx = idx.Search(keywords)
 		}
 
-		field, err := idx.GetField("tags")
-		if err != nil {
-			log.Fatal(err)
-		}
-		for i, item := range field.Items() {
-			fmt.Printf("string %s, val %s, label %s\n", field.String(i), item.Value, item.Label)
-		}
+		//field, err := idx.GetField("tags")
+		//if err != nil {
+		//log.Fatal(err)
+		//}
+		//for i, item := range field.Items() {
+		//  fmt.Printf("string %s, val %s, label %s\n", field.String(i), item.Value, item.Label)
+		//}
 
 		if cmd.Flags().Changed("ui") {
-			tui := ui.NewTUI(idx)
-			filter := tui.Facet("tags")
-			filter = tui.Facet("tags")
-			println(filter)
+			tui := ui.New(idx)
+			i, err := tui.Choose()
+			if err != nil {
+				log.Fatal(err)
+			}
+			//filter := tui.Facet(facet)
+			//filter = tui.Facet("tags")
+			println(i.Len())
 		}
 
 		if p, err := cmd.Flags().GetBool("pretty"); err == nil && p {

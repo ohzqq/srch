@@ -4,80 +4,41 @@ import (
 	"net/url"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/londek/reactea"
 	"github.com/ohzqq/bubbles/list"
 	"github.com/ohzqq/srch"
 	"github.com/sahilm/fuzzy"
 	"github.com/samber/lo"
 )
 
-type TUI struct {
-	*srch.Index
-	*Model
-	facets map[string]*Model
-}
-
 type Model struct {
+	reactea.BasicComponent
+	reactea.BasicPropfulComponent[Props]
+
 	*list.Model
 }
 
 type item string
 
-func NewTUI(idx *srch.Index) *TUI {
-	tui := &TUI{
-		Index:  idx,
-		facets: make(map[string]*Model),
-	}
-
-	tui.Model = newList(idx)
-
-	for _, f := range idx.Facets() {
-		tui.facets[f.Attribute] = FacetModel(f)
-	}
-	return tui
+type Props struct {
 }
 
-func (ui *TUI) Choose() (*srch.Index, error) {
-	sel := ui.Model.Choose()
-	if len(sel) < 1 {
-		return ui.Index, nil
+func NewModel(items []list.Item) *Model {
+	l := list.New(items, list.NewDefaultDelegate(), 100, 20)
+	l.SetNoLimit()
+	return &Model{
+		Model: &l,
 	}
-
-	res := srch.FilteredItems(ui.Index.Data, lo.ToAnySlice(sel))
-
-	return ui.Index.Index(res), nil
-}
-
-func (ui *TUI) Facet(attr string) string {
-	var m *Model
-	if _, ok := ui.facets[attr]; !ok {
-		return ""
-	}
-	m = ui.facets[attr]
-	sel := m.Choose()
-
-	vals := make(url.Values)
-	for _, s := range sel {
-		vals.Add(attr, m.Items()[s].FilterValue())
-	}
-	return vals.Encode()
 }
 
 func (ui *Model) Choose() []int {
-	p := tea.NewProgram(ui)
-	_, err := p.Run()
-	if err != nil {
-		return nil
-	}
+	//p := tea.NewProgram(ui)
+	//_, err := p.Run()
+	//if err != nil {
+	//  return nil
+	//}
 
 	return ui.ToggledItems()
-}
-
-func (ui *TUI) listFacets() []string {
-	return lo.Keys(ui.facets)
-}
-
-func (ui *TUI) FacetMenu() *Model {
-	return newModel(StringSliceToItems(ui.listFacets()))
 }
 
 func Choose(idx *srch.Index) (*srch.Index, error) {
@@ -101,15 +62,7 @@ func FacetModel(facet *srch.Field) *Model {
 }
 
 func newList(src fuzzy.Source) *Model {
-	return newModel(SrcToItems(src))
-}
-
-func newModel(items []list.Item) *Model {
-	l := list.New(items, list.NewDefaultDelegate(), 100, 20)
-	l.SetNoLimit()
-	return &Model{
-		Model: &l,
-	}
+	return NewModel(SrcToItems(src))
 }
 
 func FilterFacet(facet *srch.Field) string {
@@ -131,27 +84,46 @@ func NewList(items []list.Item) ([]int, error) {
 	s.Model = &l
 	s.SetNoLimit()
 
-	p := tea.NewProgram(s)
-	_, err := p.Run()
-	if err != nil {
-		return nil, err
-	}
+	//p := tea.NewProgram(s)
+	//_, err := p.Run()
+	//if err != nil {
+	//return nil, err
+	//}
 
 	return s.ToggledItems(), nil
 }
 
-func (m *Model) Init() tea.Cmd { return nil }
+func (m *Model) Init(props Props) tea.Cmd {
+	m.UpdateProps(props)
+	return nil
+}
 
-func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m *Model) Update(msg tea.Msg) tea.Cmd {
+	var cmds []tea.Cmd
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		if msg.String() == "enter" && !m.Model.SettingFilter() {
-			return m, tea.Quit
+		switch msg.String() {
+		case "f":
+			reactea.SetCurrentRoute("facetMenu")
+			//println("facetMenu")
+			return m.NewStatusMessage("facetMenu")
+		case "enter":
+			if !m.Model.SettingFilter() {
+				if !m.MultiSelectable() {
+					m.ToggleItem()
+				}
+				return tea.Quit
+			}
 		}
 	}
 	l, cmd := m.Model.Update(msg)
+	cmds = append(cmds, cmd)
 	m.Model = &l
-	return m, cmd
+	return tea.Batch(cmds...)
+}
+
+func (m *Model) Render(w, h int) string {
+	return m.Model.View()
 }
 
 func (i item) FilterValue() string {
