@@ -137,37 +137,25 @@ By default, results are printed to stdout as json.
 				log.Fatal(err)
 			}
 		}
-		idx = idx.Index(data)
 
-		if keywords != "" {
-			idx = idx.Search(keywords)
-		}
-
-		//field, err := idx.GetField("tags")
-		//if err != nil {
-		//log.Fatal(err)
-		//}
-		//for i, item := range field.Items() {
-		//  fmt.Printf("string %s, val %s, label %s\n", field.String(i), item.Value, item.Label)
-		//}
-
-		if cmd.Flags().Changed("ui") {
-			tui := ui.New(idx)
-			idx, err = tui.Choose()
+		if cmd.Flags().Changed("browse") {
+			tui := ui.Browse(q, data)
+			idx, err = tui.Run()
 			if err != nil {
 				log.Fatal(err)
 			}
-			//filter := tui.Facet(facet)
-			//filter = tui.Facet("tags")
-			println(tui.Filters.Encode())
+		} else {
+			idx = idx.Index(data)
+
+			if keywords != "" {
+				idx = idx.Search(keywords)
+			}
 		}
 
 		if p, err := cmd.Flags().GetBool("pretty"); err == nil && p {
-			println(idx.Len())
-			//idx.PrettyPrint()
+			idx.PrettyPrint()
 		} else {
-			println(idx.Len())
-			//idx.Print()
+			idx.Print()
 		}
 	},
 }
@@ -194,6 +182,7 @@ func init() {
 	rootCmd.MarkPersistentFlagFilename("index", ".json")
 
 	rootCmd.PersistentFlags().Bool("ui", false, "select results in a tui")
+	rootCmd.PersistentFlags().BoolP("browse", "b", false, "browse results in a tui")
 
 	rootCmd.PersistentFlags().StringSliceP("filter", "f", []string{}, "facet filters")
 	rootCmd.PersistentFlags().StringSliceP("text", "t", []string{}, "text fields")

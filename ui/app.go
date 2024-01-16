@@ -25,16 +25,35 @@ type App struct {
 }
 
 func New(idx *srch.Index) *App {
-	tui := &App{
-		visible:    idx,
-		query:      idx.Query,
-		data:       idx.Data,
+	tui := newApp(idx.Query, idx.Data)
+	tui.visible = idx
+	tui.Model = NewModel(SrcToItems(tui.Visible))
+	return tui
+}
+
+func Browse(q url.Values, data []map[string]any) *App {
+	tui := newApp(q, data)
+	tui.visible = srch.New(q).Index(data)
+	tui.Model = NewModel(SrcToItems(tui.visible))
+	return tui
+}
+
+func newApp(q url.Values, data []map[string]any) *App {
+	return &App{
+		query:      q,
+		data:       data,
 		mainRouter: router.New(),
 	}
+}
 
-	tui.Model = NewModel(SrcToItems(idx))
+func (ui *App) Run() (*srch.Index, error) {
+	p := reactea.NewProgram(ui)
+	_, err := p.Run()
+	if err != nil {
+		return ui.visible, err
+	}
 
-	return tui
+	return ui.Selections, nil
 }
 
 func (c *App) Init(reactea.NoProps) tea.Cmd {
@@ -77,6 +96,12 @@ func (c *App) SetFacet(label string) {
 	c.facet = label
 }
 
+func (c *App) Filter(label string) *App {
+	c.facet = label
+	reactea.SetCurrentRoute("facet")
+	return c
+}
+
 func (c *App) SetFilters(filters url.Values) {
 	c.Filters = srch.NewQuery(c.Filters, filters)
 	c.visible = c.visible.Filter(filters)
@@ -93,16 +118,6 @@ func (c *App) ClearFilters() {
 
 func (c *App) Render(w, h int) string {
 	return c.mainRouter.Render(w, h)
-}
-
-func (ui *App) Choose() (*srch.Index, error) {
-	p := reactea.NewProgram(ui)
-	_, err := p.Run()
-	if err != nil {
-		return ui.visible, err
-	}
-
-	return ui.Selections, nil
 }
 
 func (ui *App) Update(msg tea.Msg) tea.Cmd {
