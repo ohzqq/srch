@@ -27,7 +27,7 @@ type App struct {
 func New(idx *srch.Index) *App {
 	tui := newApp(idx.Query, idx.Data)
 	tui.visible = idx
-	tui.Model = NewModel(SrcToItems(tui.Visible))
+	tui.Model = NewModel(SrcToItems(tui.visible))
 	return tui
 }
 
@@ -58,22 +58,8 @@ func (ui *App) Run() (*srch.Index, error) {
 
 func (c *App) Init(reactea.NoProps) tea.Cmd {
 	return c.mainRouter.Init(map[string]router.RouteInitializer{
-		"default": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
-			component := NewIdx(c.visible)
-
-			return component, component.Init(IdxProps{
-				ClearFilters:  c.ClearFilters,
-				SetSelections: c.SetSelections,
-			})
-		},
-		"filtered": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
-			component := NewIdx(c.visible)
-
-			return component, component.Init(IdxProps{
-				ClearFilters:  c.ClearFilters,
-				SetSelections: c.SetSelections,
-			})
-		},
+		"default":  c.idxComponent,
+		"filtered": c.idxComponent,
 		"facetMenu": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
 			component := NewFacetMenu(c.visible.FacetLabels())
 
@@ -92,14 +78,17 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 	})
 }
 
-func (c *App) SetFacet(label string) {
-	c.facet = label
+func (c *App) idxComponent(router.Params) (reactea.SomeComponent, tea.Cmd) {
+	component := NewIdx(c.visible)
+
+	return component, component.Init(IdxProps{
+		ClearFilters:  c.ClearFilters,
+		SetSelections: c.SetSelections,
+	})
 }
 
-func (c *App) Filter(label string) *App {
+func (c *App) SetFacet(label string) {
 	c.facet = label
-	reactea.SetCurrentRoute("facet")
-	return c
 }
 
 func (c *App) SetFilters(filters url.Values) {
