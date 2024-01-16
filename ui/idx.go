@@ -4,6 +4,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/londek/reactea"
 	"github.com/ohzqq/srch"
+	"github.com/samber/lo"
 )
 
 type Idx struct {
@@ -37,13 +38,24 @@ func (m *Idx) Update(msg tea.Msg) tea.Cmd {
 		switch msg.String() {
 		case "enter":
 			if !m.Model.SettingFilter() {
-				m.Props().SetSelections(m.Index)
+				sel := m.Model.ToggledItems()
+
+				if len(sel) < 1 {
+					m.Props().SetSelections(m.Index)
+					return reactea.Destroy
+				}
+
+				res := srch.FilteredItems(
+					m.Data,
+					lo.ToAnySlice(sel),
+				)
+
+				m.Props().SetSelections(m.Index.Index(res))
 				return reactea.Destroy
 			}
 		case "f":
 			reactea.SetCurrentRoute("facetMenu")
-			//println("facetMenu")
-			return m.Model.NewStatusMessage("facetMenu")
+			return nil
 		case "c":
 			m.Props().ClearFilters()
 			reactea.SetCurrentRoute("default")

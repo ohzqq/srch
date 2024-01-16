@@ -15,12 +15,11 @@ type App struct {
 
 	mainRouter reactea.Component[router.Props]
 
-	*srch.Index
-	visible *srch.Index
 	*Model
-	query      url.Values
+	visible    *srch.Index
 	Filters    url.Values
 	data       []map[string]any
+	query      url.Values
 	facet      string
 	Selections *srch.Index
 }
@@ -81,8 +80,6 @@ func (c *App) SetFacet(label string) {
 func (c *App) SetFilters(filters url.Values) {
 	c.Filters = srch.NewQuery(c.Filters, filters)
 	c.visible = c.visible.Filter(filters)
-	//c.query = srch.NewQuery(c.query, filters)
-	//c.visible = srch.New(c.query).Index(data)
 }
 
 func (c *App) SetSelections(idx *srch.Index) {
@@ -99,7 +96,6 @@ func (c *App) Render(w, h int) string {
 }
 
 func (ui *App) Choose() (*srch.Index, error) {
-	//p := tea.NewProgram(ui)
 	p := reactea.NewProgram(ui)
 	_, err := p.Run()
 	if err != nil {
@@ -114,15 +110,9 @@ func (ui *App) Update(msg tea.Msg) tea.Cmd {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
-		//case "f":
-		//reactea.SetCurrentRoute("facetMenu")
-		//return ui.NewStatusMessage("facetMenu")
+		case "ctrl+c":
+			return reactea.Destroy
 		}
 	}
-	//cmd := ui.Model.Update(msg)
-	//cmds = append(cmds, cmd)
-	//ui.Model = ui.(*Model)
-
-	//return tea.Batch(cmds...)
 	return ui.mainRouter.Update(msg)
 }
