@@ -15,25 +15,31 @@ type App struct {
 
 	mainRouter reactea.Component[router.Props]
 
+	data  []map[string]any
+	query url.Values
+	og    *srch.Index
+
+	facetLabels []string
+	facets      map[string]*Facet
+
 	*Model
 	visible    *srch.Index
+	facetMenu  *FacetMenu
 	Filters    url.Values
-	data       []map[string]any
-	query      url.Values
 	facet      string
 	Selections *srch.Index
 }
 
 func New(idx *srch.Index) *App {
 	tui := newApp(idx.Query, idx.Data)
-	tui.visible = idx
+	tui.updateVisible(idx)
 	tui.Model = NewModel(SrcToItems(tui.visible))
 	return tui
 }
 
 func Browse(q url.Values, data []map[string]any) *App {
 	tui := newApp(q, data)
-	tui.visible = srch.New(q).Index(data)
+	tui.updateVisible(srch.New(q).Index(data))
 	tui.Model = NewModel(SrcToItems(tui.visible))
 	return tui
 }
@@ -41,6 +47,7 @@ func Browse(q url.Values, data []map[string]any) *App {
 func newApp(q url.Values, data []map[string]any) *App {
 	return &App{
 		query:      q,
+		og:         srch.New(q).Index(data),
 		data:       data,
 		mainRouter: router.New(),
 	}
@@ -61,15 +68,14 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 		"default":  c.idxComponent,
 		"filtered": c.idxComponent,
 		"facetMenu": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
-			component := NewFacetMenu(c.visible.FacetLabels())
+			component := NewFacetMenu(c.facetLabels)
 
 			return component, component.Init(FacetMenuProps{
 				SetFacet: c.SetFacet,
 			})
 		},
 		"facet": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
-			f, _ := c.visible.GetField(c.facet)
-			component := NewFacet(f)
+			component := c.getFacet(c.facet)
 
 			return component, component.Init(FacetProps{
 				SetFilters: c.SetFilters,
@@ -93,7 +99,7 @@ func (c *App) SetFacet(label string) {
 
 func (c *App) SetFilters(filters url.Values) {
 	c.Filters = srch.NewQuery(c.Filters, filters)
-	c.visible = c.visible.Filter(filters)
+	c.updateVisible(c.visible.Filter(filters))
 }
 
 func (c *App) SetSelections(idx *srch.Index) {
@@ -102,7 +108,28 @@ func (c *App) SetSelections(idx *srch.Index) {
 
 func (c *App) ClearFilters() {
 	c.Filters = make(url.Values)
-	c.visible = srch.New(c.query).Index(c.data)
+	c.updateVisible(srch.New(c.query).Index(c.data))
+}
+
+func (c *App) updateVisible(idx *srch.Index) {
+	c.visible = idx
+	c.facetLabels = c.visible.FacetLabels()
+	if len(c.facetLabels) > 0 {
+		//c.facets = make(map[string]*Facet)
+		//for _, label := range c.facetLabels {
+		//c.setFacet(label)
+		//}
+	}
+}
+
+func (c *App) setFacet(label string) {
+	f, _ := c.visible.GetField(label)
+	c.facets[label] = NewFacet(f)
+}
+
+func (c *App) getFacet(label string) *Facet {
+	f, _ := c.visible.GetField(label)
+	return NewFacet(f)
 }
 
 func (c *App) Render(w, h int) string {
