@@ -33,10 +33,10 @@ type SearchFunc func(string) []map[string]any
 func New(q any, srch ...SearchFunc) *Index {
 	idx := newIdx(q, srch...)
 
-	switch {
-	case idx.Query.Has("q"):
-		return idx.Search(idx.Query.Get("q"))
-	}
+	//switch {
+	//case idx.Query.Has("q"):
+	//  return idx.Search(idx.Query.Get("q"))
+	//}
 
 	return idx
 }
@@ -54,7 +54,8 @@ func newIdx(q any, srch ...SearchFunc) *Index {
 
 func (idx *Index) Index(src []map[string]any) *Index {
 	if len(idx.Fields) < 1 {
-		idx.Fields = []*Field{NewField("title", Text)}
+		idx.AddField(NewField("title", Text))
+		idx.Query.Add("field", "title")
 	}
 	idx.Data = src
 	if idx.Query.Has("sort_by") {
@@ -269,6 +270,7 @@ func (idx *Index) PrettyPrint() {
 }
 
 func (idx *Index) FuzzyFind(q string) []map[string]any {
+	println(q)
 	matches := fuzzy.FindFrom(q, idx)
 	res := make([]map[string]any, matches.Len())
 	for i, m := range matches {

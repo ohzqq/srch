@@ -1,21 +1,33 @@
 package srch
 
 import (
+	"net/url"
+	"strings"
+
 	"github.com/sahilm/fuzzy"
 	"github.com/samber/lo"
+	"github.com/spf13/cast"
 )
 
 func FuzzyFind(data []map[string]any, q string, fields ...string) *Index {
-	idx := New(q)
+	vals := make(url.Values)
+	vals.Set("q", q)
+	for _, f := range fields {
+		vals.Add("field", f)
+	}
+	idx := New(vals)
 
 	if len(data) < 1 {
 		return idx
 	}
 
-	idx.AddField(GetFieldsFromData(data, fields)...)
+	idx.Index(data)
 
-	matches := getFuzzyMatches(idx, q)
-	fr := getFuzzyResults(data, matches)
+	println(len(data))
+	println(idx.Len())
+	println(idx.Query.Encode())
+
+	fr := idx.FuzzyFind(vals.Get("q"))
 
 	return idx.Copy().Index(fr)
 }
@@ -32,6 +44,20 @@ func getFuzzyMatchIndexes(matches fuzzy.Matches) []any {
 
 func getFuzzyResults(data []map[string]any, matches fuzzy.Matches) []map[string]any {
 	return FilteredItems(data, getFuzzyMatchIndexes(matches))
+}
+
+func getFieldValues(data []map[string]any, fields []string) []string {
+	vals := make([]string, len(data))
+	for i, item := range data {
+		v := make([]string, len(fields))
+		for j, f := range fields {
+			if str, ok := item[f]; ok {
+				v[j] = cast.ToString(str)
+			}
+		}
+		vals[i] = strings.Join(v, " ")
+	}
+	return vals
 }
 
 func GetFieldsFromData(items []map[string]any, names []string) []*Field {

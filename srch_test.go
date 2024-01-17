@@ -37,13 +37,18 @@ func TestParseValues(t *testing.T) {
 }
 
 func TestFuzzySearch(t *testing.T) {
-	t.SkipNow()
-	data := make([]map[string]any, len(books))
-	for i, book := range books {
+	//t.SkipNow()
+	idx = New(testValuesCfg)
+	data := make([]map[string]any, len(idx.Data))
+	for i, book := range idx.Data {
 		data[i] = map[string]any{"title": book["title"]}
 	}
 	m := FuzzyFind(data, "fish")
-	fmt.Printf("gen text %v\n", m.Len())
+	//for _, f := range m.Fields {
+	//  fmt.Printf("gen text %+v\n", f)
+	//}
+	fmt.Printf("searchable fields %v\n", m.SearchableFields())
+	fmt.Printf("num res %d\n", m.Len())
 }
 
 func TestGenericFullTextSearch(t *testing.T) {
@@ -52,7 +57,7 @@ func TestGenericFullTextSearch(t *testing.T) {
 	for i, book := range books {
 		data[i] = map[string]any{"title": book["title"]}
 	}
-	ft := FullText(data, "fish")
+	ft := FullText(data, "fish", "title")
 	if len(ft.Data) != 8 {
 		t.Errorf("got %d, expected %d\n", len(ft.Data), 8)
 	}
