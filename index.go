@@ -9,6 +9,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/sahilm/fuzzy"
 	"github.com/samber/lo"
 	"github.com/spf13/cast"
 	"github.com/spf13/viper"
@@ -29,7 +30,18 @@ type Index struct {
 
 type SearchFunc func(string) []map[string]any
 
-func New(q any, srch ...SearchFunc) *Index {
+func New(q any) *Index {
+	idx := newIdx(q)
+
+	//switch {
+	//case idx.Query.Has("q"):
+	//  return idx.Search(idx.Query.Get("q"))
+	//}
+
+	return idx
+}
+
+func newIdx(q any, srch ...SearchFunc) *Index {
 	idx := &Index{}
 	idx.ParseQuery(q)
 
@@ -37,22 +49,21 @@ func New(q any, srch ...SearchFunc) *Index {
 		idx.search = srch[0]
 	}
 
-	switch {
-	case idx.Query.Has("q"):
-		return idx.Search(idx.Query.Get("q"))
-	}
-
 	return idx
 }
 
 func (idx *Index) Index(src []map[string]any) *Index {
 	if len(idx.Fields) < 1 {
-		idx.Fields = []*Field{NewField("title", Text)}
+		idx.AddField(NewField("title", Text))
+		idx.Query.Add("field", "title")
 	}
+
 	idx.Data = src
+
 	if idx.Query.Has("sort_by") {
 		idx.Sort()
 	}
+
 	idx.Fields = IndexData(idx.Data, idx.Fields)
 
 	if idx.HasFilters() {
@@ -76,6 +87,32 @@ func IndexData(data []map[string]any, fields []*Field) []*Field {
 	}
 
 	return fields
+}
+
+func (idx *Index) Search(q string) *Index {
+	if idx.search == nil {
+		//idx.search = FullTextSrchFunc(idx.Data, idx.TextFields())
+		idx.search = idx.FuzzyFind
+	}
+	idx.Query.Set("q", q)
+	data := idx.search(q)
+	res := idx.Copy().Index(data)
+
+	if idx.HasFilters() {
+		return idx.Filter(idx.Filters())
+	}
+
+	return res
+}
+
+func (idx *Index) Filter(q any) *Index {
+	vals, err := ParseValues(q)
+	if err != nil {
+		return idx
+	}
+	idx.Data = Filter(idx.Data, idx.Facets(), vals)
+	idx.Fields = IndexData(idx.Data, idx.Fields)
+	return idx
 }
 
 func (idx *Index) ParseQuery(q any) *Index {
@@ -106,33 +143,11 @@ func (idx *Index) Sort() {
 	}
 }
 
-func (idx *Index) Search(q string) *Index {
-	if idx.search == nil {
-		idx.search = FullTextSrchFunc(idx.Data, idx.TextFields())
-	}
-	idx.Query.Set("q", q)
-	data := idx.search(q)
-	res := idx.Copy().Index(data)
-
-	if idx.HasFilters() {
-		return idx.Filter(idx.Filters())
-	}
-
-	return res
-}
-
-func (idx *Index) Filter(q any) *Index {
-	vals, err := ParseValues(q)
-	if err != nil {
-		return idx
-	}
-	idx.Data = Filter(idx.Data, idx.Facets(), vals)
-	idx.Fields = IndexData(idx.Data, idx.Fields)
-	return idx
-}
-
 func (idx *Index) Copy() *Index {
-	return New(idx.Query)
+	if idx.search != nil {
+		return newIdx(idx.Query, idx.search)
+	}
+	return newIdx(idx.Query)
 }
 
 func (idx *Index) AddField(fields ...*Field) *Index {
@@ -256,6 +271,16 @@ func (idx *Index) PrettyPrint() {
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+func (idx *Index) FuzzyFind(q string) []map[string]any {
+	println(q)
+	matches := fuzzy.FindFrom(q, idx)
+	res := make([]map[string]any, matches.Len())
+	for i, m := range matches {
+		res[i] = idx.Data[m.Index]
+	}
+	return res
 }
 
 // String satisfies the fuzzy.Source interface.
