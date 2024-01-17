@@ -44,21 +44,38 @@ func TestFuzzySearch(t *testing.T) {
 		data[i] = map[string]any{"title": book["title"]}
 	}
 	m := FuzzyFind(data, "fish")
-	//for _, f := range m.Fields {
-	//  fmt.Printf("gen text %+v\n", f)
+	if m.Len() != 56 {
+		t.Errorf("num res %d, expected %d \n", m.Len(), 56)
+	}
+}
+
+func TestFullTextSearch(t *testing.T) {
+	//t.SkipNow()
+	idx = New(testValuesCfg, WithFullText())
+	//idx.Index(books)
+	res := idx.Search("fish")
+	if len(res.Data) != 8 {
+		t.Errorf("got %d, expected 8\n", len(res.Data))
+	}
+	//for _, facet := range idx.Facets() {
+	//  for _, item := range facet.Items {
+	//    fmt.Printf("%s: %d\n", item.Value, item.Count)
+	//  }
 	//}
-	fmt.Printf("searchable fields %v\n", m.SearchableFields())
-	fmt.Printf("num res %d\n", m.Len())
+
 }
 
 func TestGenericFullTextSearch(t *testing.T) {
 	//t.SkipNow()
-	data := make([]map[string]any, len(books))
-	for i, book := range books {
+	idx = New(testValuesCfg, WithFullText())
+	idx.Index(idx.Data)
+	data := make([]map[string]any, len(idx.Data))
+	for i, book := range idx.Data {
 		data[i] = map[string]any{"title": book["title"]}
 	}
 	ft := FullText(data, "fish")
 	if len(ft.Data) != 8 {
+		println(len(data))
 		t.Errorf("got %d, expected %d\n", len(ft.Data), 8)
 	}
 }
@@ -96,21 +113,6 @@ func TestFilterData(t *testing.T) {
 	}
 }
 
-func TestFullTextSearch(t *testing.T) {
-	//t.SkipNow()
-	idx.Index(books)
-	res := idx.Search("fish")
-	if len(res.Data) != 8 {
-		t.Errorf("got %d, expected 8\n", len(res.Data))
-	}
-	//for _, facet := range idx.Facets() {
-	//  for _, item := range facet.Items {
-	//    fmt.Printf("%s: %d\n", item.Value, item.Count)
-	//  }
-	//}
-
-}
-
 func TestSearchAndFilter(t *testing.T) {
 	t.SkipNow()
 	res := idx.Search("fish")
@@ -126,24 +128,19 @@ func TestSearchAndFilter(t *testing.T) {
 
 func TestAudibleSearch(t *testing.T) {
 	t.SkipNow()
-	//a := OldNew(
-	//  WithSearch(audibleSrch),
-	//  WithTextFields([]string{"Title"}),
-	//)
 
 	q := "field=Title&q=amy+lane+fish"
-	res := New(q)
+	a := New(
+		q,
+		WithSearch(audibleSrch),
+	)
+	res := a.Search("amy lane fish")
 
 	println("audible search")
 
 	//res := a.Search("amy lane fish")
-	fmt.Printf("num res %d\n", len(res.Data))
+	fmt.Printf("num res %d\n", res.Len())
 
-	//for i := 0; i < res.Len(); i++ {
-	//  println(res.String(i))
-	//}
-
-	//res.Print()
 }
 
 func audibleSrch(q string) []map[string]any {
@@ -162,7 +159,7 @@ func audibleApi(q string) []map[string]any {
 		mapstructure.Decode(p, &a)
 		sl = append(sl, a)
 	}
-	//fmt.Printf("products %v\n", r.Products)
+	fmt.Printf("products %v\n", r.Products)
 	return sl
 }
 

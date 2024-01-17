@@ -51,7 +51,7 @@ func TestIndexProps(t *testing.T) {
 		t.Errorf("got %d, expected 4\n", len(idx.Facets()))
 	}
 	if len(idx.TextFields()) != 1 {
-		t.Errorf("got %d, expected 4\n", len(idx.TextFields()))
+		t.Errorf("got %d, expected %d\n", len(idx.TextFields()), 1)
 	}
 }
 

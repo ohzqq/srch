@@ -1,6 +1,7 @@
 package srch
 
 import (
+	"net/url"
 	"strings"
 	"unicode"
 
@@ -11,7 +12,12 @@ import (
 )
 
 func FullText(data []map[string]any, q string, fields ...string) *Index {
-	idx := New(q)
+	vals := make(url.Values)
+	vals.Set("q", q)
+	for _, f := range fields {
+		vals.Add("field", f)
+	}
+	idx := New(vals, WithFullText())
 
 	if len(data) < 1 {
 		return idx
