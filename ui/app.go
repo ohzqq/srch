@@ -17,7 +17,6 @@ type App struct {
 
 	data  []map[string]any
 	query url.Values
-	og    *srch.Index
 
 	facetLabels []string
 	facets      map[string]*Facet
@@ -47,7 +46,6 @@ func Browse(q url.Values, data []map[string]any) *App {
 func newApp(q url.Values, data []map[string]any) *App {
 	return &App{
 		query:      q,
-		og:         srch.New(q).Index(data),
 		data:       data,
 		mainRouter: router.New(),
 	}
@@ -137,7 +135,6 @@ func (c *App) Render(w, h int) string {
 }
 
 func (ui *App) Update(msg tea.Msg) tea.Cmd {
-	//var cmds []tea.Cmd
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
