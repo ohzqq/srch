@@ -12,6 +12,7 @@ import (
 
 func FullText(data []map[string]any, q string, fields ...string) *Index {
 	idx := New(q)
+	idx.FullText()
 
 	if len(data) < 1 {
 		return idx

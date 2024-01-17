@@ -51,6 +51,23 @@ func TestFuzzySearch(t *testing.T) {
 	fmt.Printf("num res %d\n", m.Len())
 }
 
+func TestFullTextSearch(t *testing.T) {
+	//t.SkipNow()
+	query := fmt.Sprintf("%s&%s&%s", testValuesCfg, testQueryString, testSearchString)
+	idx = New(query, WithFullText())
+	idx.Index(books)
+	res := idx.Search("fish")
+	if len(res.Data) != 8 {
+		t.Errorf("got %d, expected 8\n", len(res.Data))
+	}
+	//for _, facet := range idx.Facets() {
+	//  for _, item := range facet.Items {
+	//    fmt.Printf("%s: %d\n", item.Value, item.Count)
+	//  }
+	//}
+
+}
+
 func TestGenericFullTextSearch(t *testing.T) {
 	//t.SkipNow()
 	data := make([]map[string]any, len(books))
@@ -94,21 +111,6 @@ func TestFilterData(t *testing.T) {
 	if len(d) != 384 {
 		t.Errorf("got %d, expected %d\n", len(d), 384)
 	}
-}
-
-func TestFullTextSearch(t *testing.T) {
-	//t.SkipNow()
-	idx.Index(books)
-	res := idx.Search("fish")
-	if len(res.Data) != 8 {
-		t.Errorf("got %d, expected 8\n", len(res.Data))
-	}
-	//for _, facet := range idx.Facets() {
-	//  for _, item := range facet.Items {
-	//    fmt.Printf("%s: %d\n", item.Value, item.Count)
-	//  }
-	//}
-
 }
 
 func TestSearchAndFilter(t *testing.T) {

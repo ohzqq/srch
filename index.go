@@ -22,28 +22,27 @@ func init() {
 
 // Index is a structure for facets and data.
 type Index struct {
-	search SearchFunc
-	Fields []*Field         `json:"fields"`
-	Data   []map[string]any `json:"data"`
-	Query  url.Values       `json:"query"`
+	search   SearchFunc
+	Fields   []*Field         `json:"fields"`
+	Data     []map[string]any `json:"data"`
+	Query    url.Values       `json:"query"`
+	fullText bool
 }
 
 type SearchFunc func(string) []map[string]any
 
-func New(q any) *Index {
-	idx := &Index{}
-	idx.ParseQuery(q)
+type Opt func(*Index)
 
-	return idx
-}
-
-func newIdx(q any, srch ...SearchFunc) *Index {
-	idx := &Index{}
-	idx.ParseQuery(q)
-
-	if len(srch) > 0 {
-		idx.search = srch[0]
+func New(query any, opts ...Opt) *Index {
+	idx := &Index{
+		Query: NewQuery(query),
 	}
+
+	for _, opt := range opts {
+		opt(idx)
+	}
+
+	idx.SetQuery(idx.Query)
 
 	return idx
 }
@@ -85,9 +84,35 @@ func IndexData(data []map[string]any, fields []*Field) []*Field {
 	return fields
 }
 
+func WithSearch(s SearchFunc) Opt {
+	return func(idx *Index) {
+		idx.search = s
+	}
+}
+
+func WithFullText() Opt {
+	return func(idx *Index) {
+		idx.Query.Set("full_text", "")
+	}
+}
+
 func (idx *Index) SetSearch(s SearchFunc) *Index {
 	idx.search = s
 	return idx
+}
+
+func (idx *Index) FullText() *Index {
+	idx.Query.Set("full_text", "")
+	if idx.Query.Has("full_text") {
+		for _, f := range idx.Fields {
+			f.FieldType = Text
+		}
+	}
+	return idx.SetSearch(idx.FindText)
+}
+
+func (idx *Index) FindText(q string) []map[string]any {
+	return searchFullText(idx.Data, idx.TextFields(), idx.Query.Get("q"))
 }
 
 func (idx *Index) Search(q string) *Index {
@@ -145,10 +170,11 @@ func (idx *Index) Sort() {
 }
 
 func (idx *Index) Copy() *Index {
+	n := New(idx.Query)
 	if idx.search != nil {
-		return newIdx(idx.Query, idx.search)
+		return n.SetSearch(idx.search)
 	}
-	return newIdx(idx.Query)
+	return n
 }
 
 func (idx *Index) AddField(fields ...*Field) *Index {
