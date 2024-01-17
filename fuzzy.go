@@ -23,10 +23,6 @@ func FuzzyFind(data []map[string]any, q string, fields ...string) *Index {
 
 	idx.Index(data)
 
-	println(len(data))
-	println(idx.Len())
-	println(idx.Query.Encode())
-
 	fr := idx.FuzzyFind(vals.Get("q"))
 
 	return idx.Copy().Index(fr)

@@ -30,8 +30,8 @@ type Index struct {
 
 type SearchFunc func(string) []map[string]any
 
-func New(q any, srch ...SearchFunc) *Index {
-	idx := newIdx(q, srch...)
+func New(q any) *Index {
+	idx := newIdx(q)
 
 	//switch {
 	//case idx.Query.Has("q"):
@@ -57,10 +57,13 @@ func (idx *Index) Index(src []map[string]any) *Index {
 		idx.AddField(NewField("title", Text))
 		idx.Query.Add("field", "title")
 	}
+
 	idx.Data = src
+
 	if idx.Query.Has("sort_by") {
 		idx.Sort()
 	}
+
 	idx.Fields = IndexData(idx.Data, idx.Fields)
 
 	if idx.HasFilters() {
@@ -88,7 +91,8 @@ func IndexData(data []map[string]any, fields []*Field) []*Field {
 
 func (idx *Index) Search(q string) *Index {
 	if idx.search == nil {
-		idx.search = FullTextSrchFunc(idx.Data, idx.TextFields())
+		//idx.search = FullTextSrchFunc(idx.Data, idx.TextFields())
+		idx.search = idx.FuzzyFind
 	}
 	idx.Query.Set("q", q)
 	data := idx.search(q)

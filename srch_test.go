@@ -57,7 +57,7 @@ func TestGenericFullTextSearch(t *testing.T) {
 	for i, book := range books {
 		data[i] = map[string]any{"title": book["title"]}
 	}
-	ft := FullText(data, "fish", "title")
+	ft := FullText(data, "fish")
 	if len(ft.Data) != 8 {
 		t.Errorf("got %d, expected %d\n", len(ft.Data), 8)
 	}
@@ -132,7 +132,7 @@ func TestAudibleSearch(t *testing.T) {
 	//)
 
 	q := "field=Title&q=amy+lane+fish"
-	res := New(q, audibleSrch)
+	res := New(q)
 
 	println("audible search")
 
