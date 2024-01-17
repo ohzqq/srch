@@ -3,6 +3,8 @@ package ui
 import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/londek/reactea"
+	"github.com/ohzqq/bubbles/key"
+	"github.com/ohzqq/bubbles/list"
 	"github.com/ohzqq/srch"
 	"github.com/samber/lo"
 )
@@ -12,6 +14,9 @@ type Idx struct {
 	reactea.BasicPropfulComponent[IdxProps]
 	Model *Model
 	*srch.Index
+	Enter        key.Binding
+	FacetMenu    key.Binding
+	ClearFilters key.Binding
 }
 
 type IdxProps struct {
@@ -20,10 +25,35 @@ type IdxProps struct {
 }
 
 func NewIdx(idx *srch.Index) *Idx {
-	return &Idx{
+	m := &Idx{
 		Index: idx,
 		Model: NewModel(SrcToItems(idx)),
+		Enter: key.NewBinding(
+			key.WithKeys("enter"),
+			key.WithHelp("enter", "return selections"),
+		),
+		FacetMenu: key.NewBinding(
+			key.WithKeys("f"),
+			key.WithHelp("f", "list facets"),
+		),
+		ClearFilters: key.NewBinding(
+			key.WithKeys("c"),
+			key.WithHelp("c", "clear filters"),
+		),
 	}
+	del := list.NewDefaultDelegate()
+	keys := []key.Binding{
+		m.FacetMenu,
+		m.ClearFilters,
+	}
+	del.ShortHelpFunc = func() []key.Binding {
+		return keys
+	}
+	del.FullHelpFunc = func() [][]key.Binding {
+		return [][]key.Binding{keys}
+	}
+	m.Model.SetDelegate(del)
+	return m
 }
 
 func (m *Idx) Init(props IdxProps) tea.Cmd {
@@ -35,8 +65,15 @@ func (m *Idx) Update(msg tea.Msg) tea.Cmd {
 	var cmds []tea.Cmd
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		switch msg.String() {
-		case "enter":
+		switch {
+		case key.Matches(msg, m.FacetMenu):
+			reactea.SetCurrentRoute("facetMenu")
+			return nil
+		case key.Matches(msg, m.ClearFilters):
+			m.Props().ClearFilters()
+			reactea.SetCurrentRoute("default")
+			return nil
+		case key.Matches(msg, m.Enter):
 			if !m.Model.SettingFilter() {
 				sel := m.Model.ToggledItems()
 
@@ -53,13 +90,6 @@ func (m *Idx) Update(msg tea.Msg) tea.Cmd {
 				m.Props().SetSelections(m.Index.Index(res))
 				return reactea.Destroy
 			}
-		case "f":
-			reactea.SetCurrentRoute("facetMenu")
-			return nil
-		case "c":
-			m.Props().ClearFilters()
-			reactea.SetCurrentRoute("default")
-			return nil
 		}
 	}
 	cmds = append(cmds, m.Model.Update(msg))
