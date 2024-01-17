@@ -22,11 +22,10 @@ func init() {
 
 // Index is a structure for facets and data.
 type Index struct {
-	search   SearchFunc
-	Fields   []*Field         `json:"fields"`
-	Data     []map[string]any `json:"data"`
-	Query    url.Values       `json:"query"`
-	fullText bool
+	search SearchFunc
+	Fields []*Field         `json:"fields"`
+	Data   []map[string]any `json:"data"`
+	Query  url.Values       `json:"query"`
 }
 
 type SearchFunc func(string) []map[string]any
@@ -101,17 +100,7 @@ func (idx *Index) SetSearch(s SearchFunc) *Index {
 	return idx
 }
 
-func (idx *Index) FullText() *Index {
-	idx.Query.Set("full_text", "")
-	if idx.Query.Has("full_text") {
-		for _, f := range idx.Fields {
-			f.FieldType = Text
-		}
-	}
-	return idx.SetSearch(idx.FindText)
-}
-
-func (idx *Index) FindText(q string) []map[string]any {
+func (idx *Index) FullText(q string) []map[string]any {
 	return searchFullText(idx.Data, idx.TextFields(), idx.Query.Get("q"))
 }
 
@@ -137,19 +126,12 @@ func (idx *Index) Filter(q any) *Index {
 	return idx
 }
 
-func (idx *Index) ParseQuery(q any) *Index {
-	if q == nil {
-		return idx.SetQuery(make(url.Values))
-	}
-	return idx.SetQuery(NewQuery(q))
-}
-
 func (idx *Index) SetQuery(q url.Values) *Index {
 	idx.Query = q
 	idx.search = idx.FuzzyFind
 
 	if idx.Query.Has("full_text") {
-		idx.SetSearch(idx.FindText)
+		idx.SetSearch(idx.FullText)
 	}
 
 	idx.AddField(ParseFieldsFromValues(idx.Query)...)
@@ -198,18 +180,19 @@ func (idx *Index) HasFilters() bool {
 }
 
 func (idx *Index) Filters() url.Values {
-	res := []string{
-		"and",
-		"or",
-		"field",
-		"q",
-		"sort_by",
-		"order",
-		"data_file",
-		"data_dir",
-		"full_text",
-	}
-	return lo.OmitByKeys(idx.Query, res)
+	return lo.OmitByKeys(idx.Query, ReservedKeys)
+}
+
+var ReservedKeys = []string{
+	"and",
+	"or",
+	"field",
+	"q",
+	"sort_by",
+	"order",
+	"data_file",
+	"data_dir",
+	"full_text",
 }
 
 // HasFacets returns true if facets are configured.
@@ -251,7 +234,7 @@ func (idx *Index) UnmarshalJSON(d []byte) error {
 		if err != nil {
 			return err
 		}
-		idx.ParseQuery(q)
+		idx.SetQuery(NewQuery(q))
 	}
 
 	if msg, ok := un["data"]; ok {
@@ -304,7 +287,6 @@ func (idx *Index) PrettyPrint() {
 }
 
 func (idx *Index) FuzzyFind(q string) []map[string]any {
-	println(q)
 	matches := fuzzy.FindFrom(q, idx)
 	res := make([]map[string]any, matches.Len())
 	for i, m := range matches {
