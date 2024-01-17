@@ -9,6 +9,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/sahilm/fuzzy"
 	"github.com/samber/lo"
 	"github.com/spf13/cast"
 	"github.com/spf13/viper"
@@ -37,10 +38,10 @@ func New(q any, srch ...SearchFunc) *Index {
 		idx.search = srch[0]
 	}
 
-	switch {
-	case idx.Query.Has("q"):
-		return idx.Search(idx.Query.Get("q"))
-	}
+	//switch {
+	//case idx.Query.Has("q"):
+	//  return idx.Search(idx.Query.Get("q"))
+	//}
 
 	return idx
 }
@@ -78,6 +79,31 @@ func IndexData(data []map[string]any, fields []*Field) []*Field {
 	return fields
 }
 
+func (idx *Index) Search(q string) *Index {
+	if idx.search == nil {
+		idx.search = FullTextSrchFunc(idx.Data, idx.TextFields())
+	}
+	idx.Query.Set("q", q)
+	data := idx.search(q)
+	res := idx.Copy().Index(data)
+
+	if idx.HasFilters() {
+		return idx.Filter(idx.Filters())
+	}
+
+	return res
+}
+
+func (idx *Index) Filter(q any) *Index {
+	vals, err := ParseValues(q)
+	if err != nil {
+		return idx
+	}
+	idx.Data = Filter(idx.Data, idx.Facets(), vals)
+	idx.Fields = IndexData(idx.Data, idx.Fields)
+	return idx
+}
+
 func (idx *Index) ParseQuery(q any) *Index {
 	if q == nil {
 		return idx.SetQuery(make(url.Values))
@@ -104,31 +130,6 @@ func (idx *Index) Sort() {
 			slices.Reverse(idx.Data)
 		}
 	}
-}
-
-func (idx *Index) Search(q string) *Index {
-	if idx.search == nil {
-		idx.search = FullTextSrchFunc(idx.Data, idx.TextFields())
-	}
-	idx.Query.Set("q", q)
-	data := idx.search(q)
-	res := idx.Copy().Index(data)
-
-	if idx.HasFilters() {
-		return idx.Filter(idx.Filters())
-	}
-
-	return res
-}
-
-func (idx *Index) Filter(q any) *Index {
-	vals, err := ParseValues(q)
-	if err != nil {
-		return idx
-	}
-	idx.Data = Filter(idx.Data, idx.Facets(), vals)
-	idx.Fields = IndexData(idx.Data, idx.Fields)
-	return idx
 }
 
 func (idx *Index) Copy() *Index {
@@ -256,6 +257,15 @@ func (idx *Index) PrettyPrint() {
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+func (idx *Index) FuzzyFind(q string) []map[string]any {
+	matches := fuzzy.FindFrom(q, idx)
+	res := make([]map[string]any, matches.Len())
+	for i, m := range matches {
+		res[i] = idx.Data[m.Index]
+	}
+	return res
 }
 
 // String satisfies the fuzzy.Source interface.
