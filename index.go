@@ -116,10 +116,6 @@ func (idx *Index) FindText(q string) []map[string]any {
 }
 
 func (idx *Index) Search(q string) *Index {
-	if idx.search == nil {
-		//idx.search = FullTextSrchFunc(idx.Data, idx.TextFields())
-		idx.search = idx.FuzzyFind
-	}
 	idx.Query.Set("q", q)
 	data := idx.search(q)
 	res := idx.Copy().Index(data)
@@ -150,6 +146,12 @@ func (idx *Index) ParseQuery(q any) *Index {
 
 func (idx *Index) SetQuery(q url.Values) *Index {
 	idx.Query = q
+	idx.search = idx.FuzzyFind
+
+	if idx.Query.Has("full_text") {
+		idx.SetSearch(idx.FindText)
+	}
+
 	idx.AddField(ParseFieldsFromValues(idx.Query)...)
 
 	data, err := GetDataFromQuery(&idx.Query)
@@ -205,6 +207,7 @@ func (idx *Index) Filters() url.Values {
 		"order",
 		"data_file",
 		"data_dir",
+		"full_text",
 	}
 	return lo.OmitByKeys(idx.Query, res)
 }

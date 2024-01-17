@@ -228,7 +228,8 @@ func mapFieldAttr(f *Field, _ int) string {
 }
 
 func filterTextFields(f *Field, _ int) bool {
-	return f.FieldType == Text
+	return f.FieldType == Text ||
+		f.FieldType == Fuzzy
 }
 
 func filterFacetFields(f *Field, _ int) bool {

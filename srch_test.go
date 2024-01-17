@@ -44,18 +44,15 @@ func TestFuzzySearch(t *testing.T) {
 		data[i] = map[string]any{"title": book["title"]}
 	}
 	m := FuzzyFind(data, "fish")
-	//for _, f := range m.Fields {
-	//  fmt.Printf("gen text %+v\n", f)
-	//}
-	fmt.Printf("searchable fields %v\n", m.SearchableFields())
-	fmt.Printf("num res %d\n", m.Len())
+	if m.Len() != 56 {
+		t.Errorf("num res %d, expected %d \n", m.Len(), 56)
+	}
 }
 
 func TestFullTextSearch(t *testing.T) {
 	//t.SkipNow()
-	query := fmt.Sprintf("%s&%s&%s", testValuesCfg, testQueryString, testSearchString)
-	idx = New(query, WithFullText())
-	idx.Index(books)
+	idx = New(testValuesCfg, WithFullText())
+	//idx.Index(books)
 	res := idx.Search("fish")
 	if len(res.Data) != 8 {
 		t.Errorf("got %d, expected 8\n", len(res.Data))
@@ -70,12 +67,15 @@ func TestFullTextSearch(t *testing.T) {
 
 func TestGenericFullTextSearch(t *testing.T) {
 	//t.SkipNow()
-	data := make([]map[string]any, len(books))
-	for i, book := range books {
+	idx = New(testValuesCfg, WithFullText())
+	idx.Index(idx.Data)
+	data := make([]map[string]any, len(idx.Data))
+	for i, book := range idx.Data {
 		data[i] = map[string]any{"title": book["title"]}
 	}
 	ft := FullText(data, "fish")
 	if len(ft.Data) != 8 {
+		println(len(data))
 		t.Errorf("got %d, expected %d\n", len(ft.Data), 8)
 	}
 }

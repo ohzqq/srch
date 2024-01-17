@@ -15,10 +15,9 @@ func TestNewQuery(t *testing.T) {
 		t.Errorf("got %v, expected %d\n,%v\n", l, 7, q)
 	}
 	query := fmt.Sprintf("%s&%s&%s", testValuesCfg, testQueryString, testSearchString)
-	println(query)
 	i := New(query)
-	if i.Len() != 3 {
-		t.Errorf("got %d, expected %d\v", i.Len(), 3)
+	if i.Len() != 2 {
+		t.Errorf("got %d, expected %d\v", i.Len(), 2)
 	}
 	if len(i.Fields) != 5 {
 		for _, f := range i.Fields {
