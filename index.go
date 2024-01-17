@@ -31,17 +31,23 @@ type Index struct {
 type SearchFunc func(string) []map[string]any
 
 func New(q any, srch ...SearchFunc) *Index {
+	idx := newIdx(q, srch...)
+
+	switch {
+	case idx.Query.Has("q"):
+		return idx.Search(idx.Query.Get("q"))
+	}
+
+	return idx
+}
+
+func newIdx(q any, srch ...SearchFunc) *Index {
 	idx := &Index{}
 	idx.ParseQuery(q)
 
 	if len(srch) > 0 {
 		idx.search = srch[0]
 	}
-
-	//switch {
-	//case idx.Query.Has("q"):
-	//  return idx.Search(idx.Query.Get("q"))
-	//}
 
 	return idx
 }
@@ -133,7 +139,10 @@ func (idx *Index) Sort() {
 }
 
 func (idx *Index) Copy() *Index {
-	return New(idx.Query)
+	if idx.search != nil {
+		return newIdx(idx.Query, idx.search)
+	}
+	return newIdx(idx.Query)
 }
 
 func (idx *Index) AddField(fields ...*Field) *Index {
