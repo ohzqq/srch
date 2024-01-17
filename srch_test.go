@@ -127,13 +127,12 @@ func TestSearchAndFilter(t *testing.T) {
 }
 
 func TestAudibleSearch(t *testing.T) {
-	//t.SkipNow()
+	t.SkipNow()
 
 	q := "field=Title&q=amy+lane+fish"
 	a := New(
 		q,
 		WithSearch(audibleSrch),
-	//  WithTextFields([]string{"Title"}),
 	)
 	res := a.Search("amy lane fish")
 
@@ -142,11 +141,6 @@ func TestAudibleSearch(t *testing.T) {
 	//res := a.Search("amy lane fish")
 	fmt.Printf("num res %d\n", res.Len())
 
-	//for i := 0; i < res.Len(); i++ {
-	//  println(res.String(i))
-	//}
-
-	//res.Print()
 }
 
 func audibleSrch(q string) []map[string]any {
