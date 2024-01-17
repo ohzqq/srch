@@ -31,12 +31,8 @@ type Index struct {
 type SearchFunc func(string) []map[string]any
 
 func New(q any) *Index {
-	idx := newIdx(q)
-
-	//switch {
-	//case idx.Query.Has("q"):
-	//  return idx.Search(idx.Query.Get("q"))
-	//}
+	idx := &Index{}
+	idx.ParseQuery(q)
 
 	return idx
 }
@@ -87,6 +83,11 @@ func IndexData(data []map[string]any, fields []*Field) []*Field {
 	}
 
 	return fields
+}
+
+func (idx *Index) SetSearch(s SearchFunc) *Index {
+	idx.search = s
+	return idx
 }
 
 func (idx *Index) Search(q string) *Index {

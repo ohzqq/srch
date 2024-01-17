@@ -54,22 +54,6 @@ func CopyField(field *Field) *Field {
 	return f
 }
 
-func NewTextFields(names []string) []*Field {
-	fields := make([]*Field, len(names))
-	for i, f := range names {
-		fields[i] = NewField(f, Fuzzy)
-	}
-	return fields
-}
-
-func NewFacets(names []string) []*Field {
-	fields := make([]*Field, len(names))
-	for i, f := range names {
-		fields[i] = NewField(f, OrFacet)
-	}
-	return fields
-}
-
 func (f *Field) MarshalJSON() ([]byte, error) {
 	field := map[string]any{
 		"attribute": f.Attribute,
