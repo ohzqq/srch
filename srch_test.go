@@ -127,19 +127,20 @@ func TestSearchAndFilter(t *testing.T) {
 }
 
 func TestAudibleSearch(t *testing.T) {
-	t.SkipNow()
-	//a := OldNew(
-	//  WithSearch(audibleSrch),
-	//  WithTextFields([]string{"Title"}),
-	//)
+	//t.SkipNow()
 
 	q := "field=Title&q=amy+lane+fish"
-	res := New(q)
+	a := New(
+		q,
+		WithSearch(audibleSrch),
+	//  WithTextFields([]string{"Title"}),
+	)
+	res := a.Search("amy lane fish")
 
 	println("audible search")
 
 	//res := a.Search("amy lane fish")
-	fmt.Printf("num res %d\n", len(res.Data))
+	fmt.Printf("num res %d\n", res.Len())
 
 	//for i := 0; i < res.Len(); i++ {
 	//  println(res.String(i))
@@ -164,7 +165,7 @@ func audibleApi(q string) []map[string]any {
 		mapstructure.Decode(p, &a)
 		sl = append(sl, a)
 	}
-	//fmt.Printf("products %v\n", r.Products)
+	fmt.Printf("products %v\n", r.Products)
 	return sl
 }
 

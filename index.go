@@ -3,6 +3,7 @@ package srch
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"net/url"
 	"os"
@@ -53,6 +54,7 @@ func (idx *Index) Index(src []map[string]any) *Index {
 	}
 
 	idx.Data = src
+	println(len(src))
 
 	if idx.Query.Has("sort_by") {
 		idx.Sort()
@@ -108,10 +110,11 @@ func (idx *Index) Search(q string) *Index {
 	idx.Query.Set("q", q)
 	data := idx.search(q)
 	res := idx.Copy().Index(data)
+	fmt.Printf("q %s\n, search len %d\n", q, len(data))
 
-	if idx.HasFilters() {
-		return idx.Filter(idx.Filters())
-	}
+	//if idx.HasFilters() {
+	//  return idx.Filter(idx.Filters())
+	//}
 
 	return res
 }
@@ -128,7 +131,10 @@ func (idx *Index) Filter(q any) *Index {
 
 func (idx *Index) SetQuery(q url.Values) *Index {
 	idx.Query = q
-	idx.search = idx.FuzzyFind
+
+	if idx.search == nil {
+		idx.search = idx.FuzzyFind
+	}
 
 	if idx.Query.Has("full_text") {
 		idx.SetSearch(idx.FullText)
@@ -154,11 +160,10 @@ func (idx *Index) Sort() {
 }
 
 func (idx *Index) Copy() *Index {
-	n := New(idx.Query)
 	if idx.search != nil {
-		return n.SetSearch(idx.search)
+		return New(idx.Query, WithSearch(idx.search))
 	}
-	return n
+	return New(idx.Query)
 }
 
 func (idx *Index) AddField(fields ...*Field) *Index {
