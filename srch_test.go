@@ -127,9 +127,9 @@ func TestSearchAndFilter(t *testing.T) {
 }
 
 func TestAudibleSearch(t *testing.T) {
-	t.SkipNow()
+	//t.SkipNow()
 
-	q := "field=Title&q=amy+lane+fish"
+	q := "field=Title"
 	a := New(
 		q,
 		WithSearch(audibleSrch),
