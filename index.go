@@ -179,18 +179,6 @@ func (idx *Index) Filters() url.Values {
 	return lo.OmitByKeys(idx.Query, ReservedKeys)
 }
 
-var ReservedKeys = []string{
-	"and",
-	"or",
-	"field",
-	"q",
-	"sort_by",
-	"order",
-	"data_file",
-	"data_dir",
-	"full_text",
-}
-
 // HasFacets returns true if facets are configured.
 func (idx *Index) HasFacets() bool {
 	return len(idx.Facets()) > 0
