@@ -36,6 +36,15 @@ var settingsTestVals = map[string]*Settings{
 		SearchableAttributes:  []string{"title"},
 		AttributesForFaceting: []string{"tags", "series"},
 	},
+	"searchableAttributes=title&full_text=": &Settings{
+		SearchableAttributes: []string{"title"},
+		TextAnalyzer:         Text,
+	},
+	"searchableAttributes=title&attributesForFaceting=tags&full_text": &Settings{
+		SearchableAttributes:  []string{"title"},
+		AttributesForFaceting: []string{"tags"},
+		TextAnalyzer:          Text,
+	},
 }
 
 func TestSettings(t *testing.T) {
@@ -45,7 +54,10 @@ func TestSettings(t *testing.T) {
 			t.Errorf("%s: got %+v, wanted %+v\n", test, settings.SearchableAttributes, want.SearchableAttributes)
 		}
 		if !slices.Equal(settings.AttributesForFaceting, want.AttributesForFaceting) {
-			t.Errorf("%s: got %T, wanted %T\n", test, settings.AttributesForFaceting, want.AttributesForFaceting)
+			t.Errorf("%s: got %+v, wanted %+v\n", test, settings.AttributesForFaceting, want.AttributesForFaceting)
+		}
+		if settings.TextAnalyzer != Text && want.TextAnalyzer == Text {
+			t.Errorf("%s: got %+v, wanted %+v\n", test, settings.TextAnalyzer, want.TextAnalyzer)
 		}
 	}
 }

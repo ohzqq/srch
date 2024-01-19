@@ -23,6 +23,10 @@ func NewSettings(query any) *Settings {
 	for k, vals := range q {
 		var attr []string
 
+		if q.Has("full_text") {
+			settings.TextAnalyzer = Text
+		}
+
 		switch len(vals) {
 		case 0:
 			break
@@ -43,8 +47,6 @@ func NewSettings(query any) *Settings {
 			settings.SearchableAttributes = attr
 		case "attributesForFaceting":
 			settings.AttributesForFaceting = attr
-		case "textAnalyzer":
-			settings.TextAnalyzer = attr[0]
 		}
 	}
 
