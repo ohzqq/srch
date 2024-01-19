@@ -15,7 +15,7 @@ func FuzzyFind(data []map[string]any, q string, fields ...string) *Index {
 	for _, f := range fields {
 		vals.Add("field", f)
 	}
-	idx := New(vals)
+	idx := NewIndex(vals)
 
 	if len(data) < 1 {
 		return idx
