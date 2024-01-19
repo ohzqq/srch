@@ -8,22 +8,19 @@ type Settings struct {
 	TextAnalyzer          string
 }
 
-func NewSettings(q any) *Settings {
+func NewSettings(query any) *Settings {
 	settings := &Settings{
 		SearchableAttributes: []string{"title"},
 		TextAnalyzer:         Fuzzy,
 	}
 
-	v, err := ParseValues(q)
-	if err != nil {
+	q := NewQuery(query)
+
+	if len(q) < 1 {
 		return settings
 	}
 
-	if len(v) < 1 {
-		return settings
-	}
-
-	for k, vals := range v {
+	for k, vals := range q {
 		var attr []string
 
 		switch len(vals) {
