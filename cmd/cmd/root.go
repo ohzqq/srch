@@ -48,7 +48,7 @@ By default, results are printed to stdout as json.
 				log.Fatal(err)
 			}
 			q = srch.NewQuery(query)
-			idx = srch.New(q)
+			idx = srch.NewIndex(q)
 			if q.Has("q") {
 				keywords = q.Get("q")
 			}
@@ -104,7 +104,7 @@ By default, results are printed to stdout as json.
 			}
 		}
 
-		idx = srch.New(q)
+		idx = srch.NewIndex(q)
 
 		switch {
 		case cmd.Flags().Changed("dir"):
