@@ -17,7 +17,7 @@ func FullText(data []map[string]any, q string, fields ...string) *Index {
 	for _, f := range fields {
 		vals.Add("field", f)
 	}
-	idx := New(vals, WithFullText())
+	idx := NewIndex(vals, WithFullText())
 
 	if len(data) < 1 {
 		return idx

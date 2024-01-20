@@ -20,7 +20,7 @@ const testCfgFileData = `testdata/config-with-data.json`
 
 func init() {
 	query := fmt.Sprintf("%s&%s&%s", testValuesCfg, testQueryString, testSearchString)
-	idx = New(query)
+	idx = NewIndex(query)
 	books = idx.Data
 }
 
@@ -31,15 +31,20 @@ func TestData(t *testing.T) {
 	}
 }
 
-//func TestNewIndex(t *testing.T) {
-//  if idx.Len() != len(books) {
-//    t.Errorf("got %d, expected %d\n", idx.Len(), len(books))
-//  }
-//}
+func TestNewIndex(t *testing.T) {
+	data := loadData(t)
+	for test, _ := range settingsTestVals {
+		settings := NewSettings(test)
+		idx := New(data, settings)
+		if idx.Len() != 7174 {
+			t.Errorf("got %d, expected %d\n", idx.Len(), 7174)
+		}
+	}
+}
 
 func TestSortIndex(t *testing.T) {
 	q := getNewQuery()
-	i := New(q.Encode())
+	i := NewIndex(q.Encode())
 	i.Sort()
 	//for _, d := range i.Data {
 	//  fmt.Printf("%s\n", d["title"])

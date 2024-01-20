@@ -22,17 +22,26 @@ func init() {
 
 // Index is a structure for facets and data.
 type Index struct {
-	search SearchFunc
-	Fields []*Field         `json:"fields"`
-	Data   []map[string]any `json:"data"`
-	Query  url.Values       `json:"query"`
+	search   SearchFunc
+	Fields   []*Field         `json:"fields"`
+	Data     []map[string]any `json:"data"`
+	Query    url.Values       `json:"query"`
+	Settings *Settings
 }
 
 type SearchFunc func(string) []map[string]any
 
 type Opt func(*Index)
 
-func New(query any, opts ...Opt) *Index {
+func New(data []map[string]any, settings *Settings) *Index {
+	idx := &Index{
+		Settings: settings,
+		Fields:   settings.Fields(),
+	}
+	return idx.Index(data)
+}
+
+func NewIndex(query any, opts ...Opt) *Index {
 	idx := &Index{
 		Query: NewQuery(query),
 	}
@@ -152,9 +161,9 @@ func (idx *Index) Sort() {
 
 func (idx *Index) Copy() *Index {
 	if idx.search != nil {
-		return New(idx.Query, WithSearch(idx.search))
+		return NewIndex(idx.Query, WithSearch(idx.search))
 	}
-	return New(idx.Query)
+	return NewIndex(idx.Query)
 }
 
 func (idx *Index) AddField(fields ...*Field) *Index {
@@ -177,18 +186,6 @@ func (idx *Index) HasFilters() bool {
 
 func (idx *Index) Filters() url.Values {
 	return lo.OmitByKeys(idx.Query, ReservedKeys)
-}
-
-var ReservedKeys = []string{
-	"and",
-	"or",
-	"field",
-	"q",
-	"sort_by",
-	"order",
-	"data_file",
-	"data_dir",
-	"full_text",
 }
 
 // HasFacets returns true if facets are configured.

@@ -38,7 +38,7 @@ func TestParseValues(t *testing.T) {
 
 func TestFuzzySearch(t *testing.T) {
 	//t.SkipNow()
-	idx = New(testValuesCfg)
+	idx = NewIndex(testValuesCfg)
 	data := make([]map[string]any, len(idx.Data))
 	for i, book := range idx.Data {
 		data[i] = map[string]any{"title": book["title"]}
@@ -50,8 +50,8 @@ func TestFuzzySearch(t *testing.T) {
 }
 
 func TestFullTextSearch(t *testing.T) {
-	//t.SkipNow()
-	idx = New(testValuesCfg, WithFullText())
+	t.SkipNow()
+	idx = NewIndex(testValuesCfg, WithFullText())
 	//idx.Index(books)
 	res := idx.Search("fish")
 	if len(res.Data) != 8 {
@@ -66,8 +66,8 @@ func TestFullTextSearch(t *testing.T) {
 }
 
 func TestGenericFullTextSearch(t *testing.T) {
-	//t.SkipNow()
-	idx = New(testValuesCfg, WithFullText())
+	t.SkipNow()
+	idx = NewIndex(testValuesCfg, WithFullText())
 	idx.Index(idx.Data)
 	data := make([]map[string]any, len(idx.Data))
 	for i, book := range idx.Data {
@@ -127,10 +127,10 @@ func TestSearchAndFilter(t *testing.T) {
 }
 
 func TestAudibleSearch(t *testing.T) {
-	//t.SkipNow()
+	t.SkipNow()
 
 	q := "field=Title"
-	a := New(
+	a := NewIndex(
 		q,
 		WithSearch(audibleSrch),
 	)
