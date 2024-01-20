@@ -1,7 +1,6 @@
 package srch
 
 import (
-	"fmt"
 	"net/url"
 	"strings"
 )
@@ -12,24 +11,15 @@ type Settings struct {
 	TextAnalyzer          string
 }
 
-func NewSettings(query string) *Settings {
+func NewSettings(query any) *Settings {
 	settings := &Settings{
 		SearchableAttributes: []string{"title"},
 		TextAnalyzer:         Fuzzy,
 	}
 
-	if query == "" {
-		fmt.Printf("%+v\n", settings)
-		return settings
-	}
+	q := NewQuery(query)
 
-	q, err := ParseQueryString(query)
-	if err != nil {
-		return settings
-	}
-
-	searchable := GetQueryStringSlice("searchableAttributes", q)
-	settings.SearchableAttributes = searchable
+	settings.SearchableAttributes = GetQueryStringSlice("searchableAttributes", q)
 
 	settings.AttributesForFaceting = GetQueryStringSlice("attributesForFaceting", q)
 	settings.TextAnalyzer = GetAnalyzer(q)
@@ -59,10 +49,10 @@ func GetQueryStringSlice(key string, q url.Values) []string {
 	if key == "searchableAttributes" {
 		switch len(vals) {
 		case 0:
-			vals = []string{"title"}
+			return []string{"title"}
 		case 1:
 			if vals[0] == "" {
-				vals = []string{"title"}
+				return []string{"title"}
 			}
 		}
 	}
