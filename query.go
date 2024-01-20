@@ -2,9 +2,14 @@ package srch
 
 import (
 	"net/url"
+	"strings"
 
 	"github.com/spf13/cast"
 )
+
+type Query struct {
+	params url.Values
+}
 
 func NewQuery(queries ...any) url.Values {
 	q := make(url.Values)
@@ -22,6 +27,33 @@ func NewQuery(queries ...any) url.Values {
 	return q
 }
 
+func newQuery(q url.Values) *Query {
+	return &Query{
+		params: q,
+	}
+}
+
+func (q Query) Data() ([]map[string]any, error) {
+	return GetDataFromQuery(&q.params)
+}
+
+func (q Query) SrchAttr() []string {
+	return GetQueryStringSlice(SrchAttr, q.params)
+}
+
+func (q Query) FacetAttr() []string {
+	return GetQueryStringSlice(FacetAttr, q.params)
+}
+
+func (q Query) Analyzer() string {
+	return GetAnalyzer(q.params)
+}
+
+func (q Query) Settings() *Settings {
+	s := defaultSettings()
+	return s.setValues(q.params)
+}
+
 func GetDataFromQuery(q *url.Values) ([]map[string]any, error) {
 	var data []map[string]any
 	var err error
@@ -35,6 +67,31 @@ func GetDataFromQuery(q *url.Values) ([]map[string]any, error) {
 		q.Del("data_dir")
 	}
 	return data, err
+}
+
+func GetQueryStringSlice(key string, q url.Values) []string {
+	var vals []string
+	if q.Has(key) {
+		for _, val := range q[key] {
+			if val == "" {
+				break
+			}
+			for _, v := range strings.Split(val, ",") {
+				vals = append(vals, v)
+			}
+		}
+	}
+	if key == SrchAttr {
+		switch len(vals) {
+		case 0:
+			return []string{"title"}
+		case 1:
+			if vals[0] == "" {
+				return []string{"title"}
+			}
+		}
+	}
+	return vals
 }
 
 func ParseFieldsFromValues(cfg url.Values) []*Field {

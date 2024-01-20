@@ -2,7 +2,11 @@ package srch
 
 import (
 	"net/url"
-	"strings"
+)
+
+const (
+	SrchAttr  = `searchableAttributes`
+	FacetAttr = `attributesForFaceting`
 )
 
 type Settings struct {
@@ -12,19 +16,16 @@ type Settings struct {
 }
 
 func NewSettings(query any) *Settings {
-	settings := &Settings{
+	q := newQuery(NewQuery(query))
+
+	return q.Settings()
+}
+
+func defaultSettings() *Settings {
+	return &Settings{
 		SearchableAttributes: []string{"title"},
 		TextAnalyzer:         Fuzzy,
 	}
-
-	q := NewQuery(query)
-
-	settings.SearchableAttributes = GetQueryStringSlice("searchableAttributes", q)
-
-	settings.AttributesForFaceting = GetQueryStringSlice("attributesForFaceting", q)
-	settings.TextAnalyzer = GetAnalyzer(q)
-
-	return settings
 }
 
 func GetAnalyzer(q url.Values) string {
@@ -34,36 +35,20 @@ func GetAnalyzer(q url.Values) string {
 	return Fuzzy
 }
 
-func GetQueryStringSlice(key string, q url.Values) []string {
-	var vals []string
-	if q.Has(key) {
-		for _, val := range q[key] {
-			if val == "" {
-				break
-			}
-			for _, v := range strings.Split(val, ",") {
-				vals = append(vals, v)
-			}
-		}
-	}
-	if key == "searchableAttributes" {
-		switch len(vals) {
-		case 0:
-			return []string{"title"}
-		case 1:
-			if vals[0] == "" {
-				return []string{"title"}
-			}
-		}
-	}
-	return vals
-}
-
 func (s *Settings) Fields() []*Field {
 	var fields []*Field
 	fields = append(fields, s.TextFields()...)
 	fields = append(fields, s.Facets()...)
 	return fields
+}
+
+func (s *Settings) setValues(v url.Values) *Settings {
+	q := newQuery(v)
+	s.SearchableAttributes = q.SrchAttr()
+
+	s.AttributesForFaceting = q.FacetAttr()
+	s.TextAnalyzer = q.Analyzer()
+	return s
 }
 
 func (s *Settings) TextFields() []*Field {
