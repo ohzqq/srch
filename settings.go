@@ -1,6 +1,10 @@
 package srch
 
-import "strings"
+import (
+	"fmt"
+	"net/url"
+	"strings"
+)
 
 type Settings struct {
 	SearchableAttributes  []string
@@ -8,49 +12,61 @@ type Settings struct {
 	TextAnalyzer          string
 }
 
-func NewSettings(query any) *Settings {
+func NewSettings(query string) *Settings {
 	settings := &Settings{
 		SearchableAttributes: []string{"title"},
 		TextAnalyzer:         Fuzzy,
 	}
 
-	q := NewQuery(query)
-
-	if len(q) < 1 {
+	if query == "" {
+		fmt.Printf("%+v\n", settings)
 		return settings
 	}
 
-	for k, vals := range q {
-		var attr []string
-
-		if q.Has("full_text") {
-			settings.TextAnalyzer = Text
-		}
-
-		switch len(vals) {
-		case 0:
-			break
-		case 1:
-			if vals[0] != "" {
-				attr = strings.Split(vals[0], ",")
-			}
-		default:
-			attr = vals
-		}
-
-		if len(attr) < 1 {
-			break
-		}
-
-		switch k {
-		case "searchableAttributes":
-			settings.SearchableAttributes = attr
-		case "attributesForFaceting":
-			settings.AttributesForFaceting = attr
-		}
+	q, err := ParseQueryString(query)
+	if err != nil {
+		return settings
 	}
 
+	searchable := GetQueryStringSlice("searchableAttributes", q)
+	settings.SearchableAttributes = searchable
+
+	settings.AttributesForFaceting = GetQueryStringSlice("attributesForFaceting", q)
+	settings.TextAnalyzer = GetAnalyzer(q)
+
 	return settings
+}
+
+func GetAnalyzer(q url.Values) string {
+	if q.Has("full_text") {
+		return Text
+	}
+	return Fuzzy
+}
+
+func GetQueryStringSlice(key string, q url.Values) []string {
+	var vals []string
+	if q.Has(key) {
+		for _, val := range q[key] {
+			if val == "" {
+				break
+			}
+			for _, v := range strings.Split(val, ",") {
+				vals = append(vals, v)
+			}
+		}
+	}
+	if key == "searchableAttributes" {
+		switch len(vals) {
+		case 0:
+			vals = []string{"title"}
+		case 1:
+			if vals[0] == "" {
+				vals = []string{"title"}
+			}
+		}
+	}
+	return vals
 }
 
 func (s *Settings) Fields() []*Field {

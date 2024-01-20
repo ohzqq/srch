@@ -40,7 +40,7 @@ func TestOrFilter(t *testing.T) {
 
 func TestParseFilterString(t *testing.T) {
 	enc := testComboFilterEnc()
-	filters, err := ParseFilterJSONString(enc)
+	filters, err := DecodeFilter(enc)
 	if err != nil {
 		t.Error(err)
 	}

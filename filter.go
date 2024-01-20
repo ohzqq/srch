@@ -3,7 +3,6 @@ package srch
 import (
 	"encoding/json"
 	"net/url"
-	"strings"
 
 	"github.com/RoaringBitmap/roaring"
 	"github.com/samber/lo"
@@ -16,8 +15,6 @@ type Filters struct {
 	And []string
 	Or  []string
 }
-
-type FilterStr string
 
 func Filter(data []map[string]any, facets []*Field, values url.Values) []map[string]any {
 	var bits []*roaring.Bitmap
@@ -48,12 +45,7 @@ func FilteredItems(data []map[string]any, ids []any) []map[string]any {
 	return items
 }
 
-func (f *Filters) Encode() string {
-	return f.ToValues().Encode()
-}
-
-func ParseFilterJSONString(filters string) (*Filters, error) {
-
+func DecodeFilter(filters string) (*Filters, error) {
 	dec, err := url.QueryUnescape(filters)
 	if err != nil {
 		return nil, err
@@ -77,7 +69,15 @@ func ParseFilterJSONString(filters string) (*Filters, error) {
 	return f, nil
 }
 
+func (f *Filters) Encode() string {
+	return f.ToValues().Encode()
+}
+
 func (f *Filters) String() string {
+	return string(f.Bytes())
+}
+
+func (f *Filters) Bytes() []byte {
 	var filters []any
 	for _, not := range f.Not {
 		filters = append(filters, not)
@@ -92,32 +92,11 @@ func (f *Filters) String() string {
 		filter = []byte{}
 	}
 
-	return string(filter)
+	return filter
 }
 
 func (f *Filters) ToValues() url.Values {
-	vals := make(url.Values)
-	vals.Set("facetFilters", f.String())
-
-	return vals
-}
-
-func ParseFilters(q any) *Filters {
-	filters := &Filters{}
-
-	vals := NewQuery(q)
-
-	if !vals.Has("facetFilters") {
-		return filters
+	return url.Values{
+		"facetFilters": []string{f.String()},
 	}
-
-	fs := vals.Get("facetFilters")
-	for _, filter := range strings.Split(fs, ",") {
-		dec, err := url.QueryUnescape(filter)
-		if err != nil {
-			break
-		}
-		println(dec)
-	}
-	return filters
 }
