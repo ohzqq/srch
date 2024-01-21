@@ -11,6 +11,7 @@ import (
 
 const (
 	QueryField = `query`
+	Hits       = `hits`
 )
 
 type Query struct {

@@ -204,7 +204,7 @@ func (idx *Index) UnmarshalJSON(d []byte) error {
 		return err
 	}
 
-	if msg, ok := un["query"]; ok {
+	if msg, ok := un[QueryField]; ok {
 		var q string
 		err := json.Unmarshal(msg, &q)
 		if err != nil {
@@ -213,7 +213,7 @@ func (idx *Index) UnmarshalJSON(d []byte) error {
 		idx.SetQuery(ParseQuery(q))
 	}
 
-	if msg, ok := un["data"]; ok {
+	if msg, ok := un[Hits]; ok {
 		var data []map[string]any
 		err := json.Unmarshal(msg, &data)
 		if err != nil {
@@ -227,9 +227,9 @@ func (idx *Index) UnmarshalJSON(d []byte) error {
 
 func (idx *Index) MarshalJSON() ([]byte, error) {
 	res := map[string]any{
-		"data":   idx.Data,
-		"facets": idx.Facets(),
-		"query":  idx.Values.Encode(),
+		Hits:       idx.Data,
+		"facets":   idx.Facets(),
+		QueryField: idx.Values.Encode(),
 	}
 	return json.Marshal(res)
 }
