@@ -101,19 +101,3 @@ func testParamsBytes() []byte {
 	}
 	return d
 }
-
-func queryParamsValues() url.Values {
-	vals := make(url.Values)
-	vals.Set("facetFilters", testComboFilter())
-	return vals
-}
-
-func queryParamsString() string {
-	return queryParamsValues().Encode()
-}
-
-func requestParams() map[string]string {
-	return map[string]string{
-		"params": queryParamsString(),
-	}
-}

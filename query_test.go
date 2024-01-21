@@ -8,6 +8,22 @@ import (
 
 const testValuesCfg = `and=tags:count:desc&field=title&or=authors:label:asc&or=narrators&or=series&data_file=testdata/data-dir/audiobooks.json&sort_by=title`
 
+func queryParamsValues() url.Values {
+	vals := make(url.Values)
+	vals.Set("facetFilters", testComboFilter())
+	return vals
+}
+
+func queryParamsString() string {
+	return queryParamsValues().Encode()
+}
+
+func requestParams() map[string]string {
+	return map[string]string{
+		"params": queryParamsString(),
+	}
+}
+
 func TestNewQuery(t *testing.T) {
 	//t.SkipNow()
 	q := getNewQuery()

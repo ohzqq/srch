@@ -10,9 +10,10 @@ const (
 )
 
 type Settings struct {
-	SearchableAttributes  []string
-	AttributesForFaceting []string
-	TextAnalyzer          string
+	SearchableAttributes  []string `json:"searchableAttributes"`
+	AttributesForFaceting []string `json:"attributesForFaceting"`
+	TextAnalyzer          string   `json:"textAnalyzer"`
+	SortFacetValuesBy     string   `json:"sortFacetValuesBy"`
 }
 
 func NewSettings(query any) *Settings {
@@ -29,6 +30,7 @@ func defaultSettings() *Settings {
 	return &Settings{
 		SearchableAttributes: []string{"title"},
 		TextAnalyzer:         Fuzzy,
+		SortFacetValuesBy:    "count",
 	}
 }
 
