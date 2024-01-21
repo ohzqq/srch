@@ -18,10 +18,8 @@ func queryParamsString() string {
 	return queryParamsValues().Encode()
 }
 
-func requestParams() map[string]string {
-	return map[string]string{
-		"params": queryParamsString(),
-	}
+func requestParams() string {
+	return queryParamsString()
 }
 
 func TestNewQuery(t *testing.T) {

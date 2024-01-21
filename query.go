@@ -15,7 +15,7 @@ const (
 )
 
 type Query struct {
-	Params url.Values `json:"params"`
+	Params url.Values
 }
 
 func NewQuery(q any) *Query {
@@ -92,9 +92,7 @@ func (q Query) GetAnalyzer() string {
 }
 
 func (q Query) MarshalJSON() ([]byte, error) {
-	d, err := json.Marshal(map[string]string{
-		"params": q.Encode(),
-	})
+	d, err := json.Marshal(q.Encode())
 	if err != nil {
 		return nil, err
 	}
@@ -102,22 +100,17 @@ func (q Query) MarshalJSON() ([]byte, error) {
 }
 
 func (q *Query) UnmarshalJSON(d []byte) error {
-	p := make(map[string]string)
+	var p string
 	err := json.Unmarshal(d, &p)
 	if err != nil {
 		return err
 	}
 
-	switch params, ok := p["params"]; ok {
-	case false:
-		return errors.New("no params")
-	default:
-		err := q.Decode(params)
-		if err != nil {
-			return err
-		}
-		return nil
+	err = q.Decode(p)
+	if err != nil {
+		return err
 	}
+	return nil
 }
 
 func (q Query) Encode() string {
