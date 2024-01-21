@@ -17,7 +17,7 @@ type Settings struct {
 }
 
 func NewSettings(query any) *Settings {
-	q := NewQuery(ParseQuery(query))
+	q := NewQuery(query)
 
 	s, err := q.GetSettings()
 	if err != nil {

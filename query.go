@@ -13,6 +13,12 @@ type Query struct {
 	Params url.Values `json:"params"`
 }
 
+func NewQuery(q any) *Query {
+	return &Query{
+		Params: ParseQuery(q),
+	}
+}
+
 func ParseQuery(queries ...any) url.Values {
 	q := make(url.Values)
 	for _, query := range queries {
@@ -27,12 +33,6 @@ func ParseQuery(queries ...any) url.Values {
 		}
 	}
 	return q
-}
-
-func NewQuery(q url.Values) *Query {
-	return &Query{
-		Params: q,
-	}
 }
 
 func (q Query) GetData() ([]map[string]any, error) {
