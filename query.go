@@ -13,7 +13,7 @@ type Query struct {
 	Params url.Values `json:"params"`
 }
 
-func NewQuery(queries ...any) url.Values {
+func ParseQuery(queries ...any) url.Values {
 	q := make(url.Values)
 	for _, query := range queries {
 		vals, err := ParseValues(query)
@@ -29,14 +29,41 @@ func NewQuery(queries ...any) url.Values {
 	return q
 }
 
-func newQuery(q url.Values) *Query {
+func NewQuery(q url.Values) *Query {
 	return &Query{
 		Params: q,
 	}
 }
 
 func (q Query) Data() ([]map[string]any, error) {
+	if !q.HasData() {
+		return nil, errors.New("no data")
+	}
 	return GetDataFromQuery(&q.Params)
+}
+
+func (q Query) HasData() bool {
+	return q.Params.Has("data_file") || q.Params.Has("data_dir")
+}
+
+func (q Query) Settings() (*Settings, error) {
+	s := defaultSettings()
+	return s.setValues(q.Params), nil
+}
+
+func (q Query) FacetFilters() (*Filters, error) {
+	if !q.HasFilters() {
+		return nil, errors.New("no filters")
+	}
+	f, err := DecodeFilter(q.Params.Get("facetFilters"))
+	if err != nil {
+		return nil, err
+	}
+	return f, nil
+}
+
+func (q Query) HasFilters() bool {
+	return q.Params.Has("facetFilters")
 }
 
 func (q Query) Get(key string) []string {
@@ -56,19 +83,6 @@ func (q Query) FacetAttr() []string {
 
 func (q Query) Analyzer() string {
 	return GetAnalyzer(q.Params)
-}
-
-func (q Query) Settings() *Settings {
-	s := defaultSettings()
-	return s.setValues(q.Params)
-}
-
-func (q Query) FacetFilters() *Filters {
-	f, err := DecodeFilter(q.Params.Get("facetFilters"))
-	if err != nil {
-		return &Filters{}
-	}
-	return f
 }
 
 func (q Query) MarshalJSON() ([]byte, error) {

@@ -21,7 +21,10 @@ func TestUnmarshalQueryParams(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	filters := params.FacetFilters()
+	filters, err := params.FacetFilters()
+	if err != nil {
+		t.Error(err)
+	}
 	filtersTests(filters, t)
 }
 
@@ -67,25 +70,8 @@ var testFilterStruct = &Filters{
 	Or:  []string{`tag:grumpy/sunshine`, `tag:enemies to lovers`},
 }
 
-func TestOrFilter(t *testing.T) {
-	t.SkipNow()
-	println(testOrFilter())
-	println(testEncOrFilter())
-	println(testAndFilter())
-	println(testEncAndFilter())
-	println(testComboFilter())
-	enc := testComboFilterEnc()
-	println(enc)
-	dec, err := url.QueryUnescape(enc)
-	if err != nil {
-		t.Error(err)
-	}
-	println(dec)
-}
-
 func testOrFilter() string {
 	return fmt.Sprint("[", plainFilters[1], "]")
-	//return plainFilters[1]
 }
 
 func testEncOrFilter() string {
@@ -102,7 +88,6 @@ func testComboFilterEnc() string {
 
 func testAndFilter() string {
 	return fmt.Sprint("[", plainFilters[0], "]")
-	//return plainFilters[0]
 }
 
 func testEncAndFilter() string {

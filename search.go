@@ -20,7 +20,7 @@ type Request struct {
 
 func ParseRequest(req string) *Request {
 	return &Request{
-		params: NewQuery(req),
+		params: ParseQuery(req),
 	}
 }
 

@@ -43,7 +43,7 @@ func New(data []map[string]any, settings *Settings) *Index {
 
 func NewIndex(query any, opts ...Opt) *Index {
 	idx := &Index{
-		Query: NewQuery(query),
+		Query: ParseQuery(query),
 	}
 
 	for _, opt := range opts {
@@ -227,7 +227,7 @@ func (idx *Index) UnmarshalJSON(d []byte) error {
 		if err != nil {
 			return err
 		}
-		idx.SetQuery(NewQuery(q))
+		idx.SetQuery(ParseQuery(q))
 	}
 
 	if msg, ok := un["data"]; ok {

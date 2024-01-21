@@ -87,7 +87,7 @@ var settingsTestVals = []settingsTest{
 
 func TestSettingsValueParser(t *testing.T) {
 	for _, test := range settingsTestVals {
-		q := NewQuery(test.query)
+		q := ParseQuery(test.query)
 
 		sea := GetQueryStringSlice("searchableAttributes", q)
 		if !slices.Equal(sea, test.want.SearchableAttributes) {

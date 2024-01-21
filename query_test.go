@@ -42,5 +42,5 @@ func TestNewQuery(t *testing.T) {
 }
 
 func getNewQuery() url.Values {
-	return NewQuery(testValuesCfg, testQueryString, testSearchString)
+	return ParseQuery(testValuesCfg, testQueryString, testSearchString)
 }
