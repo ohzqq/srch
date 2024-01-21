@@ -19,7 +19,7 @@ type Settings struct {
 func NewSettings(query any) *Settings {
 	q := NewQuery(ParseQuery(query))
 
-	s, err := q.Settings()
+	s, err := q.GetSettings()
 	if err != nil {
 		return defaultSettings()
 	}
@@ -50,11 +50,14 @@ func (s *Settings) Fields() []*Field {
 
 func (s *Settings) setValues(v url.Values) *Settings {
 	q := NewQuery(v)
-	s.SearchableAttributes = q.SrchAttr()
-
-	s.AttributesForFaceting = q.FacetAttr()
-	s.TextAnalyzer = q.Analyzer()
+	s.setValsFromQuery(q)
 	return s
+}
+
+func (s *Settings) setValsFromQuery(q *Query) {
+	s.SearchableAttributes = q.GetSrchAttr()
+	s.AttributesForFaceting = q.GetFacetAttr()
+	s.TextAnalyzer = q.GetAnalyzer()
 }
 
 func (s *Settings) TextFields() []*Field {

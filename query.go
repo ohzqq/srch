@@ -46,12 +46,13 @@ func (q Query) HasData() bool {
 	return q.Params.Has("data_file") || q.Params.Has("data_dir")
 }
 
-func (q Query) Settings() (*Settings, error) {
+func (q Query) GetSettings() (*Settings, error) {
 	s := defaultSettings()
-	return s.setValues(q.Params), nil
+	s.setValsFromQuery(&q)
+	return s, nil
 }
 
-func (q Query) FacetFilters() (*Filters, error) {
+func (q Query) GetFacetFilters() (*Filters, error) {
 	if !q.HasFilters() {
 		return nil, errors.New("no filters")
 	}
@@ -73,15 +74,15 @@ func (q Query) Get(key string) []string {
 	return []string{}
 }
 
-func (q Query) SrchAttr() []string {
+func (q Query) GetSrchAttr() []string {
 	return GetQueryStringSlice(SrchAttr, q.Params)
 }
 
-func (q Query) FacetAttr() []string {
+func (q Query) GetFacetAttr() []string {
 	return GetQueryStringSlice(FacetAttr, q.Params)
 }
 
-func (q Query) Analyzer() string {
+func (q Query) GetAnalyzer() string {
 	return GetAnalyzer(q.Params)
 }
 

@@ -21,7 +21,7 @@ func TestUnmarshalQueryParams(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	filters, err := params.FacetFilters()
+	filters, err := params.GetFacetFilters()
 	if err != nil {
 		t.Error(err)
 	}
