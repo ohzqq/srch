@@ -46,13 +46,7 @@ func FilteredItems(data []map[string]any, ids []any) []map[string]any {
 }
 
 func DecodeFilter(filters string) (*Filters, error) {
-	dec, err := url.QueryUnescape(filters)
-	if err != nil {
-		return nil, err
-	}
-
-	var filter []any
-	err = json.Unmarshal([]byte(dec), &filter)
+	filter, err := UnmarshalFilterString(filters)
 	if err != nil {
 		return nil, err
 	}
@@ -67,6 +61,21 @@ func DecodeFilter(filters string) (*Filters, error) {
 		}
 	}
 	return f, nil
+}
+
+func UnmarshalFilterString(filters string) ([]any, error) {
+	dec, err := url.QueryUnescape(filters)
+	if err != nil {
+		return nil, err
+	}
+
+	var filter []any
+	err = json.Unmarshal([]byte(dec), &filter)
+	if err != nil {
+		return nil, err
+	}
+
+	return filter, nil
 }
 
 func (f *Filters) Encode() string {

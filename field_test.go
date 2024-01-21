@@ -3,6 +3,7 @@ package srch
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/url"
 	"testing"
 )
@@ -38,26 +39,38 @@ func TestOrFilter(t *testing.T) {
 	println(dec)
 }
 
+func TestFilterToString(t *testing.T) {
+	filters := testFilterStruct.String()
+	if filters != testComboFilter() {
+		t.Errorf("got %v, expected %s\n", filters, testComboFilter())
+	}
+}
+
+func TestUnmarshalQueryParams(t *testing.T) {
+	params := &Query{}
+	err := json.Unmarshal(testParamsBytes(), params)
+	if err != nil {
+		t.Error(err)
+	}
+	filters := params.FacetFilters()
+	filtersTests(filters, t)
+}
+
 func TestParseFilterString(t *testing.T) {
 	enc := testComboFilterEnc()
 	filters, err := DecodeFilter(enc)
 	if err != nil {
 		t.Error(err)
 	}
+	filtersTests(filters, t)
+}
+
+func filtersTests(filters *Filters, t *testing.T) {
 	if len(filters.And) != 1 {
 		t.Errorf("got %d conjunctive filters, expected %d\n", len(filters.And), 1)
 	}
 	if len(filters.Or) != 2 {
-		fmt.Printf("%+v\n", filters)
-
 		t.Errorf("got %d disjunctive filters, expected %d\n", len(filters.Or), 2)
-	}
-}
-
-func TestFilterToString(t *testing.T) {
-	filters := testFilterStruct.String()
-	if filters != testComboFilter() {
-		t.Errorf("got %v, expected %s\n", filters, testComboFilter())
 	}
 }
 
@@ -94,4 +107,28 @@ func testAndFilter() string {
 
 func testEncAndFilter() string {
 	return url.QueryEscape(testAndFilter())
+}
+
+func testParamsBytes() []byte {
+	d, err := json.Marshal(requestParams())
+	if err != nil {
+		log.Fatal(err)
+	}
+	return d
+}
+
+func queryParamsValues() url.Values {
+	vals := make(url.Values)
+	vals.Set("facetFilters", testComboFilter())
+	return vals
+}
+
+func queryParamsString() string {
+	return queryParamsValues().Encode()
+}
+
+func requestParams() map[string]string {
+	return map[string]string{
+		"params": queryParamsString(),
+	}
 }

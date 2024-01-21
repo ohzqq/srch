@@ -1,6 +1,8 @@
 package srch
 
 import (
+	"encoding/json"
+	"errors"
 	"net/url"
 	"strings"
 
@@ -8,7 +10,7 @@ import (
 )
 
 type Query struct {
-	params url.Values
+	Params url.Values `json:"params"`
 }
 
 func NewQuery(queries ...any) url.Values {
@@ -29,29 +31,83 @@ func NewQuery(queries ...any) url.Values {
 
 func newQuery(q url.Values) *Query {
 	return &Query{
-		params: q,
+		Params: q,
 	}
 }
 
 func (q Query) Data() ([]map[string]any, error) {
-	return GetDataFromQuery(&q.params)
+	return GetDataFromQuery(&q.Params)
+}
+
+func (q Query) Get(key string) []string {
+	if q.Params.Has(key) {
+		return q.Params[key]
+	}
+	return []string{}
 }
 
 func (q Query) SrchAttr() []string {
-	return GetQueryStringSlice(SrchAttr, q.params)
+	return GetQueryStringSlice(SrchAttr, q.Params)
 }
 
 func (q Query) FacetAttr() []string {
-	return GetQueryStringSlice(FacetAttr, q.params)
+	return GetQueryStringSlice(FacetAttr, q.Params)
 }
 
 func (q Query) Analyzer() string {
-	return GetAnalyzer(q.params)
+	return GetAnalyzer(q.Params)
 }
 
 func (q Query) Settings() *Settings {
 	s := defaultSettings()
-	return s.setValues(q.params)
+	return s.setValues(q.Params)
+}
+
+func (q Query) FacetFilters() *Filters {
+	f, err := DecodeFilter(q.Params.Get("facetFilters"))
+	if err != nil {
+		return &Filters{}
+	}
+	return f
+}
+
+func (q Query) MarshalJSON() ([]byte, error) {
+	d, err := json.Marshal(map[string]string{
+		"params": q.Encode(),
+	})
+	if err != nil {
+		return nil, err
+	}
+	return d, err
+}
+
+func (q *Query) UnmarshalJSON(d []byte) error {
+	p := make(map[string]string)
+	err := json.Unmarshal(d, &p)
+	if err != nil {
+		return err
+	}
+
+	switch params, ok := p["params"]; ok {
+	case false:
+		return errors.New("no params")
+	default:
+		err := q.Decode(params)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+}
+
+func (q Query) Encode() string {
+	return q.Params.Encode()
+}
+
+func (q *Query) Decode(str string) error {
+	var err error
+	q.Params, err = url.ParseQuery(str)
+	return err
 }
 
 func GetDataFromQuery(q *url.Values) ([]map[string]any, error) {
