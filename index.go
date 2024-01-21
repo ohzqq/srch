@@ -34,11 +34,12 @@ type SearchFunc func(string) []map[string]any
 
 type Opt func(*Index)
 
-func New(data []map[string]any, settings *Settings) *Index {
+func New(data []map[string]any, settings any) *Index {
 	idx := &Index{
-		Settings: settings,
-		Fields:   settings.Fields(),
+		Query: NewQuery(settings),
 	}
+	idx.Settings = idx.GetSettings()
+	idx.Fields = idx.Settings.Fields()
 	return idx.Index(data)
 }
 

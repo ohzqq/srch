@@ -34,8 +34,7 @@ func TestData(t *testing.T) {
 func TestNewIndex(t *testing.T) {
 	data := loadData(t)
 	for _, test := range settingsTestVals {
-		settings := NewSettings(test.query)
-		idx := New(data, settings)
+		idx := New(data, test.query)
 		if idx.Len() != 7174 {
 			t.Errorf("got %d, expected %d\n", idx.Len(), 7174)
 		}

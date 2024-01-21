@@ -18,12 +18,7 @@ type Settings struct {
 
 func NewSettings(query any) *Settings {
 	q := NewQuery(query)
-
-	s, err := q.GetSettings()
-	if err != nil {
-		return defaultSettings()
-	}
-	return s
+	return q.GetSettings()
 }
 
 func defaultSettings() *Settings {

@@ -51,10 +51,10 @@ func (q Query) HasData() bool {
 	return q.Params.Has("data_file") || q.Params.Has("data_dir")
 }
 
-func (q Query) GetSettings() (*Settings, error) {
+func (q Query) GetSettings() *Settings {
 	s := defaultSettings()
 	s.setValsFromQuery(&q)
-	return s, nil
+	return s
 }
 
 func (q Query) GetFacetFilters() (*Filters, error) {
