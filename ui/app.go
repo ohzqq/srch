@@ -30,7 +30,7 @@ type App struct {
 }
 
 func New(idx *srch.Index) *App {
-	tui := newApp(idx.Values, idx.Data)
+	tui := newApp(idx.Query.Params, idx.Data)
 	tui.updateVisible(idx)
 	tui.Model = NewModel(SrcToItems(tui.visible))
 	return tui
@@ -38,7 +38,7 @@ func New(idx *srch.Index) *App {
 
 func Browse(q url.Values, data []map[string]any) *App {
 	tui := newApp(q, data)
-	tui.updateVisible(srch.NewIndex(q).Index(data))
+	tui.updateVisible(srch.New(q).Index(data))
 	tui.Model = NewModel(SrcToItems(tui.visible))
 	return tui
 }
