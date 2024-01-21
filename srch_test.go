@@ -132,7 +132,6 @@ func TestAudibleSearch(t *testing.T) {
 	q := "field=Title"
 	a := NewIndex(
 		q,
-		WithSearch(audibleSrch),
 	)
 	res := a.Search("amy lane fish")
 
