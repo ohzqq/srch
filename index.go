@@ -101,11 +101,16 @@ func (idx *Index) FullText(q string) []map[string]any {
 	return searchFullText(
 		idx.Data,
 		idx.TextFields(),
-		idx.Query.Params.Get(QueryField),
+		idx.Query.Params.Get(ParamQuery),
 	)
 }
 
-func (idx *Index) Search(q string) *Index {
+func (idx *Index) Search(params string) *Response {
+	q := NewQuery(params)
+	return idx.GetResponse(q.Params.Get(ParamQuery))
+}
+
+func (idx *Index) SearchIndex(q string) *Index {
 	//idx.Values.Set(QueryField, q)
 	var data []map[string]any
 	switch idx.Settings.TextAnalyzer {
@@ -231,7 +236,7 @@ func (idx *Index) UnmarshalJSON(d []byte) error {
 		return err
 	}
 
-	if msg, ok := un[QueryField]; ok {
+	if msg, ok := un[ParamQuery]; ok {
 		var q string
 		err := json.Unmarshal(msg, &q)
 		if err != nil {
@@ -256,7 +261,7 @@ func (idx *Index) MarshalJSON() ([]byte, error) {
 	res := map[string]any{
 		Hits:       idx.Data,
 		"facets":   idx.Facets(),
-		QueryField: idx.Query.Encode(),
+		ParamQuery: idx.Query.Encode(),
 	}
 	return json.Marshal(res)
 }

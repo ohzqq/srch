@@ -1,5 +1,18 @@
 package srch
 
+const (
+	SearchableAttributes  = `searchableAttributes`
+	AttributesForFaceting = `attributesForFaceting`
+	AttributesToRetrieve  = `attributesToRetrieve`
+	Page                  = "page"
+	HitsPerPage           = "hitsPerPage"
+	SortFacetValuesBy     = `sortFacetValuesBy`
+	ParamQuery            = `query`
+	ParamFacets           = "facets"
+	ParamFacetFilters     = `facetFilters`
+	ParamFilters          = "filters"
+)
+
 var ReservedKeys = []string{
 	"and",
 	"or",

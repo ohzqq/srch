@@ -55,7 +55,7 @@ func TestFullTextSearch(t *testing.T) {
 	t.SkipNow()
 	idx = NewIndex(testValuesCfg, WithFullText())
 	//idx.Index(books)
-	res := idx.Search("fish")
+	res := idx.SearchIndex("fish")
 	if len(res.Data) != 8 {
 		t.Errorf("got %d, expected 8\n", len(res.Data))
 	}
@@ -102,7 +102,7 @@ func TestFilterData(t *testing.T) {
 
 func TestSearchAndFilter(t *testing.T) {
 	t.SkipNow()
-	res := idx.Search("fish")
+	res := idx.SearchIndex("fish")
 	if len(res.Data) != 8 {
 		t.Errorf("got %d, expected 8\n", len(res.Data))
 	}
@@ -120,7 +120,7 @@ func TestAudibleSearch(t *testing.T) {
 	a := NewIndex(
 		q,
 	)
-	res := a.Search("amy lane fish")
+	res := a.SearchIndex("amy lane fish")
 
 	println("audible search")
 

@@ -5,15 +5,6 @@ import (
 	"strconv"
 )
 
-const (
-	SearchQuery   = "query"
-	SearchFilters = "filters"
-	FacetFilters  = "facetFilters"
-	SearchFacets  = "facets"
-	Page          = "page"
-	HitsPerPage   = "hitsPerPage"
-)
-
 type Request struct {
 	params url.Values
 }
@@ -25,22 +16,22 @@ func ParseRequest(req string) *Request {
 }
 
 func (r Request) Query() string {
-	return r.params.Get(SearchQuery)
+	return r.params.Get(ParamQuery)
 }
 
 func (r Request) Filters() *Filters {
-	f, _ := DecodeFilter(r.params.Get(SearchFilters))
+	f, _ := DecodeFilter(r.params.Get(ParamFilters))
 	return f
 }
 
 func (r Request) FacetFilters() *Filters {
-	f, _ := DecodeFilter(r.params.Get(FacetFilters))
+	f, _ := DecodeFilter(r.params.Get(ParamFilters))
 	return f
 }
 
 func (r Request) Facets() []string {
-	if r.params.Has(SearchFacets) {
-		return r.params[SearchFacets]
+	if r.params.Has(ParamFacets) {
+		return r.params[ParamFacets]
 	}
 	return []string{}
 }
