@@ -96,7 +96,7 @@ func (c *App) SetFacet(label string) {
 }
 
 func (c *App) SetFilters(filters url.Values) {
-	c.Filters = srch.NewQuery(c.Filters, filters)
+	c.Filters = srch.ParseQuery(c.Filters, filters)
 	c.updateVisible(c.visible.Filter(filters))
 }
 

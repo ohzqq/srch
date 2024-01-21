@@ -35,7 +35,7 @@ func NewQuery(q url.Values) *Query {
 	}
 }
 
-func (q Query) Data() ([]map[string]any, error) {
+func (q Query) GetData() ([]map[string]any, error) {
 	if !q.HasData() {
 		return nil, errors.New("no data")
 	}
