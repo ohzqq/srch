@@ -1,6 +1,7 @@
 package srch
 
 import (
+	"fmt"
 	"net/url"
 	"strconv"
 )
@@ -8,10 +9,16 @@ import (
 type Request struct {
 	*Index
 	params url.Values
+	*Filters
 }
 
 func Search(idx *Index, params string) *Response {
 	req := ParseRequest(params)
+
+	if req.HasFilters() {
+		println("filters")
+	}
+
 	q := req.Query()
 	if q == "" {
 		return NewResponse(idx.Data, req.params)
@@ -21,22 +28,40 @@ func Search(idx *Index, params string) *Response {
 }
 
 func ParseRequest(req string) *Request {
-	return &Request{
+	r := &Request{
 		params: ParseQuery(req),
 	}
+	fmt.Printf("filters?? %v\n", r.params.Get(ParamFacetFilters))
+	r.Filters = r.GetFilters()
+	return r
 }
 
 func (r Request) Query() string {
 	return r.params.Get(ParamQuery)
 }
 
-func (r Request) Filters() *Filters {
-	f, _ := DecodeFilter(r.params.Get(ParamFilters))
+func (r Request) GetFilters() *Filters {
+	var f *Filters
+	switch {
+	case r.params.Has(ParamFilters):
+		f, _ = DecodeFilter(r.params.Get(ParamFilters))
+	case r.params.Has(ParamFacetFilters):
+		return r.getFacetFilters()
+	}
 	return f
 }
 
-func (r Request) FacetFilters() *Filters {
-	f, _ := DecodeFilter(r.params.Get(ParamFilters))
+func (r Request) HasFilters() bool {
+	if r.Filters == nil {
+		return false
+	}
+	return len(r.Filters.Not) > 0 ||
+		len(r.Filters.And) > 0 ||
+		len(r.Filters.Or) > 0
+}
+
+func (r Request) getFacetFilters() *Filters {
+	f, _ := DecodeFilter(r.params.Get(ParamFacetFilters))
 	return f
 }
 
