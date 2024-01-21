@@ -22,25 +22,25 @@ func init() {
 
 // Index is a structure for facets and data.
 type Index struct {
-	search   SearchFunc
 	Fields   []*Field         `json:"fields"`
 	Data     []map[string]any `json:"data"`
-	Values   url.Values       `json:"query"`
+	Values   url.Values
 	Settings *Settings
-	*Query
+
+	*Query `json:"query"`
 }
 
 type SearchFunc func(string) []map[string]any
 
 type Opt func(*Index)
 
-func New(data []map[string]any, settings any) *Index {
+func New(settings any) *Index {
 	idx := &Index{
 		Query: NewQuery(settings),
 	}
 	idx.Settings = idx.GetSettings()
 	idx.Fields = idx.Settings.Fields()
-	return idx.Index(data)
+	return idx
 }
 
 func NewIndex(query any, opts ...Opt) *Index {
@@ -106,7 +106,13 @@ func (idx *Index) FullText(q string) []map[string]any {
 
 func (idx *Index) Search(q string) *Index {
 	idx.Values.Set(QueryField, q)
-	data := idx.search(q)
+	var data []map[string]any
+	switch idx.Settings.TextAnalyzer {
+	case Text:
+		data = idx.FullText(q)
+	case Fuzzy:
+		data = idx.FuzzyFind(q)
+	}
 	return idx.Copy().Index(data)
 }
 

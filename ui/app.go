@@ -30,7 +30,7 @@ type App struct {
 }
 
 func New(idx *srch.Index) *App {
-	tui := newApp(idx.Query, idx.Data)
+	tui := newApp(idx.Values, idx.Data)
 	tui.updateVisible(idx)
 	tui.Model = NewModel(SrcToItems(tui.visible))
 	return tui

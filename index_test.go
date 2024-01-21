@@ -34,7 +34,7 @@ func TestData(t *testing.T) {
 func TestNewIndex(t *testing.T) {
 	data := loadData(t)
 	for _, test := range settingsTestVals {
-		idx := New(data, test.query)
+		idx := New(test.query).Index(data)
 		if idx.Len() != 7174 {
 			t.Errorf("got %d, expected %d\n", idx.Len(), 7174)
 		}
@@ -57,13 +57,6 @@ func TestIndexProps(t *testing.T) {
 	if len(idx.TextFields()) != 1 {
 		t.Errorf("got %d, expected %d\n", len(idx.TextFields()), 1)
 	}
-}
-
-func TestRecursiveSearch(t *testing.T) {
-	t.SkipNow()
-	idx.search = FullTextSrchFunc(idx.Data, idx.TextFields())
-	res := idx.Search("fish")
-	fmt.Printf("after search %d\n", len(res.Data))
 }
 
 func loadData(t *testing.T) []map[string]any {
