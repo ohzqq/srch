@@ -38,14 +38,18 @@ func TestParseValues(t *testing.T) {
 
 func TestFuzzySearch(t *testing.T) {
 	//t.SkipNow()
-	test := settingsTestVals[2]
+	test := settingsTestVals[6]
 	idx = New(test.query)
 	totalBooksTest(idx.Len(), t)
 	if len(idx.TextFields()) != len(test.want.SearchableAttributes) {
 		t.Errorf("%s: got %+v, wanted %+v\n", test.query, len(idx.TextFields()), len(test.want.SearchableAttributes))
 	}
 
-	m := idx.GetResponse("fish")
+	vals := make(url.Values)
+	vals.Set(ParamQuery, "fish")
+	vals.Set(ParamFacetFilters, "[tag:mystery]")
+
+	m := idx.Search(vals.Encode())
 	if m.NbHits != 56 {
 		t.Errorf("num res %d, expected %d \n", m.Len(), 56)
 	}

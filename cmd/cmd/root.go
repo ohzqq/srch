@@ -148,7 +148,7 @@ By default, results are printed to stdout as json.
 			idx = idx.Index(data)
 
 			if keywords != "" {
-				idx = idx.Search(keywords)
+				idx = idx.SearchIndex(keywords)
 			}
 		}
 

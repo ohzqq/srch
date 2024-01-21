@@ -48,7 +48,7 @@ var settingsTestVals = []settingsTest{
 		},
 	},
 	settingsTest{
-		query: "searchableAttributes=title&attributesForFaceting=tags",
+		query: "searchableAttributes=title&attributesForFaceting=tags&data_file=testdata/data-dir/audiobooks.json",
 		want: &Settings{
 			SearchableAttributes:  []string{"title"},
 			AttributesForFaceting: []string{"tags"},

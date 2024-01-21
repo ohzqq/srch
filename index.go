@@ -106,8 +106,7 @@ func (idx *Index) FullText(q string) []map[string]any {
 }
 
 func (idx *Index) Search(params string) *Response {
-	q := NewSearch(idx, params)
-	return idx.GetResponse(q.Query())
+	return Search(idx, params)
 }
 
 func (idx *Index) SearchIndex(q string) *Index {
@@ -122,7 +121,7 @@ func (idx *Index) SearchIndex(q string) *Index {
 	return idx.Copy().Index(data)
 }
 
-func (idx *Index) GetResponse(q string) *Response {
+func (idx *Index) search(q string) []map[string]any {
 	var data []map[string]any
 	switch idx.Settings.TextAnalyzer {
 	case Text:
@@ -130,13 +129,7 @@ func (idx *Index) GetResponse(q string) *Response {
 	case Fuzzy:
 		data = idx.FuzzyFind(q)
 	}
-	res := &Response{
-		Index:    New(idx.Query.Params).Index(data),
-		Page:     0,
-		Keywords: q,
-	}
-	res.NbHits = res.Len()
-	return res
+	return data
 }
 
 func (idx *Index) Filter(q any) *Index {
