@@ -35,11 +35,22 @@ func totalBooksTest(total int, t *testing.T) {
 	}
 }
 
+func totalBooksErr(total int, vals ...any) error {
+	if total != 7174 {
+		err := fmt.Errorf("got %d, expected %d\n", total, 7174)
+		return fmt.Errorf("%w\nmsg: %v", err, vals)
+	}
+	return nil
+}
+
 func TestNewIndex(t *testing.T) {
 	data := loadData(t)
 	for _, test := range settingsTestVals {
 		idx := New(test.query).Index(data)
-		totalBooksTest(idx.Len(), t)
+		err := totalBooksErr(idx.Len(), test.query)
+		if err != nil {
+			t.Error(err)
+		}
 	}
 }
 

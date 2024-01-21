@@ -72,10 +72,6 @@ func (idx *Index) Index(src []map[string]any) *Index {
 
 	idx.Fields = IndexData(idx.Data, idx.Fields)
 
-	if idx.HasFilters() {
-		return idx.Filter(idx.Filters())
-	}
-
 	return idx
 }
 
