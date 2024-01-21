@@ -174,6 +174,17 @@ func (idx *Index) Copy() *Index {
 	return NewIndex(idx.Query.Params)
 }
 
+func (idx *Index) GetFilterValues(filters []string) map[string][]string {
+	facets := make(map[string][]string)
+	for _, attr := range idx.Settings.AttributesForFaceting {
+		f := FilterByAttribute(attr, filters)
+		if len(f) > 0 {
+			facets[attr] = append(facets[attr], f...)
+		}
+	}
+	return facets
+}
+
 func (idx *Index) AddField(fields ...*Field) *Index {
 	idx.Fields = append(idx.Fields, fields...)
 	return idx

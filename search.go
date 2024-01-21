@@ -13,10 +13,12 @@ type Request struct {
 }
 
 func Search(idx *Index, params string) *Response {
+	println(params)
 	req := ParseRequest(params)
 
 	if req.HasFilters() {
-		println("filters")
+		and := idx.GetFilterValues(req.And)
+		fmt.Printf("%v\n", and)
 	}
 
 	q := req.Query()
@@ -31,7 +33,6 @@ func ParseRequest(req string) *Request {
 	r := &Request{
 		params: ParseQuery(req),
 	}
-	fmt.Printf("filters?? %v\n", r.params.Get(ParamFacetFilters))
 	r.Filters = r.GetFilters()
 	return r
 }
@@ -55,9 +56,9 @@ func (r Request) HasFilters() bool {
 	if r.Filters == nil {
 		return false
 	}
-	return len(r.Filters.Not) > 0 ||
-		len(r.Filters.And) > 0 ||
-		len(r.Filters.Or) > 0
+	return len(r.Filters.And) > 0 ||
+		len(r.Filters.Or) > 0 ||
+		len(r.Filters.Not) > 0
 }
 
 func (r Request) getFacetFilters() *Filters {

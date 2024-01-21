@@ -55,17 +55,17 @@ var settingsTestVals = []settingsTest{
 		},
 	},
 	settingsTest{
-		query: "searchableAttributes=title&attributesForFaceting=tags,series",
+		query: "searchableAttributes=title&attributesForFaceting=tags,authors&data_file=testdata/data-dir/audiobooks.json",
 		want: &Settings{
 			SearchableAttributes:  []string{"title"},
-			AttributesForFaceting: []string{"tags", "series"},
+			AttributesForFaceting: []string{"tags", "authors"},
 		},
 	},
 	settingsTest{
-		query: "searchableAttributes=title&attributesForFaceting=tags&attributesForFaceting=series",
+		query: "searchableAttributes=title&attributesForFaceting=tags&attributesForFaceting=authors",
 		want: &Settings{
 			SearchableAttributes:  []string{"title"},
-			AttributesForFaceting: []string{"tags", "series"},
+			AttributesForFaceting: []string{"tags", "authors"},
 		},
 	},
 	settingsTest{

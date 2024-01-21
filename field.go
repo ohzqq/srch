@@ -13,10 +13,11 @@ import (
 )
 
 const (
-	Text     = "text"
-	Fuzzy    = "fuzzy"
-	OrFacet  = "or"
-	AndFacet = "and"
+	Text       = "text"
+	Fuzzy      = "fuzzy"
+	OrFacet    = "or"
+	AndFacet   = "and"
+	FacetField = `facet`
 )
 
 type Field struct {
@@ -144,7 +145,7 @@ func (f *Field) Filter(filters ...string) *roaring.Bitmap {
 }
 
 func (f *Field) Search(text string) *roaring.Bitmap {
-	if f.FieldType == AndFacet || f.FieldType == OrFacet {
+	if f.IsFacet() {
 		if item, ok := f.items[normalizeText(text)]; ok {
 			return item.bits
 		}
@@ -157,6 +158,12 @@ func (f *Field) Search(text string) *roaring.Bitmap {
 		}
 	}
 	return processBitResults(bits, f.Operator)
+}
+
+func (f *Field) IsFacet() bool {
+	return f.FieldType == FacetField ||
+		f.FieldType == AndFacet ||
+		f.FieldType == OrFacet
 }
 
 func processBitResults(bits []*roaring.Bitmap, operator string) *roaring.Bitmap {

@@ -3,6 +3,7 @@ package srch
 import (
 	"encoding/json"
 	"net/url"
+	"strings"
 
 	"github.com/RoaringBitmap/roaring"
 	"github.com/samber/lo"
@@ -108,4 +109,12 @@ func (f *Filters) ToValues() url.Values {
 	return url.Values{
 		"facetFilters": []string{f.String()},
 	}
+}
+
+func FilterByAttribute(attr string, filters []string) []string {
+	fn := func(f string, _ int) (string, bool) {
+		pre := attr + ":"
+		return strings.TrimPrefix(f, pre), strings.HasPrefix(f, pre)
+	}
+	return lo.FilterMap(filters, fn)
 }
