@@ -100,11 +100,11 @@ func WithFullText() Opt {
 }
 
 func (idx *Index) FullText(q string) []map[string]any {
-	return searchFullText(idx.Data, idx.TextFields(), idx.Values.Get("q"))
+	return searchFullText(idx.Data, idx.TextFields(), idx.Values.Get(QueryField))
 }
 
 func (idx *Index) Search(q string) *Index {
-	idx.Values.Set("q", q)
+	idx.Values.Set(QueryField, q)
 	data := idx.search(q)
 	return idx.Copy().Index(data)
 }

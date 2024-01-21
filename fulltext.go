@@ -13,7 +13,7 @@ import (
 
 func FullText(data []map[string]any, q string, fields ...string) *Index {
 	vals := make(url.Values)
-	vals.Set("q", q)
+	vals.Set(QueryField, q)
 	for _, f := range fields {
 		vals.Add("field", f)
 	}

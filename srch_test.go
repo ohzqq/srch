@@ -21,7 +21,7 @@ func testVals() url.Values {
 	vals.Add("tags", "dnr")
 	//vals.Add("authors", "Alice Winters")
 	//vals.Add("authors", "Amy Lane")
-	//vals.Add("q", "fish")
+	//vals.Add(QueryField, "fish")
 	return vals
 }
 

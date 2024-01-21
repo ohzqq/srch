@@ -9,6 +9,10 @@ import (
 	"github.com/spf13/cast"
 )
 
+const (
+	QueryField = `query`
+)
+
 type Query struct {
 	Params url.Values `json:"params"`
 }

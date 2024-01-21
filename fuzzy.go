@@ -11,7 +11,7 @@ import (
 
 func FuzzyFind(data []map[string]any, q string, fields ...string) *Index {
 	vals := make(url.Values)
-	vals.Set("q", q)
+	vals.Set(QueryField, q)
 	for _, f := range fields {
 		vals.Add("field", f)
 	}
@@ -23,7 +23,7 @@ func FuzzyFind(data []map[string]any, q string, fields ...string) *Index {
 
 	idx.Index(data)
 
-	fr := idx.FuzzyFind(vals.Get("q"))
+	fr := idx.FuzzyFind(vals.Get(QueryField))
 
 	return idx.Copy().Index(fr)
 }
