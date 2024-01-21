@@ -106,8 +106,8 @@ func (idx *Index) FullText(q string) []map[string]any {
 }
 
 func (idx *Index) Search(params string) *Response {
-	q := NewQuery(params)
-	return idx.GetResponse(q.Params.Get(ParamQuery))
+	q := NewSearch(idx, params)
+	return idx.GetResponse(q.Query())
 }
 
 func (idx *Index) SearchIndex(q string) *Index {

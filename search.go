@@ -5,38 +5,46 @@ import (
 	"strconv"
 )
 
-type Request struct {
+type Search struct {
+	*Index
 	params url.Values
 }
 
-func ParseRequest(req string) *Request {
-	return &Request{
+func NewSearch(idx *Index, params string) *Search {
+	return &Search{
+		Index:  idx,
+		params: ParseQuery(params),
+	}
+}
+
+func ParseRequest(req string) *Search {
+	return &Search{
 		params: ParseQuery(req),
 	}
 }
 
-func (r Request) Query() string {
+func (r Search) Query() string {
 	return r.params.Get(ParamQuery)
 }
 
-func (r Request) Filters() *Filters {
+func (r Search) Filters() *Filters {
 	f, _ := DecodeFilter(r.params.Get(ParamFilters))
 	return f
 }
 
-func (r Request) FacetFilters() *Filters {
+func (r Search) FacetFilters() *Filters {
 	f, _ := DecodeFilter(r.params.Get(ParamFilters))
 	return f
 }
 
-func (r Request) Facets() []string {
+func (r Search) Facets() []string {
 	if r.params.Has(ParamFacets) {
 		return r.params[ParamFacets]
 	}
 	return []string{}
 }
 
-func (r Request) Page() int {
+func (r Search) Page() int {
 	p := r.params.Get(Page)
 	page, err := strconv.Atoi(p)
 	if err != nil {
@@ -45,7 +53,7 @@ func (r Request) Page() int {
 	return page
 }
 
-func (r Request) HitsPerPage() int {
+func (r Search) HitsPerPage() int {
 	p := r.params.Get(HitsPerPage)
 	page, err := strconv.Atoi(p)
 	if err != nil {

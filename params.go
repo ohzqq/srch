@@ -11,6 +11,9 @@ const (
 	ParamFacets           = "facets"
 	ParamFacetFilters     = `facetFilters`
 	ParamFilters          = "filters"
+	DataDir               = `dataDir`
+	DataFile              = `dataFile`
+	ParamFullText         = `fullText`
 )
 
 var ReservedKeys = []string{
