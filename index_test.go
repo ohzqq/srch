@@ -26,8 +26,12 @@ func init() {
 
 func TestData(t *testing.T) {
 	books = loadData(t)
-	if len(books) != 7174 {
-		t.Errorf("got %d, expected 7174\v", len(books))
+	totalBooksTest(len(books), t)
+}
+
+func totalBooksTest(total int, t *testing.T) {
+	if total != 7174 {
+		t.Errorf("got %d, expected %d\n", total, 7174)
 	}
 }
 
@@ -35,9 +39,7 @@ func TestNewIndex(t *testing.T) {
 	data := loadData(t)
 	for _, test := range settingsTestVals {
 		idx := New(test.query).Index(data)
-		if idx.Len() != 7174 {
-			t.Errorf("got %d, expected %d\n", idx.Len(), 7174)
-		}
+		totalBooksTest(idx.Len(), t)
 	}
 }
 

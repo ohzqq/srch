@@ -28,12 +28,6 @@ func FullText(data []map[string]any, q string, fields ...string) *Index {
 	return idx.Search(q)
 }
 
-func FullTextSrchFunc(data []map[string]any, fields []*Field) SearchFunc {
-	return func(q string) []map[string]any {
-		return searchFullText(data, fields, q)
-	}
-}
-
 func searchFullText(data []map[string]any, fields []*Field, q string) []map[string]any {
 	if q == "" {
 		return data

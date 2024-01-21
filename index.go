@@ -22,12 +22,12 @@ func init() {
 
 // Index is a structure for facets and data.
 type Index struct {
-	Fields   []*Field         `json:"fields"`
-	Data     []map[string]any `json:"data"`
+	Fields   []*Field
+	Data     []map[string]any
 	Values   url.Values
 	Settings *Settings
 
-	*Query `json:"query"`
+	*Query `json:"params"`
 }
 
 type SearchFunc func(string) []map[string]any
@@ -39,7 +39,16 @@ func New(settings any) *Index {
 		Query: NewQuery(settings),
 	}
 	idx.Settings = idx.GetSettings()
-	idx.Fields = idx.Settings.Fields()
+	idx.Fields = idx.GetSettings().Fields()
+
+	if idx.Query.HasData() {
+		d, err := idx.Query.GetData()
+		if err != nil {
+			return idx
+		}
+		return idx.Index(d)
+	}
+
 	return idx
 }
 
@@ -58,11 +67,6 @@ func NewIndex(query any, opts ...Opt) *Index {
 }
 
 func (idx *Index) Index(src []map[string]any) *Index {
-	if len(idx.Fields) < 1 {
-		idx.AddField(NewField("title", Text))
-		idx.Values.Add("field", "title")
-	}
-
 	idx.Data = src
 
 	if idx.Values.Has("sort_by") {
@@ -105,7 +109,7 @@ func (idx *Index) FullText(q string) []map[string]any {
 }
 
 func (idx *Index) Search(q string) *Index {
-	idx.Values.Set(QueryField, q)
+	//idx.Values.Set(QueryField, q)
 	var data []map[string]any
 	switch idx.Settings.TextAnalyzer {
 	case Text:
@@ -114,6 +118,19 @@ func (idx *Index) Search(q string) *Index {
 		data = idx.FuzzyFind(q)
 	}
 	return idx.Copy().Index(data)
+}
+
+func (idx *Index) GetResponse(q string) *Response {
+	var data []map[string]any
+	switch idx.Settings.TextAnalyzer {
+	case Text:
+		data = idx.FullText(q)
+	case Fuzzy:
+		data = idx.FuzzyFind(q)
+	}
+	return &Response{
+		Index: New(idx.Query.Params).Index(data),
+	}
 }
 
 func (idx *Index) Filter(q any) *Index {

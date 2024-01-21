@@ -38,12 +38,14 @@ func TestParseValues(t *testing.T) {
 
 func TestFuzzySearch(t *testing.T) {
 	//t.SkipNow()
-	idx = NewIndex(testValuesCfg)
-	data := make([]map[string]any, len(idx.Data))
-	for i, book := range idx.Data {
-		data[i] = map[string]any{"title": book["title"]}
+	test := settingsTestVals[2]
+	idx = New(test.query)
+	totalBooksTest(idx.Len(), t)
+	if len(idx.TextFields()) != len(test.want.SearchableAttributes) {
+		t.Errorf("%s: got %+v, wanted %+v\n", test.query, len(idx.TextFields()), len(test.want.SearchableAttributes))
 	}
-	m := FuzzyFind(data, "fish")
+
+	m := idx.GetResponse("fish")
 	if m.Len() != 56 {
 		t.Errorf("num res %d, expected %d \n", m.Len(), 56)
 	}
@@ -63,21 +65,6 @@ func TestFullTextSearch(t *testing.T) {
 	//  }
 	//}
 
-}
-
-func TestGenericFullTextSearch(t *testing.T) {
-	t.SkipNow()
-	idx = NewIndex(testValuesCfg, WithFullText())
-	idx.Index(idx.Data)
-	data := make([]map[string]any, len(idx.Data))
-	for i, book := range idx.Data {
-		data[i] = map[string]any{"title": book["title"]}
-	}
-	ft := FullText(data, "fish")
-	if len(ft.Data) != 8 {
-		println(len(data))
-		t.Errorf("got %d, expected %d\n", len(ft.Data), 8)
-	}
 }
 
 func parseValueTest(t *testing.T, q string) {
