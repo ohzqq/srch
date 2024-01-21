@@ -98,17 +98,21 @@ func (f *Field) sortedKeys() []string {
 
 func (f *Field) Add(value any, ids ...any) {
 	if f.FieldType == Text {
-		f.addFullText(cast.ToString(value), cast.ToIntSlice(ids))
+		f.AddFullText(value, ids)
 		return
 	}
+	f.AddToFacet(value, ids)
+}
+
+func (f *Field) AddToFacet(value any, ids any) {
 	for _, val := range FacetTokenizer(value) {
 		f.addTerm(val, cast.ToIntSlice(ids))
 	}
 }
 
-func (f *Field) addFullText(text string, ids []int) {
-	for _, token := range Tokenizer(text) {
-		f.addTerm(token, ids)
+func (f *Field) AddFullText(value any, ids any) {
+	for _, token := range Tokenizer(cast.ToString(value)) {
+		f.addTerm(token, cast.ToIntSlice(ids))
 	}
 }
 

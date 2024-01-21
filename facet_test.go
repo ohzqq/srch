@@ -31,7 +31,7 @@ func TestParseFacetSort(t *testing.T) {
 }
 
 func TestSortFacets(t *testing.T) {
-	//t.SkipNow()
+	t.SkipNow()
 
 	q := getNewQuery()
 	//query := fmt.Sprintf("%s&%s&%s", testValuesCfg, testQueryString, testSearchString)

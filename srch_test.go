@@ -46,7 +46,7 @@ func TestFuzzySearch(t *testing.T) {
 	}
 
 	m := idx.GetResponse("fish")
-	if m.Len() != 56 {
+	if m.NbHits != 56 {
 		t.Errorf("num res %d, expected %d \n", m.Len(), 56)
 	}
 }

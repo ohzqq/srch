@@ -24,7 +24,6 @@ func init() {
 type Index struct {
 	Fields   []*Field
 	Data     []map[string]any
-	Values   url.Values
 	Settings *Settings
 
 	*Query `json:"params"`
@@ -54,14 +53,12 @@ func New(settings any) *Index {
 
 func NewIndex(query any, opts ...Opt) *Index {
 	idx := &Index{
-		Values: ParseQuery(query),
+		Query: NewQuery(query),
 	}
 
 	for _, opt := range opts {
 		opt(idx)
 	}
-
-	idx.SetQuery(idx.Values)
 
 	return idx
 }
@@ -69,7 +66,7 @@ func NewIndex(query any, opts ...Opt) *Index {
 func (idx *Index) Index(src []map[string]any) *Index {
 	idx.Data = src
 
-	if idx.Values.Has("sort_by") {
+	if idx.Query.Params.Has("sort_by") {
 		idx.Sort()
 	}
 
@@ -100,12 +97,16 @@ func IndexData(data []map[string]any, fields []*Field) []*Field {
 
 func WithFullText() Opt {
 	return func(idx *Index) {
-		idx.Values.Set("full_text", "")
+		idx.Query.Params.Set("full_text", "")
 	}
 }
 
 func (idx *Index) FullText(q string) []map[string]any {
-	return searchFullText(idx.Data, idx.TextFields(), idx.Values.Get(QueryField))
+	return searchFullText(
+		idx.Data,
+		idx.TextFields(),
+		idx.Query.Params.Get(QueryField),
+	)
 }
 
 func (idx *Index) Search(q string) *Index {
@@ -128,9 +129,13 @@ func (idx *Index) GetResponse(q string) *Response {
 	case Fuzzy:
 		data = idx.FuzzyFind(q)
 	}
-	return &Response{
-		Index: New(idx.Query.Params).Index(data),
+	res := &Response{
+		Index:    New(idx.Query.Params).Index(data),
+		Page:     0,
+		Keywords: q,
 	}
+	res.NbHits = res.Len()
+	return res
 }
 
 func (idx *Index) Filter(q any) *Index {
@@ -144,15 +149,17 @@ func (idx *Index) Filter(q any) *Index {
 }
 
 func (idx *Index) SetQuery(q url.Values) *Index {
-	idx.Values = q
+	idx.Query = &Query{
+		Params: q,
+	}
 
-	if idx.Values.Has("full_text") {
+	if idx.Query.Params.Has("full_text") {
 		idx.Settings.TextAnalyzer = Text
 	}
 
-	idx.AddField(ParseFieldsFromValues(idx.Values)...)
+	idx.AddField(ParseFieldsFromValues(idx.Query.Params)...)
 
-	data, err := GetDataFromQuery(&idx.Values)
+	data, err := idx.Query.GetData()
 	if err == nil {
 		return idx.Index(data)
 	}
@@ -161,16 +168,16 @@ func (idx *Index) SetQuery(q url.Values) *Index {
 }
 
 func (idx *Index) Sort() {
-	sortDataByField(idx.Data, idx.Values.Get("sort_by"))
-	if idx.Values.Has("order") {
-		if idx.Values.Get("order") == "desc" {
+	sortDataByField(idx.Data, idx.Query.Params.Get("sort_by"))
+	if idx.Query.Params.Has("order") {
+		if idx.Query.Params.Get("order") == "desc" {
 			slices.Reverse(idx.Data)
 		}
 	}
 }
 
 func (idx *Index) Copy() *Index {
-	return NewIndex(idx.Values)
+	return NewIndex(idx.Query.Params)
 }
 
 func (idx *Index) AddField(fields ...*Field) *Index {
@@ -192,7 +199,7 @@ func (idx *Index) HasFilters() bool {
 }
 
 func (idx *Index) Filters() url.Values {
-	return lo.OmitByKeys(idx.Values, ReservedKeys)
+	return lo.OmitByKeys(idx.Query.Params, ReservedKeys)
 }
 
 // HasFacets returns true if facets are configured.
@@ -253,7 +260,7 @@ func (idx *Index) MarshalJSON() ([]byte, error) {
 	res := map[string]any{
 		Hits:       idx.Data,
 		"facets":   idx.Facets(),
-		QueryField: idx.Values.Encode(),
+		QueryField: idx.Query.Encode(),
 	}
 	return json.Marshal(res)
 }
@@ -299,7 +306,7 @@ func (idx *Index) FuzzyFind(q string) []map[string]any {
 func (idx *Index) String(i int) string {
 	s := lo.PickByKeys(
 		idx.Data[i],
-		idx.SearchableFields(),
+		idx.Settings.SearchableAttributes,
 	)
 	vals := cast.ToStringSlice(lo.Values(s))
 	return strings.Join(vals, "\n")

@@ -12,4 +12,5 @@ var ReservedKeys = []string{
 	"full_text",
 	"query",
 	"filters",
+	"facetFilters",
 }
