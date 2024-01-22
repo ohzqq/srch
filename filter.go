@@ -2,6 +2,7 @@ package srch
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/url"
 	"strings"
 
@@ -12,15 +13,23 @@ import (
 )
 
 type Filters struct {
-	not []string
-	and []string
-	or  []string
 	Con url.Values
 	Dis url.Values
 	Neg url.Values
 }
 
-func Filter(data []map[string]any, facets []*Field, values url.Values) []map[string]any {
+func Filter(idx *Index, val string) ([]map[string]any, error) {
+	filters, err := unmarshalFilter(val)
+	if err != nil {
+		return nil, err
+	}
+
+	fmt.Printf("%#v\n", filters)
+
+	return nil, nil
+}
+
+func FilterData(data []map[string]any, facets []*Field, values url.Values) []map[string]any {
 	var bits []*roaring.Bitmap
 	for name, filters := range values {
 		for _, facet := range facets {
@@ -65,14 +74,17 @@ func DecodeFilter(query string) (*Filters, error) {
 
 	f := newFilters()
 	for _, v := range filters {
-		switch val := v.(type) {
-		case string:
-			f.add(val)
-		case []any:
-			f.add(val...)
-		}
+		f.add(v)
 	}
 	return f, nil
+}
+
+func FilterByAttribute(attr string, filters []string) []string {
+	fn := func(f string, _ int) (string, bool) {
+		pre := attr + ":"
+		return strings.TrimPrefix(f, pre), strings.HasPrefix(f, pre)
+	}
+	return lo.FilterMap(filters, fn)
 }
 
 func cutFilter(filter string) (string, string, bool) {
@@ -94,15 +106,23 @@ func UnmarshalFilterString(filters string) ([]any, error) {
 	return filter, nil
 }
 
-func (f *Filters) add(vals ...any) *Filters {
-	switch filters := cast.ToStringSlice(vals); len(filters) {
-	case 1:
-		return f.And(filters[0])
-	default:
-		for _, filter := range filters {
+func unmarshalFilter(dec string) ([]any, error) {
+	var f []any
+	err := json.Unmarshal([]byte(dec), &f)
+	if err != nil {
+		return nil, err
+	}
+	return f, nil
+}
+
+func (f *Filters) add(filters any) {
+	switch vals := filters.(type) {
+	case string:
+		f.And(vals)
+	case []any:
+		for _, filter := range cast.ToStringSlice(vals) {
 			f.Or(filter)
 		}
-		return f
 	}
 }
 
@@ -146,13 +166,21 @@ func (f *Filters) String() string {
 
 func (f *Filters) Bytes() []byte {
 	var filters []any
-	for _, not := range f.not {
-		filters = append(filters, not)
+	for k, not := range f.Neg {
+		for _, n := range not {
+			filters = append(filters, k+":-"+n)
+		}
 	}
-	for _, and := range f.and {
-		filters = append(filters, and)
+	for k, and := range f.Con {
+		for _, a := range and {
+			filters = append(filters, k+":"+a)
+		}
 	}
-	filters = append(filters, f.or)
+	for k, or := range f.Dis {
+		for _, o := range or {
+			filters = append(filters, k+":"+o)
+		}
+	}
 
 	filter, err := json.Marshal(filters)
 	if err != nil {
@@ -166,12 +194,4 @@ func (f *Filters) ToValues() url.Values {
 	return url.Values{
 		"facetFilters": []string{f.String()},
 	}
-}
-
-func FilterByAttribute(attr string, filters []string) []string {
-	fn := func(f string, _ int) (string, bool) {
-		pre := attr + ":"
-		return strings.TrimPrefix(f, pre), strings.HasPrefix(f, pre)
-	}
-	return lo.FilterMap(filters, fn)
 }

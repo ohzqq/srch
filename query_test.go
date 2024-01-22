@@ -19,7 +19,8 @@ func queryParamsString() string {
 }
 
 func requestParams() string {
-	return queryParamsString()
+	p := queryParamsString()
+	return p
 }
 
 func TestNewQuery(t *testing.T) {

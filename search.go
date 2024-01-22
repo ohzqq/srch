@@ -1,6 +1,7 @@
 package srch
 
 import (
+	"log"
 	"net/url"
 	"strconv"
 )
@@ -14,8 +15,11 @@ type Request struct {
 func Search(idx *Index, params string) *Response {
 	req := ParseRequest(params)
 
-	if req.HasFilters() {
-		//and := idx.GetFilterValues(req.and)
+	if req.params.Has(ParamFacetFilters) {
+		_, err := Filter(idx, req.Params.Get(ParamFacetFilters))
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	q := req.Query()
@@ -53,9 +57,9 @@ func (r Request) HasFilters() bool {
 	if r.Filters == nil {
 		return false
 	}
-	return len(r.Filters.and) > 0 ||
-		len(r.Filters.or) > 0 ||
-		len(r.Filters.not) > 0
+	return len(r.Filters.Con) > 0 ||
+		len(r.Filters.Dis) > 0 ||
+		len(r.Filters.Neg) > 0
 }
 
 func (r Request) getFacetFilters() *Filters {

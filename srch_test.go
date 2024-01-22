@@ -47,7 +47,7 @@ func TestFuzzySearch(t *testing.T) {
 
 	vals := make(url.Values)
 	vals.Set(ParamQuery, "fish")
-	vals.Set(ParamFacetFilters, `["authors:amy lane", "authors:toot"]`)
+	vals.Set(ParamFacetFilters, `["authors:amy lane"]`)
 
 	m := idx.Search(vals.Encode())
 	if m.NbHits != 56 {
@@ -98,7 +98,7 @@ func TestFilterQueryString(t *testing.T) {
 func TestFilterData(t *testing.T) {
 	t.SkipNow()
 	idx.Index(books)
-	d := Filter(books, idx.Facets(), testVals())
+	d := FilterData(books, idx.Facets(), testVals())
 	if len(d) != 384 {
 		t.Errorf("got %d, expected %d\n", len(d), 384)
 	}

@@ -137,7 +137,7 @@ func (idx *Index) Filter(q any) *Index {
 	if err != nil {
 		return idx
 	}
-	idx.Data = Filter(idx.Data, idx.Facets(), vals)
+	idx.Data = FilterData(idx.Data, idx.Facets(), vals)
 	idx.Fields = IndexData(idx.Data, idx.Fields)
 	return idx
 }

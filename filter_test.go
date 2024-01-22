@@ -8,13 +8,6 @@ import (
 	"testing"
 )
 
-func TestFilterToString(t *testing.T) {
-	filters := testFilterStruct.String()
-	if filters != testComboFilter() {
-		t.Errorf("got %v, expected %s\n", filters, testComboFilter())
-	}
-}
-
 func TestUnmarshalQueryParams(t *testing.T) {
 	params := &Query{}
 	err := json.Unmarshal(testParamsBytes(), params)
@@ -57,18 +50,13 @@ func TestMarshalFilter(t *testing.T) {
 }
 
 var plainFilters = []string{
-	`"authors:amy lane"`,
+	`"authors:amy lane", ["series:fish"]`,
 	`["tag:grumpy/sunshine","tag:-enemies to lovers"]`,
 }
 
 var encodedFilters = []string{
 	`%22authors%3Aamy+lane%22`,
 	`%5B%22tag%3Agrumpy%2Fsunshine%22%2C+%22tag%3Aenemies+to+lovers%22%5D`,
-}
-
-var testFilterStruct = &Filters{
-	and: []string{"authors:amy lane"},
-	or:  []string{`tag:grumpy/sunshine`, `tag:enemies to lovers`},
 }
 
 func testOrFilter() string {
@@ -80,7 +68,9 @@ func testEncOrFilter() string {
 }
 
 func testComboFilter() string {
-	return fmt.Sprintf("[%s,%s]", plainFilters[0], plainFilters[1])
+	f := fmt.Sprintf("[%s,%s]", plainFilters[0], plainFilters[1])
+	println(f)
+	return f
 }
 
 func testComboFilterEnc() string {
