@@ -2,6 +2,7 @@ package srch
 
 import (
 	"encoding/json"
+	"net/url"
 	"slices"
 	"strings"
 
@@ -17,6 +18,7 @@ const (
 	Fuzzy      = "fuzzy"
 	OrFacet    = "or"
 	AndFacet   = "and"
+	NotFacet   = `not`
 	FacetField = `facet`
 )
 
@@ -150,12 +152,28 @@ func (f *Field) OldFilter(filters ...string) *roaring.Bitmap {
 	return processBitResults(bits, f.Operator)
 }
 
-func (f *Field) Filter(kind string, filters ...string) *roaring.Bitmap {
-	var bits []*roaring.Bitmap
-	for _, filter := range filters {
-		bits = append(bits, f.Search(filter))
+func (f *Field) Filter(filters url.Values) *roaring.Bitmap {
+	//var bits *roaring.Bitmap
+	bits := roaring.New()
+
+	if filters.Has(AndFacet) {
+		for _, term := range filters[AndFacet] {
+			bits.And(f.Search(term))
+		}
 	}
-	return processBitResults(bits, kind)
+
+	if filters.Has(OrFacet) {
+		for _, term := range filters[OrFacet] {
+			bits.Or(f.Search(term))
+		}
+	}
+
+	if filters.Has(NotFacet) {
+		for _, term := range filters[NotFacet] {
+			bits.AndNot(f.Search(term))
+		}
+	}
+	return bits
 }
 
 func (f *Field) Search(text string) *roaring.Bitmap {

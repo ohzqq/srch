@@ -1,6 +1,7 @@
 package srch
 
 import (
+	"fmt"
 	"log"
 	"net/url"
 	"strconv"
@@ -16,10 +17,11 @@ func Search(idx *Index, params string) *Response {
 	req := ParseRequest(params)
 
 	if req.params.Has(ParamFacetFilters) {
-		_, err := Filter(idx.Fields, req.params.Get(ParamFacetFilters))
+		ids, err := Filter(idx.Fields, req.params.Get(ParamFacetFilters))
 		if err != nil {
 			log.Fatal(err)
 		}
+		fmt.Printf("ids %v\n", len(ids))
 	}
 
 	q := req.Query()
