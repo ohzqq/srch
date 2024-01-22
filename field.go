@@ -131,17 +131,31 @@ func (f *Field) addTerm(item *FacetItem, ids []int) {
 	}
 }
 
+func (f *Field) IsFacet() bool {
+	return f.FieldType == FacetField ||
+		f.FieldType == AndFacet ||
+		f.FieldType == OrFacet
+}
+
 func (f *Field) ListTokens() []string {
 	return lo.Keys(f.items)
 }
 
-// Filter applies the listed filters to the facet.
-func (f *Field) Filter(filters ...string) *roaring.Bitmap {
+// OldFilter applies the listed filters to the facet.
+func (f *Field) OldFilter(filters ...string) *roaring.Bitmap {
 	var bits []*roaring.Bitmap
 	for _, filter := range filters {
 		bits = append(bits, f.Search(filter))
 	}
 	return processBitResults(bits, f.Operator)
+}
+
+func (f *Field) Filter(kind string, filters ...string) *roaring.Bitmap {
+	var bits []*roaring.Bitmap
+	for _, filter := range filters {
+		bits = append(bits, f.Search(filter))
+	}
+	return processBitResults(bits, kind)
 }
 
 func (f *Field) Search(text string) *roaring.Bitmap {
@@ -158,12 +172,6 @@ func (f *Field) Search(text string) *roaring.Bitmap {
 		}
 	}
 	return processBitResults(bits, f.Operator)
-}
-
-func (f *Field) IsFacet() bool {
-	return f.FieldType == FacetField ||
-		f.FieldType == AndFacet ||
-		f.FieldType == OrFacet
 }
 
 func processBitResults(bits []*roaring.Bitmap, operator string) *roaring.Bitmap {

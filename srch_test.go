@@ -47,7 +47,7 @@ func TestFuzzySearch(t *testing.T) {
 
 	vals := make(url.Values)
 	vals.Set(ParamQuery, "fish")
-	vals.Set(ParamFacetFilters, `["authors:amy lane"]`)
+	vals.Set(ParamFacetFilters, `["authors:amy lane", ["tags:grumpy/sunshine", "series:fish"], "tags:-angst"]`)
 
 	m := idx.Search(vals.Encode())
 	if m.NbHits != 56 {

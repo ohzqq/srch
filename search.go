@@ -16,7 +16,7 @@ func Search(idx *Index, params string) *Response {
 	req := ParseRequest(params)
 
 	if req.params.Has(ParamFacetFilters) {
-		_, err := Filter(idx, req.Params.Get(ParamFacetFilters))
+		_, err := Filter(idx.Fields, req.params.Get(ParamFacetFilters))
 		if err != nil {
 			log.Fatal(err)
 		}

@@ -2,6 +2,7 @@ package srch
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/url"
 	"strings"
@@ -18,15 +19,27 @@ type Filters struct {
 	Neg url.Values
 }
 
-func Filter(idx *Index, val string) ([]map[string]any, error) {
+func Filter(fields []*Field, val string) ([]any, error) {
 	filters, err := unmarshalFilter(val)
 	if err != nil {
 		return nil, err
 	}
 
-	fmt.Printf("%#v\n", filters)
+	var bits []*roaring.Bitmap
+	for _, filter := range filters {
+		kind, f, err := ParseFilters(filter)
+		if err != nil {
+			return nil, err
+		}
+		for _, facet := range fields {
+			ff := FilterByAttribute(facet.Attribute, f)
+			fmt.Printf("kind %s: %#v\n", kind, ff)
+		}
+	}
 
-	return nil, nil
+	filtered := roaring.ParOr(viper.GetInt("workers"), bits...)
+	ids := filtered.ToArray()
+	return lo.ToAnySlice(ids), nil
 }
 
 func FilterData(data []map[string]any, facets []*Field, values url.Values) []map[string]any {
@@ -34,7 +47,7 @@ func FilterData(data []map[string]any, facets []*Field, values url.Values) []map
 	for name, filters := range values {
 		for _, facet := range facets {
 			if facet.Attribute == name {
-				bits = append(bits, facet.Filter(filters...))
+				bits = append(bits, facet.OldFilter(filters...))
 			}
 		}
 	}
@@ -123,6 +136,17 @@ func (f *Filters) add(filters any) {
 		for _, filter := range cast.ToStringSlice(vals) {
 			f.Or(filter)
 		}
+	}
+}
+
+func ParseFilters(filters any) (string, []string, error) {
+	switch vals := filters.(type) {
+	case string:
+		return AndFacet, []string{vals}, nil
+	case []any:
+		return OrFacet, cast.ToStringSlice(vals), nil
+	default:
+		return "", []string{}, errors.New("not a filter")
 	}
 }
 
