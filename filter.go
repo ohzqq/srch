@@ -3,6 +3,7 @@ package srch
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/url"
 	"strings"
 
@@ -18,12 +19,12 @@ type Filters struct {
 	Neg url.Values
 }
 
-func Filter(fields []*Field, query string) ([]any, error) {
+func Filter(fields []*Field, query string) ([]int, error) {
 	ids, err := filterFields(fields, query)
 	if err != nil {
 		return nil, err
 	}
-	return lo.ToAnySlice(ids.ToArray()), nil
+	return bitsToIntSlice(ids), nil
 }
 
 func filterFields(fields []*Field, query string) (*roaring.Bitmap, error) {
@@ -31,18 +32,21 @@ func filterFields(fields []*Field, query string) (*roaring.Bitmap, error) {
 	if err != nil {
 		return nil, err
 	}
+	if query == `["authors:amy lane"]` {
+		fmt.Printf("%#v\n", filters)
+	}
 
 	bits := roaring.New()
 
 	for _, facet := range fields {
-		if filters.Con.Has(facet.Attribute) {
-			for _, a := range filters.Con[facet.Attribute] {
-				bits.And(facet.Search(a))
-			}
-		}
 		if filters.Dis.Has(facet.Attribute) {
 			for _, or := range filters.Dis[facet.Attribute] {
 				bits = roaring.Or(bits, facet.Search(or))
+			}
+		}
+		if filters.Con.Has(facet.Attribute) {
+			for _, a := range filters.Con[facet.Attribute] {
+				bits = roaring.And(bits, facet.Search(a))
 			}
 		}
 		if filters.Neg.Has(facet.Attribute) {
@@ -94,8 +98,20 @@ func newFilters() *Filters {
 	}
 }
 
+func bitsToIntSlice(bitmap *roaring.Bitmap) []int {
+	bits := bitmap.ToArray()
+	ids := make([]int, len(bits))
+	for i, b := range bits {
+		ids[i] = int(b)
+	}
+	return ids
+}
+
 // FilteredItems returns the subset of data.
 func FilteredItems(data []map[string]any, ids []any) []map[string]any {
+	if len(ids) == 0 {
+		return data
+	}
 	items := make([]map[string]any, len(ids))
 	for item, _ := range data {
 		for i, id := range ids {

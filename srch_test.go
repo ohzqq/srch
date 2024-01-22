@@ -36,6 +36,32 @@ func TestParseValues(t *testing.T) {
 	}
 }
 
+func testSearchQueryStrings() map[string]int {
+	queries := map[string]int{
+		"": 7174,
+	}
+	v := make(url.Values)
+
+	v.Set(ParamQuery, "heart")
+	queries[v.Encode()] = 137
+
+	v.Set(ParamQuery, "")
+	v.Set(ParamFacetFilters, `["authors:amy lane"]`)
+	queries[v.Encode()] = 58
+
+	v.Set(ParamFacetFilters, `["authors:amy lane", ["tags:romance"]]`)
+	queries[v.Encode()] = 26
+
+	v.Set(ParamFacetFilters, `["authors:amy lane", ["tags:romance"], "tags:-dnr"]`)
+	queries[v.Encode()] = 22
+
+	v.Set(ParamQuery, "heart")
+	v.Set(ParamFacetFilters, `["authors:amy lane", ["tags:romance"], "tags:-dnr"]`)
+	queries[v.Encode()] = 2
+
+	return queries
+}
+
 func TestFuzzySearch(t *testing.T) {
 	//t.SkipNow()
 	test := settingsTestVals[7]
@@ -45,13 +71,15 @@ func TestFuzzySearch(t *testing.T) {
 		t.Errorf("%s: got %+v, wanted %+v\n", test.query, len(idx.TextFields()), len(test.want.SearchableAttributes))
 	}
 
-	vals := make(url.Values)
-	vals.Set(ParamQuery, "fish")
-	vals.Set(ParamFacetFilters, `["authors:amy lane", [ "tags:romance"], "tags:-dnr"]`)
+	//vals := make(url.Values)
+	//vals.Set(ParamQuery, "")
+	//vals.Set(ParamFacetFilters, `["authors:amy lane", [ "tags:romance"], "tags:-dnr"]`)
 
-	m := idx.Search(vals.Encode())
-	if m.NbHits != 56 {
-		t.Errorf("num res %d, expected %d \n", m.Len(), 56)
+	for q, want := range testSearchQueryStrings() {
+		m := idx.Search(q)
+		if m.NbHits != want {
+			t.Errorf("%s: num res %d, expected %d \n", q, m.Len(), want)
+		}
 	}
 }
 

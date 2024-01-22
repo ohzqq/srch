@@ -307,6 +307,15 @@ func (idx *Index) FuzzyFind(q string) []map[string]any {
 	return res
 }
 
+func (idx *Index) FuzzySearch(q string) []int {
+	matches := fuzzy.FindFrom(q, idx)
+	res := make([]int, matches.Len())
+	for i, m := range matches {
+		res[i] = m.Index
+	}
+	return res
+}
+
 // String satisfies the fuzzy.Source interface.
 func (idx *Index) String(i int) string {
 	s := lo.PickByKeys(
