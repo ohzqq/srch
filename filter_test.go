@@ -25,6 +25,7 @@ func TestUnmarshalQueryParams(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+	fmt.Printf("%#v\n", filters)
 	filtersTests(filters, t)
 }
 
@@ -38,11 +39,11 @@ func TestParseFilterString(t *testing.T) {
 }
 
 func filtersTests(filters *Filters, t *testing.T) {
-	if len(filters.And) != 1 {
-		t.Errorf("got %d conjunctive filters, expected %d\n", len(filters.And), 1)
+	if len(filters.Con) != 1 {
+		t.Errorf("got %d conjunctive filters, expected %d\n", len(filters.Con), 1)
 	}
-	if len(filters.Or) != 2 {
-		t.Errorf("got %d disjunctive filters, expected %d\n", len(filters.Or), 2)
+	if len(filters.Dis) != 1 {
+		t.Errorf("got %d disjunctive filters, expected %d\n", len(filters.Dis), 2)
 	}
 }
 
@@ -57,7 +58,7 @@ func TestMarshalFilter(t *testing.T) {
 
 var plainFilters = []string{
 	`"authors:amy lane"`,
-	`["tag:grumpy/sunshine","tag:enemies to lovers"]`,
+	`["tag:grumpy/sunshine","tag:-enemies to lovers"]`,
 }
 
 var encodedFilters = []string{
@@ -66,8 +67,8 @@ var encodedFilters = []string{
 }
 
 var testFilterStruct = &Filters{
-	And: []string{"authors:amy lane"},
-	Or:  []string{`tag:grumpy/sunshine`, `tag:enemies to lovers`},
+	and: []string{"authors:amy lane"},
+	or:  []string{`tag:grumpy/sunshine`, `tag:enemies to lovers`},
 }
 
 func testOrFilter() string {

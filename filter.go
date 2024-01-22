@@ -12,9 +12,12 @@ import (
 )
 
 type Filters struct {
-	Not []string
-	And []string
-	Or  []string
+	not []string
+	and []string
+	or  []string
+	Con url.Values
+	Dis url.Values
+	Neg url.Values
 }
 
 func Filter(data []map[string]any, facets []*Field, values url.Values) []map[string]any {
@@ -33,6 +36,14 @@ func Filter(data []map[string]any, facets []*Field, values url.Values) []map[str
 	return FilteredItems(data, lo.ToAnySlice(ids))
 }
 
+func newFilters() *Filters {
+	return &Filters{
+		Neg: make(url.Values),
+		Con: make(url.Values),
+		Dis: make(url.Values),
+	}
+}
+
 // FilteredItems returns the subset of data.
 func FilteredItems(data []map[string]any, ids []any) []map[string]any {
 	items := make([]map[string]any, len(ids))
@@ -46,22 +57,26 @@ func FilteredItems(data []map[string]any, ids []any) []map[string]any {
 	return items
 }
 
-func DecodeFilter(filters string) (*Filters, error) {
-	filter, err := UnmarshalFilterString(filters)
+func DecodeFilter(query string) (*Filters, error) {
+	filters, err := UnmarshalFilterString(query)
 	if err != nil {
 		return nil, err
 	}
 
-	f := &Filters{}
-	for _, v := range filter {
+	f := newFilters()
+	for _, v := range filters {
 		switch val := v.(type) {
 		case string:
-			f.And = append(f.And, val)
+			f.add(val)
 		case []any:
-			f.Or = cast.ToStringSlice(val)
+			f.add(val...)
 		}
 	}
 	return f, nil
+}
+
+func cutFilter(filter string) (string, string, bool) {
+	return strings.Cut(filter, ":")
 }
 
 func UnmarshalFilterString(filters string) ([]any, error) {
@@ -79,6 +94,48 @@ func UnmarshalFilterString(filters string) ([]any, error) {
 	return filter, nil
 }
 
+func (f *Filters) add(vals ...any) *Filters {
+	switch filters := cast.ToStringSlice(vals); len(filters) {
+	case 1:
+		return f.And(filters[0])
+	default:
+		for _, filter := range filters {
+			f.Or(filter)
+		}
+		return f
+	}
+}
+
+func (f *Filters) And(fv string) *Filters {
+	label, filter, ok := cutFilter(fv)
+	if !ok {
+		return f
+	}
+	if strings.HasPrefix(filter, "-") {
+		return f.Not(label, filter)
+	}
+	f.Con.Add(label, filter)
+	return f
+}
+
+func (f *Filters) Or(fv string) *Filters {
+	label, filter, ok := cutFilter(fv)
+	if !ok {
+		return f
+	}
+	if strings.HasPrefix(filter, "-") {
+		return f.Not(label, filter)
+	}
+	f.Dis.Add(label, filter)
+	return f
+}
+
+func (f *Filters) Not(label, filter string) *Filters {
+	filter = strings.TrimPrefix(filter, "-")
+	f.Neg.Add(label, filter)
+	return f
+}
+
 func (f *Filters) Encode() string {
 	return f.ToValues().Encode()
 }
@@ -89,13 +146,13 @@ func (f *Filters) String() string {
 
 func (f *Filters) Bytes() []byte {
 	var filters []any
-	for _, not := range f.Not {
+	for _, not := range f.not {
 		filters = append(filters, not)
 	}
-	for _, and := range f.And {
+	for _, and := range f.and {
 		filters = append(filters, and)
 	}
-	filters = append(filters, f.Or)
+	filters = append(filters, f.or)
 
 	filter, err := json.Marshal(filters)
 	if err != nil {
