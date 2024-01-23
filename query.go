@@ -11,7 +11,23 @@ import (
 )
 
 const (
-	Hits = `hits`
+	Hits                  = `hits`
+	SearchableAttributes  = `searchableAttributes`
+	AttributesForFaceting = `attributesForFaceting`
+	AttributesToRetrieve  = `attributesToRetrieve`
+	Page                  = "page"
+	HitsPerPage           = "hitsPerPage"
+	SortFacetValuesBy     = `sortFacetValuesBy`
+	ParamQuery            = `query`
+	ParamFacets           = "facets"
+	ParamFacetFilters     = `facetFilters`
+	ParamFilters          = "filters"
+	DataDir               = `dataDir`
+	DataFile              = `dataFile`
+	ParamFullText         = `fullText`
+	NbHits                = `nbHits`
+	NbPages               = `nbPages`
+	DefaultField          = `title`
 )
 
 type Query struct {
@@ -192,38 +208,14 @@ func GetQueryStringSlice(key string, q url.Values) []string {
 	if key == SrchAttr {
 		switch len(vals) {
 		case 0:
-			return []string{"title"}
+			return []string{DefaultField}
 		case 1:
 			if vals[0] == "" {
-				return []string{"title"}
+				return []string{DefaultField}
 			}
 		}
 	}
 	return vals
-}
-
-func ParseFieldsFromValues(cfg url.Values) []*Field {
-	var fields []*Field
-	if cfg.Has("field") {
-		for _, f := range cfg["field"] {
-			ft := Fuzzy
-			if cfg.Has(ParamFullText) {
-				ft = Text
-			}
-			fields = append(fields, NewField(f, ft))
-		}
-	}
-	if cfg.Has("or") {
-		for _, f := range cfg["or"] {
-			fields = append(fields, NewField(f, OrFacet))
-		}
-	}
-	if cfg.Has("and") {
-		for _, f := range cfg["and"] {
-			fields = append(fields, NewField(f, AndFacet))
-		}
-	}
-	return fields
 }
 
 // ParseValues takes an interface{} and returns a url.Values.

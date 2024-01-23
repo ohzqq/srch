@@ -23,7 +23,7 @@ func NewSettings(query any) *Settings {
 
 func defaultSettings() *Settings {
 	return &Settings{
-		SearchableAttributes: []string{"title"},
+		SearchableAttributes: []string{DefaultField},
 		TextAnalyzer:         Fuzzy,
 		SortFacetValuesBy:    "count",
 	}
