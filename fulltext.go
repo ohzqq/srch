@@ -1,7 +1,6 @@
 package srch
 
 import (
-	"net/url"
 	"strings"
 	"unicode"
 
@@ -11,31 +10,12 @@ import (
 	"github.com/spf13/cast"
 )
 
-func FullText(data []map[string]any, q string, fields ...string) *Index {
-	vals := make(url.Values)
-	vals.Set(ParamQuery, q)
-	vals.Set(ParamFullText, "")
-	for _, f := range fields {
-		vals.Add(SearchableAttributes, f)
-	}
-	idx := New(vals)
-
-	if len(data) < 1 {
-		return idx
-	}
-
-	idx.Index(data)
-	idx.Search(q)
-
-	return idx
-}
-
-func searchFullText(fields []*Field, q string) *roaring.Bitmap {
+func FullText(fields []*Field, q string) *roaring.Bitmap {
 	var bits []*roaring.Bitmap
 	for _, field := range fields {
 		bits = append(bits, field.Search(q))
 	}
-	return processBitResults(bits, "and")
+	return processBitResults(bits, AndFacet)
 }
 
 func Tokenizer(str string) []*FacetItem {

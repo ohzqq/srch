@@ -99,7 +99,7 @@ func IndexData(data []map[string]any, fields []*Field) []*Field {
 }
 
 func (idx *Index) FullText(q string) *roaring.Bitmap {
-	b := searchFullText(idx.TextFields(), q)
+	b := FullText(idx.TextFields(), q)
 	return b
 }
 
@@ -280,15 +280,6 @@ func (idx *Index) PrettyPrint() {
 	if err != nil {
 		log.Fatal(err)
 	}
-}
-
-func (idx *Index) FuzzyFind(q string) []map[string]any {
-	matches := fuzzy.FindFrom(q, idx)
-	res := make([]map[string]any, matches.Len())
-	for i, m := range matches {
-		res[i] = idx.Data[m.Index]
-	}
-	return res
 }
 
 func (idx *Index) FuzzySearch(q string) *roaring.Bitmap {

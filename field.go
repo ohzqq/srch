@@ -24,7 +24,6 @@ const (
 
 type Field struct {
 	Attribute string `json:"attribute"`
-	Operator  string `json:"operator,omitempty"`
 	Sep       string `json:"-"`
 	FieldType string `json:"fieldType"`
 	SortBy    string
@@ -47,14 +46,12 @@ func NewField(attr string, ft string) *Field {
 func CopyField(field *Field) *Field {
 	f := NewField(field.Attribute, field.FieldType)
 	f.Sep = field.Sep
-	f.Operator = field.Operator
 	return f
 }
 
 func (f *Field) MarshalJSON() ([]byte, error) {
 	field := map[string]any{
 		"attribute": f.Attribute,
-		"operator":  f.Operator,
 		"sort_by":   f.SortBy,
 		"order":     f.Order,
 		"items":     f.Items(),
@@ -136,13 +133,13 @@ func (f *Field) ListTokens() []string {
 }
 
 // OldFilter applies the listed filters to the facet.
-func (f *Field) OldFilter(filters ...string) *roaring.Bitmap {
-	var bits []*roaring.Bitmap
-	for _, filter := range filters {
-		bits = append(bits, f.Search(filter))
-	}
-	return processBitResults(bits, f.Operator)
-}
+//func (f *Field) OldFilter(filters ...string) *roaring.Bitmap {
+//  var bits []*roaring.Bitmap
+//  for _, filter := range filters {
+//    bits = append(bits, f.Search(filter))
+//  }
+//  return processBitResults(bits, f.Operator)
+//}
 
 func (f *Field) Filter(filters url.Values) *roaring.Bitmap {
 	//var bits *roaring.Bitmap
@@ -181,7 +178,7 @@ func (f *Field) Search(text string) *roaring.Bitmap {
 			bits = append(bits, ids.bits)
 		}
 	}
-	return processBitResults(bits, f.Operator)
+	return processBitResults(bits, AndFacet)
 }
 
 func processBitResults(bits []*roaring.Bitmap, operator string) *roaring.Bitmap {

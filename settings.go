@@ -58,7 +58,6 @@ func (s *Settings) setValsFromQuery(q *Query) {
 func (s *Settings) SrchFields() []*Field {
 	fields := make([]*Field, len(s.SearchableAttributes))
 	for i, attr := range s.SearchableAttributes {
-		println(s.TextAnalyzer)
 		fields[i] = NewField(attr, s.TextAnalyzer)
 	}
 	return fields
