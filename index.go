@@ -54,18 +54,6 @@ func New(settings any) *Index {
 	return idx
 }
 
-func NewIndex(query any, opts ...Opt) *Index {
-	idx := &Index{
-		Query: NewQuery(query),
-	}
-
-	for _, opt := range opts {
-		opt(idx)
-	}
-
-	return idx
-}
-
 func (idx *Index) Index(src []map[string]any) *Index {
 	idx.Data = src
 
@@ -161,10 +149,6 @@ func (idx *Index) Sort() {
 			slices.Reverse(idx.Data)
 		}
 	}
-}
-
-func (idx *Index) Copy() *Index {
-	return NewIndex(idx.Query.Params)
 }
 
 func (idx *Index) GetFacet(attr string) *Field {

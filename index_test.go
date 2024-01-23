@@ -18,15 +18,12 @@ const testCfgFile = `testdata/config-old.json`
 const testYAMLCfgFile = `testdata/config.yaml`
 const testCfgFileData = `testdata/config-with-data.json`
 
-func init() {
-	query := fmt.Sprintf("%s&%s&%s", testValuesCfg, testQueryString, testSearchString)
-	idx = NewIndex(query)
-	books = idx.Data
-}
-
 func TestData(t *testing.T) {
 	books = loadData(t)
-	totalBooksTest(len(books), t)
+	err := totalBooksErr(len(books), 71734)
+	if err != nil {
+		t.Error(err)
+	}
 }
 
 func totalBooksTest(total int, t *testing.T) {
@@ -52,15 +49,6 @@ func TestNewIndex(t *testing.T) {
 			t.Error(err)
 		}
 	}
-}
-
-func TestSortIndex(t *testing.T) {
-	q := getNewQuery()
-	i := NewIndex(q.Encode())
-	i.Sort()
-	//for _, d := range i.Data {
-	//  fmt.Printf("%s\n", d["title"])
-	//}
 }
 
 func loadData(t *testing.T) []map[string]any {
