@@ -9,6 +9,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/RoaringBitmap/roaring"
 	"github.com/sahilm/fuzzy"
 	"github.com/samber/lo"
 	"github.com/spf13/cast"
@@ -24,6 +25,7 @@ func init() {
 type Index struct {
 	Fields   []*Field
 	Data     []map[string]any
+	bits     *roaring.Bitmap
 	Settings *Settings
 
 	*Query `json:"params"`
@@ -36,6 +38,7 @@ type Opt func(*Index)
 func New(settings any) *Index {
 	idx := &Index{
 		Query: NewQuery(settings),
+		bits:  roaring.New(),
 	}
 	idx.Settings = idx.GetSettings()
 	idx.Fields = idx.GetSettings().Fields()
@@ -65,6 +68,7 @@ func NewIndex(query any, opts ...Opt) *Index {
 
 func (idx *Index) Index(src []map[string]any) *Index {
 	idx.Data = src
+	idx.bits.AddRange(0, uint64(len(src)))
 
 	if idx.Query.Params.Has("sort_by") {
 		idx.Sort()
@@ -107,6 +111,10 @@ func (idx *Index) FullText(q string) []map[string]any {
 
 func (idx *Index) Search(params string) *Response {
 	return Search(idx, params)
+}
+
+func (idx Index) Clone() *roaring.Bitmap {
+	return idx.bits.Clone()
 }
 
 func (idx *Index) SearchIndex(q string) *Index {

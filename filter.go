@@ -19,15 +19,15 @@ type Filters struct {
 	Neg url.Values
 }
 
-func Filter(fields []*Field, query string) ([]int, error) {
-	ids, err := filterFields(fields, query)
+func Filter(bits *roaring.Bitmap, fields []*Field, query string) ([]int, error) {
+	ids, err := filterFields(bits, fields, query)
 	if err != nil {
 		return nil, err
 	}
 	return bitsToIntSlice(ids), nil
 }
 
-func filterFields(fields []*Field, query string) (*roaring.Bitmap, error) {
+func filterFields(bits *roaring.Bitmap, fields []*Field, query string) (*roaring.Bitmap, error) {
 	filters, err := NewFilters(query)
 	if err != nil {
 		return nil, err
@@ -35,8 +35,6 @@ func filterFields(fields []*Field, query string) (*roaring.Bitmap, error) {
 	if query == `["authors:amy lane"]` {
 		fmt.Printf("%#v\n", filters)
 	}
-
-	bits := roaring.New()
 
 	for _, facet := range fields {
 		if filters.Dis.Has(facet.Attribute) {

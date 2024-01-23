@@ -1,7 +1,6 @@
 package srch
 
 import (
-	"log"
 	"net/url"
 	"strconv"
 
@@ -16,25 +15,12 @@ type Request struct {
 func Search(idx *Index, params string) *Response {
 	req := ParseRequest(params)
 
-	var filtered []int
-	if req.params.Has(ParamFacetFilters) {
-		var err error
-		filtered, err = Filter(idx.Fields, req.params.Get(ParamFacetFilters))
-		if err != nil {
-			log.Fatal(err)
-		}
-	}
-
 	q := req.Query()
 	if q == "" {
-		f := FilteredItems(idx.Data, lo.ToAnySlice(filtered))
-		return NewResponse(f, req.params)
+		return NewResponse(idx.Data, req.params)
 	}
 
 	sids := idx.FuzzySearch(q)
-	if len(filtered) > 0 {
-		sids = lo.Intersect(sids, filtered)
-	}
 	f := FilteredItems(idx.Data, lo.ToAnySlice(sids))
 	return NewResponse(f, req.params)
 }

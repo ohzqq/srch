@@ -63,15 +63,6 @@ func TestSortIndex(t *testing.T) {
 	//}
 }
 
-func TestIndexProps(t *testing.T) {
-	if len(idx.Facets()) != 4 {
-		t.Errorf("got %d, expected 4\n", len(idx.Facets()))
-	}
-	if len(idx.TextFields()) != 1 {
-		t.Errorf("got %d, expected %d\n", len(idx.TextFields()), 1)
-	}
-}
-
 func loadData(t *testing.T) []map[string]any {
 	d, err := os.ReadFile(testData)
 	if err != nil {

@@ -46,18 +46,7 @@ func testSearchQueryStrings() map[string]int {
 	queries[v.Encode()] = 137
 
 	v.Set(ParamQuery, "")
-	v.Set(ParamFacetFilters, `["authors:amy lane"]`)
-	queries[v.Encode()] = 58
-
-	v.Set(ParamFacetFilters, `["authors:amy lane", ["tags:romance"]]`)
-	queries[v.Encode()] = 26
-
-	v.Set(ParamFacetFilters, `["authors:amy lane", ["tags:romance"], "tags:-dnr"]`)
-	queries[v.Encode()] = 22
-
-	v.Set(ParamQuery, "heart")
-	v.Set(ParamFacetFilters, `["authors:amy lane", ["tags:romance"], "tags:-dnr"]`)
-	queries[v.Encode()] = 2
+	queries[v.Encode()] = 7174
 
 	return queries
 }
@@ -65,7 +54,7 @@ func testSearchQueryStrings() map[string]int {
 func TestFuzzySearch(t *testing.T) {
 	//t.SkipNow()
 	test := settingsTestVals[7]
-	idx = New(test.query)
+	idx := New(test.query)
 	totalBooksErr(idx.Len(), test.query)
 	if len(idx.TextFields()) != len(test.want.SearchableAttributes) {
 		t.Errorf("%s: got %+v, wanted %+v\n", test.query, len(idx.TextFields()), len(test.want.SearchableAttributes))

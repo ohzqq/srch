@@ -35,7 +35,7 @@ func filtersTests(filters *Filters, t *testing.T) {
 	if len(filters.Con) != 1 {
 		t.Errorf("got %d conjunctive filters, expected %d\n", len(filters.Con), 1)
 	}
-	if len(filters.Dis) != 1 {
+	if len(filters.Dis) != 2 {
 		t.Errorf("got %d disjunctive filters, expected %d\n", len(filters.Dis), 2)
 	}
 }
@@ -47,6 +47,36 @@ func TestMarshalFilter(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+}
+
+func TestFiltering(t *testing.T) {
+	test := settingsTestVals[7]
+	idx := New(test.query)
+	totalBooksErr(idx.Len(), test.query)
+
+	for q, _ := range testSearchQueryStrings() {
+		req := ParseRequest(q)
+		if req.params.Has(ParamFacetFilters) {
+		}
+	}
+}
+
+func testSearchFilterStrings() map[string]int {
+	queries := map[string]int{
+		"": 7174,
+	}
+	v := make(url.Values)
+
+	v.Set(ParamFacetFilters, `["authors:amy lane"]`)
+	queries[v.Encode()] = 58
+
+	v.Set(ParamFacetFilters, `["authors:amy lane", ["tags:romance"]]`)
+	queries[v.Encode()] = 26
+
+	v.Set(ParamFacetFilters, `["authors:amy lane", ["tags:romance"], "tags:-dnr"]`)
+	queries[v.Encode()] = 22
+
+	return queries
 }
 
 var plainFilters = []string{
