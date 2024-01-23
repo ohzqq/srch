@@ -257,7 +257,11 @@ func (idx *Index) HasFacets() bool {
 }
 
 func (idx *Index) Facets() []*Field {
-	return FilterFacets(idx.Fields)
+	facets := idx.Query.Facets()
+	fn := func(f *Field, _ int) bool {
+		return lo.Contains(facets, f.Attribute)
+	}
+	return lo.Filter(idx.Fields, fn)
 }
 
 func (idx *Index) FacetLabels() []string {

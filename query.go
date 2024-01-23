@@ -86,7 +86,7 @@ func (q Query) Facets() []string {
 	if q.Params.Has(ParamFacets) {
 		return q.Params[ParamFacets]
 	}
-	return []string{}
+	return q.GetFacetAttr()
 }
 
 func (q Query) Page() int {

@@ -6,10 +6,6 @@ import (
 
 type Response struct {
 	*Index
-	Page        int    `json:"page"`
-	NbPages     int    `json:"nbPages"`
-	HitsPerPage int    `json:"hitsPerPage"`
-	Keywords    string `json:"query"`
 }
 
 func NewResponse(idx *Index) *Response {
@@ -41,6 +37,7 @@ func (r *Response) StringMap() map[string]any {
 	m[Hits] = idx.Data
 	m["params"] = r.Query
 	m[HitsPerPage] = idx.HitsPerPage()
+	//if idx.Query.Has(ParamFacets)
 	m[ParamFacets] = idx.Facets()
 	return m
 }
