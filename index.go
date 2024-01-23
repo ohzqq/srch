@@ -264,21 +264,17 @@ func (idx *Index) HasFacets() bool {
 }
 
 func (idx *Index) Facets() []*Field {
-	facets := idx.Query.Facets()
-	fn := func(f *Field, _ int) bool {
-		return lo.Contains(facets, f.Attribute)
-	}
-	return lo.Filter(idx.Fields, fn)
+	return idx.facets
 }
 
 func (idx *Index) FacetLabels() []string {
-	return lo.Map(idx.Facets(), func(f *Field, _ int) string {
+	return lo.Map(idx.facets, func(f *Field, _ int) string {
 		return f.Attribute
 	})
 }
 
 func (idx *Index) TextFields() []*Field {
-	return FilterTextFields(idx.Fields)
+	return idx.fields
 }
 
 func (idx *Index) SearchableFields() []string {
