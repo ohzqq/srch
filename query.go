@@ -83,10 +83,10 @@ func (q Query) Query() string {
 }
 
 func (q Query) Facets() []string {
-	if q.Params.Has(ParamFacets) {
-		return q.Params[ParamFacets]
+	if !q.Params.Has(ParamFacets) {
+		q.Params[ParamFacets] = q.GetFacetAttr()
 	}
-	return q.GetFacetAttr()
+	return q.Params[ParamFacets]
 }
 
 func (q Query) Page() int {

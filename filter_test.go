@@ -89,11 +89,11 @@ func TestSearchAndFilter(t *testing.T) {
 		t.Errorf("got %d, expected %d\n", n, afterFilter)
 	}
 
-	d, err := json.Marshal(result)
-	if err != nil {
-		t.Error(err)
-	}
-	println(string(d))
+	//d, err := json.Marshal(result)
+	//if err != nil {
+	//  t.Error(err)
+	//}
+	//println(string(d))
 
 	idx.res = roaring.New()
 	f := idx.Filter(`["authors:amy lane"]`)

@@ -24,6 +24,8 @@ func init() {
 // Index is a structure for facets and data.
 type Index struct {
 	Fields   []*Field
+	fields   []*Field
+	facets   []*Field
 	Data     []map[string]any
 	res      *roaring.Bitmap
 	Settings *Settings
@@ -41,6 +43,8 @@ func New(settings any) *Index {
 	}
 	idx.Settings = idx.GetSettings()
 	idx.Fields = idx.GetSettings().Fields()
+	idx.fields = idx.GetSettings().SrchFields()
+	idx.facets = idx.GetSettings().Facets()
 
 	if idx.Query.HasData() {
 		d, err := idx.Query.GetData()
@@ -72,7 +76,10 @@ func (idx *Index) Index(src []map[string]any) *Index {
 		idx.Sort()
 	}
 
-	idx.Fields = IndexData(idx.Data, idx.Fields)
+	if idx.GetAnalyzer() == Text {
+		idx.fields = IndexData(idx.Data, idx.fields)
+	}
+	idx.facets = IndexData(idx.Data, idx.facets)
 
 	return idx
 }
@@ -178,7 +185,7 @@ func (idx *Index) Filter(q string) *Response {
 	if idx.res == nil || idx.res.IsEmpty() {
 		idx.res = idx.Bitmap()
 	}
-	filtered, err := filterFields(idx.res, idx.Fields, q)
+	filtered, err := filterFields(idx.res, idx.facets, q)
 	if err != nil {
 		return NewResponse(idx)
 	}
@@ -265,12 +272,9 @@ func (idx *Index) Facets() []*Field {
 }
 
 func (idx *Index) FacetLabels() []string {
-	f := idx.Facets()
-	facets := make([]string, len(f))
-	for i, facet := range f {
-		facets[i] = facet.Attribute
-	}
-	return facets
+	return lo.Map(idx.Facets(), func(f *Field, _ int) string {
+		return f.Attribute
+	})
 }
 
 func (idx *Index) TextFields() []*Field {
@@ -278,7 +282,7 @@ func (idx *Index) TextFields() []*Field {
 }
 
 func (idx *Index) SearchableFields() []string {
-	return SearchableFields(idx.Fields)
+	return idx.GetSrchAttr()
 }
 
 func (idx *Index) UnmarshalJSON(d []byte) error {
@@ -309,13 +313,14 @@ func (idx *Index) UnmarshalJSON(d []byte) error {
 	return nil
 }
 
-func (idx *Index) MarshalJSON() ([]byte, error) {
-	res := map[string]any{
-		Hits:       idx.Data,
-		"facets":   idx.Facets(),
-		ParamQuery: idx.Query.Encode(),
-	}
-	return json.Marshal(res)
+func (idx *Index) StringMap() map[string]any {
+	m := make(map[string]any)
+	m[ParamQuery] = idx.Query.Query()
+	m[Page] = idx.Page()
+	m["params"] = idx.Query
+	m[HitsPerPage] = idx.HitsPerPage()
+	m[ParamFacets] = idx.Facets()
+	return m
 }
 
 // JSON marshals an Index to json.

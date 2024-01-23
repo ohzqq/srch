@@ -38,7 +38,7 @@ func GetAnalyzer(q url.Values) string {
 
 func (s *Settings) Fields() []*Field {
 	var fields []*Field
-	fields = append(fields, s.TextFields()...)
+	fields = append(fields, s.SrchFields()...)
 	fields = append(fields, s.Facets()...)
 	return fields
 }
@@ -55,7 +55,7 @@ func (s *Settings) setValsFromQuery(q *Query) {
 	s.TextAnalyzer = q.GetAnalyzer()
 }
 
-func (s *Settings) TextFields() []*Field {
+func (s *Settings) SrchFields() []*Field {
 	fields := make([]*Field, len(s.SearchableAttributes))
 	for i, attr := range s.SearchableAttributes {
 		fields[i] = NewField(attr, s.TextAnalyzer)
