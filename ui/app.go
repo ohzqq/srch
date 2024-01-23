@@ -97,7 +97,7 @@ func (c *App) SetFacet(label string) {
 
 func (c *App) SetFilters(filters url.Values) {
 	c.Filters = srch.ParseQuery(c.Filters, filters)
-	c.updateVisible(c.visible.Filter(filters))
+	c.updateVisible(c.visible.Filter(filters.Encode()).Index)
 }
 
 func (c *App) SetSelections(idx *srch.Index) {
@@ -106,7 +106,7 @@ func (c *App) SetSelections(idx *srch.Index) {
 
 func (c *App) ClearFilters() {
 	c.Filters = make(url.Values)
-	c.updateVisible(srch.NewIndex(c.query).Index(c.data))
+	c.updateVisible(srch.New(c.query).Index(c.data))
 }
 
 func (c *App) updateVisible(idx *srch.Index) {
@@ -121,12 +121,12 @@ func (c *App) updateVisible(idx *srch.Index) {
 }
 
 func (c *App) setFacet(label string) {
-	f, _ := c.visible.GetField(label)
+	f := c.visible.GetFacet(label)
 	c.facets[label] = NewFacet(f)
 }
 
 func (c *App) getFacet(label string) *Facet {
-	f, _ := c.visible.GetField(label)
+	f := c.visible.GetFacet(label)
 	return NewFacet(f)
 }
 

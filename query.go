@@ -98,7 +98,25 @@ func (q Query) Query() string {
 	return q.Params.Get(ParamQuery)
 }
 
-func (q Query) Facets() []string {
+func (q *Query) Fields() []*Field {
+	attrs := q.GetSrchAttr()
+	fields := make([]*Field, len(attrs))
+	for i, attr := range attrs {
+		fields[i] = NewField(attr, q.GetAnalyzer())
+	}
+	return fields
+}
+
+func (q Query) Facets() []*Field {
+	facets := q.FacetAttrs()
+	fields := make([]*Field, len(facets))
+	for i, attr := range facets {
+		fields[i] = NewField(attr, OrFacet)
+	}
+	return fields
+}
+
+func (q Query) FacetAttrs() []string {
 	if !q.Params.Has(ParamFacets) {
 		q.Params[ParamFacets] = q.GetFacetAttr()
 	}

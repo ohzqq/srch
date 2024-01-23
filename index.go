@@ -40,8 +40,8 @@ func New(settings any) *Index {
 		Query: NewQuery(settings),
 	}
 	idx.Settings = idx.GetSettings()
-	idx.fields = idx.GetSettings().SrchFields()
-	idx.facets = idx.GetSettings().Facets()
+	idx.fields = idx.Query.Fields()
+	idx.facets = idx.Query.Facets()
 
 	if idx.Query.HasData() {
 		d, err := idx.Query.GetData()

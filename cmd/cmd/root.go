@@ -48,7 +48,7 @@ By default, results are printed to stdout as json.
 				log.Fatal(err)
 			}
 			q = srch.ParseQuery(query)
-			idx = srch.NewIndex(q)
+			idx = srch.New(q)
 			if q.Has("q") {
 				keywords = q.Get("q")
 			}
@@ -104,7 +104,7 @@ By default, results are printed to stdout as json.
 			}
 		}
 
-		idx = srch.NewIndex(q)
+		idx = srch.New(q)
 
 		switch {
 		case cmd.Flags().Changed("dir"):
@@ -138,6 +138,7 @@ By default, results are printed to stdout as json.
 			}
 		}
 
+		var res *srch.Response
 		if cmd.Flags().Changed("browse") {
 			tui := ui.Browse(q, data)
 			idx, err = tui.Run()
@@ -145,10 +146,10 @@ By default, results are printed to stdout as json.
 				log.Fatal(err)
 			}
 		} else {
-			idx = idx.Index(data)
+			idx = res.Index.Index(data)
 
 			if keywords != "" {
-				idx = idx.SearchIndex(keywords)
+				res = idx.Search(keywords)
 			}
 		}
 
