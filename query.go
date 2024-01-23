@@ -11,6 +11,10 @@ import (
 )
 
 const (
+	SrchAttr  = `searchableAttributes`
+	FacetAttr = `attributesForFaceting`
+)
+const (
 	Hits                  = `hits`
 	SearchableAttributes  = `searchableAttributes`
 	AttributesForFaceting = `attributesForFaceting`
@@ -56,6 +60,12 @@ func ParseQuery(queries ...any) url.Values {
 	return q
 }
 
+func GetAnalyzer(q url.Values) string {
+	if q.Has(ParamFullText) {
+		return Text
+	}
+	return Fuzzy
+}
 func (q *Query) Merge(queries ...*Query) {
 	for _, query := range queries {
 		for k, val := range query.Params {
@@ -75,12 +85,6 @@ func (q Query) GetData() ([]map[string]any, error) {
 
 func (q Query) HasData() bool {
 	return q.Params.Has(DataFile) || q.Params.Has(DataDir)
-}
-
-func (q Query) GetSettings() *Settings {
-	s := defaultSettings()
-	s.setValsFromQuery(&q)
-	return s
 }
 
 func (q Query) GetFacetFilters() (*Filters, error) {

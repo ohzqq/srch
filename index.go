@@ -22,11 +22,10 @@ func init() {
 
 // Index is a structure for facets and data.
 type Index struct {
-	fields   []*Field
-	facets   []*Field
-	Data     []map[string]any
-	res      *roaring.Bitmap
-	Settings *Settings
+	fields []*Field
+	facets []*Field
+	Data   []map[string]any
+	res    *roaring.Bitmap
 
 	*Query `json:"params"`
 }
@@ -166,17 +165,6 @@ func (idx *Index) GetField(attr string) *Field {
 		}
 	}
 	return &Field{Attribute: attr}
-}
-
-func (idx *Index) GetFilterValues(filters []string) map[string][]string {
-	facets := make(map[string][]string)
-	for _, attr := range idx.Settings.AttributesForFaceting {
-		f := FilterByAttribute(attr, filters)
-		if len(f) > 0 {
-			facets[attr] = append(facets[attr], f...)
-		}
-	}
-	return facets
 }
 
 // HasFacets returns true if facets are configured.

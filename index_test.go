@@ -40,17 +40,6 @@ func totalBooksErr(total int, vals ...any) error {
 	return nil
 }
 
-func TestNewIndex(t *testing.T) {
-	data := loadData(t)
-	for _, test := range settingsTestVals {
-		idx := New(test.query).Index(data)
-		err := totalBooksErr(idx.Len(), test.query)
-		if err != nil {
-			t.Error(err)
-		}
-	}
-}
-
 func loadData(t *testing.T) []map[string]any {
 	d, err := os.ReadFile(testData)
 	if err != nil {
