@@ -4,15 +4,14 @@ import (
 	"github.com/RoaringBitmap/roaring"
 )
 
-func Search(idx *Index, params string) *roaring.Bitmap {
-	req := NewQuery(params)
+func Search(idx *Index, kw string) *roaring.Bitmap {
+	bits := idx.Bitmap()
 
-	q := req.Query()
-	if q == "" {
-		return roaring.New()
+	if kw == "" {
+		return bits
 	}
 
-	bits := idx.Bitmap()
-	bits.And(idx.FuzzySearch(q))
+	idx.res.And(idx.FuzzySearch(kw))
+	bits.And(idx.FuzzySearch(kw))
 	return bits
 }

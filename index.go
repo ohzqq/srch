@@ -26,6 +26,7 @@ type Index struct {
 	Fields   []*Field
 	Data     []map[string]any
 	bits     *roaring.Bitmap
+	res      *roaring.Bitmap
 	Settings *Settings
 
 	*Query `json:"params"`
@@ -39,6 +40,7 @@ func New(settings any) *Index {
 	idx := &Index{
 		Query: NewQuery(settings),
 		bits:  roaring.New(),
+		res:   roaring.New(),
 	}
 	idx.Settings = idx.GetSettings()
 	idx.Fields = idx.GetSettings().Fields()
@@ -69,6 +71,7 @@ func NewIndex(query any, opts ...Opt) *Index {
 func (idx *Index) Index(src []map[string]any) *Index {
 	idx.Data = src
 	idx.bits.AddRange(0, uint64(len(src)))
+	idx.res.AddRange(0, uint64(len(src)))
 
 	if idx.Query.Params.Has("sort_by") {
 		idx.Sort()
@@ -110,10 +113,17 @@ func (idx *Index) FullText(q string) []map[string]any {
 }
 
 func (idx *Index) Search(params string) *Response {
-	res := Search(idx, params)
-	if idx.Query.HasFilters() {
+	q := NewQuery(params)
+	//res := Search(idx, q.Query())
+
+	if query := q.Query(); query != "" {
+		idx.res.And(idx.FuzzySearch(query))
 	}
-	data := idx.getDataByBitmap(res)
+
+	if q.HasFilters() {
+		filterFields(idx.res, idx.Fields, q.Params.Get(ParamFacetFilters))
+	}
+	data := idx.getDataByBitmap(idx.res)
 	return NewResponse(data, idx.Query.Params)
 }
 
@@ -157,13 +167,14 @@ func (idx *Index) search(q string) []map[string]any {
 }
 
 func (idx *Index) Filter(q any) *Index {
-	vals, err := ParseValues(q)
+	filtered, err := filterFields(idx.Bitmap(), idx.Fields, cast.ToString(q))
 	if err != nil {
 		return idx
 	}
-	idx.Data = FilterData(idx.Data, idx.Facets(), vals)
-	idx.Fields = IndexData(idx.Data, idx.Fields)
-	return idx
+	idx.res.And(filtered)
+	i := New(idx.Query)
+	i.Index(idx.getDataByBitmap(idx.res))
+	return i
 }
 
 func (idx *Index) SetQuery(q url.Values) *Index {

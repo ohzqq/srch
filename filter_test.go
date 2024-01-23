@@ -68,6 +68,39 @@ func TestFiltering(t *testing.T) {
 	}
 }
 
+func TestSearchAndFilter(t *testing.T) {
+	test := settingsTestVals[7]
+	idx := New(test.query)
+
+	vals := make(url.Values)
+	vals.Set(ParamQuery, "")
+
+	res := Search(idx, "")
+	total := 7174
+	//total := 304
+	if r := len(res.ToArray()); r != total {
+		t.Errorf("got %d, expected %d\n", r, total)
+	}
+
+	vals.Set(ParamFacetFilters, `["authors:amy lane"]`)
+	f, err := filterFields(res, idx.Fields, `["authors:amy lane"]`)
+	if err != nil {
+		t.Error(err)
+	}
+
+	//afterFilter := 5
+	afterFilter := 58
+	if n := len(f.ToArray()); n != afterFilter {
+		t.Errorf("got %d, expected %d\n", n, afterFilter)
+	}
+
+	result := idx.Search(vals.Encode())
+	if n := result.Len(); n != afterFilter {
+		t.Errorf("got %d, expected %d\n", n, afterFilter)
+	}
+	//vals.Set(ParamFacetFilters, `["authors:amy lane", [ "tags:romance"], "tags:-dnr"]`)
+}
+
 func testSearchFilterStrings() map[string]int {
 	queries := map[string]int{}
 	v := make(url.Values)

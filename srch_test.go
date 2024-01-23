@@ -60,10 +60,6 @@ func TestFuzzySearch(t *testing.T) {
 		t.Errorf("%s: got %+v, wanted %+v\n", test.query, len(idx.TextFields()), len(test.want.SearchableAttributes))
 	}
 
-	//vals := make(url.Values)
-	//vals.Set(ParamQuery, "")
-	//vals.Set(ParamFacetFilters, `["authors:amy lane", [ "tags:romance"], "tags:-dnr"]`)
-
 	for q, want := range testSearchQueryStrings() {
 		m := idx.Search(q)
 		if m.NbHits != want {
@@ -119,19 +115,6 @@ func TestFilterData(t *testing.T) {
 	if len(d) != 384 {
 		t.Errorf("got %d, expected %d\n", len(d), 384)
 	}
-}
-
-func TestSearchAndFilter(t *testing.T) {
-	t.SkipNow()
-	res := idx.SearchIndex("fish")
-	if len(res.Data) != 8 {
-		t.Errorf("got %d, expected 8\n", len(res.Data))
-	}
-
-	q := "authors=Amy+Lane"
-	f := res.Filter(q)
-	//fmt.Printf("facets %+v\n", idx.Facets()[0])
-	fmt.Println(len(f.Data))
 }
 
 func TestAudibleSearch(t *testing.T) {
