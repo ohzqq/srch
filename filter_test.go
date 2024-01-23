@@ -138,7 +138,6 @@ func testEncOrFilter() string {
 
 func testComboFilter() string {
 	f := fmt.Sprintf("[%s,%s]", plainFilters[0], plainFilters[1])
-	println(f)
 	return f
 }
 

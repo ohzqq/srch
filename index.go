@@ -104,9 +104,7 @@ func (idx *Index) FullText(q string) *roaring.Bitmap {
 }
 
 func (idx *Index) Search(params string) *Response {
-	if idx.res == nil || idx.res.IsEmpty() {
-		idx.res = idx.Bitmap()
-	}
+	idx.res = idx.Bitmap()
 	q := NewQuery(params)
 	idx.Query.Merge(q)
 
@@ -133,15 +131,11 @@ func (idx Index) Bitmap() *roaring.Bitmap {
 }
 
 func (idx Index) GetResults() []map[string]any {
-	return idx.getDataByBitmap(idx.res)
-}
-
-func (idx Index) getDataByBitmap(bits *roaring.Bitmap) []map[string]any {
-	if bits.IsEmpty() {
+	if idx.res.IsEmpty() {
 		return idx.Data
 	}
 	var res []map[string]any
-	bits.Iterate(func(x uint32) bool {
+	idx.res.Iterate(func(x uint32) bool {
 		res = append(res, idx.Data[int(x)])
 		return true
 	})
@@ -175,6 +169,15 @@ func (idx *Index) Copy() *Index {
 
 func (idx *Index) GetFacet(attr string) *Field {
 	for _, f := range idx.facets {
+		if attr == f.Attribute {
+			return f
+		}
+	}
+	return &Field{Attribute: attr}
+}
+
+func (idx *Index) GetField(attr string) *Field {
+	for _, f := range idx.fields {
 		if attr == f.Attribute {
 			return f
 		}

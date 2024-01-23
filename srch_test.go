@@ -50,7 +50,7 @@ func TestFuzzySearch(t *testing.T) {
 	for q, want := range testSearchQueryStrings() {
 		m := idx.Search(q)
 		if m.NbHits() != want {
-			t.Errorf("%s: num res %d, expected %d \n", q, m.Len(), want)
+			t.Errorf("%s: num res %d, expected %d \n", q, m.NbHits(), want)
 		}
 	}
 }
