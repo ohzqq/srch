@@ -11,36 +11,32 @@ import (
 )
 
 const (
-	SrchAttr  = `searchableAttributes`
-	FacetAttr = `attributesForFaceting`
-)
-const (
-	Hits                  = `hits`
-	SearchableAttributes  = `searchableAttributes`
-	AttributesForFaceting = `attributesForFaceting`
-	AttributesToRetrieve  = `attributesToRetrieve`
-	Page                  = "page"
-	HitsPerPage           = "hitsPerPage"
-	SortFacetValuesBy     = `sortFacetValuesBy`
-	ParamQuery            = `query`
-	ParamFacets           = "facets"
-	ParamFacetFilters     = `facetFilters`
-	ParamFilters          = "filters"
-	DataDir               = `dataDir`
-	DataFile              = `dataFile`
-	ParamFullText         = `fullText`
-	NbHits                = `nbHits`
-	NbPages               = `nbPages`
-	DefaultField          = `title`
+	Hits                 = `hits`
+	AttributesToRetrieve = `attributesToRetrieve`
+	SrchAttr             = `searchableAttributes`
+	FacetAttr            = `attributesForFaceting`
+	Page                 = "page"
+	HitsPerPage          = "hitsPerPage"
+	SortFacetValuesBy    = `sortFacetValuesBy`
+	Query                = `query`
+	ParamFacets          = "facets"
+	ParamFilters         = "filters"
+	FacetFilters         = `facetFilters`
+	DataDir              = `dataDir`
+	DataFile             = `dataFile`
+	ParamFullText        = `fullText`
+	NbHits               = `nbHits`
+	NbPages              = `nbPages`
+	DefaultField         = `title`
 )
 
-type Query struct {
-	Params url.Values
+type Params struct {
+	Values url.Values
 }
 
-func NewQuery(q any) *Query {
-	return &Query{
-		Params: ParseQuery(q),
+func NewQuery(q any) *Params {
+	return &Params{
+		Values: ParseQuery(q),
 	}
 }
 
@@ -66,43 +62,43 @@ func GetAnalyzer(q url.Values) string {
 	}
 	return Fuzzy
 }
-func (q *Query) Merge(queries ...*Query) {
+func (q *Params) Merge(queries ...*Params) {
 	for _, query := range queries {
-		for k, val := range query.Params {
+		for k, val := range query.Values {
 			for _, v := range val {
-				q.Params.Add(k, v)
+				q.Values.Add(k, v)
 			}
 		}
 	}
 }
 
-func (q Query) GetData() ([]map[string]any, error) {
+func (q Params) GetData() ([]map[string]any, error) {
 	if !q.HasData() {
 		return nil, errors.New("no data")
 	}
-	return GetDataFromQuery(&q.Params)
+	return GetDataFromQuery(&q.Values)
 }
 
-func (q Query) HasData() bool {
-	return q.Params.Has(DataFile) || q.Params.Has(DataDir)
+func (q Params) HasData() bool {
+	return q.Values.Has(DataFile) || q.Values.Has(DataDir)
 }
 
-func (q Query) GetFacetFilters() (*Filters, error) {
+func (q Params) GetFacetFilters() (*Filters, error) {
 	if !q.HasFilters() {
 		return nil, errors.New("no filters")
 	}
-	f, err := DecodeFilter(q.Params.Get(ParamFacetFilters))
+	f, err := DecodeFilter(q.Values.Get(FacetFilters))
 	if err != nil {
 		return nil, err
 	}
 	return f, nil
 }
 
-func (q Query) Query() string {
-	return q.Params.Get(ParamQuery)
+func (q Params) Query() string {
+	return q.Values.Get(Query)
 }
 
-func (q *Query) Fields() []*Field {
+func (q *Params) Fields() []*Field {
 	attrs := q.GetSrchAttr()
 	fields := make([]*Field, len(attrs))
 	for i, attr := range attrs {
@@ -111,7 +107,7 @@ func (q *Query) Fields() []*Field {
 	return fields
 }
 
-func (q Query) Facets() []*Field {
+func (q Params) Facets() []*Field {
 	facets := q.FacetAttrs()
 	fields := make([]*Field, len(facets))
 	for i, attr := range facets {
@@ -120,15 +116,15 @@ func (q Query) Facets() []*Field {
 	return fields
 }
 
-func (q Query) FacetAttrs() []string {
-	if !q.Params.Has(ParamFacets) {
-		q.Params[ParamFacets] = q.GetFacetAttr()
+func (q Params) FacetAttrs() []string {
+	if !q.Values.Has(ParamFacets) {
+		q.Values[ParamFacets] = q.GetFacetAttr()
 	}
-	return q.Params[ParamFacets]
+	return q.Values[ParamFacets]
 }
 
-func (q Query) Page() int {
-	p := q.Params.Get(Page)
+func (q Params) Page() int {
+	p := q.Values.Get(Page)
 	page, err := strconv.Atoi(p)
 	if err != nil {
 		return 0
@@ -136,8 +132,8 @@ func (q Query) Page() int {
 	return page
 }
 
-func (q Query) HitsPerPage() int {
-	p := q.Params.Get(HitsPerPage)
+func (q Params) HitsPerPage() int {
+	p := q.Values.Get(HitsPerPage)
 	page, err := strconv.Atoi(p)
 	if err != nil {
 		return 0
@@ -145,30 +141,30 @@ func (q Query) HitsPerPage() int {
 	return page
 }
 
-func (q Query) HasFilters() bool {
-	return q.Params.Has(ParamFacetFilters)
+func (q Params) HasFilters() bool {
+	return q.Values.Has(FacetFilters)
 }
 
-func (q Query) Get(key string) []string {
-	if q.Params.Has(key) {
-		return q.Params[key]
+func (q Params) Get(key string) []string {
+	if q.Values.Has(key) {
+		return q.Values[key]
 	}
 	return []string{}
 }
 
-func (q Query) GetSrchAttr() []string {
-	return GetQueryStringSlice(SrchAttr, q.Params)
+func (q Params) GetSrchAttr() []string {
+	return GetQueryStringSlice(SrchAttr, q.Values)
 }
 
-func (q Query) GetFacetAttr() []string {
-	return GetQueryStringSlice(FacetAttr, q.Params)
+func (q Params) GetFacetAttr() []string {
+	return GetQueryStringSlice(FacetAttr, q.Values)
 }
 
-func (q Query) GetAnalyzer() string {
-	return GetAnalyzer(q.Params)
+func (q Params) GetAnalyzer() string {
+	return GetAnalyzer(q.Values)
 }
 
-func (q Query) MarshalJSON() ([]byte, error) {
+func (q Params) MarshalJSON() ([]byte, error) {
 	d, err := json.Marshal(q.Encode())
 	if err != nil {
 		return nil, err
@@ -176,7 +172,7 @@ func (q Query) MarshalJSON() ([]byte, error) {
 	return d, err
 }
 
-func (q *Query) UnmarshalJSON(d []byte) error {
+func (q *Params) UnmarshalJSON(d []byte) error {
 	var p string
 	err := json.Unmarshal(d, &p)
 	if err != nil {
@@ -190,13 +186,13 @@ func (q *Query) UnmarshalJSON(d []byte) error {
 	return nil
 }
 
-func (q Query) Encode() string {
-	return q.Params.Encode()
+func (q Params) Encode() string {
+	return q.Values.Encode()
 }
 
-func (q *Query) Decode(str string) error {
+func (q *Params) Decode(str string) error {
 	var err error
-	q.Params, err = url.ParseQuery(str)
+	q.Values, err = url.ParseQuery(str)
 	return err
 }
 

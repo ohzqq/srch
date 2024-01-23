@@ -11,7 +11,7 @@ import (
 )
 
 func TestUnmarshalQueryParams(t *testing.T) {
-	params := &Query{}
+	params := &Params{}
 	err := json.Unmarshal(testParamsBytes(), params)
 	if err != nil {
 		t.Error(err)
@@ -74,11 +74,11 @@ func TestSearchAndFilter(t *testing.T) {
 	idx := New(test)
 
 	vals := make(url.Values)
-	vals.Set(ParamQuery, "heart")
+	vals.Set(Query, "heart")
 
 	//total := 7174
 
-	vals.Set(ParamFacetFilters, `["authors:amy lane"]`)
+	vals.Set(FacetFilters, `["authors:amy lane"]`)
 
 	afterFilter := 5
 	//afterFilter := 58
@@ -106,13 +106,13 @@ func testSearchFilterStrings() map[string]int {
 	queries := map[string]int{}
 	v := make(url.Values)
 
-	v.Set(ParamFacetFilters, `["authors:amy lane"]`)
+	v.Set(FacetFilters, `["authors:amy lane"]`)
 	queries[v.Encode()] = 58
 
-	v.Set(ParamFacetFilters, `["authors:amy lane", ["tags:romance"]]`)
+	v.Set(FacetFilters, `["authors:amy lane", ["tags:romance"]]`)
 	queries[v.Encode()] = 26
 
-	v.Set(ParamFacetFilters, `["authors:amy lane", ["tags:romance"], "tags:-dnr"]`)
+	v.Set(FacetFilters, `["authors:amy lane", ["tags:romance"], "tags:-dnr"]`)
 	queries[v.Encode()] = 22
 
 	return queries

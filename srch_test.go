@@ -29,10 +29,10 @@ func testSearchQueryStrings() map[string]int {
 	}
 	v := make(url.Values)
 
-	v.Set(ParamQuery, "heart")
+	v.Set(Query, "heart")
 	queries[v.Encode()] = 303
 
-	v.Set(ParamQuery, "")
+	v.Set(Query, "")
 	queries[v.Encode()] = 7174
 
 	return queries
@@ -61,7 +61,7 @@ func TestFullTextSearch(t *testing.T) {
 	}
 
 	vals := make(url.Values)
-	vals.Set(ParamQuery, "fish")
+	vals.Set(Query, "fish")
 
 	res := idx.Search(vals.Encode())
 	if h := res.NbHits(); h != 8 {

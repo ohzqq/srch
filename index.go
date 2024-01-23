@@ -27,7 +27,7 @@ type Index struct {
 	Data   []map[string]any
 	res    *roaring.Bitmap
 
-	*Query `json:"params"`
+	*Params `json:"params"`
 }
 
 type SearchFunc func(string) []map[string]any
@@ -36,13 +36,13 @@ type Opt func(*Index)
 
 func New(settings any) *Index {
 	idx := &Index{
-		Query: NewQuery(settings),
+		Params: NewQuery(settings),
 	}
-	idx.fields = idx.Query.Fields()
-	idx.facets = idx.Query.Facets()
+	idx.fields = idx.Params.Fields()
+	idx.facets = idx.Params.Facets()
 
-	if idx.Query.HasData() {
-		d, err := idx.Query.GetData()
+	if idx.Params.HasData() {
+		d, err := idx.Params.GetData()
 		if err != nil {
 			return idx
 		}
@@ -55,7 +55,7 @@ func New(settings any) *Index {
 func (idx *Index) Index(src []map[string]any) *Index {
 	idx.Data = src
 
-	if idx.Query.Params.Has("sort_by") {
+	if idx.Params.Values.Has("sort_by") {
 		idx.Sort()
 	}
 
@@ -92,10 +92,10 @@ func (idx *Index) FullText(q string) *roaring.Bitmap {
 func (idx *Index) Search(params string) *Response {
 	idx.res = idx.Bitmap()
 	q := NewQuery(params)
-	idx.Query.Merge(q)
+	idx.Params.Merge(q)
 
 	if query := q.Query(); query != "" {
-		switch idx.Query.GetAnalyzer() {
+		switch idx.Params.GetAnalyzer() {
 		case Text:
 			idx.res.And(idx.FullText(query))
 		case Fuzzy:
@@ -104,7 +104,7 @@ func (idx *Index) Search(params string) *Response {
 	}
 
 	if q.HasFilters() {
-		idx.Filter(q.Params.Get(ParamFacetFilters))
+		idx.Filter(q.Values.Get(FacetFilters))
 	}
 
 	return NewResponse(idx)
@@ -141,9 +141,9 @@ func (idx *Index) Filter(q string) *Response {
 }
 
 func (idx *Index) Sort() {
-	sortDataByField(idx.Data, idx.Query.Params.Get("sort_by"))
-	if idx.Query.Params.Has("order") {
-		if idx.Query.Params.Get("order") == "desc" {
+	sortDataByField(idx.Data, idx.Params.Values.Get("sort_by"))
+	if idx.Params.Values.Has("order") {
+		if idx.Params.Values.Get("order") == "desc" {
 			slices.Reverse(idx.Data)
 		}
 	}
@@ -197,13 +197,13 @@ func (idx *Index) UnmarshalJSON(d []byte) error {
 		return err
 	}
 
-	if msg, ok := un[ParamQuery]; ok {
+	if msg, ok := un[Query]; ok {
 		var q string
 		err := json.Unmarshal(msg, &q)
 		if err != nil {
 			return err
 		}
-		idx.Query.Params = ParseQuery(q)
+		idx.Params.Values = ParseQuery(q)
 	}
 
 	if msg, ok := un[Hits]; ok {
@@ -220,9 +220,9 @@ func (idx *Index) UnmarshalJSON(d []byte) error {
 
 func (idx *Index) StringMap() map[string]any {
 	m := make(map[string]any)
-	m[ParamQuery] = idx.Query.Query()
+	m[Query] = idx.Params.Query()
 	m[Page] = idx.Page()
-	m["params"] = idx.Query
+	m["params"] = idx.Params
 	m[HitsPerPage] = idx.HitsPerPage()
 	m[ParamFacets] = idx.Facets()
 	return m
