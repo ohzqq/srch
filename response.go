@@ -19,7 +19,7 @@ func NewResponse(idx *Index) *Response {
 }
 
 func (r *Response) MarshalJSON() ([]byte, error) {
-	m := IndexToResponseMap(r.Index)
+	m := r.StringMap()
 	d, err := json.Marshal(m)
 	if err != nil {
 		return nil, err
@@ -31,13 +31,15 @@ func (r *Response) NbHits() int {
 	return int(r.res.GetCardinality())
 }
 
-func IndexToResponseMap(idx *Index) map[string]any {
+func (r *Response) StringMap() map[string]any {
 	m := make(map[string]any)
-	m[NbHits] = idx.Len()
-	m[ParamQuery] = idx.Query.Query()
+	idx := New(r.Query.Params)
+	idx.Index(r.GetResults())
+	m[NbHits] = r.NbHits()
+	m[ParamQuery] = r.Query.Query()
 	m[Page] = idx.Page()
-	m[Hits] = idx.getDataByBitmap(idx.res)
-	m["params"] = idx.Query.Params
+	m[Hits] = idx.Data
+	m["params"] = r.Query
 	m[HitsPerPage] = idx.HitsPerPage()
 	m[ParamFacets] = idx.Facets()
 	return m

@@ -112,6 +112,7 @@ func (idx *Index) Search(params string) *Response {
 		idx.res = idx.Bitmap()
 	}
 	q := NewQuery(params)
+	idx.Query.Merge(q)
 
 	if query := q.Query(); query != "" {
 		switch idx.Settings.TextAnalyzer {
@@ -121,7 +122,6 @@ func (idx *Index) Search(params string) *Response {
 			idx.res.And(idx.FuzzySearch(query))
 		}
 	}
-	println(idx.res.GetCardinality())
 
 	if q.HasFilters() {
 		idx.Filter(q.Params.Get(ParamFacetFilters))
@@ -134,6 +134,10 @@ func (idx Index) Bitmap() *roaring.Bitmap {
 	bits := roaring.New()
 	bits.AddRange(0, uint64(len(idx.Data)))
 	return bits
+}
+
+func (idx Index) GetResults() []map[string]any {
+	return idx.getDataByBitmap(idx.res)
 }
 
 func (idx Index) getDataByBitmap(bits *roaring.Bitmap) []map[string]any {

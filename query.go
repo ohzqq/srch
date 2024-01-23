@@ -40,6 +40,16 @@ func ParseQuery(queries ...any) url.Values {
 	return q
 }
 
+func (q *Query) Merge(queries ...*Query) {
+	for _, query := range queries {
+		for k, val := range query.Params {
+			for _, v := range val {
+				q.Params.Add(k, v)
+			}
+		}
+	}
+}
+
 func (q Query) GetData() ([]map[string]any, error) {
 	if !q.HasData() {
 		return nil, errors.New("no data")
