@@ -3,7 +3,6 @@ package srch
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/url"
 	"strings"
 
@@ -32,24 +31,21 @@ func filterFields(bits *roaring.Bitmap, fields []*Field, query string) (*roaring
 	if err != nil {
 		return nil, err
 	}
-	if query == `["authors:amy lane"]` {
-		fmt.Printf("%#v\n", filters)
-	}
 
 	for _, facet := range fields {
 		if filters.Dis.Has(facet.Attribute) {
 			for _, or := range filters.Dis[facet.Attribute] {
-				bits = roaring.Or(bits, facet.Search(or))
+				bits.Or(facet.Search(or))
 			}
 		}
 		if filters.Con.Has(facet.Attribute) {
 			for _, a := range filters.Con[facet.Attribute] {
-				bits = roaring.And(bits, facet.Search(a))
+				bits.And(facet.Search(a))
 			}
 		}
 		if filters.Neg.Has(facet.Attribute) {
 			for _, not := range filters.Neg[facet.Attribute] {
-				bits = roaring.AndNot(bits, facet.Search(not))
+				bits.AndNot(facet.Search(not))
 			}
 		}
 	}

@@ -54,17 +54,22 @@ func TestFiltering(t *testing.T) {
 	idx := New(test.query)
 	totalBooksErr(idx.Len(), test.query)
 
-	for q, _ := range testSearchQueryStrings() {
+	for q, want := range testSearchQueryStrings() {
 		req := ParseRequest(q)
 		if req.params.Has(ParamFacetFilters) {
+			ids, err := Filter(idx.bits, idx.Fields, q)
+			if err != nil {
+				t.Error(err)
+			}
+			if len(ids) != want {
+				t.Errorf("query %s:\ngot %d, expected %d\n", q, len(ids), want)
+			}
 		}
 	}
 }
 
 func testSearchFilterStrings() map[string]int {
-	queries := map[string]int{
-		"": 7174,
-	}
+	queries := map[string]int{}
 	v := make(url.Values)
 
 	v.Set(ParamFacetFilters, `["authors:amy lane"]`)

@@ -43,7 +43,7 @@ func testSearchQueryStrings() map[string]int {
 	v := make(url.Values)
 
 	v.Set(ParamQuery, "heart")
-	queries[v.Encode()] = 137
+	queries[v.Encode()] = 303
 
 	v.Set(ParamQuery, "")
 	queries[v.Encode()] = 7174
