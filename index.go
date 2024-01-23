@@ -39,7 +39,6 @@ func New(settings any) *Index {
 	idx := &Index{
 		Query: NewQuery(settings),
 	}
-	idx.Settings = idx.GetSettings()
 	idx.fields = idx.Query.Fields()
 	idx.facets = idx.Query.Facets()
 
@@ -97,7 +96,7 @@ func (idx *Index) Search(params string) *Response {
 	idx.Query.Merge(q)
 
 	if query := q.Query(); query != "" {
-		switch idx.Settings.TextAnalyzer {
+		switch idx.Query.GetAnalyzer() {
 		case Text:
 			idx.res.And(idx.FullText(query))
 		case Fuzzy:
@@ -282,7 +281,7 @@ func (idx *Index) FuzzySearch(q string) *roaring.Bitmap {
 func (idx *Index) String(i int) string {
 	s := lo.PickByKeys(
 		idx.Data[i],
-		idx.Settings.SearchableAttributes,
+		idx.GetSrchAttr(),
 	)
 	vals := cast.ToStringSlice(lo.Values(s))
 	return strings.Join(vals, "\n")
