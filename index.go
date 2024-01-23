@@ -113,6 +113,7 @@ func (idx *Index) FullText(q string) []map[string]any {
 }
 
 func (idx *Index) Search(params string) *Response {
+	idx.res = idx.Bitmap()
 	q := NewQuery(params)
 
 	if query := q.Query(); query != "" {
@@ -120,7 +121,8 @@ func (idx *Index) Search(params string) *Response {
 	}
 
 	if q.HasFilters() {
-		filterFields(idx.res, idx.Fields, q.Params.Get(ParamFacetFilters))
+		//filterFields(idx.res, idx.Fields, q.Params.Get(ParamFacetFilters))
+		idx.Filter(q.Params.Get(ParamFacetFilters))
 	}
 
 	data := idx.getDataByBitmap(idx.res)
@@ -128,7 +130,9 @@ func (idx *Index) Search(params string) *Response {
 }
 
 func (idx Index) Bitmap() *roaring.Bitmap {
-	return idx.bits.Clone()
+	bits := roaring.New()
+	bits.AddRange(0, uint64(len(idx.Data)))
+	return bits
 }
 
 func (idx Index) getDataByBitmap(bits *roaring.Bitmap) []map[string]any {
@@ -144,7 +148,6 @@ func (idx Index) getDataByBitmap(bits *roaring.Bitmap) []map[string]any {
 }
 
 func (idx *Index) SearchIndex(q string) *Index {
-	//idx.Values.Set(QueryField, q)
 	var data []map[string]any
 	switch idx.Settings.TextAnalyzer {
 	case Text:
@@ -166,8 +169,8 @@ func (idx *Index) search(q string) []map[string]any {
 	return data
 }
 
-func (idx *Index) Filter(q any) *Index {
-	filtered, err := filterFields(idx.Bitmap(), idx.Fields, cast.ToString(q))
+func (idx *Index) Filter(q string) *Index {
+	filtered, err := filterFields(idx.res, idx.Fields, q)
 	if err != nil {
 		return idx
 	}
