@@ -110,11 +110,27 @@ func (idx *Index) FullText(q string) []map[string]any {
 }
 
 func (idx *Index) Search(params string) *Response {
-	return Search(idx, params)
+	res := Search(idx, params)
+	if idx.Query.HasFilters() {
+	}
+	data := idx.getDataByBitmap(res)
+	return NewResponse(data, idx.Query.Params)
 }
 
-func (idx Index) Clone() *roaring.Bitmap {
+func (idx Index) Bitmap() *roaring.Bitmap {
 	return idx.bits.Clone()
+}
+
+func (idx Index) getDataByBitmap(bits *roaring.Bitmap) []map[string]any {
+	if bits.IsEmpty() {
+		return idx.Data
+	}
+	var res []map[string]any
+	bits.Iterate(func(x uint32) bool {
+		res = append(res, idx.Data[int(x)])
+		return true
+	})
+	return res
 }
 
 func (idx *Index) SearchIndex(q string) *Index {
@@ -317,10 +333,8 @@ func (idx *Index) FuzzyFind(q string) []map[string]any {
 
 func (idx *Index) FuzzySearch(q string) *roaring.Bitmap {
 	matches := fuzzy.FindFrom(q, idx)
-	//res := make([]int, matches.Len())
 	bits := roaring.New()
 	for _, m := range matches {
-		//res[i] = m.Index
 		bits.AddInt(m.Index)
 	}
 	return bits

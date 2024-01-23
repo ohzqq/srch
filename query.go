@@ -60,7 +60,7 @@ func (q Query) GetFacetFilters() (*Filters, error) {
 	if !q.HasFilters() {
 		return nil, errors.New("no filters")
 	}
-	f, err := DecodeFilter(q.Params.Get("facetFilters"))
+	f, err := DecodeFilter(q.Params.Get(ParamFacetFilters))
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +68,7 @@ func (q Query) GetFacetFilters() (*Filters, error) {
 }
 
 func (q Query) HasFilters() bool {
-	return q.Params.Has("facetFilters")
+	return q.Params.Has(ParamFacetFilters)
 }
 
 func (q Query) Get(key string) []string {

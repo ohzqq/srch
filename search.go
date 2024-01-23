@@ -1,52 +1,49 @@
 package srch
 
 import (
-	"net/url"
 	"strconv"
 
 	"github.com/RoaringBitmap/roaring"
-	"github.com/samber/lo"
 )
 
 type Request struct {
 	*Index
-	params url.Values
+	*Query
 }
 
-func Search(idx *Index, params string) *Response {
+func Search(idx *Index, params string) *roaring.Bitmap {
 	req := ParseRequest(params)
 
-	q := req.Query()
+	q := req.Keywords()
 	if q == "" {
-		return NewResponse(idx.Data, req.params)
+		return roaring.New()
 	}
 
-	sids := idx.FuzzySearch(q)
-	res := roaring.And(idx.Clone(), sids)
-	f := FilteredItems(idx.Data, lo.ToAnySlice(res.ToArray()))
-	return NewResponse(f, req.params)
+	bits := idx.Bitmap()
+	bits.And(idx.FuzzySearch(q))
+	return bits
 }
 
 func ParseRequest(req string) *Request {
 	r := &Request{
-		params: ParseQuery(req),
+		Query: NewQuery(req),
 	}
 	return r
 }
 
-func (r Request) Query() string {
-	return r.params.Get(ParamQuery)
+func (r Request) Keywords() string {
+	return r.Params.Get(ParamQuery)
 }
 
 func (r Request) Facets() []string {
-	if r.params.Has(ParamFacets) {
-		return r.params[ParamFacets]
+	if r.Params.Has(ParamFacets) {
+		return r.Params[ParamFacets]
 	}
 	return []string{}
 }
 
 func (r Request) Page() int {
-	p := r.params.Get(Page)
+	p := r.Params.Get(Page)
 	page, err := strconv.Atoi(p)
 	if err != nil {
 		return 0
@@ -55,7 +52,7 @@ func (r Request) Page() int {
 }
 
 func (r Request) HitsPerPage() int {
-	p := r.params.Get(HitsPerPage)
+	p := r.Params.Get(HitsPerPage)
 	page, err := strconv.Atoi(p)
 	if err != nil {
 		return 0

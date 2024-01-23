@@ -56,7 +56,7 @@ func TestFiltering(t *testing.T) {
 
 	for q, want := range testSearchQueryStrings() {
 		req := ParseRequest(q)
-		if req.Query.HasFilters() {
+		if req.params.Has.Filters() {
 			ids, err := Filter(idx.bits, idx.Fields, q)
 			if err != nil {
 				t.Error(err)
