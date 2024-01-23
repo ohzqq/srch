@@ -4,6 +4,7 @@ import (
 	"net/url"
 	"strconv"
 
+	"github.com/RoaringBitmap/roaring"
 	"github.com/samber/lo"
 )
 
@@ -21,7 +22,8 @@ func Search(idx *Index, params string) *Response {
 	}
 
 	sids := idx.FuzzySearch(q)
-	f := FilteredItems(idx.Data, lo.ToAnySlice(sids))
+	res := roaring.And(idx.Clone(), sids)
+	f := FilteredItems(idx.Data, lo.ToAnySlice(res.ToArray()))
 	return NewResponse(f, req.params)
 }
 

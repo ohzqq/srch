@@ -315,13 +315,15 @@ func (idx *Index) FuzzyFind(q string) []map[string]any {
 	return res
 }
 
-func (idx *Index) FuzzySearch(q string) []int {
+func (idx *Index) FuzzySearch(q string) *roaring.Bitmap {
 	matches := fuzzy.FindFrom(q, idx)
-	res := make([]int, matches.Len())
-	for i, m := range matches {
-		res[i] = m.Index
+	//res := make([]int, matches.Len())
+	bits := roaring.New()
+	for _, m := range matches {
+		//res[i] = m.Index
+		bits.AddInt(m.Index)
 	}
-	return res
+	return bits
 }
 
 // String satisfies the fuzzy.Source interface.
