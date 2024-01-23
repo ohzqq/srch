@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/url"
+	"strconv"
 	"strings"
 
 	"github.com/spf13/cast"
@@ -65,6 +66,35 @@ func (q Query) GetFacetFilters() (*Filters, error) {
 		return nil, err
 	}
 	return f, nil
+}
+
+func (q Query) Query() string {
+	return q.Params.Get(ParamQuery)
+}
+
+func (q Query) Facets() []string {
+	if q.Params.Has(ParamFacets) {
+		return q.Params[ParamFacets]
+	}
+	return []string{}
+}
+
+func (q Query) Page() int {
+	p := q.Params.Get(Page)
+	page, err := strconv.Atoi(p)
+	if err != nil {
+		return 0
+	}
+	return page
+}
+
+func (q Query) HitsPerPage() int {
+	p := q.Params.Get(HitsPerPage)
+	page, err := strconv.Atoi(p)
+	if err != nil {
+		return 0
+	}
+	return page
 }
 
 func (q Query) HasFilters() bool {

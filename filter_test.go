@@ -55,8 +55,8 @@ func TestFiltering(t *testing.T) {
 	totalBooksErr(idx.Len(), test.query)
 
 	for q, want := range testSearchQueryStrings() {
-		req := ParseRequest(q)
-		if req.Query.HasFilters() {
+		req := NewQuery(q)
+		if req.HasFilters() {
 			ids, err := Filter(idx.bits, idx.Fields, q)
 			if err != nil {
 				t.Error(err)
