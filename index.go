@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"log"
-	"net/url"
 	"os"
 	"slices"
 	"strings"
@@ -77,6 +76,7 @@ func (idx *Index) Index(src []map[string]any) *Index {
 	if idx.GetAnalyzer() == Text {
 		idx.fields = IndexData(idx.Data, idx.fields)
 	}
+
 	idx.facets = IndexData(idx.Data, idx.facets)
 
 	return idx
@@ -96,12 +96,6 @@ func IndexData(data []map[string]any, fields []*Field) []*Field {
 	}
 
 	return fields
-}
-
-func WithFullText() Opt {
-	return func(idx *Index) {
-		idx.Query.Params.Set("full_text", "")
-	}
 }
 
 func (idx *Index) FullText(q string) []map[string]any {
@@ -191,25 +185,6 @@ func (idx *Index) Filter(q string) *Response {
 	return NewResponse(idx)
 }
 
-//func (idx *Index) SetQuery(q url.Values) *Index {
-//  idx.Query = &Query{
-//    Params: q,
-//  }
-
-//  if idx.Query.Params.Has("full_text") {
-//    idx.Settings.TextAnalyzer = Text
-//  }
-
-//  idx.AddField(ParseFieldsFromValues(idx.Query.Params)...)
-
-//  data, err := idx.Query.GetData()
-//  if err == nil {
-//    return idx.Index(data)
-//  }
-
-//  return idx
-//}
-
 func (idx *Index) Sort() {
 	sortDataByField(idx.Data, idx.Query.Params.Get("sort_by"))
 	if idx.Query.Params.Has("order") {
@@ -243,17 +218,9 @@ func (idx *Index) GetFilterValues(filters []string) map[string][]string {
 	return facets
 }
 
-func (idx *Index) HasFilters() bool {
-	return len(idx.Filters()) > 0
-}
-
-func (idx *Index) Filters() url.Values {
-	return lo.OmitByKeys(idx.Query.Params, ReservedKeys)
-}
-
 // HasFacets returns true if facets are configured.
 func (idx *Index) HasFacets() bool {
-	return len(idx.Facets()) > 0
+	return len(idx.facets) > 0
 }
 
 func (idx *Index) Facets() []*Field {

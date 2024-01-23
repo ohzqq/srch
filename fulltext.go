@@ -14,10 +14,11 @@ import (
 func FullText(data []map[string]any, q string, fields ...string) *Index {
 	vals := make(url.Values)
 	vals.Set(ParamQuery, q)
+	vals.Set(ParamFullText, "")
 	for _, f := range fields {
-		vals.Add("field", f)
+		vals.Add(SearchableAttributes, f)
 	}
-	idx := NewIndex(vals, WithFullText())
+	idx := New(vals)
 
 	if len(data) < 1 {
 		return idx

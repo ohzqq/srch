@@ -134,9 +134,7 @@ func (f *Field) addTerm(item *FacetItem, ids []int) {
 }
 
 func (f *Field) IsFacet() bool {
-	return f.FieldType == FacetField ||
-		f.FieldType == AndFacet ||
-		f.FieldType == OrFacet
+	return f.FieldType != Text
 }
 
 func (f *Field) ListTokens() []string {
@@ -177,7 +175,7 @@ func (f *Field) Filter(filters url.Values) *roaring.Bitmap {
 }
 
 func (f *Field) Search(text string) *roaring.Bitmap {
-	if f.IsFacet() {
+	if f.FieldType != Text {
 		if item, ok := f.items[normalizeText(text)]; ok {
 			return item.bits
 		}

@@ -58,7 +58,7 @@ func (q Query) GetData() ([]map[string]any, error) {
 }
 
 func (q Query) HasData() bool {
-	return q.Params.Has("data_file") || q.Params.Has("data_dir")
+	return q.Params.Has(DataFile) || q.Params.Has(DataDir)
 }
 
 func (q Query) GetSettings() *Settings {
@@ -166,13 +166,13 @@ func GetDataFromQuery(q *url.Values) ([]map[string]any, error) {
 	var data []map[string]any
 	var err error
 	switch {
-	case q.Has("data_file"):
+	case q.Has(DataFile):
 		qu := *q
-		data, err = FileSrc(qu["data_file"]...)
-		q.Del("data_file")
-	case q.Has("data_dir"):
-		data, err = DirSrc(q.Get("data_dir"))
-		q.Del("data_dir")
+		data, err = FileSrc(qu[DataFile]...)
+		q.Del(DataFile)
+	case q.Has(DataDir):
+		data, err = DirSrc(q.Get(DataDir))
+		q.Del(DataDir)
 	}
 	return data, err
 }
@@ -207,7 +207,7 @@ func ParseFieldsFromValues(cfg url.Values) []*Field {
 	if cfg.Has("field") {
 		for _, f := range cfg["field"] {
 			ft := Fuzzy
-			if cfg.Has("full_text") {
+			if cfg.Has(ParamFullText) {
 				ft = Text
 			}
 			fields = append(fields, NewField(f, ft))

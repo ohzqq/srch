@@ -56,19 +56,20 @@ func TestFuzzySearch(t *testing.T) {
 }
 
 func TestFullTextSearch(t *testing.T) {
-	t.SkipNow()
-	idx = NewIndex(testValuesCfg, WithFullText())
-	//idx.Index(books)
-	res := idx.SearchIndex("fish")
-	if len(res.Data) != 8 {
-		t.Errorf("got %d, expected 8\n", len(res.Data))
-	}
-	//for _, facet := range idx.Facets() {
-	//  for _, item := range facet.Items {
-	//    fmt.Printf("%s: %d\n", item.Value, item.Count)
-	//  }
-	//}
+	test := settingsTestVals[len(settingsTestVals)-1]
+	idx := New(test.query)
 
+	if ana := idx.GetAnalyzer(); ana != Text {
+		t.Errorf("get %s, expected %s\n", ana, Text)
+	}
+
+	res := FullText(idx.Data, "fish", "title")
+	println(res.Len())
+	//idx.Index(books)
+	//res := idx.SearchIndex("fish")
+	//if len(res.Data) != 8 {
+	//t.Errorf("got %d, expected 8\n", len(res.Data))
+	//}
 }
 
 func parseValueTest(t *testing.T, q string) {

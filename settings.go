@@ -30,7 +30,7 @@ func defaultSettings() *Settings {
 }
 
 func GetAnalyzer(q url.Values) string {
-	if q.Has("full_text") {
+	if q.Has(ParamFullText) {
 		return Text
 	}
 	return Fuzzy
@@ -58,6 +58,7 @@ func (s *Settings) setValsFromQuery(q *Query) {
 func (s *Settings) SrchFields() []*Field {
 	fields := make([]*Field, len(s.SearchableAttributes))
 	for i, attr := range s.SearchableAttributes {
+		println(s.TextAnalyzer)
 		fields[i] = NewField(attr, s.TextAnalyzer)
 	}
 	return fields
