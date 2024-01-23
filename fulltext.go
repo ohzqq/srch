@@ -25,20 +25,17 @@ func FullText(data []map[string]any, q string, fields ...string) *Index {
 	}
 
 	idx.Index(data)
+	idx.Search(q)
 
-	return idx.SearchIndex(q)
+	return idx
 }
 
-func searchFullText(data []map[string]any, fields []*Field, q string) []map[string]any {
-	if q == "" {
-		return data
-	}
+func searchFullText(fields []*Field, q string) *roaring.Bitmap {
 	var bits []*roaring.Bitmap
 	for _, field := range fields {
 		bits = append(bits, field.Search(q))
 	}
-	res := processBitResults(bits, "and")
-	return FilteredItems(data, lo.ToAnySlice(res.ToArray()))
+	return processBitResults(bits, "and")
 }
 
 func Tokenizer(str string) []*FacetItem {

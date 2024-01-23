@@ -41,12 +41,6 @@ func NewField(attr string, ft string) *Field {
 		items:     make(map[string]*FacetItem),
 	}
 	parseAttr(f, attr)
-	switch ft {
-	case OrFacet:
-		f.Operator = "or"
-	case AndFacet, Text:
-		f.Operator = "and"
-	}
 	return f
 }
 

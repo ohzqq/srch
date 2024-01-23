@@ -63,8 +63,13 @@ func TestFullTextSearch(t *testing.T) {
 		t.Errorf("get %s, expected %s\n", ana, Text)
 	}
 
-	res := FullText(idx.Data, "fish", "title")
-	println(res.Len())
+	vals := make(url.Values)
+	vals.Set(ParamQuery, "fish")
+
+	res := idx.Search(vals.Encode())
+	if h := res.NbHits(); h != 8 {
+		t.Errorf("get %d, expected %d\n", h, 8)
+	}
 	//idx.Index(books)
 	//res := idx.SearchIndex("fish")
 	//if len(res.Data) != 8 {
@@ -83,10 +88,8 @@ func TestAudibleSearch(t *testing.T) {
 	t.SkipNow()
 
 	q := "field=Title"
-	a := NewIndex(
-		q,
-	)
-	res := a.SearchIndex("amy lane fish")
+	a := New(q)
+	res := a.Search("amy lane fish")
 
 	println("audible search")
 

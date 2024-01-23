@@ -98,12 +98,9 @@ func IndexData(data []map[string]any, fields []*Field) []*Field {
 	return fields
 }
 
-func (idx *Index) FullText(q string) []map[string]any {
-	return searchFullText(
-		idx.Data,
-		idx.TextFields(),
-		idx.Query.Params.Get(ParamQuery),
-	)
+func (idx *Index) FullText(q string) *roaring.Bitmap {
+	b := searchFullText(idx.TextFields(), q)
+	return b
 }
 
 func (idx *Index) Search(params string) *Response {
@@ -116,7 +113,7 @@ func (idx *Index) Search(params string) *Response {
 	if query := q.Query(); query != "" {
 		switch idx.Settings.TextAnalyzer {
 		case Text:
-			idx.FullText(query)
+			idx.res.And(idx.FullText(query))
 		case Fuzzy:
 			idx.res.And(idx.FuzzySearch(query))
 		}
@@ -149,28 +146,6 @@ func (idx Index) getDataByBitmap(bits *roaring.Bitmap) []map[string]any {
 		return true
 	})
 	return res
-}
-
-func (idx *Index) SearchIndex(q string) *Index {
-	var data []map[string]any
-	switch idx.Settings.TextAnalyzer {
-	case Text:
-		data = idx.FullText(q)
-	case Fuzzy:
-		data = idx.FuzzyFind(q)
-	}
-	return idx.Copy().Index(data)
-}
-
-func (idx *Index) search(q string) []map[string]any {
-	var data []map[string]any
-	switch idx.Settings.TextAnalyzer {
-	case Text:
-		data = idx.FullText(q)
-	case Fuzzy:
-		data = idx.FuzzyFind(q)
-	}
-	return data
 }
 
 func (idx *Index) Filter(q string) *Response {
