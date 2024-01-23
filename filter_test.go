@@ -20,7 +20,6 @@ func TestUnmarshalQueryParams(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	fmt.Printf("%#v\n", filters)
 	filtersTests(filters, t)
 }
 
@@ -59,7 +58,7 @@ func TestFiltering(t *testing.T) {
 	for q, want := range testSearchQueryStrings() {
 		req := NewQuery(q)
 		if req.HasFilters() {
-			ids, err := Filter(idx.Bitmap(), idx.Fields, q)
+			ids, err := Filter(idx.Bitmap(), idx.facets, q)
 			if err != nil {
 				t.Error(err)
 			}

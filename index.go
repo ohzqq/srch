@@ -23,7 +23,6 @@ func init() {
 
 // Index is a structure for facets and data.
 type Index struct {
-	Fields   []*Field
 	fields   []*Field
 	facets   []*Field
 	Data     []map[string]any
@@ -42,7 +41,6 @@ func New(settings any) *Index {
 		Query: NewQuery(settings),
 	}
 	idx.Settings = idx.GetSettings()
-	idx.Fields = idx.GetSettings().Fields()
 	idx.fields = idx.GetSettings().SrchFields()
 	idx.facets = idx.GetSettings().Facets()
 
@@ -193,24 +191,24 @@ func (idx *Index) Filter(q string) *Response {
 	return NewResponse(idx)
 }
 
-func (idx *Index) SetQuery(q url.Values) *Index {
-	idx.Query = &Query{
-		Params: q,
-	}
+//func (idx *Index) SetQuery(q url.Values) *Index {
+//  idx.Query = &Query{
+//    Params: q,
+//  }
 
-	if idx.Query.Params.Has("full_text") {
-		idx.Settings.TextAnalyzer = Text
-	}
+//  if idx.Query.Params.Has("full_text") {
+//    idx.Settings.TextAnalyzer = Text
+//  }
 
-	idx.AddField(ParseFieldsFromValues(idx.Query.Params)...)
+//  idx.AddField(ParseFieldsFromValues(idx.Query.Params)...)
 
-	data, err := idx.Query.GetData()
-	if err == nil {
-		return idx.Index(data)
-	}
+//  data, err := idx.Query.GetData()
+//  if err == nil {
+//    return idx.Index(data)
+//  }
 
-	return idx
-}
+//  return idx
+//}
 
 func (idx *Index) Sort() {
 	sortDataByField(idx.Data, idx.Query.Params.Get("sort_by"))
@@ -225,6 +223,15 @@ func (idx *Index) Copy() *Index {
 	return NewIndex(idx.Query.Params)
 }
 
+func (idx *Index) GetFacet(attr string) *Field {
+	for _, f := range idx.facets {
+		if attr == f.Attribute {
+			return f
+		}
+	}
+	return &Field{Attribute: attr}
+}
+
 func (idx *Index) GetFilterValues(filters []string) map[string][]string {
 	facets := make(map[string][]string)
 	for _, attr := range idx.Settings.AttributesForFaceting {
@@ -234,20 +241,6 @@ func (idx *Index) GetFilterValues(filters []string) map[string][]string {
 		}
 	}
 	return facets
-}
-
-func (idx *Index) AddField(fields ...*Field) *Index {
-	idx.Fields = append(idx.Fields, fields...)
-	return idx
-}
-
-func (idx *Index) GetField(attr string) (*Field, error) {
-	for _, f := range idx.Fields {
-		if f.Attribute == attr {
-			return f, nil
-		}
-	}
-	return nil, errors.New("no such field")
 }
 
 func (idx *Index) HasFilters() bool {
@@ -294,7 +287,7 @@ func (idx *Index) UnmarshalJSON(d []byte) error {
 		if err != nil {
 			return err
 		}
-		idx.SetQuery(ParseQuery(q))
+		idx.Query.Params = ParseQuery(q)
 	}
 
 	if msg, ok := un[Hits]; ok {
