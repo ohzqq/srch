@@ -25,7 +25,6 @@ func init() {
 type Index struct {
 	Fields   []*Field
 	Data     []map[string]any
-	bits     *roaring.Bitmap
 	res      *roaring.Bitmap
 	Settings *Settings
 
@@ -39,8 +38,6 @@ type Opt func(*Index)
 func New(settings any) *Index {
 	idx := &Index{
 		Query: NewQuery(settings),
-		bits:  roaring.New(),
-		res:   roaring.New(),
 	}
 	idx.Settings = idx.GetSettings()
 	idx.Fields = idx.GetSettings().Fields()
@@ -70,8 +67,6 @@ func NewIndex(query any, opts ...Opt) *Index {
 
 func (idx *Index) Index(src []map[string]any) *Index {
 	idx.Data = src
-	idx.bits.AddRange(0, uint64(len(src)))
-	idx.res.AddRange(0, uint64(len(src)))
 
 	if idx.Query.Params.Has("sort_by") {
 		idx.Sort()
@@ -113,20 +108,26 @@ func (idx *Index) FullText(q string) []map[string]any {
 }
 
 func (idx *Index) Search(params string) *Response {
-	idx.res = idx.Bitmap()
+	if idx.res == nil || idx.res.IsEmpty() {
+		idx.res = idx.Bitmap()
+	}
 	q := NewQuery(params)
 
 	if query := q.Query(); query != "" {
-		idx.res.And(idx.FuzzySearch(query))
+		switch idx.Settings.TextAnalyzer {
+		case Text:
+			idx.FullText(query)
+		case Fuzzy:
+			idx.res.And(idx.FuzzySearch(query))
+		}
 	}
+	println(idx.res.GetCardinality())
 
 	if q.HasFilters() {
-		//filterFields(idx.res, idx.Fields, q.Params.Get(ParamFacetFilters))
 		idx.Filter(q.Params.Get(ParamFacetFilters))
 	}
 
-	data := idx.getDataByBitmap(idx.res)
-	return NewResponse(data, idx.Query.Params)
+	return NewResponse(idx)
 }
 
 func (idx Index) Bitmap() *roaring.Bitmap {
@@ -169,15 +170,16 @@ func (idx *Index) search(q string) []map[string]any {
 	return data
 }
 
-func (idx *Index) Filter(q string) *Index {
+func (idx *Index) Filter(q string) *Response {
+	if idx.res == nil || idx.res.IsEmpty() {
+		idx.res = idx.Bitmap()
+	}
 	filtered, err := filterFields(idx.res, idx.Fields, q)
 	if err != nil {
-		return idx
+		return NewResponse(idx)
 	}
 	idx.res.And(filtered)
-	i := New(idx.Query)
-	i.Index(idx.getDataByBitmap(idx.res))
-	return i
+	return NewResponse(idx)
 }
 
 func (idx *Index) SetQuery(q url.Values) *Index {

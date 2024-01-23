@@ -6,6 +6,8 @@ import (
 	"log"
 	"net/url"
 	"testing"
+
+	"github.com/RoaringBitmap/roaring"
 )
 
 func TestUnmarshalQueryParams(t *testing.T) {
@@ -57,7 +59,7 @@ func TestFiltering(t *testing.T) {
 	for q, want := range testSearchQueryStrings() {
 		req := NewQuery(q)
 		if req.HasFilters() {
-			ids, err := Filter(idx.bits, idx.Fields, q)
+			ids, err := Filter(idx.Bitmap(), idx.Fields, q)
 			if err != nil {
 				t.Error(err)
 			}
@@ -83,8 +85,14 @@ func TestSearchAndFilter(t *testing.T) {
 	//afterFilter := 58
 
 	result := idx.Search(vals.Encode())
-	if n := result.Len(); n != afterFilter {
+	if n := result.NbHits(); n != afterFilter {
 		t.Errorf("got %d, expected %d\n", n, afterFilter)
+	}
+
+	idx.res = roaring.New()
+	f := idx.Filter(`["authors:amy lane"]`)
+	if n := f.res.GetCardinality(); n != 58 {
+		t.Errorf("got %d, expected %d\n", n, 58)
 	}
 	//vals.Set(ParamFacetFilters, `["authors:amy lane", [ "tags:romance"], "tags:-dnr"]`)
 }

@@ -14,6 +14,8 @@ const (
 	DataDir               = `dataDir`
 	DataFile              = `dataFile`
 	ParamFullText         = `fullText`
+	NbHits                = `nbHits`
+	NbPages               = `nbPages`
 )
 
 var ReservedKeys = []string{

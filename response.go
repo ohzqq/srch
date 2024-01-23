@@ -1,22 +1,44 @@
 package srch
 
-import "net/url"
+import (
+	"encoding/json"
+)
 
 type Response struct {
 	*Index
 	Page        int    `json:"page"`
-	NbHits      int    `json:"nbHits"`
 	NbPages     int    `json:"nbPages"`
 	HitsPerPage int    `json:"hitsPerPage"`
 	Keywords    string `json:"query"`
 }
 
-func NewResponse(data []map[string]any, params url.Values) *Response {
-	res := &Response{
-		Index:    New(params).Index(data),
-		Page:     0,
-		Keywords: params.Get(ParamQuery),
+func NewResponse(idx *Index) *Response {
+	return &Response{
+		Index: idx,
 	}
-	res.NbHits = res.Len()
-	return res
+}
+
+func (r *Response) MarshalJSON() ([]byte, error) {
+	m := IndexToResponseMap(r.Index)
+	d, err := json.Marshal(m)
+	if err != nil {
+		return nil, err
+	}
+	return d, err
+}
+
+func (r *Response) NbHits() int {
+	return int(r.res.GetCardinality())
+}
+
+func IndexToResponseMap(idx *Index) map[string]any {
+	m := make(map[string]any)
+	m[NbHits] = idx.Len()
+	m[ParamQuery] = idx.Query.Query()
+	m[Page] = idx.Page()
+	m[Hits] = idx.getDataByBitmap(idx.res)
+	m["params"] = idx.Query.Params
+	m[HitsPerPage] = idx.HitsPerPage()
+	m[ParamFacets] = idx.Facets()
+	return m
 }
