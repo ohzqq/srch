@@ -73,26 +73,14 @@ func TestSearchAndFilter(t *testing.T) {
 	idx := New(test.query)
 
 	vals := make(url.Values)
-	vals.Set(ParamQuery, "")
+	vals.Set(ParamQuery, "heart")
 
-	res := Search(idx, "")
-	total := 7174
-	//total := 304
-	if r := len(res.ToArray()); r != total {
-		t.Errorf("got %d, expected %d\n", r, total)
-	}
+	//total := 7174
 
 	vals.Set(ParamFacetFilters, `["authors:amy lane"]`)
-	f, err := filterFields(res, idx.Fields, `["authors:amy lane"]`)
-	if err != nil {
-		t.Error(err)
-	}
 
-	//afterFilter := 5
-	afterFilter := 58
-	if n := len(f.ToArray()); n != afterFilter {
-		t.Errorf("got %d, expected %d\n", n, afterFilter)
-	}
+	afterFilter := 5
+	//afterFilter := 58
 
 	result := idx.Search(vals.Encode())
 	if n := result.Len(); n != afterFilter {

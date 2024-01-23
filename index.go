@@ -114,7 +114,6 @@ func (idx *Index) FullText(q string) []map[string]any {
 
 func (idx *Index) Search(params string) *Response {
 	q := NewQuery(params)
-	//res := Search(idx, q.Query())
 
 	if query := q.Query(); query != "" {
 		idx.res.And(idx.FuzzySearch(query))
@@ -123,6 +122,7 @@ func (idx *Index) Search(params string) *Response {
 	if q.HasFilters() {
 		filterFields(idx.res, idx.Fields, q.Params.Get(ParamFacetFilters))
 	}
+
 	data := idx.getDataByBitmap(idx.res)
 	return NewResponse(data, idx.Query.Params)
 }

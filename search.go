@@ -5,13 +5,5 @@ import (
 )
 
 func Search(idx *Index, kw string) *roaring.Bitmap {
-	bits := idx.Bitmap()
-
-	if kw == "" {
-		return bits
-	}
-
-	idx.res.And(idx.FuzzySearch(kw))
-	bits.And(idx.FuzzySearch(kw))
-	return bits
+	return idx.res
 }
