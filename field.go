@@ -145,18 +145,15 @@ func (f *Field) ListTokens() []string {
 func (f *Field) Search(text string) *roaring.Bitmap {
 	if f.IsFacet() {
 		return f.tokens.Search(normalizeText(text))
-		//if item, ok := f.tokenz[normalizeText(text)]; ok {
-		//  return item.Bitmap()
-		//}
 	}
 
-	var bits []*roaring.Bitmap
-	for _, token := range FulltextAnalyzer(text) {
-		if ids, ok := f.tokenz[token.Value]; ok {
-			bits = append(bits, ids.Bitmap())
-		}
+	tks := FulltextAnalyzer(text)
+	tokens := make([]string, len(tks))
+	for i, token := range tks {
+		tokens[i] = token.Value
 	}
-	return processBitResults(bits, And)
+	return f.tokens.Search(tokens...)
+	//return processBitResults(bits, And)
 }
 
 func processBitResults(bits []*roaring.Bitmap, operator string) *roaring.Bitmap {
