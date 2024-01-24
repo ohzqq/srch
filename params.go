@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/ohzqq/srch/txt"
 	"github.com/spf13/cast"
 )
 
@@ -40,59 +41,71 @@ func NewQuery(q any) *Params {
 	}
 }
 
-func (q Params) GetSlice(key string) []string {
-	if q.Values.Has(key) {
-		return q.Values[key]
+func (p Params) GetSlice(key string) []string {
+	if p.Values.Has(key) {
+		return p.Values[key]
 	}
 	return []string{}
 }
 
-func (q Params) Get(key string) string {
-	if q.Values.Has(key) {
-		return q.Values.Get(key)
+func (p Params) Get(key string) string {
+	if p.Values.Has(key) {
+		return p.Values.Get(key)
 	}
 	return ""
 }
 
-func (q *Params) Merge(queries ...*Params) {
+func (p *Params) Merge(queries ...*Params) {
 	for _, query := range queries {
 		for k, val := range query.Values {
 			for _, v := range val {
-				q.Values.Add(k, v)
+				p.Values.Add(k, v)
 			}
 		}
 	}
 }
 
-func (q *Params) SrchAttr() []string {
-	if !q.Values.Has(SrchAttr) {
-		return []string{DefaultField}
+func (p *Params) NewField(attr string) *Field {
+	f := NewField(attr)
+	if p.IsFullText() {
+		f.Tokens = txt.NewTokens(txt.Fulltext())
 	}
-	q.Values[SrchAttr] = GetQueryStringSlice(SrchAttr, q.Values)
-	if len(q.Values[SrchAttr]) < 1 {
-		q.Values[SrchAttr] = []string{DefaultField}
-	}
-	return q.Values[SrchAttr]
+	f.SortBy = p.SortFacetsBy()
+	return f
 }
 
-func (q *Params) Fields() []*Field {
-	attrs := q.SrchAttr()
+func (p *Params) newFields(attrs []string) []*Field {
 	fields := make([]*Field, len(attrs))
 	for i, attr := range attrs {
-		fields[i] = NewTextField(attr, q)
+		fields[i] = p.NewField(attr)
 	}
 	return fields
 }
 
-func (q Params) HasFilters() bool {
-	return q.Values.Has(FacetFilters)
+func (p *Params) SrchAttr() []string {
+	if !p.Values.Has(SrchAttr) {
+		return []string{DefaultField}
+	}
+	p.Values[SrchAttr] = GetQueryStringSlice(SrchAttr, p.Values)
+	if len(p.Values[SrchAttr]) < 1 {
+		p.Values[SrchAttr] = []string{DefaultField}
+	}
+	return p.Values[SrchAttr]
 }
 
-func (q Params) GetFacetFilters() (*Filters, error) {
-	if !q.HasFilters() {
+func (p *Params) Fields() []*Field {
+	return p.newFields(p.SrchAttr())
+}
+
+func (p Params) HasFilters() bool {
+	return p.Values.Has(FacetFilters)
+}
+
+func (p Params) GetFacetFilters() (*Filters, error) {
+	if !p.HasFilters() {
 		return nil, errors.New("no filters")
 	}
-	f, err := DecodeFilter(q.Values.Get(FacetFilters))
+	f, err := DecodeFilter(p.Values.Get(FacetFilters))
 	if err != nil {
 		return nil, err
 	}
@@ -109,100 +122,95 @@ func (p *Params) SortFacetsBy() string {
 	return sort
 }
 
-func (q Params) FacetAttr() []string {
-	if !q.Values.Has(ParamFacets) {
-		q.Values[ParamFacets] = GetQueryStringSlice(FacetAttr, q.Values)
+func (p Params) FacetAttr() []string {
+	if !p.Values.Has(ParamFacets) {
+		p.Values[ParamFacets] = GetQueryStringSlice(FacetAttr, p.Values)
 	}
-	return q.Values[ParamFacets]
+	return p.Values[ParamFacets]
 }
 
-func (q *Params) Facets() []*Field {
-	facets := q.FacetAttr()
-	fields := make([]*Field, len(facets))
-	for i, attr := range facets {
-		fields[i] = NewFacet(attr, q)
-	}
-	return fields
+func (p *Params) Facets() []*Field {
+	return p.newFields(p.FacetAttr())
 }
 
-func (q Params) Page() int {
-	p := q.Values.Get(Page)
-	page, err := strconv.Atoi(p)
+func (p Params) Page() int {
+	pn := p.Values.Get(Page)
+	page, err := strconv.Atoi(pn)
 	if err != nil {
 		return 0
 	}
 	return page
 }
 
-func (q Params) HitsPerPage() int {
-	p := q.Values.Get(HitsPerPage)
-	page, err := strconv.Atoi(p)
+func (p Params) HitsPerPage() int {
+	pn := p.Values.Get(HitsPerPage)
+	page, err := strconv.Atoi(pn)
 	if err != nil {
 		return 0
 	}
 	return page
 }
 
-func (q *Params) IsFullText() bool {
-	return q.Values.Has(ParamFullText)
+func (p *Params) IsFullText() bool {
+	return p.Values.Has(ParamFullText)
 }
 
-func (q Params) Query() string {
-	return q.Values.Get(Query)
+func (p Params) Query() string {
+	return p.Values.Get(Query)
 }
 
-func (q Params) GetAnalyzer() string {
-	if q.Values.Has(ParamFullText) {
+func (p Params) GetAnalyzer() string {
+	if p.Values.Has(ParamFullText) {
 		return Text
 	}
 	return Fuzzy
 }
 
-func (q Params) MarshalJSON() ([]byte, error) {
-	d, err := json.Marshal(q.Encode())
+func (p Params) MarshalJSON() ([]byte, error) {
+	d, err := json.Marshal(p.Encode())
 	if err != nil {
 		return nil, err
 	}
 	return d, err
 }
 
-func (q *Params) UnmarshalJSON(d []byte) error {
-	var p string
-	err := json.Unmarshal(d, &p)
+func (p *Params) UnmarshalJSON(d []byte) error {
+	var pn string
+	err := json.Unmarshal(d, &pn)
 	if err != nil {
 		return err
 	}
 
-	err = q.Decode(p)
+	err = p.Decode(pn)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (q Params) Encode() string {
-	return q.Values.Encode()
+func (p Params) Encode() string {
+	return p.Values.Encode()
 }
 
-func (q Params) String() string {
-	return q.Values.Encode()
+func (p Params) String() string {
+	return p.Values.Encode()
 }
 
-func (q *Params) Decode(str string) error {
+func (p *Params) Decode(str string) error {
 	var err error
-	q.Values, err = url.ParseQuery(str)
+	p.Values, err = url.ParseQuery(str)
 	return err
 }
 
-func (q Params) HasData() bool {
-	return q.Values.Has(DataFile) || q.Values.Has(DataDir)
+func (p Params) HasData() bool {
+	return p.Values.Has(DataFile) || p.Values.Has(DataDir)
 }
 
-func (q Params) GetData() ([]map[string]any, error) {
-	if !q.HasData() {
+func (p Params) GetData() ([]map[string]any, error) {
+	if !p.HasData() {
 		return nil, errors.New("no data")
 	}
-	return GetDataFromQuery(&q.Values)
+	return GetDataFromQuery(&p.Values)
 }
 
 func GetDataFromQuery(q *url.Values) ([]map[string]any, error) {

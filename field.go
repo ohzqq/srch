@@ -32,35 +32,15 @@ type Field struct {
 	*txt.Tokens
 }
 
-func NewField(attr string, params ...*Params) *Field {
+func NewField(attr string) *Field {
 	f := &Field{
 		Sep:    ".",
 		SortBy: "count",
 		Order:  "desc",
-		Tokens: txt.NewTokens(),
+		Tokens: txt.NewTokens(txt.Keyword()),
 	}
 	parseAttr(f, attr)
 
-	if len(params) > 0 {
-		f.SortBy = params[0].SortFacetsBy()
-	}
-
-	return f
-}
-
-func NewFacet(attr string, params ...*Params) *Field {
-	f := NewField(attr, params...)
-	f.Tokens = txt.NewTokens(txt.Keyword())
-	f.FieldType = FacetField
-	return f
-}
-
-func NewTextField(attr string, params ...*Params) *Field {
-	f := NewField(attr, params...)
-	f.Tokens = txt.NewTokens(txt.Fulltext())
-	if len(params) > 0 {
-		f.FieldType = params[0].GetAnalyzer()
-	}
 	return f
 }
 
