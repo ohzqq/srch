@@ -163,9 +163,9 @@ func (f *Filters) add(filters any) {
 func ParseFilters(filters any) (string, []string, error) {
 	switch vals := filters.(type) {
 	case string:
-		return AndFacet, []string{vals}, nil
+		return And, []string{vals}, nil
 	case []any:
-		return OrFacet, cast.ToStringSlice(vals), nil
+		return Or, cast.ToStringSlice(vals), nil
 	default:
 		return "", []string{}, errors.New("not a filter")
 	}

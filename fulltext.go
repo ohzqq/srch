@@ -10,17 +10,21 @@ import (
 	"github.com/spf13/cast"
 )
 
+type Fulltext struct {
+	*Field
+}
+
 func FullText(fields []*Field, q string) *roaring.Bitmap {
 	var bits []*roaring.Bitmap
 	for _, field := range fields {
 		bits = append(bits, field.Search(q))
 	}
-	return processBitResults(bits, AndFacet)
+	return processBitResults(bits, And)
 }
 
-func Tokenizer(str string) []*FacetItem {
+func Tokenizer(str string) []*Token {
 	var tokens []string
-	var items []*FacetItem
+	var items []*Token
 	for _, token := range strings.FieldsFunc(str, NotAlphaNumeric) {
 		lower := strings.ToLower(token)
 		if !lo.Contains(stopWords, lower) {
@@ -34,7 +38,7 @@ func Tokenizer(str string) []*FacetItem {
 	return items
 }
 
-func FacetTokenizer(val any) []*FacetItem {
+func FacetTokenizer(val any) []*Token {
 	var tokens []string
 	switch v := val.(type) {
 	case string:
@@ -42,7 +46,7 @@ func FacetTokenizer(val any) []*FacetItem {
 	default:
 		tokens = cast.ToStringSlice(v)
 	}
-	items := make([]*FacetItem, len(tokens))
+	items := make([]*Token, len(tokens))
 	for i, token := range tokens {
 		items[i] = NewFacetItem(token)
 		items[i].Value = normalizeText(token)
