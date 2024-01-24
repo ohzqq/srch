@@ -1,58 +1,33 @@
 package srch
 
 import (
-	"net/url"
 	"strings"
 	"unicode"
 
 	"github.com/RoaringBitmap/roaring"
 	"github.com/kljensen/snowball/english"
 	"github.com/samber/lo"
-	"github.com/spf13/cast"
 )
 
-func FullText(data []map[string]any, q string, fields ...string) *Index {
-	vals := make(url.Values)
-	vals.Set("q", q)
-	for _, f := range fields {
-		vals.Add("field", f)
-	}
-	idx := NewIndex(vals, WithFullText())
-
-	if len(data) < 1 {
-		return idx
-	}
-
-	idx.Index(data)
-
-	return idx.Search(q)
+type Fulltext struct {
+	*Field
 }
 
-func FullTextSrchFunc(data []map[string]any, fields []*Field) SearchFunc {
-	return func(q string) []map[string]any {
-		return searchFullText(data, fields, q)
-	}
-}
-
-func searchFullText(data []map[string]any, fields []*Field, q string) []map[string]any {
-	if q == "" {
-		return data
-	}
+func FullText(fields []*Field, q string) *roaring.Bitmap {
 	var bits []*roaring.Bitmap
 	for _, field := range fields {
 		bits = append(bits, field.Search(q))
 	}
-	res := processBitResults(bits, "and")
-	return FilteredItems(data, lo.ToAnySlice(res.ToArray()))
+	return processBitResults(bits, And)
 }
 
-func Tokenizer(str string) []*FacetItem {
+func FulltextAnalyzer(str string) []*Token {
 	var tokens []string
-	var items []*FacetItem
+	var items []*Token
 	for _, token := range strings.FieldsFunc(str, NotAlphaNumeric) {
 		lower := strings.ToLower(token)
 		if !lo.Contains(stopWords, lower) {
-			items = append(items, NewFacetItem(token))
+			items = append(items, NewToken(token))
 			tokens = append(tokens, lower)
 		}
 	}
@@ -60,34 +35,6 @@ func Tokenizer(str string) []*FacetItem {
 		items[i].Value = t
 	}
 	return items
-}
-
-func FacetTokenizer(val any) []*FacetItem {
-	var tokens []string
-	switch v := val.(type) {
-	case string:
-		tokens = append(tokens, v)
-	default:
-		tokens = cast.ToStringSlice(v)
-	}
-	items := make([]*FacetItem, len(tokens))
-	for i, token := range tokens {
-		items[i] = NewFacetItem(token)
-		items[i].Value = normalizeText(token)
-	}
-	return items
-}
-
-func normalizeText(token string) string {
-	fields := lowerCase(strings.Split(token, " "))
-	for t, term := range fields {
-		if len(term) == 1 {
-			fields[t] = term
-		} else {
-			fields[t] = stripNonAlphaNumeric(term)
-		}
-	}
-	return strings.Join(fields, " ")
 }
 
 func rmStopWords(tokens []string) []string {

@@ -31,20 +31,20 @@ func TestParseFacetSort(t *testing.T) {
 }
 
 func TestSortFacets(t *testing.T) {
-	//t.SkipNow()
+	t.SkipNow()
 
 	q := getNewQuery()
 	//query := fmt.Sprintf("%s&%s&%s", testValuesCfg, testQueryString, testSearchString)
-	i := NewIndex(q.Encode())
+	i, err := New(q.Encode())
+	if err != nil {
+		t.Error(err)
+	}
 	if i.Len() != 2 {
 		println(q.Encode())
 		t.Errorf("got %d, expected %d\v", i.Len(), 2)
 	}
 
-	tags, err := i.GetField("tags")
-	if err != nil {
-		t.Error(err)
-	}
+	tags := i.GetFacet("tags")
 	if v := tags.SortBy; v != "count" {
 		t.Errorf("wrong sortby %s\n", v)
 	}
@@ -52,10 +52,7 @@ func TestSortFacets(t *testing.T) {
 		t.Errorf("wrong Order %s\n", v)
 	}
 
-	authors, err := i.GetField("authors")
-	if err != nil {
-		t.Error(err)
-	}
+	authors := i.GetFacet("authors")
 	if v := authors.SortBy; v != "label" {
 		t.Errorf("wrong sortby %s\n", v)
 	}

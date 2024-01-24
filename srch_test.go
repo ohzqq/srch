@@ -1,11 +1,9 @@
 package srch
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/url"
-	"os/exec"
 	"testing"
 
 	"github.com/mitchellh/mapstructure"
@@ -21,63 +19,65 @@ func testVals() url.Values {
 	vals.Add("tags", "dnr")
 	//vals.Add("authors", "Alice Winters")
 	//vals.Add("authors", "Amy Lane")
-	//vals.Add("q", "fish")
+	//vals.Add(QueryField, "fish")
 	return vals
 }
 
-func TestParseValues(t *testing.T) {
-	t.SkipNow()
-	vals, err := ParseValues(testQueryString)
-	if err != nil {
-		t.Error(err)
+func testSearchQueryStrings() map[string]int {
+	queries := map[string]int{
+		"": 7174,
 	}
-	if len(vals["tags"]) != 2 {
-		t.Errorf("got %d, expected 2", len(vals["tags"]))
-	}
+	v := make(url.Values)
+
+	v.Set(Query, "heart")
+	queries[v.Encode()] = 303
+
+	v.Set(Query, "")
+	queries[v.Encode()] = 7174
+
+	return queries
 }
 
 func TestFuzzySearch(t *testing.T) {
 	//t.SkipNow()
-	idx = NewIndex(testValuesCfg)
-	data := make([]map[string]any, len(idx.Data))
-	for i, book := range idx.Data {
-		data[i] = map[string]any{"title": book["title"]}
+	test := "searchableAttributes=title&attributesForFaceting=tags,authors,series&dataFile=testdata/data-dir/audiobooks.json"
+	idx, err := New(test)
+	if err != nil {
+		t.Error(err)
 	}
-	m := FuzzyFind(data, "fish")
-	if m.Len() != 56 {
-		t.Errorf("num res %d, expected %d \n", m.Len(), 56)
+	totalBooksErr(idx.Len(), test)
+
+	for q, want := range testSearchQueryStrings() {
+		m := idx.Search(q)
+		if m.NbHits() != want {
+			t.Errorf("%s: num res %d, expected %d \n", q, m.NbHits(), want)
+		}
 	}
 }
 
 func TestFullTextSearch(t *testing.T) {
-	t.SkipNow()
-	idx = NewIndex(testValuesCfg, WithFullText())
+	test := "searchableAttributes=title&attributesForFaceting=tags&fullText&dataFile=testdata/data-dir/audiobooks.json"
+	idx, err := New(test)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if ana := idx.GetAnalyzer(); ana != Text {
+		t.Errorf("get %s, expected %s\n", ana, Text)
+	}
+
+	vals := make(url.Values)
+	vals.Set(Query, "fish")
+
+	res := idx.Search(vals.Encode())
+	if h := res.NbHits(); h != 8 {
+		t.Errorf("get %d, expected %d\n", h, 8)
+	}
 	//idx.Index(books)
-	res := idx.Search("fish")
-	if len(res.Data) != 8 {
-		t.Errorf("got %d, expected 8\n", len(res.Data))
-	}
-	//for _, facet := range idx.Facets() {
-	//  for _, item := range facet.Items {
-	//    fmt.Printf("%s: %d\n", item.Value, item.Count)
-	//  }
+	//res := idx.SearchIndex("fish")
+	//if len(res.Data) != 8 {
+	//t.Errorf("got %d, expected 8\n", len(res.Data))
 	//}
-
-}
-
-func TestGenericFullTextSearch(t *testing.T) {
-	t.SkipNow()
-	idx = NewIndex(testValuesCfg, WithFullText())
-	idx.Index(idx.Data)
-	data := make([]map[string]any, len(idx.Data))
-	for i, book := range idx.Data {
-		data[i] = map[string]any{"title": book["title"]}
-	}
-	ft := FullText(data, "fish")
-	if len(ft.Data) != 8 {
-		println(len(data))
-		t.Errorf("got %d, expected %d\n", len(ft.Data), 8)
-	}
 }
 
 func parseValueTest(t *testing.T, q string) {
@@ -87,53 +87,14 @@ func parseValueTest(t *testing.T, q string) {
 	}
 }
 
-func TestFilterQueryString(t *testing.T) {
-	t.SkipNow()
-	q := "series=#gaymers"
-	parseValueTest(t, q)
-
-	idx.Index(books)
-	res := idx.Filter(q)
-	if len(res.Data) != 2 {
-		t.Errorf("got %d, expected %d\n", len(res.Data), 2)
-	}
-	d, err := json.Marshal(res)
-	if err != nil {
-		t.Error(err)
-	}
-	println(string(d))
-}
-
-func TestFilterData(t *testing.T) {
-	t.SkipNow()
-	idx.Index(books)
-	d := Filter(books, idx.Facets(), testVals())
-	if len(d) != 384 {
-		t.Errorf("got %d, expected %d\n", len(d), 384)
-	}
-}
-
-func TestSearchAndFilter(t *testing.T) {
-	t.SkipNow()
-	res := idx.Search("fish")
-	if len(res.Data) != 8 {
-		t.Errorf("got %d, expected 8\n", len(res.Data))
-	}
-
-	q := "authors=Amy+Lane"
-	f := res.Filter(q)
-	//fmt.Printf("facets %+v\n", idx.Facets()[0])
-	fmt.Println(len(f.Data))
-}
-
 func TestAudibleSearch(t *testing.T) {
 	t.SkipNow()
 
 	q := "field=Title"
-	a := NewIndex(
-		q,
-		WithSearch(audibleSrch),
-	)
+	a, err := New(q)
+	if err != nil {
+		t.Error(err)
+	}
 	res := a.Search("amy lane fish")
 
 	println("audible search")
@@ -169,75 +130,4 @@ type testSearcher struct {
 
 var testS = testSearcher{
 	cmd: []string{"list", "--with-library", "http://localhost:8888/#audiobooks", "--username", "churkey", "--password", "<f:/home/mxb/.dotfiles/misc/calibre.txt>", "--limit", "2", "--for-machine"},
-}
-
-type testQ string
-
-func (q testQ) String() string {
-	return string(q)
-}
-
-//func TestCDB(t *testing.T) {
-//  t.SkipNow()
-//  s := NewSearch(testS)
-//  //err := s.Get()
-//  sel, err := s.Get("litrpg")
-//  if err != nil {
-//    t.Error(err)
-//  }
-//  fmt.Printf("%#v\n", sel)
-//}
-
-//func TestTUI(t *testing.T) {
-//  t.SkipNow()
-//  s := NewSearch(testS)
-//  //err := s.Get()
-//  sel, err := s.Get("litrpg")
-//  if err != nil {
-//    t.Error(err)
-//  }
-//  fmt.Printf("%#v\n", sel)
-//}
-
-func cdbSearch(t *testing.T) []byte {
-	//cdb := exec.Command("echo", `angst`)
-
-	cdb := exec.Command("calibredb", testS.cmd...)
-	//println(cdb.String())
-
-	out, err := cdb.Output()
-	if err != nil {
-		t.Error(err)
-	}
-	return out
-}
-
-type testResult map[string]any
-
-func (s testSearcher) Search(queries string) ([]any, error) {
-	testS.cmd = append(testS.cmd, "-s", queries)
-	cdb := exec.Command("calibredb", testS.cmd...)
-	println(cdb.String())
-
-	out, err := cdb.Output()
-	if err != nil {
-		return nil, err
-	}
-
-	var res []testResult
-	err = json.Unmarshal(out, &res)
-	if err != nil {
-		return nil, err
-	}
-
-	var items []any
-	for _, r := range res {
-		items = append(items, r)
-	}
-
-	return items, nil
-}
-
-func (r testResult) String() string {
-	return r["title"].(string)
 }

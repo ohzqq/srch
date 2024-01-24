@@ -1,4 +1,4 @@
-package srch
+package field
 
 import "testing"
 
@@ -12,7 +12,7 @@ func TestStripAlphaNum(t *testing.T) {
 		"[Psychokinetic] Eyeball Pulling",
 	}
 
-	tokens := FacetTokenizer(names)
+	tokens := KeywordAnalyzer(names)
 	for _, token := range tokens {
 		println(token)
 	}
