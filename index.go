@@ -71,7 +71,7 @@ func (idx *Index) Index(src []map[string]any) *Index {
 
 func IndexData(data []map[string]any, fields []*Field) []*Field {
 	for _, f := range fields {
-		f.tokens = make(map[string]*txt.Token)
+		f.tokenz = make(map[string]*txt.Token)
 	}
 
 	for id, d := range data {

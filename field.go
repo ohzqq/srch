@@ -28,7 +28,8 @@ type Field struct {
 	FieldType string `json:"fieldType"`
 	SortBy    string
 	Order     string
-	tokens    map[string]*txt.Token `json:"-"`
+	tokens    *txt.Tokens
+	tokenz    map[string]*txt.Token `json:"-"`
 }
 
 func NewField(attr string, params ...*Params) *Field {
@@ -36,7 +37,8 @@ func NewField(attr string, params ...*Params) *Field {
 		Sep:    ".",
 		SortBy: "count",
 		Order:  "desc",
-		tokens: make(map[string]*txt.Token),
+		tokens: txt.NewTokens(),
+		tokenz: make(map[string]*txt.Token),
 	}
 	parseAttr(f, attr)
 
@@ -73,7 +75,7 @@ func (f *Field) MarshalJSON() ([]byte, error) {
 func (f *Field) Tokens() []*txt.Token {
 	var items []*txt.Token
 	for _, k := range f.sortedKeys() {
-		items = append(items, f.tokens[k])
+		items = append(items, f.tokenz[k])
 	}
 	if f.FieldType == Text {
 		return items
@@ -91,7 +93,7 @@ func (f *Field) Tokens() []*txt.Token {
 }
 
 func (f *Field) sortedKeys() []string {
-	keys := lo.Keys(f.tokens)
+	keys := lo.Keys(f.tokenz)
 	slices.Sort(keys)
 	return keys
 }
@@ -106,26 +108,28 @@ func (f *Field) Add(value any, ids ...any) {
 
 func (f *Field) AddToFacet(value any, ids any) {
 	for _, val := range KeywordAnalyzer(value) {
-		f.addTerm(val, cast.ToIntSlice(ids))
+		//f.addTerm(val, cast.ToIntSlice(ids))
+		f.tokens.Add(val, cast.ToIntSlice(ids))
 	}
 }
 
 func (f *Field) AddFullText(value any, ids any) {
 	for _, token := range FulltextAnalyzer(cast.ToString(value)) {
-		f.addTerm(token, cast.ToIntSlice(ids))
+		//f.addTerm(token, cast.ToIntSlice(ids))
+		f.tokens.Add(token, cast.ToIntSlice(ids))
 	}
 }
 
 func (f *Field) addTerm(item *txt.Token, ids []int) {
-	if f.tokens == nil {
-		f.tokens = make(map[string]*txt.Token)
+	if f.tokenz == nil {
+		f.tokenz = make(map[string]*txt.Token)
 	}
-	if _, ok := f.tokens[item.Value]; !ok {
-		f.tokens[item.Value] = item
+	if _, ok := f.tokenz[item.Value]; !ok {
+		f.tokenz[item.Value] = item
 	}
 	for _, id := range ids {
-		if !f.tokens[item.Value].Bitmap().ContainsInt(id) {
-			f.tokens[item.Value].Bitmap().AddInt(id)
+		if !f.tokenz[item.Value].Bitmap().ContainsInt(id) {
+			f.tokenz[item.Value].Bitmap().AddInt(id)
 		}
 	}
 }
@@ -135,19 +139,20 @@ func (f *Field) IsFacet() bool {
 }
 
 func (f *Field) ListTokens() []string {
-	return lo.Keys(f.tokens)
+	return lo.Keys(f.tokenz)
 }
 
 func (f *Field) Search(text string) *roaring.Bitmap {
 	if f.IsFacet() {
-		if item, ok := f.tokens[normalizeText(text)]; ok {
-			return item.Bitmap()
-		}
+		return f.tokens.Search(normalizeText(text))
+		//if item, ok := f.tokenz[normalizeText(text)]; ok {
+		//  return item.Bitmap()
+		//}
 	}
 
 	var bits []*roaring.Bitmap
 	for _, token := range FulltextAnalyzer(text) {
-		if ids, ok := f.tokens[token.Value]; ok {
+		if ids, ok := f.tokenz[token.Value]; ok {
 			bits = append(bits, ids.Bitmap())
 		}
 	}
