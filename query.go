@@ -221,6 +221,7 @@ func GetDataFromQuery(q *url.Values) ([]map[string]any, error) {
 		data, err = FileSrc(qu[DataFile]...)
 		q.Del(DataFile)
 	case q.Has(DataDir):
+		println(q.Get(DataDir))
 		data, err = DirSrc(q.Get(DataDir))
 		q.Del(DataDir)
 	}

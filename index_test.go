@@ -27,6 +27,37 @@ func TestData(t *testing.T) {
 	}
 }
 
+var testQueryNewIndex = []string{
+	"searchableAttributes=title",
+	"searchableAttributes=title&dataDir=testdata/data-dir",
+	"attributesForFaceting=tags,authors,series,narrators&dataFile=testdata/data-dir/audiobooks.json",
+	"searchableAttributes=title&dataFile=testdata/data-dir/audiobooks.json&attributesForFaceting=tags,authors,series,narrators",
+}
+
+var titleField = NewField(DefaultField, Fuzzy)
+
+func TestNewIndex(t *testing.T) {
+	for i := 0; i < len(testQueryNewIndex); i++ {
+		q := testQueryNewIndex[i]
+		idx, err := New(q)
+		if err != nil {
+			t.Error(err)
+		}
+		switch i {
+		case 0:
+			data := loadData(t)
+			idx.Index(data)
+		case 1:
+		case 2:
+		case 3:
+		}
+		err = totalBooksErr(idx.Len(), q)
+		if err != nil {
+			t.Error(err)
+		}
+	}
+}
+
 func totalBooksTest(total int, t *testing.T) {
 	if total != 7174 {
 		t.Errorf("got %d, expected %d\n", total, 7174)

@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 // StringSliceSrc takes a string slice and returns data for for indexing with
@@ -38,6 +39,9 @@ func ReaderSrc(r io.Reader) ([]map[string]any, error) {
 
 // DirSrc parses json files from a directory.
 func DirSrc(dir string) ([]map[string]any, error) {
+	if !strings.HasSuffix(dir, "/") {
+		dir += "/"
+	}
 	files, err := filepath.Glob(dir + "*.json")
 	if err != nil {
 		return nil, err

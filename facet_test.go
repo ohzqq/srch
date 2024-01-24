@@ -35,7 +35,10 @@ func TestSortFacets(t *testing.T) {
 
 	q := getNewQuery()
 	//query := fmt.Sprintf("%s&%s&%s", testValuesCfg, testQueryString, testSearchString)
-	i := New(q.Encode())
+	i, err := New(q.Encode())
+	if err != nil {
+		t.Error(err)
+	}
 	if i.Len() != 2 {
 		println(q.Encode())
 		t.Errorf("got %d, expected %d\v", i.Len(), 2)

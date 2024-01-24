@@ -41,7 +41,10 @@ func testSearchQueryStrings() map[string]int {
 func TestFuzzySearch(t *testing.T) {
 	//t.SkipNow()
 	test := "searchableAttributes=title&attributesForFaceting=tags,authors,series&dataFile=testdata/data-dir/audiobooks.json"
-	idx := New(test)
+	idx, err := New(test)
+	if err != nil {
+		t.Error(err)
+	}
 	totalBooksErr(idx.Len(), test)
 
 	for q, want := range testSearchQueryStrings() {
@@ -54,7 +57,10 @@ func TestFuzzySearch(t *testing.T) {
 
 func TestFullTextSearch(t *testing.T) {
 	test := "searchableAttributes=title&attributesForFaceting=tags&fullText&dataFile=testdata/data-dir/audiobooks.json"
-	idx := New(test)
+	idx, err := New(test)
+	if err != nil {
+		t.Error(err)
+	}
 
 	if ana := idx.GetAnalyzer(); ana != Text {
 		t.Errorf("get %s, expected %s\n", ana, Text)
@@ -85,7 +91,10 @@ func TestAudibleSearch(t *testing.T) {
 	t.SkipNow()
 
 	q := "field=Title"
-	a := New(q)
+	a, err := New(q)
+	if err != nil {
+		t.Error(err)
+	}
 	res := a.Search("amy lane fish")
 
 	println("audible search")

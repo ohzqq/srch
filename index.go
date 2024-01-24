@@ -34,7 +34,7 @@ type SearchFunc func(string) []map[string]any
 
 type Opt func(*Index)
 
-func New(settings any) *Index {
+func New(settings any) (*Index, error) {
 	idx := &Index{
 		Params: NewQuery(settings),
 	}
@@ -44,12 +44,12 @@ func New(settings any) *Index {
 	if idx.Params.HasData() {
 		d, err := idx.Params.GetData()
 		if err != nil {
-			return idx
+			return idx, errors.New("data parsing error")
 		}
-		return idx.Index(d)
+		return idx.Index(d), nil
 	}
 
-	return idx
+	return idx, nil
 }
 
 func (idx *Index) Index(src []map[string]any) *Index {
