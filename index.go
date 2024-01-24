@@ -269,7 +269,7 @@ func (idx *Index) FuzzySearch(q string) *roaring.Bitmap {
 func (idx *Index) String(i int) string {
 	s := lo.PickByKeys(
 		idx.Data[i],
-		idx.GetSrchAttr(),
+		idx.SrchAttr(),
 	)
 	vals := cast.ToStringSlice(lo.Values(s))
 	return strings.Join(vals, "\n")

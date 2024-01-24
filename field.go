@@ -30,18 +30,6 @@ type Field struct {
 	items     map[string]*FacetItem `json:"-"`
 }
 
-func NewTextField(attr string, params ...*Params) *Field {
-	f := NewField(attr, params...)
-	f.FieldType = Text
-	return f
-}
-
-func NewFacet(attr string, params ...*Params) *Field {
-	f := NewField(attr, params...)
-	f.FieldType = FacetField
-	return f
-}
-
 func NewField(attr string, params ...*Params) *Field {
 	f := &Field{
 		Sep:    ".",
@@ -55,6 +43,20 @@ func NewField(attr string, params ...*Params) *Field {
 		f.SortBy = params[0].SortFacetsBy()
 	}
 
+	return f
+}
+
+func NewTextField(attr string, params ...*Params) *Field {
+	f := NewField(attr, params...)
+	if len(params) > 0 {
+		f.FieldType = params[0].GetAnalyzer()
+	}
+	return f
+}
+
+func NewFacet(attr string, params ...*Params) *Field {
+	f := NewField(attr, params...)
+	f.FieldType = FacetField
 	return f
 }
 

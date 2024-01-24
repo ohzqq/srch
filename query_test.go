@@ -114,16 +114,16 @@ func settingsErr(got *Params, want *Params) error {
 	}
 
 	if got.Values.Has(DataDir) {
-		vals := got.Get(DataDir)
-		if !slices.Equal(vals, want.Get(DataDir)) {
-			err = fmt.Errorf(fmtStr, err, vals, want.Get(DataDir))
+		vals := got.GetSlice(DataDir)
+		if !slices.Equal(vals, want.GetSlice(DataDir)) {
+			err = fmt.Errorf(fmtStr, err, vals, want.GetSlice(DataDir))
 		}
 	}
 
 	if got.Values.Has(DataFile) {
-		vals := got.Get(DataFile)
-		if !slices.Equal(vals, want.Get(DataFile)) {
-			err = fmt.Errorf(fmtStr, err, vals, want.Get(DataFile))
+		vals := got.GetSlice(DataFile)
+		if !slices.Equal(vals, want.GetSlice(DataFile)) {
+			err = fmt.Errorf(fmtStr, err, vals, want.GetSlice(DataFile))
 		}
 	}
 	return err

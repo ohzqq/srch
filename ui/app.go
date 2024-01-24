@@ -38,7 +38,9 @@ func New(idx *srch.Index) *App {
 
 func Browse(q url.Values, data []map[string]any) *App {
 	tui := newApp(q, data)
-	tui.updateVisible(srch.New(q).Index(data))
+	idx, _ := srch.New(q)
+
+	tui.updateVisible(idx.Index(data))
 	tui.Model = NewModel(SrcToItems(tui.visible))
 	return tui
 }
@@ -106,7 +108,8 @@ func (c *App) SetSelections(idx *srch.Index) {
 
 func (c *App) ClearFilters() {
 	c.Filters = make(url.Values)
-	c.updateVisible(srch.New(c.query).Index(c.data))
+	idx, _ := srch.New(c.query)
+	c.updateVisible(idx.Index(c.data))
 }
 
 func (c *App) updateVisible(idx *srch.Index) {

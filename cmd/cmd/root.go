@@ -48,7 +48,10 @@ By default, results are printed to stdout as json.
 				log.Fatal(err)
 			}
 			q = srch.ParseQuery(query)
-			idx = srch.New(q)
+			idx, err = srch.New(q)
+			if err != nil {
+				log.Fatal(err)
+			}
 			if q.Has("q") {
 				keywords = q.Get("q")
 			}
@@ -104,7 +107,10 @@ By default, results are printed to stdout as json.
 			}
 		}
 
-		idx = srch.New(q)
+		idx, err = srch.New(q)
+		if err != nil {
+			log.Fatal(err)
+		}
 
 		switch {
 		case cmd.Flags().Changed("dir"):

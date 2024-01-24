@@ -56,11 +56,18 @@ func ParseQuery(queries ...any) url.Values {
 	return q
 }
 
-func GetAnalyzer(q url.Values) string {
-	if q.Has(ParamFullText) {
-		return Text
+func (q Params) GetSlice(key string) []string {
+	if q.Values.Has(key) {
+		return q.Values[key]
 	}
-	return Fuzzy
+	return []string{}
+}
+
+func (q Params) Get(key string) string {
+	if q.Values.Has(key) {
+		return q.Values.Get(key)
+	}
+	return ""
 }
 
 func (q *Params) Merge(queries ...*Params) {
@@ -78,6 +85,10 @@ func (q Params) GetData() ([]map[string]any, error) {
 		return nil, errors.New("no data")
 	}
 	return GetDataFromQuery(&q.Values)
+}
+
+func (q *Params) IsFullText() bool {
+	return q.Values.Has(ParamFullText)
 }
 
 func (q Params) HasData() bool {
@@ -99,10 +110,6 @@ func (q Params) Query() string {
 	return q.Values.Get(Query)
 }
 
-func (q Params) GetSrchAttr() []string {
-	return GetQueryStringSlice(SrchAttr, q.Values)
-}
-
 func (p *Params) SortFacetsBy() string {
 	sort := "count"
 	if p.Values.Has(SortFacetsBy) {
@@ -117,7 +124,7 @@ func (q *Params) SrchAttr() []string {
 	if !q.Values.Has(SrchAttr) {
 		return []string{DefaultField}
 	}
-	q.Values[SrchAttr] = q.GetSrchAttr()
+	q.Values[SrchAttr] = GetQueryStringSlice(SrchAttr, q.Values)
 	if len(q.Values[SrchAttr]) < 1 {
 		q.Values[SrchAttr] = []string{DefaultField}
 	}
@@ -144,13 +151,9 @@ func (q *Params) Facets() []*Field {
 
 func (q Params) FacetAttr() []string {
 	if !q.Values.Has(ParamFacets) {
-		q.Values[ParamFacets] = q.GetFacetAttr()
+		q.Values[ParamFacets] = GetQueryStringSlice(FacetAttr, q.Values)
 	}
 	return q.Values[ParamFacets]
-}
-
-func (q Params) GetFacetAttr() []string {
-	return GetQueryStringSlice(FacetAttr, q.Values)
 }
 
 func (q Params) Page() int {
@@ -175,15 +178,11 @@ func (q Params) HasFilters() bool {
 	return q.Values.Has(FacetFilters)
 }
 
-func (q Params) Get(key string) []string {
-	if q.Values.Has(key) {
-		return q.Values[key]
-	}
-	return []string{}
-}
-
 func (q Params) GetAnalyzer() string {
-	return GetAnalyzer(q.Values)
+	if q.Values.Has(ParamFullText) {
+		return Text
+	}
+	return Fuzzy
 }
 
 func (q Params) MarshalJSON() ([]byte, error) {
