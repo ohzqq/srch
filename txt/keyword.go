@@ -16,7 +16,8 @@ func (kw keyword) Tokenize(str any) []*Token {
 	return KeywordTokenizer(str)
 }
 
-func (kw keyword) Search(text string) string {
+func (kw keyword) Search(text string) []*Token {
+	return []*Token{NewToken(normalizeText(text))}
 }
 
 func KeywordTokenizer(val any) []*Token {

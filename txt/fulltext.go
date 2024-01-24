@@ -21,6 +21,10 @@ func (ft fulltext) Tokenize(val any) []*Token {
 	return FulltextTokenizer(val)
 }
 
+func (ft fulltext) Search(text string) []*Token {
+	return FulltextTokenizer(text)
+}
+
 func FulltextTokenizer(str any) []*Token {
 	var tokens []string
 	var items []*Token

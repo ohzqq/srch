@@ -77,7 +77,7 @@ func IndexData(data []map[string]any, fields []*Field) []*Field {
 	for id, d := range data {
 		for i, f := range fields {
 			if val, ok := d[f.Attribute]; ok {
-				fields[i].Add(val, id)
+				fields[i].Add(val, []int{id})
 			}
 		}
 	}

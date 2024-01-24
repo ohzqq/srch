@@ -8,7 +8,6 @@ import (
 	"github.com/ohzqq/srch/txt"
 	"github.com/sahilm/fuzzy"
 	"github.com/samber/lo"
-	"github.com/spf13/cast"
 	"github.com/spf13/viper"
 )
 
@@ -31,8 +30,8 @@ type Field struct {
 	FieldType string `json:"fieldType"`
 	SortBy    string
 	Order     string
-	tokens    *txt.Tokens
-	tokenz    map[string]*txt.Token `json:"-"`
+	*txt.Tokens
+	tokenz map[string]*txt.Token `json:"-"`
 }
 
 func NewField(attr string, params ...*Params) *Field {
@@ -40,7 +39,7 @@ func NewField(attr string, params ...*Params) *Field {
 		Sep:    ".",
 		SortBy: "count",
 		Order:  "desc",
-		tokens: txt.NewTokens(),
+		Tokens: txt.NewTokens(),
 		tokenz: make(map[string]*txt.Token),
 	}
 	parseAttr(f, attr)
@@ -54,7 +53,7 @@ func NewField(attr string, params ...*Params) *Field {
 
 func NewTextField(attr string, params ...*Params) *Field {
 	f := NewField(attr, params...)
-	f.tokens = txt.NewTokens(txt.Fulltext())
+	f.Tokens = txt.NewTokens(txt.Fulltext())
 	if len(params) > 0 {
 		f.FieldType = params[0].GetAnalyzer()
 	}
@@ -66,7 +65,7 @@ func (f *Field) MarshalJSON() ([]byte, error) {
 		"attribute": f.Attribute,
 		"sort_by":   f.SortBy,
 		"order":     f.Order,
-		"items":     f.Tokens(),
+		"items":     f.Tokens.Tokens(),
 	}
 
 	d, err := json.Marshal(field)
@@ -76,42 +75,8 @@ func (f *Field) MarshalJSON() ([]byte, error) {
 	return d, nil
 }
 
-func (f *Field) Tokens() []*txt.Token {
-	return f.tokens.Tokens()
-
-	//switch f.SortBy {
-	//case "alpha":
-	//  SortItemsByLabel(items)
-	//default:
-	//  SortItemsByCount(items)
-	//}
-
-	//if f.Order == "asc" {
-	//  slices.Reverse(items)
-	//}
-	//return items
-}
-
-func (f *Field) Add(value any, ids ...any) {
-	f.tokens.Add(value, cast.ToIntSlice(ids))
-}
-
 func (f *Field) IsFacet() bool {
 	return f.FieldType != Text
-}
-
-func (f *Field) Search(text string) *roaring.Bitmap {
-	if f.IsFacet() {
-		return f.tokens.Search(normalizeText(text))
-	}
-
-	tks := FulltextAnalyzer(text)
-	tokens := make([]string, len(tks))
-	for i, token := range tks {
-		tokens[i] = token.Value
-	}
-	return f.tokens.Search(tokens...)
-	//return processBitResults(bits, And)
 }
 
 func processBitResults(bits []*roaring.Bitmap, operator string) *roaring.Bitmap {
@@ -125,12 +90,12 @@ func processBitResults(bits []*roaring.Bitmap, operator string) *roaring.Bitmap 
 
 // GetItem returns an *FacetItem.
 func (f *Field) GetItem(term string) *txt.Token {
-	return f.tokens.GetByLabel(term)
+	return f.Tokens.GetByLabel(term)
 }
 
 // ListItems returns a string slice of all item values.
 func (f *Field) ListItems() []string {
-	return f.tokens.GetLabels()
+	return f.Tokens.GetLabels()
 }
 
 // FuzzyFindItem fuzzy finds an item's value and returns possible matches.
@@ -138,7 +103,7 @@ func (f *Field) FuzzyFindItem(term string) []*txt.Token {
 	matches := f.FuzzyMatches(term)
 	items := make([]*txt.Token, len(matches))
 	for i, match := range matches {
-		item := f.Tokens()[match.Index]
+		item := f.Tokens.Tokens()[match.Index]
 		item.Match = match
 		items[i] = item
 	}
@@ -152,12 +117,12 @@ func (f *Field) FuzzyMatches(term string) fuzzy.Matches {
 
 // String returns an Item.Value, to satisfy the fuzzy.Source interface.
 func (f *Field) String(i int) string {
-	return f.Tokens()[i].Label
+	return f.Tokens.Tokens()[i].Label
 }
 
 // Len returns the number of items, to satisfy the fuzzy.Source interface.
 func (f *Field) Len() int {
-	return len(f.Tokens())
+	return f.Tokens.Len()
 }
 
 func FilterFacets(fields []*Field) []*Field {

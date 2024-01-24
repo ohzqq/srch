@@ -31,21 +31,31 @@ func (t *Tokens) SetAnalyzer(ana Analyzer) *Tokens {
 	return t
 }
 
-func (t *Tokens) Search(vals ...string) *roaring.Bitmap {
+func (t *Tokens) Search(val any) *roaring.Bitmap {
 	var bits []*roaring.Bitmap
-	for _, val := range vals {
-		if token, ok := t.tokens[val]; ok {
+
+	for _, tok := range t.Tokenize(val) {
+		if token, ok := t.tokens[tok.Value]; ok {
 			bits = append(bits, token.Bitmap())
 		}
 	}
+
+	//for _, val := range vals {
+	//  if token, ok := t.tokens[val]; ok {
+	//    bits = append(bits, token.Bitmap())
+	//  }
+	//}
 	return roaring.ParAnd(viper.GetInt("workers"), bits...)
 }
 
 func (t *Tokens) Add(val any, ids []int) {
-	tokens := t.analyzer.Tokenize(val)
-	for _, token := range tokens {
+	for _, token := range t.Tokenize(val) {
 		t.add(token, ids)
 	}
+}
+
+func (t *Tokens) Tokenize(val any) []*Token {
+	return t.analyzer.Tokenize(val)
 }
 
 func (t *Tokens) GetByLabel(label string) *Token {
