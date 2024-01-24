@@ -62,6 +62,7 @@ func GetAnalyzer(q url.Values) string {
 	}
 	return Fuzzy
 }
+
 func (q *Params) Merge(queries ...*Params) {
 	for _, query := range queries {
 		for k, val := range query.Values {
@@ -98,6 +99,21 @@ func (q Params) Query() string {
 	return q.Values.Get(Query)
 }
 
+func (q Params) GetSrchAttr() []string {
+	return GetQueryStringSlice(SrchAttr, q.Values)
+}
+
+func (q *Params) SrchAttr() []string {
+	if !q.Values.Has(SrchAttr) {
+		return []string{DefaultField}
+	}
+	q.Values[SrchAttr] = q.GetSrchAttr()
+	if len(q.Values[SrchAttr]) < 1 {
+		q.Values[SrchAttr] = []string{DefaultField}
+	}
+	return q.Values[SrchAttr]
+}
+
 func (q *Params) Fields() []*Field {
 	attrs := q.GetSrchAttr()
 	fields := make([]*Field, len(attrs))
@@ -108,7 +124,7 @@ func (q *Params) Fields() []*Field {
 }
 
 func (q Params) Facets() []*Field {
-	facets := q.FacetAttrs()
+	facets := q.FacetAttr()
 	fields := make([]*Field, len(facets))
 	for i, attr := range facets {
 		fields[i] = NewField(attr, OrFacet)
@@ -116,11 +132,15 @@ func (q Params) Facets() []*Field {
 	return fields
 }
 
-func (q Params) FacetAttrs() []string {
+func (q Params) FacetAttr() []string {
 	if !q.Values.Has(ParamFacets) {
 		q.Values[ParamFacets] = q.GetFacetAttr()
 	}
 	return q.Values[ParamFacets]
+}
+
+func (q Params) GetFacetAttr() []string {
+	return GetQueryStringSlice(FacetAttr, q.Values)
 }
 
 func (q Params) Page() int {
@@ -152,14 +172,6 @@ func (q Params) Get(key string) []string {
 	return []string{}
 }
 
-func (q Params) GetSrchAttr() []string {
-	return GetQueryStringSlice(SrchAttr, q.Values)
-}
-
-func (q Params) GetFacetAttr() []string {
-	return GetQueryStringSlice(FacetAttr, q.Values)
-}
-
 func (q Params) GetAnalyzer() string {
 	return GetAnalyzer(q.Values)
 }
@@ -187,6 +199,10 @@ func (q *Params) UnmarshalJSON(d []byte) error {
 }
 
 func (q Params) Encode() string {
+	return q.Values.Encode()
+}
+
+func (q Params) String() string {
 	return q.Values.Encode()
 }
 
@@ -220,16 +236,6 @@ func GetQueryStringSlice(key string, q url.Values) []string {
 			}
 			for _, v := range strings.Split(val, ",") {
 				vals = append(vals, v)
-			}
-		}
-	}
-	if key == SrchAttr {
-		switch len(vals) {
-		case 0:
-			return []string{DefaultField}
-		case 1:
-			if vals[0] == "" {
-				return []string{DefaultField}
 			}
 		}
 	}
