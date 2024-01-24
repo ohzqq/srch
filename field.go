@@ -2,7 +2,6 @@ package srch
 
 import (
 	"encoding/json"
-	"slices"
 	"strings"
 
 	"github.com/RoaringBitmap/roaring"
@@ -41,6 +40,7 @@ func NewField(attr string, params ...*Params) *Field {
 		Sep:    ".",
 		SortBy: "count",
 		Order:  "desc",
+		tokens: txt.NewTokens(),
 		tokenz: make(map[string]*txt.Token),
 	}
 	parseAttr(f, attr)
@@ -54,7 +54,7 @@ func NewField(attr string, params ...*Params) *Field {
 
 func NewTextField(attr string, params ...*Params) *Field {
 	f := NewField(attr, params...)
-	f.tokens = txt.NewTokens(FT{})
+	f.tokens.SetAnalyzer(FT{})
 	if len(params) > 0 {
 		f.FieldType = params[0].GetAnalyzer()
 	}
@@ -77,63 +77,27 @@ func (f *Field) MarshalJSON() ([]byte, error) {
 }
 
 func (f *Field) Tokens() []*txt.Token {
-	var items []*txt.Token
-	for _, k := range f.sortedKeys() {
-		items = append(items, f.tokenz[k])
-	}
-	if f.FieldType == Text {
-		return items
-	}
-	switch f.SortBy {
-	case "alpha":
-		SortItemsByLabel(items)
-	default:
-		SortItemsByCount(items)
-	}
-	if f.Order == "asc" {
-		slices.Reverse(items)
-	}
-	return items
-}
+	return f.tokens.Tokens()
 
-func (f *Field) sortedKeys() []string {
-	keys := lo.Keys(f.tokenz)
-	slices.Sort(keys)
-	return keys
+	//switch f.SortBy {
+	//case "alpha":
+	//  SortItemsByLabel(items)
+	//default:
+	//  SortItemsByCount(items)
+	//}
+
+	//if f.Order == "asc" {
+	//  slices.Reverse(items)
+	//}
+	//return items
 }
 
 func (f *Field) Add(value any, ids ...any) {
-	if f.FieldType == Text {
-		f.AddFullText(value, ids)
-		return
-	}
-	f.AddToFacet(value, ids)
-}
-
-func (f *Field) AddToFacet(value any, ids any) {
 	f.tokens.Add(value, cast.ToIntSlice(ids))
-	//for _, val := range KeywordAnalyzer(value) {
-	//  //f.addTerm(val, cast.ToIntSlice(ids))
-	//  f.tokens.Add(val, cast.ToIntSlice(ids))
-	//}
-
-}
-
-func (f *Field) AddFullText(value any, ids any) {
-	f.tokens.Add(value, cast.ToIntSlice(ids))
-	//for _, token := range FulltextAnalyzer(cast.ToString(value)) {
-	//  //f.addTerm(token, cast.ToIntSlice(ids))
-	//  f.tokens.Add(token, cast.ToIntSlice(ids))
-	//}
-
 }
 
 func (f *Field) IsFacet() bool {
 	return f.FieldType != Text
-}
-
-func (f *Field) ListTokens() []string {
-	return lo.Keys(f.tokenz)
 }
 
 func (f *Field) Search(text string) *roaring.Bitmap {
@@ -161,21 +125,12 @@ func processBitResults(bits []*roaring.Bitmap, operator string) *roaring.Bitmap 
 
 // GetItem returns an *FacetItem.
 func (f *Field) GetItem(term string) *txt.Token {
-	for _, item := range f.Tokens() {
-		if term == item.Label {
-			return item
-		}
-	}
-	return &txt.Token{}
+	return f.tokens.GetByLabel(term)
 }
 
 // ListItems returns a string slice of all item values.
 func (f *Field) ListItems() []string {
-	var items []string
-	for _, item := range f.Tokens() {
-		items = append(items, item.Label)
-	}
-	return items
+	return f.tokens.GetLabels()
 }
 
 // FuzzyFindItem fuzzy finds an item's value and returns possible matches.

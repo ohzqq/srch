@@ -13,11 +13,16 @@ type Tokens struct {
 	analyzer Analyzer
 }
 
-func NewTokens(analyzer Analyzer) *Tokens {
+func NewTokens() *Tokens {
 	return &Tokens{
 		tokens:   make(map[string]*Token),
-		analyzer: analyzer,
+		analyzer: Simple{},
 	}
+}
+
+func (t *Tokens) SetAnalyzer(ana Analyzer) *Tokens {
+	t.analyzer = ana
+	return t
 }
 
 func (t *Tokens) Search(vals ...string) *roaring.Bitmap {
@@ -35,6 +40,15 @@ func (t *Tokens) Add(val any, ids []int) {
 	for _, token := range tokens {
 		t.add(token, ids)
 	}
+}
+
+func (t *Tokens) GetByLabel(label string) *Token {
+	for _, token := range t.tokens {
+		if token.Label == label {
+			return token
+		}
+	}
+	return NewToken(label)
 }
 
 func (t *Tokens) add(token *Token, ids []int) {

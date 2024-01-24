@@ -45,7 +45,7 @@ func normalizeText(token string) string {
 
 func NewFacet(attr string, params ...*Params) *Field {
 	f := NewField(attr, params...)
-	f.tokens = txt.NewTokens(KW{})
+	f.tokens.SetAnalyzer(KW{})
 	f.FieldType = FacetField
 	return f
 }
