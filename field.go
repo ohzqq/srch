@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/RoaringBitmap/roaring"
+	"github.com/ohzqq/srch/txt"
 	"github.com/sahilm/fuzzy"
 	"github.com/samber/lo"
 	"github.com/spf13/cast"
@@ -27,7 +28,7 @@ type Field struct {
 	FieldType string `json:"fieldType"`
 	SortBy    string
 	Order     string
-	tokens    map[string]*Token `json:"-"`
+	tokens    map[string]*txt.Token `json:"-"`
 }
 
 func NewField(attr string, params ...*Params) *Field {
@@ -35,7 +36,7 @@ func NewField(attr string, params ...*Params) *Field {
 		Sep:    ".",
 		SortBy: "count",
 		Order:  "desc",
-		tokens: make(map[string]*Token),
+		tokens: make(map[string]*txt.Token),
 	}
 	parseAttr(f, attr)
 
@@ -69,8 +70,8 @@ func (f *Field) MarshalJSON() ([]byte, error) {
 	return d, nil
 }
 
-func (f *Field) Tokens() []*Token {
-	var items []*Token
+func (f *Field) Tokens() []*txt.Token {
+	var items []*txt.Token
 	for _, k := range f.sortedKeys() {
 		items = append(items, f.tokens[k])
 	}
@@ -115,16 +116,16 @@ func (f *Field) AddFullText(value any, ids any) {
 	}
 }
 
-func (f *Field) addTerm(item *Token, ids []int) {
+func (f *Field) addTerm(item *txt.Token, ids []int) {
 	if f.tokens == nil {
-		f.tokens = make(map[string]*Token)
+		f.tokens = make(map[string]*txt.Token)
 	}
 	if _, ok := f.tokens[item.Value]; !ok {
 		f.tokens[item.Value] = item
 	}
 	for _, id := range ids {
-		if !f.tokens[item.Value].bits.ContainsInt(id) {
-			f.tokens[item.Value].bits.AddInt(id)
+		if !f.tokens[item.Value].Bitmap().ContainsInt(id) {
+			f.tokens[item.Value].Bitmap().AddInt(id)
 		}
 	}
 }
@@ -140,14 +141,14 @@ func (f *Field) ListTokens() []string {
 func (f *Field) Search(text string) *roaring.Bitmap {
 	if f.IsFacet() {
 		if item, ok := f.tokens[normalizeText(text)]; ok {
-			return item.bits
+			return item.Bitmap()
 		}
 	}
 
 	var bits []*roaring.Bitmap
 	for _, token := range FulltextAnalyzer(text) {
 		if ids, ok := f.tokens[token.Value]; ok {
-			bits = append(bits, ids.bits)
+			bits = append(bits, ids.Bitmap())
 		}
 	}
 	return processBitResults(bits, And)
@@ -163,13 +164,13 @@ func processBitResults(bits []*roaring.Bitmap, operator string) *roaring.Bitmap 
 }
 
 // GetItem returns an *FacetItem.
-func (f *Field) GetItem(term string) *Token {
+func (f *Field) GetItem(term string) *txt.Token {
 	for _, item := range f.Tokens() {
 		if term == item.Label {
 			return item
 		}
 	}
-	return &Token{}
+	return &txt.Token{}
 }
 
 // ListItems returns a string slice of all item values.
@@ -182,9 +183,9 @@ func (f *Field) ListItems() []string {
 }
 
 // FuzzyFindItem fuzzy finds an item's value and returns possible matches.
-func (f *Field) FuzzyFindItem(term string) []*Token {
+func (f *Field) FuzzyFindItem(term string) []*txt.Token {
 	matches := f.FuzzyMatches(term)
-	items := make([]*Token, len(matches))
+	items := make([]*txt.Token, len(matches))
 	for i, match := range matches {
 		item := f.Tokens()[match.Index]
 		item.Match = match

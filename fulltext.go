@@ -6,6 +6,7 @@ import (
 
 	"github.com/RoaringBitmap/roaring"
 	"github.com/kljensen/snowball/english"
+	"github.com/ohzqq/srch/txt"
 	"github.com/samber/lo"
 )
 
@@ -21,13 +22,13 @@ func FullText(fields []*Field, q string) *roaring.Bitmap {
 	return processBitResults(bits, And)
 }
 
-func FulltextAnalyzer(str string) []*Token {
+func FulltextAnalyzer(str string) []*txt.Token {
 	var tokens []string
-	var items []*Token
+	var items []*txt.Token
 	for _, token := range strings.FieldsFunc(str, NotAlphaNumeric) {
 		lower := strings.ToLower(token)
 		if !lo.Contains(stopWords, lower) {
-			items = append(items, NewToken(token))
+			items = append(items, txt.NewToken(token))
 			tokens = append(tokens, lower)
 		}
 	}

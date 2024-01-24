@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/RoaringBitmap/roaring"
+	"github.com/ohzqq/srch/txt"
 	"github.com/sahilm/fuzzy"
 	"github.com/spf13/cast"
 )
@@ -14,7 +15,7 @@ type Keyword struct {
 	*Field
 }
 
-func KeywordAnalyzer(val any) []*Token {
+func KeywordAnalyzer(val any) []*txt.Token {
 	var tokens []string
 	switch v := val.(type) {
 	case string:
@@ -22,9 +23,9 @@ func KeywordAnalyzer(val any) []*Token {
 	default:
 		tokens = cast.ToStringSlice(v)
 	}
-	items := make([]*Token, len(tokens))
+	items := make([]*txt.Token, len(tokens))
 	for i, token := range tokens {
-		items[i] = NewToken(token)
+		items[i] = txt.NewToken(token)
 		items[i].Value = normalizeText(token)
 	}
 	return items
@@ -81,17 +82,17 @@ func (f *Token) Count() int {
 	return len(f.bits.ToArray())
 }
 
-func SortItemsByCount(items []*Token) []*Token {
+func SortItemsByCount(items []*txt.Token) []*txt.Token {
 	slices.SortStableFunc(items, sortByCountFunc)
 	return items
 }
 
-func SortItemsByLabel(items []*Token) []*Token {
+func SortItemsByLabel(items []*txt.Token) []*txt.Token {
 	slices.SortStableFunc(items, sortByLabelFunc)
 	return items
 }
 
-func sortByCountFunc(a *Token, b *Token) int {
+func sortByCountFunc(a *txt.Token, b *txt.Token) int {
 	aC := a.Count()
 	bC := b.Count()
 	switch {
@@ -104,7 +105,7 @@ func sortByCountFunc(a *Token, b *Token) int {
 	}
 }
 
-func sortByLabelFunc(a *Token, b *Token) int {
+func sortByLabelFunc(a *txt.Token, b *txt.Token) int {
 	switch {
 	case a.Label < b.Label:
 		return 1

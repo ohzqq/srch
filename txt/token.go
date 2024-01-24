@@ -5,16 +5,6 @@ import (
 	"github.com/sahilm/fuzzy"
 )
 
-type Tokens struct {
-	tokens map[string]*Token
-}
-
-func NewTokens() *Tokens {
-	return &Tokens{
-		tokens: make(map[string]*Token),
-	}
-}
-
 type Token struct {
 	Value       string `json:"value"`
 	Label       string `json:"label"`
@@ -30,11 +20,27 @@ func NewToken(label string) *Token {
 	}
 }
 
+func (f *Token) Bitmap() *roaring.Bitmap {
+	return f.bits
+}
+
 func (f *Token) SetValue(txt string) *Token {
 	f.Value = txt
 	return f
 }
 
 func (f *Token) Count() int {
-	return f.bits.GetCardinality()
+	return int(f.bits.GetCardinality())
+}
+
+func (f *Token) Contains(id int) bool {
+	return f.bits.ContainsInt(id)
+}
+
+func (f *Token) Add(ids ...int) {
+	for _, id := range ids {
+		if !f.Contains(id) {
+			f.bits.AddInt(id)
+		}
+	}
 }

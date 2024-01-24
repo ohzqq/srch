@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/RoaringBitmap/roaring"
+	"github.com/ohzqq/srch/txt"
 	"github.com/sahilm/fuzzy"
 	"github.com/samber/lo"
 	"github.com/spf13/cast"
@@ -70,7 +71,7 @@ func (idx *Index) Index(src []map[string]any) *Index {
 
 func IndexData(data []map[string]any, fields []*Field) []*Field {
 	for _, f := range fields {
-		f.tokens = make(map[string]*Token)
+		f.tokens = make(map[string]*txt.Token)
 	}
 
 	for id, d := range data {
