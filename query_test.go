@@ -93,8 +93,25 @@ func TestParseQueryStrings(t *testing.T) {
 	for i, q := range testQueryStrings {
 		p := NewQuery(q)
 		want := testParsedParams[i]
+
 		if attr := p.SrchAttr(); !slices.Equal(attr, want.SrchAttr()) {
 			t.Errorf("query: %s\ngot %v, expected %v\n", q, attr, want.SrchAttr())
+		}
+
+		if attr := p.FacetAttr(); !slices.Equal(attr, want.FacetAttr()) {
+			t.Errorf("query: %s\ngot %v, expected %v\n", q, attr, want.FacetAttr())
+		}
+
+		if p.Values.Has(DataDir) {
+			if vals := p.Get(DataDir); !slices.Equal(vals, want.Get(DataDir)) {
+				t.Errorf("query: %s\ngot %v, expected %v\n", q, vals, want.Get(DataDir))
+			}
+		}
+
+		if p.Values.Has(DataFile) {
+			if vals := p.Get(DataFile); !slices.Equal(vals, want.Get(DataFile)) {
+				t.Errorf("query: %s\ngot %v, expected %v\n", q, vals, want.Get(DataFile))
+			}
 		}
 	}
 }
