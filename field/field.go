@@ -1,4 +1,4 @@
-package srch
+package field
 
 import (
 	"encoding/json"
