@@ -41,7 +41,6 @@ func NewField(attr string, params ...*Params) *Field {
 		Sep:    ".",
 		SortBy: "count",
 		Order:  "desc",
-		tokens: txt.NewTokens(),
 		tokenz: make(map[string]*txt.Token),
 	}
 	parseAttr(f, attr)
@@ -55,6 +54,7 @@ func NewField(attr string, params ...*Params) *Field {
 
 func NewTextField(attr string, params ...*Params) *Field {
 	f := NewField(attr, params...)
+	f.tokens = txt.NewTokens(FT{})
 	if len(params) > 0 {
 		f.FieldType = params[0].GetAnalyzer()
 	}
@@ -111,17 +111,21 @@ func (f *Field) Add(value any, ids ...any) {
 }
 
 func (f *Field) AddToFacet(value any, ids any) {
-	for _, val := range KeywordAnalyzer(value) {
-		//f.addTerm(val, cast.ToIntSlice(ids))
-		f.tokens.Add(val, cast.ToIntSlice(ids))
-	}
+	f.tokens.Add(value, cast.ToIntSlice(ids))
+	//for _, val := range KeywordAnalyzer(value) {
+	//  //f.addTerm(val, cast.ToIntSlice(ids))
+	//  f.tokens.Add(val, cast.ToIntSlice(ids))
+	//}
+
 }
 
 func (f *Field) AddFullText(value any, ids any) {
-	for _, token := range FulltextAnalyzer(cast.ToString(value)) {
-		//f.addTerm(token, cast.ToIntSlice(ids))
-		f.tokens.Add(token, cast.ToIntSlice(ids))
-	}
+	f.tokens.Add(value, cast.ToIntSlice(ids))
+	//for _, token := range FulltextAnalyzer(cast.ToString(value)) {
+	//  //f.addTerm(token, cast.ToIntSlice(ids))
+	//  f.tokens.Add(token, cast.ToIntSlice(ids))
+	//}
+
 }
 
 func (f *Field) IsFacet() bool {

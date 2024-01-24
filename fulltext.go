@@ -8,6 +8,7 @@ import (
 	"github.com/kljensen/snowball/english"
 	"github.com/ohzqq/srch/txt"
 	"github.com/samber/lo"
+	"github.com/spf13/cast"
 )
 
 type Fulltext struct {
@@ -22,10 +23,21 @@ func FullText(fields []*Field, q string) *roaring.Bitmap {
 	return processBitResults(bits, And)
 }
 
-func FulltextAnalyzer(str string) []*txt.Token {
+type FT struct{}
+type KW struct{}
+
+func (ft FT) Tokenize(str any) []*txt.Token {
+	return FulltextAnalyzer(str)
+}
+
+func (kw KW) Tokenize(str any) []*txt.Token {
+	return KeywordAnalyzer(str)
+}
+
+func FulltextAnalyzer(str any) []*txt.Token {
 	var tokens []string
 	var items []*txt.Token
-	for _, token := range strings.FieldsFunc(str, NotAlphaNumeric) {
+	for _, token := range strings.FieldsFunc(cast.ToString(str), NotAlphaNumeric) {
 		lower := strings.ToLower(token)
 		if !lo.Contains(stopWords, lower) {
 			items = append(items, txt.NewToken(token))

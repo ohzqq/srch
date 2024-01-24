@@ -9,12 +9,14 @@ import (
 )
 
 type Tokens struct {
-	tokens map[string]*Token
+	tokens   map[string]*Token
+	analyzer Analyzer
 }
 
-func NewTokens() *Tokens {
+func NewTokens(analyzer Analyzer) *Tokens {
 	return &Tokens{
-		tokens: make(map[string]*Token),
+		tokens:   make(map[string]*Token),
+		analyzer: analyzer,
 	}
 }
 
@@ -28,7 +30,14 @@ func (t *Tokens) Search(vals ...string) *roaring.Bitmap {
 	return roaring.ParAnd(viper.GetInt("workers"), bits...)
 }
 
-func (t *Tokens) Add(token *Token, ids []int) {
+func (t *Tokens) Add(val any, ids []int) {
+	tokens := t.analyzer.Tokenize(val)
+	for _, token := range tokens {
+		t.add(token, ids)
+	}
+}
+
+func (t *Tokens) add(token *Token, ids []int) {
 	if t.tokens == nil {
 		t.tokens = make(map[string]*Token)
 	}
