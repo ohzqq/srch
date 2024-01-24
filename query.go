@@ -128,7 +128,7 @@ func (q *Params) Fields() []*Field {
 	attrs := q.SrchAttr()
 	fields := make([]*Field, len(attrs))
 	for i, attr := range attrs {
-		fields[i] = NewField(attr, q)
+		fields[i] = NewTextField(attr, q)
 	}
 	return fields
 }
@@ -137,7 +137,7 @@ func (q *Params) Facets() []*Field {
 	facets := q.FacetAttr()
 	fields := make([]*Field, len(facets))
 	for i, attr := range facets {
-		fields[i] = NewField(attr, q)
+		fields[i] = NewFacet(attr, q)
 	}
 	return fields
 }

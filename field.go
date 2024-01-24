@@ -30,13 +30,24 @@ type Field struct {
 	items     map[string]*FacetItem `json:"-"`
 }
 
+func NewTextField(attr string, params ...*Params) *Field {
+	f := NewField(attr, params...)
+	f.FieldType = Text
+	return f
+}
+
+func NewFacet(attr string, params ...*Params) *Field {
+	f := NewField(attr, params...)
+	f.FieldType = FacetField
+	return f
+}
+
 func NewField(attr string, params ...*Params) *Field {
 	f := &Field{
-		FieldType: Text,
-		Sep:       ".",
-		SortBy:    "count",
-		Order:     "desc",
-		items:     make(map[string]*FacetItem),
+		Sep:    ".",
+		SortBy: "count",
+		Order:  "desc",
+		items:  make(map[string]*FacetItem),
 	}
 	parseAttr(f, attr)
 
@@ -131,7 +142,7 @@ func (f *Field) ListTokens() []string {
 }
 
 func (f *Field) Search(text string) *roaring.Bitmap {
-	if f.FieldType != Text {
+	if f.IsFacet() {
 		if item, ok := f.items[normalizeText(text)]; ok {
 			return item.bits
 		}
