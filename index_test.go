@@ -48,14 +48,41 @@ func TestNewIndex(t *testing.T) {
 			data := loadData(t)
 			idx.Index(data)
 		case 1:
+			err := indexFieldErr(len(idx.Facets()), 0, q)
+			if err != nil {
+				t.Error(err)
+			}
 		case 2:
+			err := indexFieldErr(len(idx.Facets()), 4, q)
+			if err != nil {
+				t.Error(err)
+			}
 		case 3:
+			err := indexFieldErr(len(idx.Facets()), 4, q)
+			if err != nil {
+				t.Error(err)
+			}
+		}
+		err = indexFieldErr(len(idx.TextFields()), 1, q)
+		if err != nil {
+			t.Error(err)
 		}
 		err = totalBooksErr(idx.Len(), q)
 		if err != nil {
 			t.Error(err)
 		}
 	}
+}
+
+func indexFieldErr(got, want int, msg ...any) error {
+	if got != want {
+		err := fmt.Errorf("got %d, want %d\n", got, want)
+		if len(msg) > 0 {
+			err = fmt.Errorf("%w [msg] %v\n", err, msg)
+		}
+		return err
+	}
+	return nil
 }
 
 func totalBooksTest(total int, t *testing.T) {

@@ -187,7 +187,7 @@ func (idx *Index) TextFields() []*Field {
 }
 
 func (idx *Index) SearchableFields() []string {
-	return idx.GetSrchAttr()
+	return idx.SrchAttr()
 }
 
 func (idx *Index) UnmarshalJSON(d []byte) error {
