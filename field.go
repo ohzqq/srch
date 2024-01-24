@@ -12,7 +12,7 @@ import (
 
 const (
 	Text       = "text"
-	Fuzzy      = "fuzzy"
+	Keyword    = "keyword"
 	Or         = "or"
 	And        = "and"
 	Not        = `not`

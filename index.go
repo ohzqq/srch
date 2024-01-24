@@ -82,7 +82,7 @@ func IndexData(data []map[string]any, fields []*Field) []*Field {
 
 func (idx *Index) FullText(q string) *roaring.Bitmap {
 	var bits []*roaring.Bitmap
-	for _, field := range idx.TextFields() {
+	for _, field := range idx.SearchableFields() {
 		bits = append(bits, field.Search(q))
 	}
 	return roaring.ParAnd(viper.GetInt("workers"), bits...)
@@ -97,7 +97,7 @@ func (idx *Index) Search(params string) *Response {
 		switch idx.Params.GetAnalyzer() {
 		case Text:
 			idx.res.And(idx.FullText(query))
-		case Fuzzy:
+		case Keyword:
 			idx.res.And(idx.FuzzySearch(query))
 		}
 	}
@@ -181,12 +181,8 @@ func (idx *Index) FacetLabels() []string {
 	})
 }
 
-func (idx *Index) TextFields() []*Field {
+func (idx *Index) SearchableFields() []*Field {
 	return idx.fields
-}
-
-func (idx *Index) SearchableFields() []string {
-	return idx.SrchAttr()
 }
 
 func (idx *Index) UnmarshalJSON(d []byte) error {

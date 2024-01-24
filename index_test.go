@@ -63,7 +63,7 @@ func TestNewIndex(t *testing.T) {
 				t.Error(err)
 			}
 		}
-		err = indexFieldErr(len(idx.TextFields()), 1, q)
+		err = indexFieldErr(len(idx.SearchableFields()), 1, q)
 		if err != nil {
 			t.Error(err)
 		}

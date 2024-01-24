@@ -163,7 +163,7 @@ func (p Params) GetAnalyzer() string {
 	if p.Values.Has(ParamFullText) {
 		return Text
 	}
-	return Fuzzy
+	return Keyword
 }
 
 func (p Params) MarshalJSON() ([]byte, error) {
