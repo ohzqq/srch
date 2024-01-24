@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"log"
-	"net/url"
 	"os"
 	"slices"
 	"strings"
@@ -23,62 +22,47 @@ func init() {
 
 // Index is a structure for facets and data.
 type Index struct {
-	Fields   []*Field
-	fields   []*Field
-	facets   []*Field
-	Data     []map[string]any
-	res      *roaring.Bitmap
-	Settings *Settings
+	fields []*Field
+	facets []*Field
+	Data   []map[string]any
+	res    *roaring.Bitmap
 
-	*Query `json:"params"`
+	*Params `json:"params"`
 }
 
 type SearchFunc func(string) []map[string]any
 
 type Opt func(*Index)
 
-func New(settings any) *Index {
+func New(settings any) (*Index, error) {
 	idx := &Index{
-		Query: NewQuery(settings),
+		Params: NewQuery(settings),
 	}
-	idx.Settings = idx.GetSettings()
-	idx.Fields = idx.GetSettings().Fields()
-	idx.fields = idx.GetSettings().SrchFields()
-	idx.facets = idx.GetSettings().Facets()
+	idx.fields = idx.Params.Fields()
+	idx.facets = idx.Params.Facets()
 
-	if idx.Query.HasData() {
-		d, err := idx.Query.GetData()
+	if idx.Params.HasData() {
+		d, err := idx.Params.GetData()
 		if err != nil {
-			return idx
+			return idx, errors.New("data parsing error")
 		}
-		return idx.Index(d)
+		return idx.Index(d), nil
 	}
 
-	return idx
-}
-
-func NewIndex(query any, opts ...Opt) *Index {
-	idx := &Index{
-		Query: NewQuery(query),
-	}
-
-	for _, opt := range opts {
-		opt(idx)
-	}
-
-	return idx
+	return idx, nil
 }
 
 func (idx *Index) Index(src []map[string]any) *Index {
 	idx.Data = src
 
-	if idx.Query.Params.Has("sort_by") {
+	if idx.Params.Values.Has("sort_by") {
 		idx.Sort()
 	}
 
 	if idx.GetAnalyzer() == Text {
 		idx.fields = IndexData(idx.Data, idx.fields)
 	}
+
 	idx.facets = IndexData(idx.Data, idx.facets)
 
 	return idx
@@ -86,7 +70,7 @@ func (idx *Index) Index(src []map[string]any) *Index {
 
 func IndexData(data []map[string]any, fields []*Field) []*Field {
 	for _, f := range fields {
-		f.items = make(map[string]*FacetItem)
+		f.tokens = make(map[string]*Token)
 	}
 
 	for id, d := range data {
@@ -100,38 +84,27 @@ func IndexData(data []map[string]any, fields []*Field) []*Field {
 	return fields
 }
 
-func WithFullText() Opt {
-	return func(idx *Index) {
-		idx.Query.Params.Set("full_text", "")
-	}
-}
-
-func (idx *Index) FullText(q string) []map[string]any {
-	return searchFullText(
-		idx.Data,
-		idx.TextFields(),
-		idx.Query.Params.Get(ParamQuery),
-	)
+func (idx *Index) FullText(q string) *roaring.Bitmap {
+	b := FullText(idx.TextFields(), q)
+	return b
 }
 
 func (idx *Index) Search(params string) *Response {
-	if idx.res == nil || idx.res.IsEmpty() {
-		idx.res = idx.Bitmap()
-	}
+	idx.res = idx.Bitmap()
 	q := NewQuery(params)
-	idx.Query.Merge(q)
+	idx.Params.Merge(q)
 
 	if query := q.Query(); query != "" {
-		switch idx.Settings.TextAnalyzer {
+		switch idx.Params.GetAnalyzer() {
 		case Text:
-			idx.FullText(query)
+			idx.res.And(idx.FullText(query))
 		case Fuzzy:
 			idx.res.And(idx.FuzzySearch(query))
 		}
 	}
 
 	if q.HasFilters() {
-		idx.Filter(q.Params.Get(ParamFacetFilters))
+		idx.Filter(q.Values.Get(FacetFilters))
 	}
 
 	return NewResponse(idx)
@@ -144,41 +117,15 @@ func (idx Index) Bitmap() *roaring.Bitmap {
 }
 
 func (idx Index) GetResults() []map[string]any {
-	return idx.getDataByBitmap(idx.res)
-}
-
-func (idx Index) getDataByBitmap(bits *roaring.Bitmap) []map[string]any {
-	if bits.IsEmpty() {
+	if idx.res.IsEmpty() {
 		return idx.Data
 	}
 	var res []map[string]any
-	bits.Iterate(func(x uint32) bool {
+	idx.res.Iterate(func(x uint32) bool {
 		res = append(res, idx.Data[int(x)])
 		return true
 	})
 	return res
-}
-
-func (idx *Index) SearchIndex(q string) *Index {
-	var data []map[string]any
-	switch idx.Settings.TextAnalyzer {
-	case Text:
-		data = idx.FullText(q)
-	case Fuzzy:
-		data = idx.FuzzyFind(q)
-	}
-	return idx.Copy().Index(data)
-}
-
-func (idx *Index) search(q string) []map[string]any {
-	var data []map[string]any
-	switch idx.Settings.TextAnalyzer {
-	case Text:
-		data = idx.FullText(q)
-	case Fuzzy:
-		data = idx.FuzzyFind(q)
-	}
-	return data
 }
 
 func (idx *Index) Filter(q string) *Response {
@@ -193,74 +140,36 @@ func (idx *Index) Filter(q string) *Response {
 	return NewResponse(idx)
 }
 
-func (idx *Index) SetQuery(q url.Values) *Index {
-	idx.Query = &Query{
-		Params: q,
-	}
-
-	if idx.Query.Params.Has("full_text") {
-		idx.Settings.TextAnalyzer = Text
-	}
-
-	idx.AddField(ParseFieldsFromValues(idx.Query.Params)...)
-
-	data, err := idx.Query.GetData()
-	if err == nil {
-		return idx.Index(data)
-	}
-
-	return idx
-}
-
 func (idx *Index) Sort() {
-	sortDataByField(idx.Data, idx.Query.Params.Get("sort_by"))
-	if idx.Query.Params.Has("order") {
-		if idx.Query.Params.Get("order") == "desc" {
+	sortDataByField(idx.Data, idx.Params.Values.Get("sort_by"))
+	if idx.Params.Values.Has("order") {
+		if idx.Params.Values.Get("order") == "desc" {
 			slices.Reverse(idx.Data)
 		}
 	}
 }
 
-func (idx *Index) Copy() *Index {
-	return NewIndex(idx.Query.Params)
-}
-
-func (idx *Index) GetFilterValues(filters []string) map[string][]string {
-	facets := make(map[string][]string)
-	for _, attr := range idx.Settings.AttributesForFaceting {
-		f := FilterByAttribute(attr, filters)
-		if len(f) > 0 {
-			facets[attr] = append(facets[attr], f...)
+func (idx *Index) GetFacet(attr string) *Field {
+	for _, f := range idx.facets {
+		if attr == f.Attribute {
+			return f
 		}
 	}
-	return facets
+	return &Field{Attribute: attr}
 }
 
-func (idx *Index) AddField(fields ...*Field) *Index {
-	idx.Fields = append(idx.Fields, fields...)
-	return idx
-}
-
-func (idx *Index) GetField(attr string) (*Field, error) {
-	for _, f := range idx.Fields {
-		if f.Attribute == attr {
-			return f, nil
+func (idx *Index) GetField(attr string) *Field {
+	for _, f := range idx.fields {
+		if attr == f.Attribute {
+			return f
 		}
 	}
-	return nil, errors.New("no such field")
-}
-
-func (idx *Index) HasFilters() bool {
-	return len(idx.Filters()) > 0
-}
-
-func (idx *Index) Filters() url.Values {
-	return lo.OmitByKeys(idx.Query.Params, ReservedKeys)
+	return &Field{Attribute: attr}
 }
 
 // HasFacets returns true if facets are configured.
 func (idx *Index) HasFacets() bool {
-	return len(idx.Facets()) > 0
+	return len(idx.facets) > 0
 }
 
 func (idx *Index) Facets() []*Field {
@@ -278,7 +187,7 @@ func (idx *Index) TextFields() []*Field {
 }
 
 func (idx *Index) SearchableFields() []string {
-	return idx.GetSrchAttr()
+	return idx.SrchAttr()
 }
 
 func (idx *Index) UnmarshalJSON(d []byte) error {
@@ -288,13 +197,13 @@ func (idx *Index) UnmarshalJSON(d []byte) error {
 		return err
 	}
 
-	if msg, ok := un[ParamQuery]; ok {
+	if msg, ok := un[Query]; ok {
 		var q string
 		err := json.Unmarshal(msg, &q)
 		if err != nil {
 			return err
 		}
-		idx.SetQuery(ParseQuery(q))
+		idx.Params.Values = ParseQuery(q)
 	}
 
 	if msg, ok := un[Hits]; ok {
@@ -311,9 +220,9 @@ func (idx *Index) UnmarshalJSON(d []byte) error {
 
 func (idx *Index) StringMap() map[string]any {
 	m := make(map[string]any)
-	m[ParamQuery] = idx.Query.Query()
+	m[Query] = idx.Params.Query()
 	m[Page] = idx.Page()
-	m["params"] = idx.Query
+	m["params"] = idx.Params
 	m[HitsPerPage] = idx.HitsPerPage()
 	m[ParamFacets] = idx.Facets()
 	return m
@@ -347,15 +256,6 @@ func (idx *Index) PrettyPrint() {
 	}
 }
 
-func (idx *Index) FuzzyFind(q string) []map[string]any {
-	matches := fuzzy.FindFrom(q, idx)
-	res := make([]map[string]any, matches.Len())
-	for i, m := range matches {
-		res[i] = idx.Data[m.Index]
-	}
-	return res
-}
-
 func (idx *Index) FuzzySearch(q string) *roaring.Bitmap {
 	matches := fuzzy.FindFrom(q, idx)
 	bits := roaring.New()
@@ -369,7 +269,7 @@ func (idx *Index) FuzzySearch(q string) *roaring.Bitmap {
 func (idx *Index) String(i int) string {
 	s := lo.PickByKeys(
 		idx.Data[i],
-		idx.Settings.SearchableAttributes,
+		idx.SrchAttr(),
 	)
 	vals := cast.ToStringSlice(lo.Values(s))
 	return strings.Join(vals, "\n")

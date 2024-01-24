@@ -11,7 +11,7 @@ import (
 )
 
 func TestUnmarshalQueryParams(t *testing.T) {
-	params := &Query{}
+	params := &Params{}
 	err := json.Unmarshal(testParamsBytes(), params)
 	if err != nil {
 		t.Error(err)
@@ -20,7 +20,6 @@ func TestUnmarshalQueryParams(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	fmt.Printf("%#v\n", filters)
 	filtersTests(filters, t)
 }
 
@@ -52,14 +51,17 @@ func TestMarshalFilter(t *testing.T) {
 }
 
 func TestFiltering(t *testing.T) {
-	test := settingsTestVals[7]
-	idx := New(test.query)
-	totalBooksErr(idx.Len(), test.query)
+	test := "searchableAttributes=title&attributesForFaceting=tags,authors,series&dataFile=testdata/data-dir/audiobooks.json"
+	idx, err := New(test)
+	if err != nil {
+		t.Error(err)
+	}
+	totalBooksErr(idx.Len(), test)
 
 	for q, want := range testSearchQueryStrings() {
 		req := NewQuery(q)
 		if req.HasFilters() {
-			ids, err := Filter(idx.Bitmap(), idx.Fields, q)
+			ids, err := Filter(idx.Bitmap(), idx.facets, q)
 			if err != nil {
 				t.Error(err)
 			}
@@ -71,15 +73,18 @@ func TestFiltering(t *testing.T) {
 }
 
 func TestSearchAndFilter(t *testing.T) {
-	test := settingsTestVals[7]
-	idx := New(test.query)
+	test := "searchableAttributes=title&attributesForFaceting=tags,authors,series&dataFile=testdata/data-dir/audiobooks.json"
+	idx, err := New(test)
+	if err != nil {
+		t.Error(err)
+	}
 
 	vals := make(url.Values)
-	vals.Set(ParamQuery, "heart")
+	vals.Set(Query, "heart")
 
 	//total := 7174
 
-	vals.Set(ParamFacetFilters, `["authors:amy lane"]`)
+	vals.Set(FacetFilters, `["authors:amy lane"]`)
 
 	afterFilter := 5
 	//afterFilter := 58
@@ -107,13 +112,13 @@ func testSearchFilterStrings() map[string]int {
 	queries := map[string]int{}
 	v := make(url.Values)
 
-	v.Set(ParamFacetFilters, `["authors:amy lane"]`)
+	v.Set(FacetFilters, `["authors:amy lane"]`)
 	queries[v.Encode()] = 58
 
-	v.Set(ParamFacetFilters, `["authors:amy lane", ["tags:romance"]]`)
+	v.Set(FacetFilters, `["authors:amy lane", ["tags:romance"]]`)
 	queries[v.Encode()] = 26
 
-	v.Set(ParamFacetFilters, `["authors:amy lane", ["tags:romance"], "tags:-dnr"]`)
+	v.Set(FacetFilters, `["authors:amy lane", ["tags:romance"], "tags:-dnr"]`)
 	queries[v.Encode()] = 22
 
 	return queries
@@ -139,7 +144,6 @@ func testEncOrFilter() string {
 
 func testComboFilter() string {
 	f := fmt.Sprintf("[%s,%s]", plainFilters[0], plainFilters[1])
-	println(f)
 	return f
 }
 

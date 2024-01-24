@@ -9,7 +9,6 @@ import (
 	"github.com/RoaringBitmap/roaring"
 	"github.com/samber/lo"
 	"github.com/spf13/cast"
-	"github.com/spf13/viper"
 )
 
 type Filters struct {
@@ -51,22 +50,6 @@ func filterFields(bits *roaring.Bitmap, fields []*Field, query string) (*roaring
 	}
 
 	return bits, nil
-}
-
-func FilterData(data []map[string]any, facets []*Field, values url.Values) []map[string]any {
-	var bits []*roaring.Bitmap
-	for name, filters := range values {
-		for _, facet := range facets {
-			if facet.Attribute == name {
-				bits = append(bits, facet.OldFilter(filters...))
-			}
-		}
-	}
-
-	filtered := roaring.ParOr(viper.GetInt("workers"), bits...)
-	ids := filtered.ToArray()
-
-	return FilteredItems(data, lo.ToAnySlice(ids))
 }
 
 func NewFilters(query string) (*Filters, error) {
@@ -180,9 +163,9 @@ func (f *Filters) add(filters any) {
 func ParseFilters(filters any) (string, []string, error) {
 	switch vals := filters.(type) {
 	case string:
-		return AndFacet, []string{vals}, nil
+		return And, []string{vals}, nil
 	case []any:
-		return OrFacet, cast.ToStringSlice(vals), nil
+		return Or, cast.ToStringSlice(vals), nil
 	default:
 		return "", []string{}, errors.New("not a filter")
 	}

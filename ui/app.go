@@ -30,7 +30,7 @@ type App struct {
 }
 
 func New(idx *srch.Index) *App {
-	tui := newApp(idx.Query.Params, idx.Data)
+	tui := newApp(idx.Params.Values, idx.Data)
 	tui.updateVisible(idx)
 	tui.Model = NewModel(SrcToItems(tui.visible))
 	return tui
@@ -38,7 +38,9 @@ func New(idx *srch.Index) *App {
 
 func Browse(q url.Values, data []map[string]any) *App {
 	tui := newApp(q, data)
-	tui.updateVisible(srch.New(q).Index(data))
+	idx, _ := srch.New(q)
+
+	tui.updateVisible(idx.Index(data))
 	tui.Model = NewModel(SrcToItems(tui.visible))
 	return tui
 }
@@ -97,7 +99,7 @@ func (c *App) SetFacet(label string) {
 
 func (c *App) SetFilters(filters url.Values) {
 	c.Filters = srch.ParseQuery(c.Filters, filters)
-	c.updateVisible(c.visible.Filter(filters))
+	c.updateVisible(c.visible.Filter(filters.Encode()).Index)
 }
 
 func (c *App) SetSelections(idx *srch.Index) {
@@ -106,7 +108,8 @@ func (c *App) SetSelections(idx *srch.Index) {
 
 func (c *App) ClearFilters() {
 	c.Filters = make(url.Values)
-	c.updateVisible(srch.NewIndex(c.query).Index(c.data))
+	idx, _ := srch.New(c.query)
+	c.updateVisible(idx.Index(c.data))
 }
 
 func (c *App) updateVisible(idx *srch.Index) {
@@ -121,12 +124,12 @@ func (c *App) updateVisible(idx *srch.Index) {
 }
 
 func (c *App) setFacet(label string) {
-	f, _ := c.visible.GetField(label)
+	f := c.visible.GetFacet(label)
 	c.facets[label] = NewFacet(f)
 }
 
 func (c *App) getFacet(label string) *Facet {
-	f, _ := c.visible.GetField(label)
+	f := c.visible.GetFacet(label)
 	return NewFacet(f)
 }
 

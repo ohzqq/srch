@@ -23,7 +23,10 @@ func (r *Response) NbHits() int {
 }
 
 func (r *Response) StringMap() map[string]any {
-	idx := New(r.Query.Params)
+	idx, err := New(r.Params.Values)
+	if err != nil {
+		return map[string]any{"error": err}
+	}
 	idx.Index(r.GetResults())
 	m := idx.StringMap()
 	m[NbHits] = r.NbHits()

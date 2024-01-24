@@ -14,19 +14,75 @@ var books []map[string]any
 const numBooks = 7174
 
 const testData = `testdata/data-dir/audiobooks.json`
+const testDataDir = `testdata/data-dir`
 const testCfgFile = `testdata/config-old.json`
 const testYAMLCfgFile = `testdata/config.yaml`
 const testCfgFileData = `testdata/config-with-data.json`
 
-func init() {
-	query := fmt.Sprintf("%s&%s&%s", testValuesCfg, testQueryString, testSearchString)
-	idx = NewIndex(query)
-	books = idx.Data
-}
-
 func TestData(t *testing.T) {
 	books = loadData(t)
-	totalBooksTest(len(books), t)
+	err := totalBooksErr(len(books), 71734)
+	if err != nil {
+		t.Error(err)
+	}
+}
+
+var testQueryNewIndex = []string{
+	"searchableAttributes=title&fullText",
+	"searchableAttributes=title&dataDir=testdata/data-dir",
+	"attributesForFaceting=tags,authors,series,narrators&dataFile=testdata/data-dir/audiobooks.json",
+	"searchableAttributes=title&dataFile=testdata/data-dir/audiobooks.json&attributesForFaceting=tags,authors,series,narrators",
+}
+
+var titleField = NewField(DefaultField)
+
+func TestNewIndex(t *testing.T) {
+	for i := 0; i < len(testQueryNewIndex); i++ {
+		q := testQueryNewIndex[i]
+		idx, err := New(q)
+		if err != nil {
+			t.Error(err)
+		}
+		switch i {
+		case 0:
+			data := loadData(t)
+			idx.Index(data)
+		case 1:
+			err := indexFieldErr(len(idx.Facets()), 0, q)
+			if err != nil {
+				t.Error(err)
+			}
+		case 2:
+			err := indexFieldErr(len(idx.Facets()), 4, q)
+			if err != nil {
+				t.Error(err)
+			}
+		case 3:
+			err := indexFieldErr(len(idx.Facets()), 4, q)
+			if err != nil {
+				t.Error(err)
+			}
+		}
+		err = indexFieldErr(len(idx.TextFields()), 1, q)
+		if err != nil {
+			t.Error(err)
+		}
+		err = totalBooksErr(idx.Len(), q)
+		if err != nil {
+			t.Error(err)
+		}
+	}
+}
+
+func indexFieldErr(got, want int, msg ...any) error {
+	if got != want {
+		err := fmt.Errorf("got %d, want %d\n", got, want)
+		if len(msg) > 0 {
+			err = fmt.Errorf("%w [msg] %v\n", err, msg)
+		}
+		return err
+	}
+	return nil
 }
 
 func totalBooksTest(total int, t *testing.T) {
@@ -41,26 +97,6 @@ func totalBooksErr(total int, vals ...any) error {
 		return fmt.Errorf("%w\nmsg: %v", err, vals)
 	}
 	return nil
-}
-
-func TestNewIndex(t *testing.T) {
-	data := loadData(t)
-	for _, test := range settingsTestVals {
-		idx := New(test.query).Index(data)
-		err := totalBooksErr(idx.Len(), test.query)
-		if err != nil {
-			t.Error(err)
-		}
-	}
-}
-
-func TestSortIndex(t *testing.T) {
-	q := getNewQuery()
-	i := NewIndex(q.Encode())
-	i.Sort()
-	//for _, d := range i.Data {
-	//  fmt.Printf("%s\n", d["title"])
-	//}
 }
 
 func loadData(t *testing.T) []map[string]any {
