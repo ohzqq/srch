@@ -40,22 +40,6 @@ func NewQuery(q any) *Params {
 	}
 }
 
-func ParseQuery(queries ...any) url.Values {
-	q := make(url.Values)
-	for _, query := range queries {
-		vals, err := ParseValues(query)
-		if err != nil {
-			continue
-		}
-		for k, val := range vals {
-			for _, v := range val {
-				q.Add(k, v)
-			}
-		}
-	}
-	return q
-}
-
 func (q Params) GetSlice(key string) []string {
 	if q.Values.Has(key) {
 		return q.Values[key]
@@ -80,46 +64,6 @@ func (q *Params) Merge(queries ...*Params) {
 	}
 }
 
-func (q Params) GetData() ([]map[string]any, error) {
-	if !q.HasData() {
-		return nil, errors.New("no data")
-	}
-	return GetDataFromQuery(&q.Values)
-}
-
-func (q *Params) IsFullText() bool {
-	return q.Values.Has(ParamFullText)
-}
-
-func (q Params) HasData() bool {
-	return q.Values.Has(DataFile) || q.Values.Has(DataDir)
-}
-
-func (q Params) GetFacetFilters() (*Filters, error) {
-	if !q.HasFilters() {
-		return nil, errors.New("no filters")
-	}
-	f, err := DecodeFilter(q.Values.Get(FacetFilters))
-	if err != nil {
-		return nil, err
-	}
-	return f, nil
-}
-
-func (q Params) Query() string {
-	return q.Values.Get(Query)
-}
-
-func (p *Params) SortFacetsBy() string {
-	sort := "count"
-	if p.Values.Has(SortFacetsBy) {
-		if by := p.Values.Get(SortFacetsBy); by == "count" || by == "alpha" {
-			sort = by
-		}
-	}
-	return sort
-}
-
 func (q *Params) SrchAttr() []string {
 	if !q.Values.Has(SrchAttr) {
 		return []string{DefaultField}
@@ -140,13 +84,29 @@ func (q *Params) Fields() []*Field {
 	return fields
 }
 
-func (q *Params) Facets() []*Field {
-	facets := q.FacetAttr()
-	fields := make([]*Field, len(facets))
-	for i, attr := range facets {
-		fields[i] = NewFacet(attr, q)
+func (q Params) HasFilters() bool {
+	return q.Values.Has(FacetFilters)
+}
+
+func (q Params) GetFacetFilters() (*Filters, error) {
+	if !q.HasFilters() {
+		return nil, errors.New("no filters")
 	}
-	return fields
+	f, err := DecodeFilter(q.Values.Get(FacetFilters))
+	if err != nil {
+		return nil, err
+	}
+	return f, nil
+}
+
+func (p *Params) SortFacetsBy() string {
+	sort := "count"
+	if p.Values.Has(SortFacetsBy) {
+		if by := p.Values.Get(SortFacetsBy); by == "count" || by == "alpha" {
+			sort = by
+		}
+	}
+	return sort
 }
 
 func (q Params) FacetAttr() []string {
@@ -154,6 +114,15 @@ func (q Params) FacetAttr() []string {
 		q.Values[ParamFacets] = GetQueryStringSlice(FacetAttr, q.Values)
 	}
 	return q.Values[ParamFacets]
+}
+
+func (q *Params) Facets() []*Field {
+	facets := q.FacetAttr()
+	fields := make([]*Field, len(facets))
+	for i, attr := range facets {
+		fields[i] = NewFacet(attr, q)
+	}
+	return fields
 }
 
 func (q Params) Page() int {
@@ -174,8 +143,12 @@ func (q Params) HitsPerPage() int {
 	return page
 }
 
-func (q Params) HasFilters() bool {
-	return q.Values.Has(FacetFilters)
+func (q *Params) IsFullText() bool {
+	return q.Values.Has(ParamFullText)
+}
+
+func (q Params) Query() string {
+	return q.Values.Get(Query)
 }
 
 func (q Params) GetAnalyzer() string {
@@ -221,6 +194,17 @@ func (q *Params) Decode(str string) error {
 	return err
 }
 
+func (q Params) HasData() bool {
+	return q.Values.Has(DataFile) || q.Values.Has(DataDir)
+}
+
+func (q Params) GetData() ([]map[string]any, error) {
+	if !q.HasData() {
+		return nil, errors.New("no data")
+	}
+	return GetDataFromQuery(&q.Values)
+}
+
 func GetDataFromQuery(q *url.Values) ([]map[string]any, error) {
 	var data []map[string]any
 	var err error
@@ -236,19 +220,20 @@ func GetDataFromQuery(q *url.Values) ([]map[string]any, error) {
 	return data, err
 }
 
-func GetQueryStringSlice(key string, q url.Values) []string {
-	var vals []string
-	if q.Has(key) {
-		for _, val := range q[key] {
-			if val == "" {
-				break
-			}
-			for _, v := range strings.Split(val, ",") {
-				vals = append(vals, v)
+func ParseQuery(queries ...any) url.Values {
+	q := make(url.Values)
+	for _, query := range queries {
+		vals, err := ParseValues(query)
+		if err != nil {
+			continue
+		}
+		for k, val := range vals {
+			for _, v := range val {
+				q.Add(k, v)
 			}
 		}
 	}
-	return vals
+	return q
 }
 
 // ParseValues takes an interface{} and returns a url.Values.
@@ -287,4 +272,19 @@ func ParseQueryBytes(val []byte) (url.Values, error) {
 		return nil, err
 	}
 	return url.Values(filters), err
+}
+
+func GetQueryStringSlice(key string, q url.Values) []string {
+	var vals []string
+	if q.Has(key) {
+		for _, val := range q[key] {
+			if val == "" {
+				break
+			}
+			for _, v := range strings.Split(val, ",") {
+				vals = append(vals, v)
+			}
+		}
+	}
+	return vals
 }
