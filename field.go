@@ -2,7 +2,6 @@ package srch
 
 import (
 	"encoding/json"
-	"net/url"
 	"slices"
 	"strings"
 
@@ -31,21 +30,20 @@ type Field struct {
 	items     map[string]*FacetItem `json:"-"`
 }
 
-func NewField(attr string, ft string) *Field {
+func NewField(attr string, params ...*Params) *Field {
 	f := &Field{
-		FieldType: ft,
+		FieldType: Text,
 		Sep:       ".",
 		SortBy:    "count",
 		Order:     "desc",
 		items:     make(map[string]*FacetItem),
 	}
 	parseAttr(f, attr)
-	return f
-}
 
-func CopyField(field *Field) *Field {
-	f := NewField(field.Attribute, field.FieldType)
-	f.Sep = field.Sep
+	if len(params) > 0 {
+		f.SortBy = params[0].SortFacetsBy()
+	}
+
 	return f
 }
 
@@ -130,39 +128,6 @@ func (f *Field) IsFacet() bool {
 
 func (f *Field) ListTokens() []string {
 	return lo.Keys(f.items)
-}
-
-// OldFilter applies the listed filters to the facet.
-//func (f *Field) OldFilter(filters ...string) *roaring.Bitmap {
-//  var bits []*roaring.Bitmap
-//  for _, filter := range filters {
-//    bits = append(bits, f.Search(filter))
-//  }
-//  return processBitResults(bits, f.Operator)
-//}
-
-func (f *Field) Filter(filters url.Values) *roaring.Bitmap {
-	//var bits *roaring.Bitmap
-	bits := roaring.New()
-
-	if filters.Has(AndFacet) {
-		for _, term := range filters[AndFacet] {
-			bits.And(f.Search(term))
-		}
-	}
-
-	if filters.Has(OrFacet) {
-		for _, term := range filters[OrFacet] {
-			bits.Or(f.Search(term))
-		}
-	}
-
-	if filters.Has(NotFacet) {
-		for _, term := range filters[NotFacet] {
-			bits.AndNot(f.Search(term))
-		}
-	}
-	return bits
 }
 
 func (f *Field) Search(text string) *roaring.Bitmap {

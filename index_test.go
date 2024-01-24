@@ -28,13 +28,13 @@ func TestData(t *testing.T) {
 }
 
 var testQueryNewIndex = []string{
-	"searchableAttributes=title",
+	"searchableAttributes=title&fullText",
 	"searchableAttributes=title&dataDir=testdata/data-dir",
 	"attributesForFaceting=tags,authors,series,narrators&dataFile=testdata/data-dir/audiobooks.json",
 	"searchableAttributes=title&dataFile=testdata/data-dir/audiobooks.json&attributesForFaceting=tags,authors,series,narrators",
 }
 
-var titleField = NewField(DefaultField, Fuzzy)
+var titleField = NewField(DefaultField)
 
 func TestNewIndex(t *testing.T) {
 	for i := 0; i < len(testQueryNewIndex); i++ {

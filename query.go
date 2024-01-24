@@ -17,7 +17,7 @@ const (
 	FacetAttr            = `attributesForFaceting`
 	Page                 = "page"
 	HitsPerPage          = "hitsPerPage"
-	SortFacetValuesBy    = `sortFacetValuesBy`
+	SortFacetsBy         = `sortFacetValuesBy`
 	Query                = `query`
 	ParamFacets          = "facets"
 	ParamFilters         = "filters"
@@ -103,6 +103,16 @@ func (q Params) GetSrchAttr() []string {
 	return GetQueryStringSlice(SrchAttr, q.Values)
 }
 
+func (p *Params) SortFacetsBy() string {
+	sort := "count"
+	if p.Values.Has(SortFacetsBy) {
+		if by := p.Values.Get(SortFacetsBy); by == "count" || by == "alpha" {
+			sort = by
+		}
+	}
+	return sort
+}
+
 func (q *Params) SrchAttr() []string {
 	if !q.Values.Has(SrchAttr) {
 		return []string{DefaultField}
@@ -118,16 +128,16 @@ func (q *Params) Fields() []*Field {
 	attrs := q.SrchAttr()
 	fields := make([]*Field, len(attrs))
 	for i, attr := range attrs {
-		fields[i] = NewField(attr, q.GetAnalyzer())
+		fields[i] = NewField(attr, q)
 	}
 	return fields
 }
 
-func (q Params) Facets() []*Field {
+func (q *Params) Facets() []*Field {
 	facets := q.FacetAttr()
 	fields := make([]*Field, len(facets))
 	for i, attr := range facets {
-		fields[i] = NewField(attr, OrFacet)
+		fields[i] = NewField(attr, q)
 	}
 	return fields
 }
