@@ -13,11 +13,17 @@ type Tokens struct {
 	analyzer Analyzer
 }
 
-func NewTokens() *Tokens {
-	return &Tokens{
+type Option func(*Tokens)
+
+func NewTokens(opts ...Option) *Tokens {
+	tokens := &Tokens{
 		tokens:   make(map[string]*Token),
 		analyzer: Simple{},
 	}
+	for _, opt := range opts {
+		opt(tokens)
+	}
+	return tokens
 }
 
 func (t *Tokens) SetAnalyzer(ana Analyzer) *Tokens {

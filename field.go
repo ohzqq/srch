@@ -54,7 +54,7 @@ func NewField(attr string, params ...*Params) *Field {
 
 func NewTextField(attr string, params ...*Params) *Field {
 	f := NewField(attr, params...)
-	f.tokens.SetAnalyzer(FT{})
+	f.tokens = txt.NewTokens(txt.Fulltext())
 	if len(params) > 0 {
 		f.FieldType = params[0].GetAnalyzer()
 	}
