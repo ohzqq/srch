@@ -7,7 +7,6 @@ import (
 	"github.com/RoaringBitmap/roaring"
 	"github.com/kljensen/snowball/english"
 	"github.com/samber/lo"
-	"github.com/spf13/cast"
 )
 
 type Fulltext struct {
@@ -22,13 +21,13 @@ func FullText(fields []*Field, q string) *roaring.Bitmap {
 	return processBitResults(bits, And)
 }
 
-func Tokenizer(str string) []*Token {
+func FulltextAnalyzer(str string) []*Token {
 	var tokens []string
 	var items []*Token
 	for _, token := range strings.FieldsFunc(str, NotAlphaNumeric) {
 		lower := strings.ToLower(token)
 		if !lo.Contains(stopWords, lower) {
-			items = append(items, NewFacetItem(token))
+			items = append(items, NewToken(token))
 			tokens = append(tokens, lower)
 		}
 	}
@@ -36,34 +35,6 @@ func Tokenizer(str string) []*Token {
 		items[i].Value = t
 	}
 	return items
-}
-
-func FacetTokenizer(val any) []*Token {
-	var tokens []string
-	switch v := val.(type) {
-	case string:
-		tokens = append(tokens, v)
-	default:
-		tokens = cast.ToStringSlice(v)
-	}
-	items := make([]*Token, len(tokens))
-	for i, token := range tokens {
-		items[i] = NewFacetItem(token)
-		items[i].Value = normalizeText(token)
-	}
-	return items
-}
-
-func normalizeText(token string) string {
-	fields := lowerCase(strings.Split(token, " "))
-	for t, term := range fields {
-		if len(term) == 1 {
-			fields[t] = term
-		} else {
-			fields[t] = stripNonAlphaNumeric(term)
-		}
-	}
-	return strings.Join(fields, " ")
 }
 
 func rmStopWords(tokens []string) []string {

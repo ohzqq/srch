@@ -59,7 +59,7 @@ func (f *Field) MarshalJSON() ([]byte, error) {
 		"attribute": f.Attribute,
 		"sort_by":   f.SortBy,
 		"order":     f.Order,
-		"items":     f.Items(),
+		"items":     f.Tokens(),
 	}
 
 	d, err := json.Marshal(field)
@@ -69,7 +69,7 @@ func (f *Field) MarshalJSON() ([]byte, error) {
 	return d, nil
 }
 
-func (f *Field) Items() []*Token {
+func (f *Field) Tokens() []*Token {
 	var items []*Token
 	for _, k := range f.sortedKeys() {
 		items = append(items, f.tokens[k])
@@ -78,7 +78,7 @@ func (f *Field) Items() []*Token {
 		return items
 	}
 	switch f.SortBy {
-	case "label":
+	case "alpha":
 		SortItemsByLabel(items)
 	default:
 		SortItemsByCount(items)
@@ -104,13 +104,13 @@ func (f *Field) Add(value any, ids ...any) {
 }
 
 func (f *Field) AddToFacet(value any, ids any) {
-	for _, val := range FacetTokenizer(value) {
+	for _, val := range KeywordAnalyzer(value) {
 		f.addTerm(val, cast.ToIntSlice(ids))
 	}
 }
 
 func (f *Field) AddFullText(value any, ids any) {
-	for _, token := range Tokenizer(cast.ToString(value)) {
+	for _, token := range FulltextAnalyzer(cast.ToString(value)) {
 		f.addTerm(token, cast.ToIntSlice(ids))
 	}
 }
@@ -145,7 +145,7 @@ func (f *Field) Search(text string) *roaring.Bitmap {
 	}
 
 	var bits []*roaring.Bitmap
-	for _, token := range Tokenizer(text) {
+	for _, token := range FulltextAnalyzer(text) {
 		if ids, ok := f.tokens[token.Value]; ok {
 			bits = append(bits, ids.bits)
 		}
@@ -164,7 +164,7 @@ func processBitResults(bits []*roaring.Bitmap, operator string) *roaring.Bitmap 
 
 // GetItem returns an *FacetItem.
 func (f *Field) GetItem(term string) *Token {
-	for _, item := range f.Items() {
+	for _, item := range f.Tokens() {
 		if term == item.Label {
 			return item
 		}
@@ -175,7 +175,7 @@ func (f *Field) GetItem(term string) *Token {
 // ListItems returns a string slice of all item values.
 func (f *Field) ListItems() []string {
 	var items []string
-	for _, item := range f.Items() {
+	for _, item := range f.Tokens() {
 		items = append(items, item.Label)
 	}
 	return items
@@ -186,7 +186,7 @@ func (f *Field) FuzzyFindItem(term string) []*Token {
 	matches := f.FuzzyMatches(term)
 	items := make([]*Token, len(matches))
 	for i, match := range matches {
-		item := f.Items()[match.Index]
+		item := f.Tokens()[match.Index]
 		item.Match = match
 		items[i] = item
 	}
@@ -200,12 +200,12 @@ func (f *Field) FuzzyMatches(term string) fuzzy.Matches {
 
 // String returns an Item.Value, to satisfy the fuzzy.Source interface.
 func (f *Field) String(i int) string {
-	return f.Items()[i].Label
+	return f.Tokens()[i].Label
 }
 
 // Len returns the number of items, to satisfy the fuzzy.Source interface.
 func (f *Field) Len() int {
-	return len(f.Items())
+	return len(f.Tokens())
 }
 
 func FilterFacets(fields []*Field) []*Field {

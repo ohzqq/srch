@@ -3,13 +3,43 @@ package srch
 import (
 	"encoding/json"
 	"slices"
+	"strings"
 
 	"github.com/RoaringBitmap/roaring"
 	"github.com/sahilm/fuzzy"
+	"github.com/spf13/cast"
 )
 
 type Keyword struct {
 	*Field
+}
+
+func KeywordAnalyzer(val any) []*Token {
+	var tokens []string
+	switch v := val.(type) {
+	case string:
+		tokens = append(tokens, v)
+	default:
+		tokens = cast.ToStringSlice(v)
+	}
+	items := make([]*Token, len(tokens))
+	for i, token := range tokens {
+		items[i] = NewToken(token)
+		items[i].Value = normalizeText(token)
+	}
+	return items
+}
+
+func normalizeText(token string) string {
+	fields := lowerCase(strings.Split(token, " "))
+	for t, term := range fields {
+		if len(term) == 1 {
+			fields[t] = term
+		} else {
+			fields[t] = stripNonAlphaNumeric(term)
+		}
+	}
+	return strings.Join(fields, " ")
 }
 
 func NewFacet(attr string, params ...*Params) *Field {
@@ -26,7 +56,7 @@ type Token struct {
 	fuzzy.Match `json:"-"`
 }
 
-func NewFacetItem(label string) *Token {
+func NewToken(label string) *Token {
 	return &Token{
 		Value: label,
 		Label: label,
