@@ -23,17 +23,6 @@ func FullText(fields []*Field, q string) *roaring.Bitmap {
 	return processBitResults(bits, And)
 }
 
-type FT struct{}
-type KW struct{}
-
-func (ft FT) Tokenize(str any) []*txt.Token {
-	return FulltextAnalyzer(str)
-}
-
-func (kw KW) Tokenize(str any) []*txt.Token {
-	return KeywordAnalyzer(str)
-}
-
 func FulltextAnalyzer(str any) []*txt.Token {
 	var tokens []string
 	var items []*txt.Token

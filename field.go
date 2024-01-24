@@ -7,7 +7,6 @@ import (
 	"github.com/RoaringBitmap/roaring"
 	"github.com/ohzqq/srch/txt"
 	"github.com/sahilm/fuzzy"
-	"github.com/samber/lo"
 	"github.com/spf13/viper"
 )
 
@@ -31,7 +30,6 @@ type Field struct {
 	SortBy    string
 	Order     string
 	*txt.Tokens
-	tokenz map[string]*txt.Token `json:"-"`
 }
 
 func NewField(attr string, params ...*Params) *Field {
@@ -40,7 +38,6 @@ func NewField(attr string, params ...*Params) *Field {
 		SortBy: "count",
 		Order:  "desc",
 		Tokens: txt.NewTokens(),
-		tokenz: make(map[string]*txt.Token),
 	}
 	parseAttr(f, attr)
 
@@ -48,6 +45,13 @@ func NewField(attr string, params ...*Params) *Field {
 		f.SortBy = params[0].SortFacetsBy()
 	}
 
+	return f
+}
+
+func NewFacet(attr string, params ...*Params) *Field {
+	f := NewField(attr, params...)
+	f.Tokens = txt.NewTokens(txt.Keyword())
+	f.FieldType = FacetField
 	return f
 }
 
@@ -75,10 +79,6 @@ func (f *Field) MarshalJSON() ([]byte, error) {
 	return d, nil
 }
 
-func (f *Field) IsFacet() bool {
-	return f.FieldType != Text
-}
-
 func processBitResults(bits []*roaring.Bitmap, operator string) *roaring.Bitmap {
 	switch operator {
 	case "and":
@@ -86,16 +86,6 @@ func processBitResults(bits []*roaring.Bitmap, operator string) *roaring.Bitmap 
 	default:
 		return roaring.ParOr(viper.GetInt("workers"), bits...)
 	}
-}
-
-// GetItem returns an *FacetItem.
-func (f *Field) GetItem(term string) *txt.Token {
-	return f.Tokens.GetByLabel(term)
-}
-
-// ListItems returns a string slice of all item values.
-func (f *Field) ListItems() []string {
-	return f.Tokens.GetLabels()
 }
 
 // FuzzyFindItem fuzzy finds an item's value and returns possible matches.
@@ -116,42 +106,7 @@ func (f *Field) FuzzyMatches(term string) fuzzy.Matches {
 }
 
 // String returns an Item.Value, to satisfy the fuzzy.Source interface.
-func (f *Field) String(i int) string {
-	return f.Tokens.Tokens()[i].Label
-}
-
 // Len returns the number of items, to satisfy the fuzzy.Source interface.
-func (f *Field) Len() int {
-	return f.Tokens.Len()
-}
-
-func FilterFacets(fields []*Field) []*Field {
-	return lo.Filter(fields, filterFacetFields)
-}
-
-func FilterTextFields(fields []*Field) []*Field {
-	return lo.Filter(fields, filterTextFields)
-}
-
-func SearchableFields(fields []*Field) []string {
-	f := FilterTextFields(fields)
-	return lo.Map(f, mapFieldAttr)
-}
-
-func mapFieldAttr(f *Field, _ int) string {
-	return f.Attribute
-}
-
-func filterTextFields(f *Field, _ int) bool {
-	return f.FieldType == Text ||
-		f.FieldType == Fuzzy
-}
-
-func filterFacetFields(f *Field, _ int) bool {
-	return f.FieldType == FacetField ||
-		f.FieldType == Or ||
-		f.FieldType == And
-}
 
 func parseAttr(field *Field, attr string) {
 	i := 0

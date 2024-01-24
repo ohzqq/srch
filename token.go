@@ -1,3 +1,5 @@
+//go:build exclude
+
 package srch
 
 import (
@@ -41,13 +43,6 @@ func normalizeText(token string) string {
 		}
 	}
 	return strings.Join(fields, " ")
-}
-
-func NewFacet(attr string, params ...*Params) *Field {
-	f := NewField(attr, params...)
-	f.Tokens = txt.NewTokens(txt.Keyword())
-	f.FieldType = FacetField
-	return f
 }
 
 // Token is a data structure for a Facet's item.

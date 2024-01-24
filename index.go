@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"github.com/RoaringBitmap/roaring"
-	"github.com/ohzqq/srch/txt"
 	"github.com/sahilm/fuzzy"
 	"github.com/samber/lo"
 	"github.com/spf13/cast"
@@ -70,10 +69,6 @@ func (idx *Index) Index(src []map[string]any) *Index {
 }
 
 func IndexData(data []map[string]any, fields []*Field) []*Field {
-	for _, f := range fields {
-		f.tokenz = make(map[string]*txt.Token)
-	}
-
 	for id, d := range data {
 		for i, f := range fields {
 			if val, ok := d[f.Attribute]; ok {
