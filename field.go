@@ -22,6 +22,10 @@ const (
 	FacetField = `facet`
 )
 
+type Analyzer interface {
+	Tokenize(string) []*txt.Token
+}
+
 type Field struct {
 	Attribute string `json:"attribute"`
 	Sep       string `json:"-"`
@@ -117,20 +121,6 @@ func (f *Field) AddFullText(value any, ids any) {
 	for _, token := range FulltextAnalyzer(cast.ToString(value)) {
 		//f.addTerm(token, cast.ToIntSlice(ids))
 		f.tokens.Add(token, cast.ToIntSlice(ids))
-	}
-}
-
-func (f *Field) addTerm(item *txt.Token, ids []int) {
-	if f.tokenz == nil {
-		f.tokenz = make(map[string]*txt.Token)
-	}
-	if _, ok := f.tokenz[item.Value]; !ok {
-		f.tokenz[item.Value] = item
-	}
-	for _, id := range ids {
-		if !f.tokenz[item.Value].Bitmap().ContainsInt(id) {
-			f.tokenz[item.Value].Bitmap().AddInt(id)
-		}
 	}
 }
 
