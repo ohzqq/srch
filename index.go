@@ -140,9 +140,9 @@ func (idx *Index) Filter(q string) *Response {
 }
 
 func (idx *Index) Sort() {
-	sortDataByField(idx.Data, idx.Params.Values.Get("sort_by"))
-	if idx.Params.Values.Has("order") {
-		if idx.Params.Values.Get("order") == "desc" {
+	sortDataByField(idx.Data, idx.Params.Values.Get(SortBy))
+	if idx.Params.Values.Has(Order) {
+		if idx.Params.Values.Get(Order) == "desc" {
 			slices.Reverse(idx.Data)
 		}
 	}

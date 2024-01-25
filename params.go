@@ -29,6 +29,8 @@ const (
 	NbHits               = `nbHits`
 	NbPages              = `nbPages`
 	DefaultField         = `title`
+	SortBy               = `sortBy`
+	Order                = `order`
 )
 
 type Params struct {

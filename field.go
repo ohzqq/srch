@@ -4,10 +4,8 @@ import (
 	"encoding/json"
 	"strings"
 
-	"github.com/RoaringBitmap/roaring"
 	"github.com/ohzqq/srch/txt"
 	"github.com/sahilm/fuzzy"
-	"github.com/spf13/viper"
 )
 
 const (
@@ -57,15 +55,6 @@ func (f *Field) MarshalJSON() ([]byte, error) {
 		return nil, err
 	}
 	return d, nil
-}
-
-func processBitResults(bits []*roaring.Bitmap, operator string) *roaring.Bitmap {
-	switch operator {
-	case "and":
-		return roaring.ParAnd(viper.GetInt("workers"), bits...)
-	default:
-		return roaring.ParOr(viper.GetInt("workers"), bits...)
-	}
 }
 
 // FuzzyFindItem fuzzy finds an item's value and returns possible matches.

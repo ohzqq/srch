@@ -39,12 +39,6 @@ func (t *Tokens) Search(val any) *roaring.Bitmap {
 			bits = append(bits, token.Bitmap())
 		}
 	}
-
-	//for _, val := range vals {
-	//  if token, ok := t.tokens[val]; ok {
-	//    bits = append(bits, token.Bitmap())
-	//  }
-	//}
 	return roaring.ParAnd(viper.GetInt("workers"), bits...)
 }
 
