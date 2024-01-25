@@ -16,6 +16,23 @@ var (
 	dataFiles []string
 )
 
+type flag int
+
+const (
+	Facet flag = iota
+	Dir
+	Index
+	JSON
+	UI
+	Browse
+	Refine
+	Filter
+	Text
+	Query
+	Params
+	Search
+)
+
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "srch -f file... | -d dir | -i string [flags]",
@@ -52,8 +69,8 @@ By default, results are printed to stdout as json.
 			if err != nil {
 				log.Fatal(err)
 			}
-			if q.Has("q") {
-				keywords = q.Get("q")
+			if q.Has(srch.Query) {
+				keywords = q.Get(srch.Query)
 			}
 		}
 
