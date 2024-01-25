@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"github.com/ohzqq/srch/txt"
-	"github.com/samber/lo"
 	"github.com/spf13/cast"
 )
 
@@ -33,13 +32,22 @@ const (
 	DefaultField         = `title`
 	SortBy               = `sortBy`
 	Order                = `order`
+
+	TextAnalyzer    = "text"
+	KeywordAnalyzer = "keyword"
 )
 
 type Params struct {
 	Values url.Values
 }
 
-func NewQuery(params any) *Params {
+func NewParams() *Params {
+	return &Params{
+		Values: make(url.Values),
+	}
+}
+
+func ParseParams(params any) *Params {
 	q := ParseQuery(params)
 	p := &Params{
 		Values: q,
@@ -69,10 +77,6 @@ func (p *Params) Merge(queries ...*Params) {
 			}
 		}
 	}
-}
-
-func (p *Params) AllFields() []string {
-	return lo.Union(p.SrchAttr(), p.FacetAttr())
 }
 
 func (p Params) FieldIsSearchable(attr string) bool {
@@ -131,9 +135,9 @@ func (p Params) GetFacetFilters() (*Filters, error) {
 }
 
 func (p *Params) SortFacetsBy() string {
-	sort := "count"
+	sort := SortByCount
 	if p.Values.Has(SortFacetsBy) {
-		if by := p.Values.Get(SortFacetsBy); by == "count" || by == "alpha" {
+		if by := p.Values.Get(SortFacetsBy); by == SortByCount || by == SortByAlpha {
 			sort = by
 		}
 	}
@@ -168,9 +172,9 @@ func (p Params) Query() string {
 
 func (p Params) GetAnalyzer() string {
 	if p.Values.Has(ParamFullText) {
-		return Text
+		return TextAnalyzer
 	}
-	return Keyword
+	return KeywordAnalyzer
 }
 
 func (p Params) MarshalJSON() ([]byte, error) {

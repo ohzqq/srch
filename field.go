@@ -9,8 +9,6 @@ import (
 )
 
 const (
-	Text        = "text"
-	Keyword     = "keyword"
 	Or          = "or"
 	And         = "and"
 	Not         = `not`

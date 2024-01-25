@@ -88,8 +88,8 @@ func TestFullTextSearch(t *testing.T) {
 		t.Error(err)
 	}
 
-	if ana := idx.GetAnalyzer(); ana != Text {
-		t.Errorf("get %s, expected %s\n", ana, Text)
+	if ana := idx.GetAnalyzer(); ana != TextAnalyzer {
+		t.Errorf("get %s, expected %s\n", ana, TextAnalyzer)
 	}
 
 	vals := make(url.Values)

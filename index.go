@@ -49,7 +49,7 @@ func New(settings any) (*Index, error) {
 }
 
 func newIndex(settings any) *Index {
-	params := NewQuery(settings)
+	params := ParseParams(settings)
 	return &Index{
 		Params: params,
 		fields: params.Fields(),
@@ -65,7 +65,7 @@ func (idx *Index) Index(src []map[string]any) *Index {
 	}
 
 	for id, d := range idx.Data {
-		if idx.GetAnalyzer() == Text {
+		if idx.GetAnalyzer() == TextAnalyzer {
 			for i, attr := range idx.SrchAttr() {
 				if val, ok := d[attr]; ok {
 					idx.fields[i].Add(val, []int{id})
@@ -92,14 +92,14 @@ func (idx *Index) FullText(q string) *roaring.Bitmap {
 
 func (idx *Index) Search(params string) *Response {
 	idx.res = idx.Bitmap()
-	q := NewQuery(params)
+	q := ParseParams(params)
 	idx.Params.Merge(q)
 
 	if query := q.Query(); query != "" {
 		switch idx.Params.GetAnalyzer() {
-		case Text:
+		case TextAnalyzer:
 			idx.res.And(idx.FullText(query))
-		case Keyword:
+		case KeywordAnalyzer:
 			idx.res.And(idx.FuzzySearch(query))
 		}
 	}

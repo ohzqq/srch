@@ -59,7 +59,7 @@ func TestFiltering(t *testing.T) {
 	totalBooksErr(idx.Len(), test)
 
 	for q, want := range testSearchQueryStrings() {
-		req := NewQuery(q)
+		req := ParseParams(q)
 		if req.HasFilters() {
 			ids, err := Filter(idx.Bitmap(), idx.facets, q)
 			if err != nil {
