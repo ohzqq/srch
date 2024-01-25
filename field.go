@@ -2,6 +2,7 @@ package srch
 
 import (
 	"encoding/json"
+	"slices"
 	"strings"
 
 	"github.com/ohzqq/srch/txt"
@@ -83,5 +84,39 @@ func parseAttr(field *Field, attr string) {
 			field.Order = a
 		}
 		i++
+	}
+}
+
+func SortItemsByCount(items []*txt.Token) []*txt.Token {
+	slices.SortStableFunc(items, SortByCountFunc)
+	return items
+}
+
+func SortItemsByLabel(items []*txt.Token) []*txt.Token {
+	slices.SortStableFunc(items, SortByLabelFunc)
+	return items
+}
+
+func SortByCountFunc(a *txt.Token, b *txt.Token) int {
+	aC := a.Count()
+	bC := b.Count()
+	switch {
+	case aC < bC:
+		return 1
+	case aC == bC:
+		return 0
+	default:
+		return -1
+	}
+}
+
+func SortByLabelFunc(a *txt.Token, b *txt.Token) int {
+	switch {
+	case a.Label > b.Label:
+		return 1
+	case a.Label == b.Label:
+		return 0
+	default:
+		return -1
 	}
 }

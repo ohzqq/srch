@@ -2,7 +2,6 @@ package txt
 
 import (
 	"encoding/json"
-	"slices"
 
 	"github.com/RoaringBitmap/roaring"
 	"github.com/sahilm/fuzzy"
@@ -152,38 +151,4 @@ func (f *Token) MarshalJSON() ([]byte, error) {
 		return nil, err
 	}
 	return d, nil
-}
-
-func SortItemsByCount(items []*Token) []*Token {
-	slices.SortStableFunc(items, SortByCountFunc)
-	return items
-}
-
-func SortItemsByLabel(items []*Token) []*Token {
-	slices.SortStableFunc(items, SortByLabelFunc)
-	return items
-}
-
-func SortByCountFunc(a *Token, b *Token) int {
-	aC := a.Count()
-	bC := b.Count()
-	switch {
-	case aC < bC:
-		return 1
-	case aC == bC:
-		return 0
-	default:
-		return -1
-	}
-}
-
-func SortByLabelFunc(a *Token, b *Token) int {
-	switch {
-	case a.Label > b.Label:
-		return 1
-	case a.Label == b.Label:
-		return 0
-	default:
-		return -1
-	}
 }
