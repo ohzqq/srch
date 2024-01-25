@@ -9,10 +9,8 @@ import (
 	"github.com/spf13/cast"
 )
 
-func Fulltext() Option {
-	return func(tokens *Tokens) {
-		tokens.analyzer = fulltext{}
-	}
+func Fulltext() Analyzer {
+	return fulltext{}
 }
 
 type fulltext struct{}

@@ -25,12 +25,12 @@ type Field struct {
 	*txt.Tokens
 }
 
-func NewField(attr string, opts ...txt.Option) *Field {
+func NewField(attr string) *Field {
 	f := &Field{
 		Sep:    ".",
 		SortBy: "count",
 		Order:  "desc",
-		Tokens: txt.NewTokens(opts...),
+		Tokens: txt.NewTokens(),
 	}
 	parseAttr(f, attr)
 

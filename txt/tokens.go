@@ -19,15 +19,10 @@ type Tokens struct {
 	analyzer Analyzer
 }
 
-type Option func(*Tokens)
-
-func NewTokens(opts ...Option) *Tokens {
+func NewTokens() *Tokens {
 	tokens := &Tokens{
 		tokens:   make(map[string]*Token),
 		analyzer: Simple{},
-	}
-	for _, opt := range opts {
-		opt(tokens)
 	}
 	return tokens
 }

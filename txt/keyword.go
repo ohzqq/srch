@@ -4,11 +4,15 @@ import (
 	"github.com/spf13/cast"
 )
 
-func Keyword() Option {
-	return func(tokens *Tokens) {
-		tokens.analyzer = keyword{}
-	}
+func Keyword() Analyzer {
+	return keyword{}
 }
+
+//func Keyword() Option {
+//  return func(tokens *Tokens) {
+//    tokens.analyzer = keyword{}
+//  }
+//}
 
 type keyword struct{}
 
