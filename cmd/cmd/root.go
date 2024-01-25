@@ -12,27 +12,6 @@ import (
 	"github.com/spf13/viper"
 )
 
-var (
-	dataFiles []string
-)
-
-type flag int
-
-const (
-	Facet flag = iota
-	Dir
-	Index
-	JSON
-	UI
-	Browse
-	Refine
-	Filter
-	Text
-	Query
-	Params
-	Search
-)
-
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "srch -f file... | -d dir | -i string [flags]",
@@ -59,8 +38,8 @@ By default, results are printed to stdout as json.
 			data     []map[string]any
 		)
 
-		if cmd.Flags().Changed("query") {
-			query, err := cmd.Flags().GetString("query")
+		if cmd.Flags().Changed(P.Long()) {
+			query, err := cmd.Flags().GetString(P.Long())
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -74,8 +53,8 @@ By default, results are printed to stdout as json.
 			}
 		}
 
-		if cmd.Flags().Changed("search") {
-			keywords, err = cmd.Flags().GetString("search")
+		if cmd.Flags().Changed(Q.Long()) {
+			keywords, err = cmd.Flags().GetString(Q.Long())
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -101,8 +80,8 @@ By default, results are printed to stdout as json.
 			}
 		}
 
-		if cmd.Flags().Changed("filter") {
-			filters, err := cmd.Flags().GetStringSlice("filter")
+		if cmd.Flags().Changed(R.Long()) {
+			filters, err := cmd.Flags().GetStringSlice(R.Long())
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -114,8 +93,8 @@ By default, results are printed to stdout as json.
 			}
 		}
 
-		if cmd.Flags().Changed("text") {
-			fields, err := cmd.Flags().GetStringSlice("text")
+		if cmd.Flags().Changed(S.Long()) {
+			fields, err := cmd.Flags().GetStringSlice(S.Long())
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -130,8 +109,8 @@ By default, results are printed to stdout as json.
 		}
 
 		switch {
-		case cmd.Flags().Changed("dir"):
-			dir, err := cmd.Flags().GetString("dir")
+		case cmd.Flags().Changed(D.Long()):
+			dir, err := cmd.Flags().GetString(D.Long())
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -139,8 +118,12 @@ By default, results are printed to stdout as json.
 			if err != nil {
 				log.Fatal(err)
 			}
-		case len(dataFiles) > 0:
-			data, err = srch.FileSrc(dataFiles...)
+		case cmd.Flags().Changed(I.Long()):
+			files, err := cmd.Flags().GetStringSlice(I.Long())
+			if err != nil {
+				log.Fatal(err)
+			}
+			data, err = srch.FileSrc(files...)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -195,31 +178,6 @@ func Execute() {
 
 func init() {
 	cobra.OnInitialize(initConfig)
-
-	rootCmd.PersistentFlags().StringSliceVarP(&dataFiles, "index", "i", []string{}, "list of data files to index")
-	rootCmd.PersistentFlags().StringP("dir", "d", "", "directory of data files")
-	rootCmd.PersistentFlags().StringP("json", "j", "", "json formatted input")
-
-	//rootCmd.MarkFlagsOneRequired("index", "dir", "json")
-	rootCmd.MarkFlagsMutuallyExclusive("index", "dir", "json")
-	rootCmd.MarkPersistentFlagDirname("dir")
-	rootCmd.MarkPersistentFlagFilename("index", ".json")
-
-	rootCmd.PersistentFlags().Bool("ui", false, "select results in a tui")
-	rootCmd.PersistentFlags().BoolP("browse", "b", false, "browse results in a tui")
-
-	rootCmd.PersistentFlags().StringSliceP("filter", "f", []string{}, "facet filters")
-	rootCmd.PersistentFlags().StringSliceP("text", "t", []string{}, "text fields")
-	rootCmd.PersistentFlags().StringP("query", "q", "", "encoded query/filter string (eg. color=red&color=pink&category=post")
-	rootCmd.PersistentFlags().StringP("search", "s", "", "search index")
-	rootCmd.PersistentFlags().StringSliceP("or", "o", []string{}, "disjunctive facets")
-	rootCmd.PersistentFlags().StringSliceP("and", "a", []string{}, "conjunctive facets")
-
-	rootCmd.PersistentFlags().Bool("pretty", false, "pretty print json output")
-
-	rootCmd.PersistentFlags().IntP("workers", "w", 1, "number of workers for computing facets")
-	viper.BindPFlag("workers", rootCmd.Flags().Lookup("workers"))
-
 }
 
 func initConfig() {
