@@ -68,17 +68,6 @@ func TestFuzzyFieldSearch(t *testing.T) {
 	if total := facet.Len(); total != len(facet.GetLabels()) {
 		t.Errorf("got %d, expected %d\n", len(facet.GetLabels()), facet.Len())
 	}
-	//tokens := facet.GetTokens()
-	//for i := 0; i < 5; i++ {
-	//  token := tokens[i]
-	//  fmt.Printf("token val: %s\ntokens val %s\n", token.Value, facet.Tokens.Labels[i])
-	//}
-
-	//matches := facet.Search("amy lne")
-	//println(len(matches))
-
-	//res := facet.Find("amy lne")
-	//println(len(res))
 }
 
 func TestFullTextSearch(t *testing.T) {
@@ -99,11 +88,6 @@ func TestFullTextSearch(t *testing.T) {
 	if h := res.NbHits(); h != 8 {
 		t.Errorf("get %d, expected %d\n", h, 8)
 	}
-	//idx.Index(books)
-	//res := idx.SearchIndex("fish")
-	//if len(res.Data) != 8 {
-	//t.Errorf("got %d, expected 8\n", len(res.Data))
-	//}
 }
 
 func parseValueTest(t *testing.T, q string) {
