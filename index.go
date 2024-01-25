@@ -87,14 +87,14 @@ func IndexData(data []map[string]any, params *Params) *Index {
 
 	for id, d := range idx.Data {
 		if idx.GetAnalyzer() == Text {
-			for i, f := range idx.fFields {
-				if val, ok := d[f.Attribute]; ok {
+			for i, attr := range idx.SrchAttr() {
+				if val, ok := d[attr]; ok {
 					idx.fFields[i].Add(val, []int{id})
 				}
 			}
 		}
-		for i, f := range idx.facFields {
-			if val, ok := d[f.Attribute]; ok {
+		for i, attr := range idx.FacetAttr() {
+			if val, ok := d[attr]; ok {
 				idx.facFields[i].Add(val, []int{id})
 			}
 		}

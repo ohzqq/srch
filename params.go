@@ -4,10 +4,12 @@ import (
 	"encoding/json"
 	"errors"
 	"net/url"
+	"slices"
 	"strconv"
 	"strings"
 
 	"github.com/ohzqq/srch/txt"
+	"github.com/samber/lo"
 	"github.com/spf13/cast"
 )
 
@@ -69,14 +71,19 @@ func (p *Params) Merge(queries ...*Params) {
 	}
 }
 
-//func (p *Params) AllFields() []string {
-//}
+func (p *Params) AllFields() []string {
+	return lo.Union(p.SrchAttr(), p.FacetAttr())
+}
+
+func (p Params) FieldIsSearchable(attr string) bool {
+	return slices.Contains(p.SrchAttr(), attr)
+}
 
 func (p *Params) NewField(attr string) *Field {
 	f := NewField(attr)
 	f.SetAnalyzer(txt.Keyword())
 
-	if p.IsFullText() {
+	if p.IsFullText() && p.FieldIsSearchable(attr) {
 		f.SetAnalyzer(txt.Fulltext())
 	}
 
