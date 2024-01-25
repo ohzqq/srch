@@ -1,30 +1,32 @@
-package srch
+package txt
 
 import (
 	"strings"
 	"unicode"
 
-	"github.com/RoaringBitmap/roaring"
 	"github.com/kljensen/snowball/english"
 	"github.com/samber/lo"
+	"github.com/spf13/cast"
 )
 
-type Fulltext struct {
-	*Field
+func Fulltext() Analyzer {
+	return fulltext{}
 }
 
-func FullText(fields []*Field, q string) *roaring.Bitmap {
-	var bits []*roaring.Bitmap
-	for _, field := range fields {
-		bits = append(bits, field.Search(q))
-	}
-	return processBitResults(bits, And)
+type fulltext struct{}
+
+func (ft fulltext) Tokenize(val any) []*Token {
+	return FulltextTokenizer(val)
 }
 
-func FulltextAnalyzer(str string) []*Token {
+func (ft fulltext) Search(text string) []*Token {
+	return FulltextTokenizer(text)
+}
+
+func FulltextTokenizer(str any) []*Token {
 	var tokens []string
 	var items []*Token
-	for _, token := range strings.FieldsFunc(str, NotAlphaNumeric) {
+	for _, token := range strings.FieldsFunc(cast.ToString(str), NotAlphaNumeric) {
 		lower := strings.ToLower(token)
 		if !lo.Contains(stopWords, lower) {
 			items = append(items, NewToken(token))
@@ -60,14 +62,6 @@ func stripNonAlphaNumeric(token string) string {
 		}
 	}
 	return string(s[:n])
-}
-
-func lowerCase(tokens []string) []string {
-	lower := make([]string, len(tokens))
-	for i, str := range tokens {
-		lower[i] = strings.ToLower(str)
-	}
-	return lower
 }
 
 func NotAlphaNumeric(c rune) bool {

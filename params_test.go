@@ -92,7 +92,7 @@ var testParsedParams = []*Params{
 
 func TestParseQueryStrings(t *testing.T) {
 	for i, q := range testQuerySettings {
-		p := NewQuery(q)
+		p := ParseParams(q)
 		want := testParsedParams[i]
 		if err := settingsErr(p, want); err != nil {
 			t.Error(err)

@@ -55,6 +55,21 @@ func TestFuzzySearch(t *testing.T) {
 	}
 }
 
+func TestFuzzyFieldSearch(t *testing.T) {
+	//t.SkipNow()
+	test := "searchableAttributes=title&attributesForFaceting=tags,authors,series&dataFile=testdata/data-dir/audiobooks.json"
+	idx, err := New(test)
+	if err != nil {
+		t.Error(err)
+	}
+	totalBooksErr(idx.Len(), test)
+
+	facet := idx.GetFacet("authors")
+	if total := facet.Len(); total != len(facet.GetLabels()) {
+		t.Errorf("got %d, expected %d\n", len(facet.GetLabels()), facet.Len())
+	}
+}
+
 func TestFullTextSearch(t *testing.T) {
 	test := "searchableAttributes=title&attributesForFaceting=tags&fullText&dataFile=testdata/data-dir/audiobooks.json"
 	idx, err := New(test)
@@ -62,8 +77,8 @@ func TestFullTextSearch(t *testing.T) {
 		t.Error(err)
 	}
 
-	if ana := idx.GetAnalyzer(); ana != Text {
-		t.Errorf("get %s, expected %s\n", ana, Text)
+	if ana := idx.GetAnalyzer(); ana != TextAnalyzer {
+		t.Errorf("get %s, expected %s\n", ana, TextAnalyzer)
 	}
 
 	vals := make(url.Values)
@@ -73,11 +88,6 @@ func TestFullTextSearch(t *testing.T) {
 	if h := res.NbHits(); h != 8 {
 		t.Errorf("get %d, expected %d\n", h, 8)
 	}
-	//idx.Index(books)
-	//res := idx.SearchIndex("fish")
-	//if len(res.Data) != 8 {
-	//t.Errorf("got %d, expected 8\n", len(res.Data))
-	//}
 }
 
 func parseValueTest(t *testing.T, q string) {

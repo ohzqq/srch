@@ -34,17 +34,17 @@ func filterFields(bits *roaring.Bitmap, fields []*Field, query string) (*roaring
 	for _, facet := range fields {
 		if filters.Dis.Has(facet.Attribute) {
 			for _, or := range filters.Dis[facet.Attribute] {
-				bits.Or(facet.Search(or))
+				bits.Or(facet.Filter(or))
 			}
 		}
 		if filters.Con.Has(facet.Attribute) {
 			for _, a := range filters.Con[facet.Attribute] {
-				bits.And(facet.Search(a))
+				bits.And(facet.Filter(a))
 			}
 		}
 		if filters.Neg.Has(facet.Attribute) {
 			for _, not := range filters.Neg[facet.Attribute] {
-				bits.AndNot(facet.Search(not))
+				bits.AndNot(facet.Filter(not))
 			}
 		}
 	}
