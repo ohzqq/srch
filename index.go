@@ -93,7 +93,7 @@ func (idx *Index) FullText(q string) *roaring.Bitmap {
 func (idx *Index) Search(params string) *Response {
 	idx.res = idx.Bitmap()
 	q := ParseParams(params)
-	idx.Params.Merge(q)
+	//idx.Params.Merge(q)
 
 	if query := q.Query(); query != "" {
 		switch idx.Params.GetAnalyzer() {
@@ -213,6 +213,10 @@ func (idx *Index) UnmarshalJSON(d []byte) error {
 	}
 
 	return nil
+}
+
+func (idx *Index) MarshalJSON() ([]byte, error) {
+	return json.Marshal(idx.StringMap())
 }
 
 func (idx *Index) StringMap() map[string]any {

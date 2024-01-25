@@ -7,7 +7,6 @@ import (
 
 	"github.com/ohzqq/srch"
 	"github.com/ohzqq/srch/ui"
-	"github.com/samber/lo"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -31,104 +30,29 @@ By default, results are printed to stdout as json.
 		log.SetFlags(log.Lshortfile)
 
 		var (
-			err      error
-			keywords string
-			q        = make(url.Values)
-			idx      *srch.Index
-			data     []map[string]any
+			err  error
+			q    = make(url.Values)
+			data []map[string]any
+			res  *srch.Response
 		)
 
-		if cmd.Flags().Changed(P.Long()) {
-			query, err := cmd.Flags().GetString(P.Long())
-			if err != nil {
-				log.Fatal(err)
-			}
-			q = srch.ParseQuery(query)
-			idx, err = srch.New(q)
-			if err != nil {
-				log.Fatal(err)
-			}
-			if q.Has(srch.Query) {
-				keywords = q.Get(srch.Query)
-			}
-		}
-
-		if cmd.Flags().Changed(Q.Long()) {
-			keywords, err = cmd.Flags().GetString(Q.Long())
-			if err != nil {
-				log.Fatal(err)
-			}
-		}
-
-		if cmd.Flags().Changed("or") {
-			or, err := cmd.Flags().GetStringSlice("or")
-			if err != nil {
-				log.Fatal(err)
-			}
-			for _, o := range or {
-				q.Add("or", o)
-			}
-		}
-
-		if cmd.Flags().Changed("and") {
-			and, err := cmd.Flags().GetStringSlice("and")
-			if err != nil {
-				log.Fatal(err)
-			}
-			for _, o := range and {
-				q.Add("and", o)
-			}
-		}
-
-		if cmd.Flags().Changed(R.Long()) {
-			filters, err := cmd.Flags().GetStringSlice(R.Long())
-			if err != nil {
-				log.Fatal(err)
-			}
-			filter := srch.ParseQuery(lo.ToAnySlice(filters)...)
-			for k, vals := range filter {
-				for _, v := range vals {
-					q.Add(k, v)
-				}
-			}
-		}
-
-		if cmd.Flags().Changed(S.Long()) {
-			fields, err := cmd.Flags().GetStringSlice(S.Long())
-			if err != nil {
-				log.Fatal(err)
-			}
-			for _, f := range fields {
-				q.Add("field", f)
-			}
-		}
-
-		idx, err = srch.New(q)
+		vals := FlagsToParams(cmd.Flags())
+		idx, err := srch.New(vals)
 		if err != nil {
 			log.Fatal(err)
 		}
+		println(idx.Len())
+
+		if cmd.Flags().Changed(Q.Long()) {
+			//kw := Q.GetString(cmd.Flags())
+			res = idx.Search(vals.Encode())
+			println(res.Len())
+		}
+		return
 
 		switch {
-		case cmd.Flags().Changed(D.Long()):
-			dir, err := cmd.Flags().GetString(D.Long())
-			if err != nil {
-				log.Fatal(err)
-			}
-			data, err = srch.DirSrc(dir)
-			if err != nil {
-				log.Fatal(err)
-			}
-		case cmd.Flags().Changed(I.Long()):
-			files, err := cmd.Flags().GetStringSlice(I.Long())
-			if err != nil {
-				log.Fatal(err)
-			}
-			data, err = srch.FileSrc(files...)
-			if err != nil {
-				log.Fatal(err)
-			}
-		case cmd.Flags().Changed("json"):
-			j, err := cmd.Flags().GetString("json")
+		case cmd.Flags().Changed(J.Long()):
+			j, err := cmd.Flags().GetString(J.Long())
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -136,33 +60,37 @@ By default, results are printed to stdout as json.
 			if err != nil {
 				log.Fatal(err)
 			}
+			idx = idx.Index(data)
 		default:
-			in := cmd.InOrStdin()
-			data, err = srch.ReaderSrc(in)
-			if err != nil {
-				log.Fatal(err)
-			}
+			//in := cmd.InOrStdin()
+			//data, err = srch.ReaderSrc(in)
+			//if err != nil {
+			//log.Fatal(err)
+			//}
 		}
 
-		var res *srch.Response
-		if cmd.Flags().Changed("browse") {
+		if cmd.Flags().Changed(B.Long()) {
 			tui := ui.Browse(q, data)
 			idx, err = tui.Run()
 			if err != nil {
 				log.Fatal(err)
 			}
 		} else {
-			idx = res.Index.Index(data)
-
-			if keywords != "" {
-				res = idx.Search(keywords)
+			//idx = res.Index.Index(data)
+			if res != nil {
+				idx = res.Index
 			}
+
+			//if keywords != "" {
+			//res = idx.Search(keywords)
+			//}
 		}
 
 		if p, err := cmd.Flags().GetBool("pretty"); err == nil && p {
 			idx.PrettyPrint()
 		} else {
 			idx.Print()
+			println(res.Len())
 		}
 	},
 }

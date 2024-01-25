@@ -1,6 +1,12 @@
 package cmd
 
 import (
+	"encoding/json"
+	"log"
+	"net/url"
+
+	"github.com/ohzqq/srch"
+	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
 
@@ -8,16 +14,18 @@ type flag int
 
 //go:generate stringer -type flag -linecomment
 const (
-	B flag = iota // browse
+	A flag = iota // and
+	B             // browse
 	D             // dir
 	F             // facet
 	I             // index
 	J             // json
+	O             // or
 	P             // params
 	Q             // query
 	R             // refine
 	S             // search
-	T             // text
+	T             // fullText
 	W             // workers
 	U             // ui
 )
@@ -28,6 +36,119 @@ func (f flag) Short() string {
 
 func (f flag) Long() string {
 	return f.String()
+}
+
+func (f flag) Param() string {
+	switch f {
+	case A:
+	case O:
+	case B:
+	case D:
+		return srch.DataDir
+	case F:
+		return srch.FacetAttr
+	case I:
+		return srch.DataFile
+	case J:
+	case P:
+	case Q:
+		return srch.Query
+	case R:
+	case S:
+		return srch.SrchAttr
+	case T:
+		return srch.ParamFullText
+	case W:
+	case U:
+	}
+	return ""
+}
+
+var allFlags = []flag{
+	A,
+	B,
+	D,
+	F,
+	I,
+	J,
+	O,
+	P,
+	Q,
+	R,
+	S,
+	T,
+	W,
+	U,
+}
+
+func (f flag) GetSlice(flags *pflag.FlagSet) []string {
+	and, err := flags.GetStringSlice(f.Long())
+	if err != nil {
+		return []string{}
+	}
+	return and
+}
+
+func (f flag) GetString(flags *pflag.FlagSet) string {
+	and, err := flags.GetString(f.Long())
+	if err != nil {
+		return ""
+	}
+	return and
+}
+
+func getSlice(flags *pflag.FlagSet, long string) []string {
+	and, err := flags.GetStringSlice(long)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return and
+}
+
+func getString(flags *pflag.FlagSet, long string) string {
+	and, err := flags.GetString(long)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return and
+}
+
+func FlagsToParams(flags *pflag.FlagSet) url.Values {
+	params := make(url.Values)
+	var filters []any
+	for _, flag := range allFlags {
+		long := flag.Long()
+		param := flag.Param()
+
+		if !flags.Changed(long) {
+			continue
+		}
+
+		switch flag {
+		case A:
+			for _, a := range flag.GetSlice(flags) {
+				filters = append(filters, a)
+			}
+		case O:
+			filters = append(filters, flag.GetSlice(flags))
+		case F, I, S:
+			params[param] = flag.GetSlice(flags)
+		case P:
+			params = srch.ParseQuery(flag.GetString(flags))
+		case Q, D, T:
+			params.Set(param, flag.GetString(flags))
+		}
+	}
+
+	if len(filters) > 0 {
+		d, err := json.Marshal(filters)
+		if err != nil {
+			log.Fatal(err)
+		}
+		params.Set(srch.FacetFilters, string(d))
+	}
+
+	return params
 }
 
 func init() {
@@ -74,8 +195,8 @@ func init() {
 
 	rootCmd.PersistentFlags().
 		StringSliceP(
-			R.Long(),
-			R.Short(),
+			F.Long(),
+			F.Short(),
 			[]string{},
 			"facet filters",
 		)
@@ -102,15 +223,15 @@ func init() {
 		)
 	rootCmd.PersistentFlags().
 		StringSliceP(
-			"or",
-			"o",
+			O.Long(),
+			O.Short(),
 			[]string{},
 			"disjunctive facets",
 		)
 	rootCmd.PersistentFlags().
 		StringSliceP(
-			"and",
-			"a",
+			A.Long(),
+			A.Short(),
 			[]string{},
 			"conjunctive facets",
 		)

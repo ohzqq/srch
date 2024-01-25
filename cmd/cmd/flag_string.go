@@ -8,23 +8,25 @@ func _() {
 	// An "invalid array index" compiler error signifies that the constant values have changed.
 	// Re-run the stringer command to generate them again.
 	var x [1]struct{}
-	_ = x[B-0]
-	_ = x[D-1]
-	_ = x[F-2]
-	_ = x[I-3]
-	_ = x[J-4]
-	_ = x[P-5]
-	_ = x[Q-6]
-	_ = x[R-7]
-	_ = x[S-8]
-	_ = x[T-9]
-	_ = x[W-10]
-	_ = x[U-11]
+	_ = x[A-0]
+	_ = x[B-1]
+	_ = x[D-2]
+	_ = x[F-3]
+	_ = x[I-4]
+	_ = x[J-5]
+	_ = x[O-6]
+	_ = x[P-7]
+	_ = x[Q-8]
+	_ = x[R-9]
+	_ = x[S-10]
+	_ = x[T-11]
+	_ = x[W-12]
+	_ = x[U-13]
 }
 
-const _flag_name = "browsedirfacetindexjsonparamsqueryrefinesearchtextworkersui"
+const _flag_name = "andbrowsedirfacetindexjsonorparamsqueryrefinesearchfullTextworkersui"
 
-var _flag_index = [...]uint8{0, 6, 9, 14, 19, 23, 29, 34, 40, 46, 50, 57, 59}
+var _flag_index = [...]uint8{0, 3, 9, 12, 17, 22, 26, 28, 34, 39, 45, 51, 59, 66, 68}
 
 func (i flag) String() string {
 	if i < 0 || i >= flag(len(_flag_index)-1) {
