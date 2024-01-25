@@ -68,10 +68,11 @@ func (p *Params) Merge(queries ...*Params) {
 }
 
 func (p *Params) NewField(attr string) *Field {
-	f := NewField(attr)
+	opts := []txt.Option{txt.Keyword()}
 	if p.IsFullText() {
-		f.Tokens = txt.NewTokens(txt.Fulltext())
+		opts[0] = txt.Fulltext()
 	}
+	f := NewField(attr, opts...)
 	f.SortBy = p.SortFacetsBy()
 	return f
 }

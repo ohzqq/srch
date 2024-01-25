@@ -17,10 +17,6 @@ const (
 	FacetField = `facet`
 )
 
-type Analyzer interface {
-	Tokenize(string) []*txt.Token
-}
-
 type Field struct {
 	Attribute string `json:"attribute"`
 	Sep       string `json:"-"`
@@ -30,9 +26,6 @@ type Field struct {
 }
 
 func NewField(attr string, opts ...txt.Option) *Field {
-	if len(opts) == 0 {
-		opts = append(opts, txt.Keyword())
-	}
 	f := &Field{
 		Sep:    ".",
 		SortBy: "count",
