@@ -83,7 +83,7 @@ func IndexData(data []map[string]any, fields []*Field) []*Field {
 func (idx *Index) FullText(q string) *roaring.Bitmap {
 	var bits []*roaring.Bitmap
 	for _, field := range idx.SearchableFields() {
-		bits = append(bits, field.Search(q))
+		bits = append(bits, field.Filter(q))
 	}
 	return roaring.ParAnd(viper.GetInt("workers"), bits...)
 }

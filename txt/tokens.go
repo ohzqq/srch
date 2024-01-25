@@ -5,11 +5,13 @@ import (
 	"slices"
 
 	"github.com/RoaringBitmap/roaring"
+	"github.com/sahilm/fuzzy"
 	"github.com/spf13/viper"
 )
 
 type Tokens struct {
 	tokens   map[string]*Token
+	Labels   []string
 	analyzer Analyzer
 }
 
@@ -31,21 +33,50 @@ func (t *Tokens) SetAnalyzer(ana Analyzer) *Tokens {
 	return t
 }
 
-func (t *Tokens) Search(val any) *roaring.Bitmap {
-	var bits []*roaring.Bitmap
-
-	for _, tok := range t.Tokenize(val) {
-		if token, ok := t.tokens[tok.Value]; ok {
-			bits = append(bits, token.Bitmap())
-		}
+func (t *Tokens) Filter(val any) *roaring.Bitmap {
+	tokens := t.Find(val)
+	bits := make([]*roaring.Bitmap, len(tokens))
+	for i, token := range tokens {
+		bits[i] = token.Bitmap()
 	}
 	return roaring.ParAnd(viper.GetInt("workers"), bits...)
+}
+
+func (t *Tokens) Find(val any) []*Token {
+	var tokens []*Token
+	for _, tok := range t.Tokenize(val) {
+		if token, ok := t.tokens[tok.Value]; ok {
+			tokens = append(tokens, token)
+		}
+	}
+	return tokens
+}
+
+func (t *Tokens) Search(term string) []*Token {
+	matches := fuzzy.FindFrom(term, t)
+	tokens := make([]*Token, len(matches))
+	all := t.Tokens()
+	for i, match := range matches {
+		tokens[i] = all[match.Index]
+	}
+	return tokens
 }
 
 func (t *Tokens) Add(val any, ids []int) {
 	for _, token := range t.Tokenize(val) {
 		t.add(token, ids)
 	}
+}
+
+func (t *Tokens) add(token *Token, ids []int) {
+	if t.tokens == nil {
+		t.tokens = make(map[string]*Token)
+	}
+	if _, ok := t.tokens[token.Value]; !ok {
+		t.Labels = append(t.Labels, token.Label)
+		t.tokens[token.Value] = token
+	}
+	t.tokens[token.Value].Add(ids...)
 }
 
 func (t *Tokens) Tokenize(val any) []*Token {
@@ -61,22 +92,24 @@ func (t *Tokens) GetByLabel(label string) *Token {
 	return NewToken(label)
 }
 
-func (t *Tokens) add(token *Token, ids []int) {
-	if t.tokens == nil {
-		t.tokens = make(map[string]*Token)
+func (t *Tokens) FindByIndex(ti ...int) []*Token {
+	var tokens []*Token
+	toks := t.Tokens()
+	total := t.Len()
+	for _, tok := range ti {
+		if tok < total {
+			tokens = append(tokens, toks[tok])
+		}
 	}
-	if _, ok := t.tokens[token.Value]; !ok {
-		t.tokens[token.Value] = token
-	}
-	t.tokens[token.Value].Add(ids...)
+	return tokens
 }
 
 func (t *Tokens) Tokens() []*Token {
-	tokens := make([]*Token, len(t.tokens))
-	for _, t := range t.tokens {
-		tokens = append(tokens, t)
+	var tokens []*Token
+	for _, label := range t.Labels {
+		tok := t.GetByLabel(label)
+		tokens = append(tokens, tok)
 	}
-	slices.SortStableFunc(tokens, SortByLabelFunc)
 	return tokens
 }
 
@@ -103,7 +136,7 @@ func (t *Tokens) Len() int {
 }
 
 func (t *Tokens) String(i int) string {
-	return t.Tokens()[i].Label
+	return t.Labels[i]
 }
 
 func (f *Token) MarshalJSON() ([]byte, error) {
@@ -144,7 +177,7 @@ func SortByCountFunc(a *Token, b *Token) int {
 
 func SortByLabelFunc(a *Token, b *Token) int {
 	switch {
-	case a.Label < b.Label:
+	case a.Label > b.Label:
 		return 1
 	case a.Label == b.Label:
 		return 0

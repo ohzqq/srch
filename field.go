@@ -57,17 +57,23 @@ func (f *Field) MarshalJSON() ([]byte, error) {
 	return d, nil
 }
 
-// FuzzyFindItem fuzzy finds an item's value and returns possible matches.
-func (f *Field) FuzzyFindItem(term string) []*txt.Token {
-	matches := f.FuzzyMatches(term)
-	items := make([]*txt.Token, len(matches))
-	for i, match := range matches {
-		item := f.Tokens.Tokens()[match.Index]
-		item.Match = match
-		items[i] = item
-	}
-	return items
+func (f *Field) GetTokens() []*txt.Token {
+	return f.Tokens.Tokens()
 }
+
+func (f *Field) Find(kw string) []*txt.Token {
+	return f.Tokens.Find(kw)
+}
+
+// FuzzyFindItem fuzzy finds an item's value and returns possible matches.
+//func (f *Field) FuzzyFind(term string) []*txt.Token {
+//  matches := f.FuzzyMatches(term)
+//  tokens := make([]int, len(matches))
+//  for i, match := range matches {
+//    tokens[i] = match.Index
+//  }
+//  return f.FindByIndex(tokens...)
+//}
 
 // FuzzyMatches returns the fuzzy.Matches of the search.
 func (f *Field) FuzzyMatches(term string) fuzzy.Matches {

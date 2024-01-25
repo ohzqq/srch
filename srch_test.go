@@ -55,6 +55,32 @@ func TestFuzzySearch(t *testing.T) {
 	}
 }
 
+func TestFuzzyFieldSearch(t *testing.T) {
+	//t.SkipNow()
+	test := "searchableAttributes=title&attributesForFaceting=tags,authors,series&dataFile=testdata/data-dir/audiobooks.json"
+	idx, err := New(test)
+	if err != nil {
+		t.Error(err)
+	}
+	totalBooksErr(idx.Len(), test)
+
+	facet := idx.GetFacet("authors")
+	if total := facet.Len(); total != len(facet.Labels) {
+		t.Errorf("got %d, expected %d\n", len(facet.Labels), facet.Len())
+	}
+	//tokens := facet.GetTokens()
+	//for i := 0; i < 5; i++ {
+	//  token := tokens[i]
+	//  fmt.Printf("token val: %s\ntokens val %s\n", token.Value, facet.Tokens.Labels[i])
+	//}
+
+	matches := facet.Search("amy lne")
+	println(len(matches))
+
+	res := facet.Find("amy lne")
+	println(len(res))
+}
+
 func TestFullTextSearch(t *testing.T) {
 	test := "searchableAttributes=title&attributesForFaceting=tags&fullText&dataFile=testdata/data-dir/audiobooks.json"
 	idx, err := New(test)
