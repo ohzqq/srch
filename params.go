@@ -37,10 +37,12 @@ type Params struct {
 	Values url.Values
 }
 
-func NewQuery(q any) *Params {
-	return &Params{
-		Values: ParseQuery(q),
+func NewQuery(params any) *Params {
+	q := ParseQuery(params)
+	p := &Params{
+		Values: q,
 	}
+	return p
 }
 
 func (p Params) GetSlice(key string) []string {
@@ -67,12 +69,17 @@ func (p *Params) Merge(queries ...*Params) {
 	}
 }
 
+//func (p *Params) AllFields() []string {
+//}
+
 func (p *Params) NewField(attr string) *Field {
 	f := NewField(attr)
 	f.SetAnalyzer(txt.Keyword())
+
 	if p.IsFullText() {
 		f.SetAnalyzer(txt.Fulltext())
 	}
+
 	f.SortBy = p.SortFacetsBy()
 	return f
 }
@@ -86,14 +93,7 @@ func (p *Params) newFields(attrs []string) []*Field {
 }
 
 func (p *Params) SrchAttr() []string {
-	if !p.Values.Has(SrchAttr) {
-		return []string{DefaultField}
-	}
-	p.Values[SrchAttr] = GetQueryStringSlice(SrchAttr, p.Values)
-	if len(p.Values[SrchAttr]) < 1 {
-		p.Values[SrchAttr] = []string{DefaultField}
-	}
-	return p.Values[SrchAttr]
+	return p.GetSlice(SrchAttr)
 }
 
 func (p *Params) Fields() []*Field {
@@ -102,6 +102,14 @@ func (p *Params) Fields() []*Field {
 
 func (p Params) HasFilters() bool {
 	return p.Values.Has(FacetFilters)
+}
+
+func (p *Params) Facets() []*Field {
+	return p.newFields(p.FacetAttr())
+}
+
+func (p Params) FacetAttr() []string {
+	return p.GetSlice(FacetAttr)
 }
 
 func (p Params) GetFacetFilters() (*Filters, error) {
@@ -123,17 +131,6 @@ func (p *Params) SortFacetsBy() string {
 		}
 	}
 	return sort
-}
-
-func (p Params) FacetAttr() []string {
-	if !p.Values.Has(ParamFacets) {
-		p.Values[ParamFacets] = GetQueryStringSlice(FacetAttr, p.Values)
-	}
-	return p.Values[ParamFacets]
-}
-
-func (p *Params) Facets() []*Field {
-	return p.newFields(p.FacetAttr())
 }
 
 func (p Params) Page() int {
@@ -231,6 +228,24 @@ func GetDataFromQuery(q *url.Values) ([]map[string]any, error) {
 	return data, err
 }
 
+func parseSrchAttr(vals url.Values) []string {
+	if !vals.Has(SrchAttr) {
+		return []string{DefaultField}
+	}
+	vals[SrchAttr] = GetQueryStringSlice(SrchAttr, vals)
+	if len(vals[SrchAttr]) < 1 {
+		vals[SrchAttr] = []string{DefaultField}
+	}
+	return vals[SrchAttr]
+}
+
+func parseFacetAttr(vals url.Values) []string {
+	if !vals.Has(ParamFacets) {
+		vals[ParamFacets] = GetQueryStringSlice(FacetAttr, vals)
+	}
+	return vals[ParamFacets]
+}
+
 func ParseQuery(queries ...any) url.Values {
 	q := make(url.Values)
 	for _, query := range queries {
@@ -253,17 +268,19 @@ func ParseValues(f any) (url.Values, error) {
 	var err error
 	switch val := f.(type) {
 	case url.Values:
-		return val, nil
+		filters = val
 	case []byte:
-		return ParseQueryBytes(val)
+		filters, err = ParseQueryBytes(val)
 	case string:
-		return ParseQueryString(val)
+		filters, err = ParseQueryString(val)
 	default:
 		filters, err = cast.ToStringMapStringSliceE(val)
 		if err != nil {
 			return nil, err
 		}
 	}
+	filters[SrchAttr] = parseSrchAttr(filters)
+	filters[FacetAttr] = parseFacetAttr(filters)
 	return filters, nil
 }
 

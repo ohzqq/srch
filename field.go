@@ -9,12 +9,14 @@ import (
 )
 
 const (
-	Text       = "text"
-	Keyword    = "keyword"
-	Or         = "or"
-	And        = "and"
-	Not        = `not`
-	FacetField = `facet`
+	Text        = "text"
+	Keyword     = "keyword"
+	Or          = "or"
+	And         = "and"
+	Not         = `not`
+	FacetField  = `facet`
+	SortByCount = `count`
+	SortByAlpha = `alpha`
 )
 
 type Field struct {
@@ -33,7 +35,6 @@ func NewField(attr string) *Field {
 		Tokens: txt.NewTokens(),
 	}
 	parseAttr(f, attr)
-
 	return f
 }
 

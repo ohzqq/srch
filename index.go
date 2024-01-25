@@ -22,10 +22,12 @@ func init() {
 
 // Index is a structure for facets and data.
 type Index struct {
-	fields []*Field
-	facets []*Field
-	Data   []map[string]any
-	res    *roaring.Bitmap
+	fFields   []*Field
+	facFields []*Field
+	facets    []string
+	fields    []string
+	Data      []map[string]any
+	res       *roaring.Bitmap
 
 	*Params `json:"params"`
 }
@@ -35,21 +37,28 @@ type SearchFunc func(string) []map[string]any
 type Opt func(*Index)
 
 func New(settings any) (*Index, error) {
-	idx := &Index{
-		Params: NewQuery(settings),
-	}
-	idx.fields = idx.Params.Fields()
-	idx.facets = idx.Params.Facets()
+	idx := newIndex(settings)
 
 	if idx.Params.HasData() {
 		d, err := idx.Params.GetData()
 		if err != nil {
-			return idx, errors.New("data parsing error")
+			return nil, errors.New("data parsing error")
 		}
-		return idx.Index(d), nil
+		return IndexData(d, idx.Params), nil
 	}
 
 	return idx, nil
+}
+
+func newIndex(settings any) *Index {
+	params := NewQuery(settings)
+	return &Index{
+		Params:    params,
+		fFields:   params.Fields(),
+		facFields: params.Facets(),
+		facets:    params.FacetAttr(),
+		fields:    params.SrchAttr(),
+	}
 }
 
 func (idx *Index) Index(src []map[string]any) *Index {
@@ -60,15 +69,45 @@ func (idx *Index) Index(src []map[string]any) *Index {
 	}
 
 	if idx.GetAnalyzer() == Text {
-		idx.fields = IndexData(idx.Data, idx.fields)
+		idx.fFields = indexFields(idx.Data, idx.fFields)
 	}
 
-	idx.facets = IndexData(idx.Data, idx.facets)
+	idx.facFields = indexFields(idx.Data, idx.facFields)
 
 	return idx
 }
 
-func IndexData(data []map[string]any, fields []*Field) []*Field {
+func IndexData(data []map[string]any, params *Params) *Index {
+	idx := &Index{
+		Params:    params,
+		facFields: params.Facets(),
+		fFields:   params.Fields(),
+		Data:      data,
+	}
+
+	for id, d := range idx.Data {
+		if idx.GetAnalyzer() == Text {
+			for i, f := range idx.fFields {
+				if val, ok := d[f.Attribute]; ok {
+					idx.fFields[i].Add(val, []int{id})
+				}
+			}
+		}
+		for i, f := range idx.facFields {
+			if val, ok := d[f.Attribute]; ok {
+				idx.facFields[i].Add(val, []int{id})
+			}
+		}
+	}
+
+	if idx.Params.Values.Has("sort_by") {
+		idx.Sort()
+	}
+
+	return idx
+}
+
+func indexFields(data []map[string]any, fields []*Field) []*Field {
 	for id, d := range data {
 		for i, f := range fields {
 			if val, ok := d[f.Attribute]; ok {
@@ -131,7 +170,7 @@ func (idx *Index) Filter(q string) *Response {
 	if idx.res == nil || idx.res.IsEmpty() {
 		idx.res = idx.Bitmap()
 	}
-	filtered, err := filterFields(idx.res, idx.facets, q)
+	filtered, err := filterFields(idx.res, idx.facFields, q)
 	if err != nil {
 		return NewResponse(idx)
 	}
@@ -149,7 +188,7 @@ func (idx *Index) Sort() {
 }
 
 func (idx *Index) GetFacet(attr string) *Field {
-	for _, f := range idx.facets {
+	for _, f := range idx.facFields {
 		if attr == f.Attribute {
 			return f
 		}
@@ -158,7 +197,7 @@ func (idx *Index) GetFacet(attr string) *Field {
 }
 
 func (idx *Index) GetField(attr string) *Field {
-	for _, f := range idx.fields {
+	for _, f := range idx.fFields {
 		if attr == f.Attribute {
 			return f
 		}
@@ -168,21 +207,21 @@ func (idx *Index) GetField(attr string) *Field {
 
 // HasFacets returns true if facets are configured.
 func (idx *Index) HasFacets() bool {
-	return len(idx.facets) > 0
+	return len(idx.facFields) > 0
 }
 
 func (idx *Index) Facets() []*Field {
-	return idx.facets
+	return idx.facFields
 }
 
 func (idx *Index) FacetLabels() []string {
-	return lo.Map(idx.facets, func(f *Field, _ int) string {
+	return lo.Map(idx.facFields, func(f *Field, _ int) string {
 		return f.Attribute
 	})
 }
 
 func (idx *Index) SearchableFields() []*Field {
-	return idx.fields
+	return idx.fFields
 }
 
 func (idx *Index) UnmarshalJSON(d []byte) error {

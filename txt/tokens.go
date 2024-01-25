@@ -8,11 +8,6 @@ import (
 	"github.com/spf13/viper"
 )
 
-const (
-	Count = `count`
-	Alpha = `alpha`
-)
-
 type Tokens struct {
 	tokens   map[string]*Token
 	labels   []string
