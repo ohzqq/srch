@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/ohzqq/srch/txt"
-	"github.com/sahilm/fuzzy"
 )
 
 const (
@@ -24,18 +23,20 @@ type Analyzer interface {
 type Field struct {
 	Attribute string `json:"attribute"`
 	Sep       string `json:"-"`
-	FieldType string `json:"fieldType"`
 	SortBy    string
 	Order     string
 	*txt.Tokens
 }
 
-func NewField(attr string) *Field {
+func NewField(attr string, opts ...txt.Option) *Field {
+	if len(opts) == 0 {
+		opts = append(opts, txt.Keyword())
+	}
 	f := &Field{
 		Sep:    ".",
 		SortBy: "count",
 		Order:  "desc",
-		Tokens: txt.NewTokens(txt.Keyword()),
+		Tokens: txt.NewTokens(opts...),
 	}
 	parseAttr(f, attr)
 
@@ -47,7 +48,7 @@ func (f *Field) MarshalJSON() ([]byte, error) {
 		"attribute": f.Attribute,
 		"sort_by":   f.SortBy,
 		"order":     f.Order,
-		"items":     f.Tokens.Tokens(),
+		"items":     f.GetTokens(),
 	}
 
 	d, err := json.Marshal(field)
@@ -64,24 +65,6 @@ func (f *Field) GetTokens() []*txt.Token {
 func (f *Field) Find(kw string) []*txt.Token {
 	return f.Tokens.Find(kw)
 }
-
-// FuzzyFindItem fuzzy finds an item's value and returns possible matches.
-//func (f *Field) FuzzyFind(term string) []*txt.Token {
-//  matches := f.FuzzyMatches(term)
-//  tokens := make([]int, len(matches))
-//  for i, match := range matches {
-//    tokens[i] = match.Index
-//  }
-//  return f.FindByIndex(tokens...)
-//}
-
-// FuzzyMatches returns the fuzzy.Matches of the search.
-func (f *Field) FuzzyMatches(term string) fuzzy.Matches {
-	return fuzzy.FindFrom(term, f)
-}
-
-// String returns an Item.Value, to satisfy the fuzzy.Source interface.
-// Len returns the number of items, to satisfy the fuzzy.Source interface.
 
 func parseAttr(field *Field, attr string) {
 	i := 0

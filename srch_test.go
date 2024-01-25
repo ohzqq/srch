@@ -65,8 +65,8 @@ func TestFuzzyFieldSearch(t *testing.T) {
 	totalBooksErr(idx.Len(), test)
 
 	facet := idx.GetFacet("authors")
-	if total := facet.Len(); total != len(facet.Labels) {
-		t.Errorf("got %d, expected %d\n", len(facet.Labels), facet.Len())
+	if total := facet.Len(); total != len(facet.GetLabels()) {
+		t.Errorf("got %d, expected %d\n", len(facet.GetLabels()), facet.Len())
 	}
 	//tokens := facet.GetTokens()
 	//for i := 0; i < 5; i++ {
@@ -74,11 +74,11 @@ func TestFuzzyFieldSearch(t *testing.T) {
 	//  fmt.Printf("token val: %s\ntokens val %s\n", token.Value, facet.Tokens.Labels[i])
 	//}
 
-	matches := facet.Search("amy lne")
-	println(len(matches))
+	//matches := facet.Search("amy lne")
+	//println(len(matches))
 
-	res := facet.Find("amy lne")
-	println(len(res))
+	//res := facet.Find("amy lne")
+	//println(len(res))
 }
 
 func TestFullTextSearch(t *testing.T) {

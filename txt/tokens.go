@@ -9,9 +9,14 @@ import (
 	"github.com/spf13/viper"
 )
 
+const (
+	Count = `count`
+	Alpha = `alpha`
+)
+
 type Tokens struct {
 	tokens   map[string]*Token
-	Labels   []string
+	labels   []string
 	analyzer Analyzer
 }
 
@@ -73,7 +78,7 @@ func (t *Tokens) add(token *Token, ids []int) {
 		t.tokens = make(map[string]*Token)
 	}
 	if _, ok := t.tokens[token.Value]; !ok {
-		t.Labels = append(t.Labels, token.Label)
+		t.labels = append(t.labels, token.Label)
 		t.tokens[token.Value] = token
 	}
 	t.tokens[token.Value].Add(ids...)
@@ -106,7 +111,7 @@ func (t *Tokens) FindByIndex(ti ...int) []*Token {
 
 func (t *Tokens) Tokens() []*Token {
 	var tokens []*Token
-	for _, label := range t.Labels {
+	for _, label := range t.labels {
 		tok := t.GetByLabel(label)
 		tokens = append(tokens, tok)
 	}
@@ -114,12 +119,7 @@ func (t *Tokens) Tokens() []*Token {
 }
 
 func (t *Tokens) GetLabels() []string {
-	sorted := t.Tokens()
-	tokens := make([]string, len(sorted))
-	for i, t := range sorted {
-		tokens[i] = t.Label
-	}
-	return tokens
+	return t.labels
 }
 
 func (t *Tokens) GetValues() []string {
@@ -131,12 +131,14 @@ func (t *Tokens) GetValues() []string {
 	return tokens
 }
 
+// Len returns the number of items, to satisfy the fuzzy.Source interface.
 func (t *Tokens) Len() int {
 	return len(t.tokens)
 }
 
+// String returns an Item.Value, to satisfy the fuzzy.Source interface.
 func (t *Tokens) String(i int) string {
-	return t.Labels[i]
+	return t.labels[i]
 }
 
 func (f *Token) MarshalJSON() ([]byte, error) {
