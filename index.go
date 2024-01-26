@@ -93,7 +93,6 @@ func (idx *Index) FullText(q string) *roaring.Bitmap {
 func (idx *Index) Search(params string) *Response {
 	idx.res = idx.Bitmap()
 	q := ParseParams(params)
-	//idx.Params.Merge(q)
 
 	if query := q.Query(); query != "" {
 		switch idx.Params.GetAnalyzer() {

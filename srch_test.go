@@ -48,8 +48,8 @@ func TestFuzzySearch(t *testing.T) {
 	totalBooksErr(idx.Len(), test)
 
 	for q, want := range testSearchQueryStrings() {
-		println(q)
 		m := idx.Search(q)
+		println(m.Params.String())
 		if m.NbHits() != want {
 			t.Errorf("%s: num res %d, expected %d \n", q, m.NbHits(), want)
 		}

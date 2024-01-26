@@ -46,7 +46,8 @@ By default, results are printed to stdout as json.
 		if cmd.Flags().Changed(Q.Long()) {
 			//kw := Q.GetString(cmd.Flags())
 			res = idx.Search(vals.Encode())
-			println(res.Len())
+			println(res.NbHits())
+			println(res.Params.String())
 		}
 		return
 
