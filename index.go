@@ -116,7 +116,7 @@ func (idx *Index) Search(params string) *Response {
 }
 
 func (idx *Index) Filter(q string) *Response {
-	if idx.res == nil || idx.res.IsEmpty() {
+	if !idx.HasResults() {
 		idx.res = idx.Bitmap()
 	}
 	filtered, err := filterFields(idx.res, idx.facets, q)
@@ -131,6 +131,16 @@ func (idx Index) Bitmap() *roaring.Bitmap {
 	bits := roaring.New()
 	bits.AddRange(0, uint64(len(idx.Data)))
 	return bits
+}
+
+func (idx Index) HasResults() bool {
+	if idx.res == nil {
+		return false
+	}
+	if idx.res.IsEmpty() {
+		return false
+	}
+	return true
 }
 
 func (idx Index) GetResults() []map[string]any {

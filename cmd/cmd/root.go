@@ -40,10 +40,6 @@ By default, results are printed to stdout as json.
 			log.Fatal(err)
 		}
 
-		if cmd.Flags().Changed(Q.Long()) {
-			res = idx.Search(vals.Encode())
-		}
-
 		switch {
 		case cmd.Flags().Changed(J.Long()):
 			j, err := cmd.Flags().GetString(J.Long())
@@ -63,8 +59,10 @@ By default, results are printed to stdout as json.
 			//}
 		}
 
+		res = idx.Search(vals.Encode())
+
 		if cmd.Flags().Changed(B.Long()) {
-			tui := ui.New(idx)
+			tui := ui.New(res.Index)
 			idx, err = tui.Run()
 			if err != nil {
 				log.Fatal(err)
