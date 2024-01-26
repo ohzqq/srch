@@ -83,9 +83,16 @@ func (p Params) FieldIsSearchable(attr string) bool {
 	return slices.Contains(p.SrchAttr(), attr)
 }
 
+func (p Params) IsFacet(attr string) bool {
+	return slices.Contains(p.FacetAttr(), attr)
+}
+
 func (p *Params) NewField(attr string) *Field {
 	f := NewField(attr)
-	f.SetAnalyzer(txt.Keyword())
+
+	if p.IsFacet(attr) {
+		f.SetAnalyzer(txt.Keyword())
+	}
 
 	if p.IsFullText() && p.FieldIsSearchable(attr) {
 		f.SetAnalyzer(txt.Fulltext())

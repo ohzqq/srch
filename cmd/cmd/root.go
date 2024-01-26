@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"encoding/json"
 	"log"
 	"net/url"
 	"os"
@@ -41,14 +42,11 @@ By default, results are printed to stdout as json.
 		if err != nil {
 			log.Fatal(err)
 		}
-		println(idx.Len())
 
 		if cmd.Flags().Changed(Q.Long()) {
-			//kw := Q.GetString(cmd.Flags())
 			res = idx.Search(vals.Encode())
-			println(res.NbHits())
-			println(res.Params.String())
 		}
+		println(res.NbHits())
 		return
 
 		switch {
@@ -90,8 +88,12 @@ By default, results are printed to stdout as json.
 		if p, err := cmd.Flags().GetBool("pretty"); err == nil && p {
 			idx.PrettyPrint()
 		} else {
-			idx.Print()
-			println(res.Len())
+			//idx.Print()
+			d, err := json.Marshal(res)
+			if err != nil {
+				log.Fatal(err)
+			}
+			println(string(d))
 		}
 	},
 }

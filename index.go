@@ -6,10 +6,8 @@ import (
 	"log"
 	"os"
 	"slices"
-	"strings"
 
 	"github.com/RoaringBitmap/roaring"
-	"github.com/sahilm/fuzzy"
 	"github.com/samber/lo"
 	"github.com/spf13/cast"
 	"github.com/spf13/viper"
@@ -65,11 +63,9 @@ func (idx *Index) Index(src []map[string]any) *Index {
 	}
 
 	for id, d := range idx.Data {
-		if idx.GetAnalyzer() == TextAnalyzer {
-			for i, attr := range idx.SrchAttr() {
-				if val, ok := d[attr]; ok {
-					idx.fields[i].Add(val, []int{id})
-				}
+		for i, attr := range idx.SrchAttr() {
+			if val, ok := d[attr]; ok {
+				idx.fields[i].Add(val, []int{id})
 			}
 		}
 		for i, attr := range idx.FacetAttr() {
@@ -90,6 +86,16 @@ func (idx *Index) FullText(q string) *roaring.Bitmap {
 	return roaring.ParAnd(viper.GetInt("workers"), bits...)
 }
 
+func (idx *Index) FuzzySearch(q string) *roaring.Bitmap {
+	var bits []*roaring.Bitmap
+	for _, field := range idx.SearchableFields() {
+		println(field.Attribute)
+		println(field.Len())
+		bits = append(bits, field.Fuzzy(q))
+	}
+	return roaring.ParAnd(viper.GetInt("workers"), bits...)
+}
+
 func (idx *Index) Search(params string) *Response {
 	idx.res = idx.Bitmap()
 	q := ParseParams(params)
@@ -99,6 +105,7 @@ func (idx *Index) Search(params string) *Response {
 		case TextAnalyzer:
 			idx.res.And(idx.FullText(query))
 		case KeywordAnalyzer:
+			println(query)
 			idx.res.And(idx.FuzzySearch(query))
 		}
 	}
@@ -256,23 +263,16 @@ func (idx *Index) PrettyPrint() {
 	}
 }
 
-func (idx *Index) FuzzySearch(q string) *roaring.Bitmap {
-	matches := fuzzy.FindFrom(q, idx)
-	bits := roaring.New()
-	for _, m := range matches {
-		bits.AddInt(m.Index)
-	}
-	return bits
-}
-
 // String satisfies the fuzzy.Source interface.
 func (idx *Index) String(i int) string {
-	s := lo.PickByKeys(
-		idx.Data[i],
-		idx.SrchAttr(),
-	)
-	vals := cast.ToStringSlice(lo.Values(s))
-	return strings.Join(vals, "\n")
+	//s := lo.PickByKeys(
+	//  idx.Data[i],
+	//  idx.SrchAttr(),
+	//)
+
+	//vals := cast.ToStringSlice(lo.Values(s))
+	//return strings.Join(vals, "\n")
+	return ""
 }
 
 // Len satisfies the fuzzy.Source interface.
