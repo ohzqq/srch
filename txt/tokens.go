@@ -62,9 +62,10 @@ func (t *Tokens) Fuzzy(term string) *roaring.Bitmap {
 	all := t.Tokens()
 	bits := make([]*roaring.Bitmap, len(matches))
 	for i, match := range matches {
-		bits[i] = all[match.Index].Bitmap()
+		b := all[match.Index].Bitmap()
+		bits[i] = b
 	}
-	return roaring.ParAnd(viper.GetInt("workers"), bits...)
+	return roaring.ParOr(viper.GetInt("workers"), bits...)
 }
 
 func (t *Tokens) Add(val any, ids []int) {

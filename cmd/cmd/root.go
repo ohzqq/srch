@@ -1,9 +1,7 @@
 package cmd
 
 import (
-	"encoding/json"
 	"log"
-	"net/url"
 	"os"
 
 	"github.com/ohzqq/srch"
@@ -32,7 +30,6 @@ By default, results are printed to stdout as json.
 
 		var (
 			err  error
-			q    = make(url.Values)
 			data []map[string]any
 			res  *srch.Response
 		)
@@ -46,8 +43,6 @@ By default, results are printed to stdout as json.
 		if cmd.Flags().Changed(Q.Long()) {
 			res = idx.Search(vals.Encode())
 		}
-		println(res.NbHits())
-		return
 
 		switch {
 		case cmd.Flags().Changed(J.Long()):
@@ -69,7 +64,7 @@ By default, results are printed to stdout as json.
 		}
 
 		if cmd.Flags().Changed(B.Long()) {
-			tui := ui.Browse(q, data)
+			tui := ui.New(idx)
 			idx, err = tui.Run()
 			if err != nil {
 				log.Fatal(err)
@@ -88,12 +83,13 @@ By default, results are printed to stdout as json.
 		if p, err := cmd.Flags().GetBool("pretty"); err == nil && p {
 			idx.PrettyPrint()
 		} else {
+			println(res.NbHits())
 			//idx.Print()
-			d, err := json.Marshal(res)
-			if err != nil {
-				log.Fatal(err)
-			}
-			println(string(d))
+			//d, err := json.Marshal(res)
+			//if err != nil {
+			//log.Fatal(err)
+			//}
+			//println(string(d))
 		}
 	},
 }

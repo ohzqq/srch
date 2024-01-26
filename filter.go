@@ -26,6 +26,7 @@ func Filter(bits *roaring.Bitmap, fields []*Field, query string) ([]int, error) 
 }
 
 func filterFields(bits *roaring.Bitmap, fields []*Field, query string) (*roaring.Bitmap, error) {
+	println(query)
 	filters, err := NewFilters(query)
 	if err != nil {
 		return nil, err
