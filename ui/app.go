@@ -15,6 +15,8 @@ type App struct {
 
 	mainRouter reactea.Component[router.Props]
 
+	idx *srch.Index
+
 	data  []map[string]any
 	query url.Values
 
@@ -22,16 +24,17 @@ type App struct {
 	facets      map[string]*Facet
 
 	*Model
-	visible    *srch.Index
+	visible    *srch.Response
 	facetMenu  *FacetMenu
 	Filters    url.Values
 	facet      string
-	Selections *srch.Index
+	Selections *srch.Response
 }
 
 func New(idx *srch.Index) *App {
 	tui := newApp(idx.Params.Values, idx.Data)
-	tui.updateVisible(idx)
+	tui.idx = idx
+	tui.updateVisible(idx.Search(""))
 	tui.Model = NewModel(SrcToItems(tui.visible))
 	return tui
 }
@@ -40,7 +43,7 @@ func Browse(q url.Values, data []map[string]any) *App {
 	tui := newApp(q, data)
 	idx, _ := srch.New(q)
 
-	tui.updateVisible(idx.Index(data))
+	tui.updateVisible(idx.Search(""))
 	tui.Model = NewModel(SrcToItems(tui.visible))
 	return tui
 }
@@ -53,7 +56,7 @@ func newApp(q url.Values, data []map[string]any) *App {
 	}
 }
 
-func (ui *App) Run() (*srch.Index, error) {
+func (ui *App) Run() (*srch.Response, error) {
 	p := reactea.NewProgram(ui)
 	_, err := p.Run()
 	if err != nil {
@@ -99,20 +102,19 @@ func (c *App) SetFacet(label string) {
 
 func (c *App) SetFilters(filters url.Values) {
 	c.Filters = srch.ParseQuery(c.Filters, filters)
-	c.updateVisible(c.visible.Filter(filters.Encode()).Index)
+	c.updateVisible(c.visible.Filter(filters.Encode()))
 }
 
 func (c *App) SetSelections(idx *srch.Index) {
-	c.Selections = idx
+	c.Selections = srch.NewResponse(idx)
 }
 
 func (c *App) ClearFilters() {
 	c.Filters = make(url.Values)
-	idx, _ := srch.New(c.query)
-	c.updateVisible(idx.Index(c.data))
+	c.updateVisible(c.idx.Search(""))
 }
 
-func (c *App) updateVisible(idx *srch.Index) {
+func (c *App) updateVisible(idx *srch.Response) {
 	c.visible = idx
 	c.facetLabels = c.visible.FacetLabels()
 	if len(c.facetLabels) > 0 {

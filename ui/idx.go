@@ -13,7 +13,7 @@ type Idx struct {
 	reactea.BasicComponent
 	reactea.BasicPropfulComponent[IdxProps]
 	Model *Model
-	*srch.Index
+	*srch.Response
 	Enter        key.Binding
 	FacetMenu    key.Binding
 	ClearFilters key.Binding
@@ -24,10 +24,10 @@ type IdxProps struct {
 	SetSelections func(*srch.Index)
 }
 
-func NewIdx(idx *srch.Index) *Idx {
+func NewIdx(idx *srch.Response) *Idx {
 	m := &Idx{
-		Index: idx,
-		Model: NewModel(SrcToItems(idx)),
+		Response: idx,
+		Model:    NewModel(SrcToItems(idx)),
 		Enter: key.NewBinding(
 			key.WithKeys("enter"),
 			key.WithHelp("enter", "return selections"),

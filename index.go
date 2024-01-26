@@ -144,15 +144,15 @@ func (idx Index) HasResults() bool {
 }
 
 func (idx Index) GetResults() []map[string]any {
-	if idx.res.IsEmpty() {
-		return idx.Data
+	if idx.HasResults() {
+		var res []map[string]any
+		idx.res.Iterate(func(x uint32) bool {
+			res = append(res, idx.Data[int(x)])
+			return true
+		})
+		return res
 	}
-	var res []map[string]any
-	idx.res.Iterate(func(x uint32) bool {
-		res = append(res, idx.Data[int(x)])
-		return true
-	})
-	return res
+	return idx.Data
 }
 
 func (idx *Index) Sort() {
@@ -227,10 +227,6 @@ func (idx *Index) UnmarshalJSON(d []byte) error {
 	}
 
 	return nil
-}
-
-func (idx *Index) MarshalJSON() ([]byte, error) {
-	return json.Marshal(idx.StringMap())
 }
 
 func (idx *Index) StringMap() map[string]any {

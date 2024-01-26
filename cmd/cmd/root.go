@@ -63,7 +63,7 @@ By default, results are printed to stdout as json.
 
 		if cmd.Flags().Changed(B.Long()) {
 			tui := ui.New(res.Index)
-			idx, err = tui.Run()
+			res, err = tui.Run()
 			if err != nil {
 				log.Fatal(err)
 			}
