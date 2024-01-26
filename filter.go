@@ -17,15 +17,7 @@ type Filters struct {
 	Neg url.Values
 }
 
-func Filter(bits *roaring.Bitmap, fields []*Field, query string) ([]int, error) {
-	ids, err := filterFields(bits, fields, query)
-	if err != nil {
-		return nil, err
-	}
-	return bitsToIntSlice(ids), nil
-}
-
-func filterFields(bits *roaring.Bitmap, fields []*Field, query string) (*roaring.Bitmap, error) {
+func Filter(bits *roaring.Bitmap, fields []*Field, query string) (*roaring.Bitmap, error) {
 	println(query)
 	filters, err := NewFilters(query)
 	if err != nil {

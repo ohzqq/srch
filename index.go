@@ -119,7 +119,7 @@ func (idx *Index) Filter(q string) *Response {
 	if !idx.HasResults() {
 		idx.res = idx.Bitmap()
 	}
-	filtered, err := filterFields(idx.res, idx.facets, q)
+	filtered, err := Filter(idx.res, idx.facets, q)
 	if err != nil {
 		return NewResponse(idx)
 	}

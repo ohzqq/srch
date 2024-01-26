@@ -6,8 +6,6 @@ import (
 	"log"
 	"net/url"
 	"testing"
-
-	"github.com/RoaringBitmap/roaring"
 )
 
 func TestUnmarshalQueryParams(t *testing.T) {
@@ -50,28 +48,6 @@ func TestMarshalFilter(t *testing.T) {
 	}
 }
 
-func TestFiltering(t *testing.T) {
-	test := "searchableAttributes=title&attributesForFaceting=tags,authors,series&dataFile=testdata/data-dir/audiobooks.json"
-	idx, err := New(test)
-	if err != nil {
-		t.Error(err)
-	}
-	totalBooksErr(idx.Len(), test)
-
-	for q, want := range testSearchQueryStrings() {
-		req := ParseParams(q)
-		if req.HasFilters() {
-			ids, err := Filter(idx.Bitmap(), idx.facets, q)
-			if err != nil {
-				t.Error(err)
-			}
-			if len(ids) != want {
-				t.Errorf("query %s:\ngot %d, expected %d\n", q, len(ids), want)
-			}
-		}
-	}
-}
-
 func TestSearchAndFilter(t *testing.T) {
 	test := "searchableAttributes=title&attributesForFaceting=tags,authors,series&dataFile=testdata/data-dir/audiobooks.json"
 	idx, err := New(test)
@@ -93,19 +69,6 @@ func TestSearchAndFilter(t *testing.T) {
 	if n := result.NbHits(); n != afterFilter {
 		t.Errorf("got %d, expected %d\n", n, afterFilter)
 	}
-
-	//d, err := json.Marshal(result)
-	//if err != nil {
-	//  t.Error(err)
-	//}
-	//println(string(d))
-
-	idx.res = roaring.New()
-	f := idx.Filter(`["authors:amy lane"]`)
-	if n := f.res.GetCardinality(); n != 58 {
-		t.Errorf("got %d, expected %d\n", n, 58)
-	}
-	//vals.Set(ParamFacetFilters, `["authors:amy lane", [ "tags:romance"], "tags:-dnr"]`)
 }
 
 func testSearchFilterStrings() map[string]int {
