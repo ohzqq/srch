@@ -3,7 +3,6 @@ package srch
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"log"
 	"os"
 	"slices"
@@ -128,7 +127,6 @@ func (idx *Index) Filter(q string) *Response {
 		return NewResponse(idx)
 	}
 
-	fmt.Printf("%#v\n", filters)
 	filtered, err := Filter(idx.res, idx.facets, filters)
 	if err != nil {
 		return NewResponse(idx)

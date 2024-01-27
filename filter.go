@@ -14,7 +14,6 @@ import (
 type Filters struct {
 	Con url.Values
 	Dis url.Values
-	Neg url.Values
 }
 
 func Filter(bits *roaring.Bitmap, fields []*Field, filters *Filters) (*roaring.Bitmap, error) {
@@ -46,7 +45,6 @@ func Filter(bits *roaring.Bitmap, fields []*Field, filters *Filters) (*roaring.B
 
 func DecodeFilter(query string) (*Filters, error) {
 	filters := &Filters{
-		Neg: make(url.Values),
 		Con: make(url.Values),
 		Dis: make(url.Values),
 	}
@@ -63,21 +61,43 @@ func DecodeFilter(query string) (*Filters, error) {
 	return filters, nil
 }
 
+func (f *Filters) FilterAttr(bits *roaring.Bitmap, attr string) {
+}
+
 func (f *Filters) add(filters any) {
 	switch vals := filters.(type) {
 	case string:
-		f.And(vals)
+		f.addCon(vals)
 	case []any:
 		or := cast.ToStringSlice(vals)
 		switch len(or) {
 		case 1:
-			f.And(or[0])
+			f.addCon(or[0])
 		default:
 			for _, filter := range or {
-				f.Or(filter)
+				f.addDis(filter)
 			}
 		}
 	}
+}
+
+func (f *Filters) addCon(fv string) {
+	label, filter, ok := cutFilter(fv)
+	if !ok {
+		f.Con.Add(label, filter)
+	}
+}
+
+func (f *Filters) addDis(fv string) {
+	label, filter, ok := cutFilter(fv)
+	if ok {
+		f.Dis.Add(label, filter)
+	}
+}
+
+func (f *Filters) Not(label, filter string) *Filters {
+	filter = strings.TrimPrefix(filter, "-")
+	return f
 }
 
 func (f *Filters) Encode() string {
@@ -90,11 +110,6 @@ func (f *Filters) String() string {
 
 func (f *Filters) Bytes() []byte {
 	var filters []any
-	for k, not := range f.Neg {
-		for _, n := range not {
-			filters = append(filters, k+":-"+n)
-		}
-	}
 	for k, and := range f.Con {
 		filters = append(filters, mapFilterVals(k, and)...)
 	}
@@ -124,38 +139,8 @@ func mapFilterVals(key string, vals []string) []any {
 	return m
 }
 
-func (f *Filters) And(fv string) *Filters {
-	label, filter, ok := cutFilter(fv)
-	if !ok {
-		return f
-	}
-	//if strings.HasPrefix(filter, "-") {
-	//  return f.Not(label, filter)
-	//}
-	f.Con.Add(label, filter)
-	return f
-}
-
-func (f *Filters) Or(fv string) *Filters {
-	label, filter, ok := cutFilter(fv)
-	if !ok {
-		return f
-	}
-	//if strings.HasPrefix(filter, "-") {
-	//  return f.Not(label, filter)
-	//}
-	f.Dis.Add(label, filter)
-	return f
-}
-
 func IsNegative(f string) (string, bool) {
 	return strings.TrimPrefix(f, "-"), strings.HasPrefix(f, "-")
-}
-
-func (f *Filters) Not(label, filter string) *Filters {
-	filter = strings.TrimPrefix(filter, "-")
-	f.Neg.Add(label, filter)
-	return f
 }
 
 func bitsToIntSlice(bitmap *roaring.Bitmap) []int {

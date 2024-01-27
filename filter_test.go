@@ -6,8 +6,6 @@ import (
 	"log"
 	"net/url"
 	"testing"
-
-	"github.com/samber/lo"
 )
 
 func TestUnmarshalQueryParams(t *testing.T) {
@@ -80,27 +78,26 @@ func TestFilters(t *testing.T) {
 }
 
 func TestFilterStringParse(t *testing.T) {
-	tests := lo.Values(testSearchFilterStrings())
-	for i := 0; i < len(tests); i++ {
-		filters, err := DecodeFilter(tests[i].Get(FacetFilters))
+	tests := testSearchFilterStrings()
+	for want, vals := range tests {
+		filters, err := DecodeFilter(vals.Get(FacetFilters))
 		if err != nil {
 			t.Error(err)
 		}
 		//fmt.Printf("%#v\n", filters)
-		switch i {
-		case 0:
+		switch want {
+		case 58:
 			if c := len(filters.Con["authors"]); c != 1 {
 				t.Errorf("got %d conj filters, expected %d\n", c, 1)
 			}
-		case 1:
+		case 26:
 			if c := len(filters.Con); c != 2 {
-				fmt.Printf("%#v\n", filters)
 				t.Errorf("got %d conj filters, expected %d\n", c, 2)
 			}
 			if d := len(filters.Dis["tags"]); d != 0 {
 				t.Errorf("got %d dis filters, expected %d\n", d, 0)
 			}
-		case 2:
+		case 37:
 			if c := len(filters.Con["authors"]); c != 1 {
 				t.Errorf("got %d conj filters, expected %d\n", c, 1)
 			}
