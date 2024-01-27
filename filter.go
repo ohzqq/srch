@@ -18,26 +18,7 @@ type Filters struct {
 
 func Filter(bits *roaring.Bitmap, fields []*Field, filters *Filters) (*roaring.Bitmap, error) {
 	for _, facet := range fields {
-		if filters.Con.Has(facet.Attribute) {
-			for _, a := range filters.Con[facet.Attribute] {
-				not, ok := IsNegative(a)
-				if ok {
-					bits.AndNot(facet.Filter(not))
-				} else {
-					bits.And(facet.Filter(a))
-				}
-			}
-		}
-		if filters.Dis.Has(facet.Attribute) {
-			for _, or := range filters.Dis[facet.Attribute] {
-				not, ok := IsNegative(or)
-				if ok {
-					bits.AndNot(facet.Filter(not))
-				} else {
-					bits.Or(facet.Filter(or))
-				}
-			}
-		}
+		filters.Filter(bits, facet)
 	}
 
 	return bits, nil
@@ -61,7 +42,27 @@ func DecodeFilter(query string) (*Filters, error) {
 	return filters, nil
 }
 
-func (f *Filters) FilterAttr(bits *roaring.Bitmap, attr string) {
+func (f *Filters) Filter(bits *roaring.Bitmap, facet *Field) {
+	if f.Con.Has(facet.Attribute) {
+		for _, a := range f.Con[facet.Attribute] {
+			not, ok := IsNegative(a)
+			if ok {
+				bits.AndNot(facet.Filter(not))
+			} else {
+				bits.And(facet.Filter(a))
+			}
+		}
+	}
+	if f.Dis.Has(facet.Attribute) {
+		for _, or := range f.Dis[facet.Attribute] {
+			not, ok := IsNegative(or)
+			if ok {
+				bits.AndNot(facet.Filter(not))
+			} else {
+				bits.Or(facet.Filter(or))
+			}
+		}
+	}
 }
 
 func (f *Filters) add(filters any) {
@@ -74,9 +75,7 @@ func (f *Filters) add(filters any) {
 		case 1:
 			f.addCon(or[0])
 		default:
-			for _, filter := range or {
-				f.addDis(filter)
-			}
+			f.addDis(or)
 		}
 	}
 }
@@ -84,20 +83,19 @@ func (f *Filters) add(filters any) {
 func (f *Filters) addCon(fv string) {
 	label, filter, ok := cutFilter(fv)
 	if !ok {
-		f.Con.Add(label, filter)
+		return
 	}
+	f.Con.Add(label, filter)
 }
 
-func (f *Filters) addDis(fv string) {
-	label, filter, ok := cutFilter(fv)
-	if ok {
+func (f *Filters) addDis(filters []string) {
+	for _, fv := range filters {
+		label, filter, ok := cutFilter(fv)
+		if !ok {
+			break
+		}
 		f.Dis.Add(label, filter)
 	}
-}
-
-func (f *Filters) Not(label, filter string) *Filters {
-	filter = strings.TrimPrefix(filter, "-")
-	return f
 }
 
 func (f *Filters) Encode() string {

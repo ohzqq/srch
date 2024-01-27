@@ -110,6 +110,14 @@ func (p *Params) newFields(attrs []string) []*Field {
 	return fields
 }
 
+func (p *Params) newFieldsMap(attrs []string) map[string]*Field {
+	fields := make(map[string]*Field)
+	for _, attr := range attrs {
+		fields[attr] = p.NewField(attr)
+	}
+	return fields
+}
+
 func (p *Params) SrchAttr() []string {
 	return p.GetSlice(SrchAttr)
 }
