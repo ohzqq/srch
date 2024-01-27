@@ -6,6 +6,8 @@ import (
 	"log"
 	"net/url"
 	"testing"
+
+	"github.com/samber/lo"
 )
 
 func TestUnmarshalQueryParams(t *testing.T) {
@@ -21,21 +23,12 @@ func TestUnmarshalQueryParams(t *testing.T) {
 	filtersTests(filters, t)
 }
 
-func TestParseFilterString(t *testing.T) {
-	enc := testComboFilterEnc()
-	filters, err := DecodeFilter(enc)
-	if err != nil {
-		t.Error(err)
-	}
-	filtersTests(filters, t)
-}
-
 func filtersTests(filters *Filters, t *testing.T) {
-	if len(filters.Con) != 1 {
-		t.Errorf("got %d conjunctive filters, expected %d\n", len(filters.Con), 1)
+	if len(filters.Con) != 2 {
+		t.Errorf("got %d conjunctive filters, expected %d\n", len(filters.Con), 2)
 	}
-	if len(filters.Dis) != 2 {
-		t.Errorf("got %d disjunctive filters, expected %d\n", len(filters.Dis), 2)
+	if len(filters.Dis) != 1 {
+		t.Errorf("got %d disjunctive filters, expected %d\n", len(filters.Dis), 1)
 	}
 }
 
@@ -71,18 +64,73 @@ func TestSearchAndFilter(t *testing.T) {
 	}
 }
 
-func testSearchFilterStrings() map[string]int {
-	queries := map[string]int{}
-	v := make(url.Values)
+func TestFilters(t *testing.T) {
+	test := "searchableAttributes=title&attributesForFaceting=tags,authors,series&dataFile=testdata/data-dir/audiobooks.json"
+	idx, err := New(test)
+	if err != nil {
+		t.Error(err)
+	}
 
-	v.Set(FacetFilters, `["authors:amy lane"]`)
-	queries[v.Encode()] = 58
+	for want, vals := range testSearchFilterStrings() {
+		res := idx.Search(vals.Encode())
+		if r := res.NbHits(); r != want {
+			t.Errorf("%s\ngot %d, expected %d\n", res.Params, r, want)
+		}
+	}
+}
 
-	v.Set(FacetFilters, `["authors:amy lane", ["tags:romance"]]`)
-	queries[v.Encode()] = 26
+func TestFilterStringParse(t *testing.T) {
+	tests := lo.Values(testSearchFilterStrings())
+	for i := 0; i < len(tests); i++ {
+		filters, err := DecodeFilter(tests[i].Get(FacetFilters))
+		if err != nil {
+			t.Error(err)
+		}
+		//fmt.Printf("%#v\n", filters)
+		switch i {
+		case 0:
+			if c := len(filters.Con["authors"]); c != 1 {
+				t.Errorf("got %d conj filters, expected %d\n", c, 1)
+			}
+		case 1:
+			if c := len(filters.Con); c != 2 {
+				fmt.Printf("%#v\n", filters)
+				t.Errorf("got %d conj filters, expected %d\n", c, 2)
+			}
+			if d := len(filters.Dis["tags"]); d != 0 {
+				t.Errorf("got %d dis filters, expected %d\n", d, 0)
+			}
+		case 2:
+			if c := len(filters.Con["authors"]); c != 1 {
+				t.Errorf("got %d conj filters, expected %d\n", c, 1)
+			}
+			if d := len(filters.Dis["tags"]); d != 2 {
+				t.Errorf("got %d dis filters, expected %d\n", d, 2)
+			}
+		}
+	}
+}
 
-	v.Set(FacetFilters, `["authors:amy lane", ["tags:romance"], "tags:-dnr"]`)
-	queries[v.Encode()] = 22
+func testSearchFilterStrings() map[int]url.Values {
+	queries := make(map[int]url.Values)
+
+	queries[58] = url.Values{
+		FacetFilters: []string{
+			`["authors:amy lane"]`,
+		},
+	}
+
+	queries[26] = url.Values{
+		FacetFilters: []string{
+			`["authors:amy lane", ["tags:romance"]]`,
+		},
+	}
+
+	queries[37] = url.Values{
+		FacetFilters: []string{
+			`["authors:amy lane", ["tags:romance", "tags:-dnr"]]`,
+		},
+	}
 
 	return queries
 }

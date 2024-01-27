@@ -3,6 +3,7 @@ package srch
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"os"
 	"slices"
@@ -119,10 +120,20 @@ func (idx *Index) Filter(q string) *Response {
 	if !idx.HasResults() {
 		idx.res = idx.Bitmap()
 	}
-	filtered, err := Filter(idx.res, idx.facets, q)
+
+	idx.Params.Values.Set(FacetFilters, q)
+
+	filters, err := idx.GetFacetFilters()
 	if err != nil {
 		return NewResponse(idx)
 	}
+
+	fmt.Printf("%#v\n", filters)
+	filtered, err := Filter(idx.res, idx.facets, filters)
+	if err != nil {
+		return NewResponse(idx)
+	}
+
 	idx.res.And(filtered)
 	return NewResponse(idx)
 }

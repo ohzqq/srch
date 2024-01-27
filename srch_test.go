@@ -46,7 +46,6 @@ func TestFuzzySearch(t *testing.T) {
 		t.Error(err)
 	}
 	totalBooksErr(idx.Len(), test)
-	println(idx.Params.String())
 
 	for q, want := range testSearchQueryStrings() {
 		m := idx.Search(q)
