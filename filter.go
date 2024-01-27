@@ -12,8 +12,10 @@ import (
 )
 
 type Filters struct {
-	Con url.Values
-	Dis url.Values
+	Con     url.Values
+	Dis     url.Values
+	filters map[string]url.Values
+	labels  map[string]url.Values
 }
 
 func Filter(bits *roaring.Bitmap, fields []*Field, filters *Filters) (*roaring.Bitmap, error) {
@@ -24,10 +26,58 @@ func Filter(bits *roaring.Bitmap, fields []*Field, filters *Filters) (*roaring.B
 	return bits, nil
 }
 
-func DecodeFilter(query string) (*Filters, error) {
+func (f *Filters) Filter(bits *roaring.Bitmap, facet *Field) {
+	if filter, ok := f.labels[facet.Attribute]; ok {
+		for op, vals := range filter {
+			for _, v := range vals {
+				not, ok := IsNegative(v)
+				if ok {
+					bits.AndNot(facet.Filter(not))
+				} else {
+					switch op {
+					case And:
+						bits.And(facet.Filter(v))
+					case Or:
+						bits.Or(facet.Filter(v))
+					}
+				}
+			}
+		}
+	}
+
+	//if f.Con.Has(facet.Attribute) {
+	//  for _, a := range f.Con[facet.Attribute] {
+	//    not, ok := IsNegative(a)
+	//    if ok {
+	//      bits.AndNot(facet.Filter(not))
+	//    } else {
+	//      bits.And(facet.Filter(a))
+	//    }
+	//  }
+	//}
+
+	//if f.Dis.Has(facet.Attribute) {
+	//  for _, or := range f.Dis[facet.Attribute] {
+	//    not, ok := IsNegative(or)
+	//    if ok {
+	//      bits.AndNot(facet.Filter(not))
+	//    } else {
+	//      bits.Or(facet.Filter(or))
+	//    }
+	//  }
+	//}
+
+}
+
+func DecodeFilter(query string, facets ...string) (*Filters, error) {
 	filters := &Filters{
-		Con: make(url.Values),
-		Dis: make(url.Values),
+		Con:    make(url.Values),
+		Dis:    make(url.Values),
+		labels: make(map[string]url.Values),
+	}
+
+	for _, facet := range facets {
+		filters.labels[facet] = make(url.Values)
 	}
 
 	ff, err := unmarshalFilter(query)
@@ -36,48 +86,21 @@ func DecodeFilter(query string) (*Filters, error) {
 	}
 
 	for _, v := range ff {
-		filters.add(v)
+		switch vals := v.(type) {
+		case string:
+			filters.addCon(vals)
+		case []any:
+			or := cast.ToStringSlice(vals)
+			switch len(or) {
+			case 1:
+				filters.addCon(or[0])
+			default:
+				filters.addDis(or)
+			}
+		}
 	}
 
 	return filters, nil
-}
-
-func (f *Filters) Filter(bits *roaring.Bitmap, facet *Field) {
-	if f.Con.Has(facet.Attribute) {
-		for _, a := range f.Con[facet.Attribute] {
-			not, ok := IsNegative(a)
-			if ok {
-				bits.AndNot(facet.Filter(not))
-			} else {
-				bits.And(facet.Filter(a))
-			}
-		}
-	}
-	if f.Dis.Has(facet.Attribute) {
-		for _, or := range f.Dis[facet.Attribute] {
-			not, ok := IsNegative(or)
-			if ok {
-				bits.AndNot(facet.Filter(not))
-			} else {
-				bits.Or(facet.Filter(or))
-			}
-		}
-	}
-}
-
-func (f *Filters) add(filters any) {
-	switch vals := filters.(type) {
-	case string:
-		f.addCon(vals)
-	case []any:
-		or := cast.ToStringSlice(vals)
-		switch len(or) {
-		case 1:
-			f.addCon(or[0])
-		default:
-			f.addDis(or)
-		}
-	}
 }
 
 func (f *Filters) addCon(fv string) {
@@ -85,6 +108,7 @@ func (f *Filters) addCon(fv string) {
 	if !ok {
 		return
 	}
+	f.labels[label].Add(And, filter)
 	f.Con.Add(label, filter)
 }
 
@@ -94,6 +118,7 @@ func (f *Filters) addDis(filters []string) {
 		if !ok {
 			break
 		}
+		f.labels[label].Add(Or, filter)
 		f.Dis.Add(label, filter)
 	}
 }

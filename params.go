@@ -142,7 +142,7 @@ func (p Params) GetFacetFilters() (*Filters, error) {
 	if !p.HasFilters() {
 		return nil, errors.New("no filters")
 	}
-	f, err := DecodeFilter(p.Values.Get(FacetFilters))
+	f, err := DecodeFilter(p.Values.Get(FacetFilters), p.FacetAttr()...)
 	if err != nil {
 		return nil, err
 	}
