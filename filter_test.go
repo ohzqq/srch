@@ -77,8 +77,7 @@ func TestFilters(t *testing.T) {
 			if err != nil {
 				t.Error(err)
 			}
-			fmt.Printf("filters %#v\n", filters.labels)
-			t.Errorf("%s\ngot %d, expected %d\n", res.Params, r, want)
+			t.Errorf("%#v\ngot %d, expected %d\n", filters.labels, r, want)
 		}
 	}
 }
@@ -141,9 +140,21 @@ func testSearchFilterStrings() map[int]url.Values {
 		},
 	}
 
+	queries[1853] = url.Values{
+		FacetFilters: []string{
+			`["tags:dnr", "tags:-abo"]`,
+		},
+	}
+
 	queries[2272] = url.Values{
 		FacetFilters: []string{
 			`[["tags:dnr", "tags:abo"]]`,
+		},
+	}
+
+	queries[6757] = url.Values{
+		FacetFilters: []string{
+			`[["tags:dnr", "tags:-abo"]]`,
 		},
 	}
 

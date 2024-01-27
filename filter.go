@@ -38,7 +38,7 @@ func (f *Filters) Filter(bits *roaring.Bitmap, facet *Field) {
 					case And:
 						bits.And(facet.Filter(v))
 					case Or:
-						bits.Or(facet.Filter(v))
+						bits.Or(facet.Or(vals))
 					}
 				}
 			}
