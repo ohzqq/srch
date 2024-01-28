@@ -21,21 +21,12 @@ func TestUnmarshalQueryParams(t *testing.T) {
 	filtersTests(filters, t)
 }
 
-func TestParseFilterString(t *testing.T) {
-	enc := testComboFilterEnc()
-	filters, err := DecodeFilter(enc)
-	if err != nil {
-		t.Error(err)
-	}
-	filtersTests(filters, t)
-}
-
 func filtersTests(filters *Filters, t *testing.T) {
-	if len(filters.Con) != 1 {
-		t.Errorf("got %d conjunctive filters, expected %d\n", len(filters.Con), 1)
+	if len(filters.Con) != 2 {
+		t.Errorf("got %d conjunctive filters, expected %d\n", len(filters.Con), 2)
 	}
-	if len(filters.Dis) != 2 {
-		t.Errorf("got %d disjunctive filters, expected %d\n", len(filters.Dis), 2)
+	if len(filters.Dis) != 1 {
+		t.Errorf("got %d disjunctive filters, expected %d\n", len(filters.Dis), 1)
 	}
 }
 
@@ -71,18 +62,97 @@ func TestSearchAndFilter(t *testing.T) {
 	}
 }
 
-func testSearchFilterStrings() map[string]int {
-	queries := map[string]int{}
-	v := make(url.Values)
+func TestFilters(t *testing.T) {
+	test := "searchableAttributes=title&attributesForFaceting=tags,authors,series&dataFile=testdata/data-dir/audiobooks.json"
+	idx, err := New(test)
+	if err != nil {
+		t.Error(err)
+	}
 
-	v.Set(FacetFilters, `["authors:amy lane"]`)
-	queries[v.Encode()] = 58
+	for _, test := range testSearchFilterStrings() {
+		res := idx.Search(test.vals.Encode())
+		if r := res.NbHits(); r != test.want {
+			filters, err := idx.GetFacetFilters()
+			if err != nil {
+				fmt.Printf("vals %+v\n", test.vals)
+				t.Error(err)
+			}
+			t.Errorf("%#v\ngot %d, expected %d\n", filters, r, test.want)
+		}
+	}
+}
 
-	v.Set(FacetFilters, `["authors:amy lane", ["tags:romance"]]`)
-	queries[v.Encode()] = 26
+type filterStr struct {
+	vals url.Values
+	want int
+}
 
-	v.Set(FacetFilters, `["authors:amy lane", ["tags:romance"], "tags:-dnr"]`)
-	queries[v.Encode()] = 22
+func testSearchFilterStrings() []filterStr {
+	//queries := make(map[int]url.Values)
+	var queries []filterStr
+
+	queries = append(queries, filterStr{
+		want: 58,
+		vals: url.Values{
+			FacetFilters: []string{
+				`["authors:amy lane"]`,
+			},
+		},
+	})
+
+	queries = append(queries, filterStr{
+		want: 26,
+		vals: url.Values{
+			FacetFilters: []string{
+				`["authors:amy lane", ["tags:romance"]]`,
+			},
+		},
+	})
+
+	queries = append(queries, filterStr{
+		want: 43,
+		vals: url.Values{
+			FacetFilters: []string{
+				`["authors:amy lane", ["tags:romance", "tags:-dnr"]]`,
+			},
+		},
+	})
+
+	queries = append(queries, filterStr{
+		want: 384,
+		vals: url.Values{
+			FacetFilters: []string{
+				`["tags:dnr", "tags:abo"]`,
+			},
+		},
+	})
+
+	queries = append(queries, filterStr{
+		want: 1853,
+		vals: url.Values{
+			FacetFilters: []string{
+				`["tags:dnr", "tags:-abo"]`,
+			},
+		},
+	})
+
+	queries = append(queries, filterStr{
+		want: 2270,
+		vals: url.Values{
+			FacetFilters: []string{
+				`[["tags:dnr", "tags:abo"]]`,
+			},
+		},
+	})
+
+	queries = append(queries, filterStr{
+		want: 6757,
+		vals: url.Values{
+			FacetFilters: []string{
+				`[["tags:dnr", "tags:-abo"]]`,
+			},
+		},
+	})
 
 	return queries
 }
