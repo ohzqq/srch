@@ -8,6 +8,7 @@ import (
 
 	"github.com/RoaringBitmap/roaring"
 	"github.com/ohzqq/srch/txt"
+	"github.com/spf13/viper"
 )
 
 const (
@@ -111,14 +112,16 @@ func (f *Field) Filterz(bits *roaring.Bitmap, vals url.Values) *roaring.Bitmap {
 	return bits
 }
 
-func (f *Field) Or(filters []string) *roaring.Bitmap {
-	bits := roaring.New()
+func (f *Field) Or(filters ...string) *roaring.Bitmap {
+	var bits []*roaring.Bitmap
 	for _, filt := range filters {
 		for _, token := range f.Find(filt) {
-			bits.Or(token.Bitmap())
+			//bits.Or(token.Bitmap())
+			bits = append(bits, token.Bitmap())
 		}
 	}
-	return bits
+	//return bits
+	return roaring.ParAnd(viper.GetInt("workers"), bits...)
 }
 
 func parseAttr(field *Field, attr string) {

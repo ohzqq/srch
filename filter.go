@@ -29,6 +29,7 @@ func Filter(bits *roaring.Bitmap, fields []*Field, filters *Filters) (*roaring.B
 func (f *Filters) Filter(bits *roaring.Bitmap, facet *Field) {
 	if filter, ok := f.labels[facet.Attribute]; ok {
 		for op, vals := range filter {
+
 			for _, v := range vals {
 				not, ok := IsNegative(v)
 				if ok {
@@ -38,7 +39,7 @@ func (f *Filters) Filter(bits *roaring.Bitmap, facet *Field) {
 					case And:
 						bits.And(facet.Filter(v))
 					case Or:
-						bits.Or(facet.Or(vals))
+						bits.Or(facet.Or(v))
 					}
 				}
 			}
