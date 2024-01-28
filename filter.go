@@ -29,20 +29,20 @@ func Filter(bits *roaring.Bitmap, fields []*Field, filters *Filters) (*roaring.B
 func (f *Filters) Filter(bits *roaring.Bitmap, facet *Field) {
 	if filter, ok := f.labels[facet.Attribute]; ok {
 		for op, vals := range filter {
-
-			for _, v := range vals {
-				not, ok := IsNegative(v)
-				if ok {
-					bits.AndNot(facet.Filter(not))
-				} else {
-					switch op {
-					case And:
-						bits.And(facet.Filter(v))
-					case Or:
-						bits.Or(facet.Or(v))
-					}
-				}
+			switch op {
+			case And:
+				bits.And(facet.And(vals))
+			case Or:
+				bits.Or(facet.Or(vals...))
 			}
+			//for _, v := range vals {
+			//  not, ok := IsNegative(v)
+			//  if ok {
+			//    bits.AndNot(facet.Filter(not))
+			//  } else {
+			//  }
+			//}
+
 		}
 	}
 
@@ -94,7 +94,8 @@ func DecodeFilter(query string, facets ...string) (*Filters, error) {
 			or := cast.ToStringSlice(vals)
 			switch len(or) {
 			case 1:
-				filters.addCon(or[0])
+				//filters.addCon(or[0])
+				fallthrough
 			default:
 				filters.addDis(or)
 			}

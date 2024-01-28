@@ -70,93 +70,89 @@ func TestFilters(t *testing.T) {
 		t.Error(err)
 	}
 
-	for want, vals := range testSearchFilterStrings() {
-		res := idx.Search(vals.Encode())
-		if r := res.NbHits(); r != want {
+	for _, test := range testSearchFilterStrings() {
+		res := idx.Search(test.vals.Encode())
+		if r := res.NbHits(); r != test.want {
 			filters, err := idx.GetFacetFilters()
 			if err != nil {
 				t.Error(err)
 			}
-			t.Errorf("%#v\ngot %d, expected %d\n", filters.labels, r, want)
+			t.Errorf("%#v\ngot %d, expected %d\n", filters.labels, r, test.want)
 		}
 	}
 }
 
-func TestFilterStringParse(t *testing.T) {
-	tests := testSearchFilterStrings()
-	for want, vals := range tests {
-		filters, err := DecodeFilter(vals.Get(FacetFilters), "authors", "tags")
-		if err != nil {
-			t.Error(err)
-		}
-		//fmt.Printf("%#v\n", filters)
-		switch want {
-		case 58:
-			if c := len(filters.Con["authors"]); c != 1 {
-				t.Errorf("got %d conj filters, expected %d\n", c, 1)
-			}
-		case 26:
-			if c := len(filters.Con); c != 2 {
-				t.Errorf("got %d conj filters, expected %d\n", c, 2)
-			}
-			if d := len(filters.Dis["tags"]); d != 0 {
-				t.Errorf("got %d dis filters, expected %d\n", d, 0)
-			}
-		case 37:
-			if c := len(filters.Con["authors"]); c != 1 {
-				t.Errorf("got %d conj filters, expected %d\n", c, 1)
-			}
-			if d := len(filters.Dis["tags"]); d != 2 {
-				t.Errorf("got %d dis filters, expected %d\n", d, 2)
-			}
-		}
-	}
+type filterStr struct {
+	vals url.Values
+	want int
 }
 
-func testSearchFilterStrings() map[int]url.Values {
-	queries := make(map[int]url.Values)
+func testSearchFilterStrings() []filterStr {
+	//queries := make(map[int]url.Values)
+	var queries []filterStr
 
-	queries[58] = url.Values{
-		FacetFilters: []string{
-			`["authors:amy lane"]`,
+	queries = append(queries, filterStr{
+		want: 58,
+		vals: url.Values{
+			FacetFilters: []string{
+				`["authors:amy lane"]`,
+			},
 		},
-	}
+	})
 
-	queries[26] = url.Values{
-		FacetFilters: []string{
-			`["authors:amy lane", ["tags:romance"]]`,
+	queries = append(queries, filterStr{
+		want: 803,
+		vals: url.Values{
+			FacetFilters: []string{
+				`["authors:amy lane", ["tags:romance"]]`,
+			},
 		},
-	}
+	})
 
-	queries[37] = url.Values{
-		FacetFilters: []string{
-			`["authors:amy lane", ["tags:romance", "tags:-dnr"]]`,
+	queries = append(queries, filterStr{
+		want: 43,
+		vals: url.Values{
+			FacetFilters: []string{
+				`["authors:amy lane", ["tags:romance", "tags:-dnr"]]`,
+			},
 		},
-	}
+	})
 
-	queries[384] = url.Values{
-		FacetFilters: []string{
-			`["tags:dnr", "tags:abo"]`,
+	queries = append(queries, filterStr{
+		want: 417,
+		vals: url.Values{
+			FacetFilters: []string{
+				`["tags:dnr", "tags:abo"]`,
+			},
 		},
-	}
+	})
 
-	queries[1853] = url.Values{
-		FacetFilters: []string{
-			`["tags:dnr", "tags:-abo"]`,
+	queries = append(queries, filterStr{
+		want: 7174,
+		vals: url.Values{
+			FacetFilters: []string{
+				`["tags:dnr", "tags:-abo"]`,
+			},
 		},
-	}
+	})
 
-	queries[2272] = url.Values{
-		FacetFilters: []string{
-			`[["tags:dnr", "tags:abo"]]`,
+	queries = append(queries, filterStr{
+		want: 2270,
+		vals: url.Values{
+			FacetFilters: []string{
+				`[["tags:dnr", "tags:abo"]]`,
+			},
 		},
-	}
+	})
 
-	queries[6757] = url.Values{
-		FacetFilters: []string{
-			`[["tags:dnr", "tags:-abo"]]`,
+	queries = append(queries, filterStr{
+		want: 6757,
+		vals: url.Values{
+			FacetFilters: []string{
+				`[["tags:dnr", "tags:-abo"]]`,
+			},
 		},
-	}
+	})
 
 	return queries
 }

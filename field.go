@@ -2,7 +2,6 @@ package srch
 
 import (
 	"encoding/json"
-	"net/url"
 	"slices"
 	"strings"
 
@@ -92,36 +91,41 @@ func (f *Field) And(filters []string) *roaring.Bitmap {
 	//return roaring.ParAnd(viper.GetInt("workers"), bits...)
 }
 
-func (f *Field) Filterz(bits *roaring.Bitmap, vals url.Values) *roaring.Bitmap {
-	//var not []string
-	for op, filters := range vals {
-		for _, filt := range filters {
-			var ok bool
-			filt, ok = IsNegative(filt)
-			if !ok {
-				switch op {
-				case Or:
-					bits.Or(f.Tokens.Filter(filt))
-				case And:
-					bits.And(f.Tokens.Filter(filt))
-				}
-
-			}
-		}
-	}
-	return bits
-}
-
 func (f *Field) Or(filters ...string) *roaring.Bitmap {
-	var bits []*roaring.Bitmap
+	var tOr []*txt.Token
+	var not []*txt.Token
 	for _, filt := range filters {
-		for _, token := range f.Find(filt) {
-			//bits.Or(token.Bitmap())
-			bits = append(bits, token.Bitmap())
+		var n string
+		var ok bool
+		//var tokens []*txt.Token
+		n, ok = IsNegative(filt)
+		if ok {
+			//tOr = append(tOr, f.Find(not))
+			not = f.Find(n)
+		} else {
+			//not = append(not, f.Find(filt))
+			tOr = f.Find(filt)
 		}
+		//for _, token := range tokens {
+		//  switch ok {
+		//  case true:
+		//    ex = append(ex, token.Bitmap())
+		//  default:
+		//    bits = append(bits, token.Bitmap())
+		//  }
+		//  //bits = append(bits, token.Bitmap())
+		//}
 	}
-	//return bits
-	return roaring.ParAnd(viper.GetInt("workers"), bits...)
+	orb := make([]*roaring.Bitmap, len(tOr))
+	for i, token := range tOr {
+		orb[i] = token.Bitmap()
+	}
+	or := roaring.ParAnd(viper.GetInt("workers"), orb...)
+
+	for _, n := range not {
+		or.AndNot(n.Bitmap())
+	}
+	return or
 }
 
 func parseAttr(field *Field, attr string) {
