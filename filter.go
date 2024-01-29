@@ -119,10 +119,11 @@ func decodeFilter(bits *roaring.Bitmap, fields map[string]*Field, query string) 
 		return nil, err
 	}
 
-	and, or := parseFilters(filters)
+	fils := parseFilters(filters)
 
 	var aor []*roaring.Bitmap
-	for _, filter := range and {
+	var bor []*roaring.Bitmap
+	for _, filter := range fils {
 		field, ok := fields[filter.Facet]
 		if !ok {
 			break
@@ -132,27 +133,17 @@ func decodeFilter(bits *roaring.Bitmap, fields map[string]*Field, query string) 
 		case true:
 			bits = roaring.AndNot(bits, val)
 		default:
-			aor = append(aor, val)
+			switch filter.Operator {
+			case And:
+				aor = append(aor, val)
+			case Or:
+				bor = append(bor, val)
+			}
 		}
 	}
 
 	arb := roaring.ParAnd(viper.GetInt("workers"), aor...)
 	bits.And(arb)
-
-	var bor []*roaring.Bitmap
-	for _, filter := range or {
-		field, ok := fields[filter.Facet]
-		if !ok {
-			break
-		}
-		val := field.Filter(filter.Value)
-		switch filter.Not {
-		case true:
-			bits.AndNot(val)
-		default:
-			bor = append(bor, val)
-		}
-	}
 
 	orb := roaring.ParOr(viper.GetInt("workers"), bor...)
 	bits.Or(orb)
@@ -186,9 +177,8 @@ func CutFilter(filter string) (string, string, bool) {
 	return facet, val, false
 }
 
-func parseFilters(filters []any) ([]filter, []filter) {
+func parseFilters(filters []any) []filter {
 	var and []filter
-	var or []filter
 	for _, fs := range filters {
 		switch vals := fs.(type) {
 		case string:
@@ -199,11 +189,11 @@ func parseFilters(filters []any) ([]filter, []filter) {
 			for _, val := range cast.ToStringSlice(vals) {
 				f := filter{Operator: Or}
 				f.Facet, f.Value, f.Not = CutFilter(val)
-				or = append(or, f)
+				and = append(and, f)
 			}
 		}
 	}
-	return and, or
+	return and
 }
 
 func UnmarshalFilterString(filters string) ([]any, error) {
