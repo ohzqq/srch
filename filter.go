@@ -2,7 +2,6 @@ package srch
 
 import (
 	"encoding/json"
-	"errors"
 	"net/url"
 	"strings"
 
@@ -11,12 +10,6 @@ import (
 	"github.com/spf13/cast"
 	"github.com/spf13/viper"
 )
-
-type Filters struct {
-	Con url.Values
-	Dis url.Values
-	Neg url.Values
-}
 
 type filter struct {
 	Facet    string
@@ -63,29 +56,6 @@ func Filter(bits *roaring.Bitmap, fields map[string]*Field, query string) (*roar
 	return bits, nil
 }
 
-func NewFilters(query string) (*Filters, error) {
-	filters := newFilters()
-
-	ff, err := unmarshalFilter(query)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, v := range ff {
-		filters.add(v)
-	}
-
-	return filters, nil
-}
-
-func newFilters() *Filters {
-	return &Filters{
-		Neg: make(url.Values),
-		Con: make(url.Values),
-		Dis: make(url.Values),
-	}
-}
-
 func bitsToIntSlice(bitmap *roaring.Bitmap) []int {
 	bits := bitmap.ToArray()
 	ids := make([]int, len(bits))
@@ -111,56 +81,43 @@ func FilteredItems(data []map[string]any, ids []any) []map[string]any {
 	return items
 }
 
-func DecodeFilter(query string) (*Filters, error) {
-	filters, err := UnmarshalFilterString(query)
-	if err != nil {
-		return nil, err
-	}
+//func decodeFilter(bits *roaring.Bitmap, fields map[string]*Field, query string) (*roaring.Bitmap, error) {
+//  filters, err := unmarshalFilter(query)
+//  if err != nil {
+//    return nil, err
+//  }
 
-	f := newFilters()
-	for _, v := range filters {
-		f.add(v)
-	}
-	return f, nil
-}
+//  fils := parseFilters(filters)
 
-func decodeFilter(bits *roaring.Bitmap, fields map[string]*Field, query string) (*roaring.Bitmap, error) {
-	filters, err := unmarshalFilter(query)
-	if err != nil {
-		return nil, err
-	}
+//  var aor []*roaring.Bitmap
+//  var bor []*roaring.Bitmap
+//  for _, filter := range fils {
+//    field, ok := fields[filter.Facet]
+//    if !ok {
+//      break
+//    }
+//    val := field.Filter(filter.Value)
+//    switch filter.Not {
+//    case true:
+//      bits = roaring.AndNot(bits, val)
+//    default:
+//      switch filter.Operator {
+//      case And:
+//        aor = append(aor, val)
+//      case Or:
+//        bor = append(bor, val)
+//      }
+//    }
+//  }
 
-	fils := parseFilters(filters)
+//  arb := roaring.ParAnd(viper.GetInt("workers"), aor...)
+//  bits.And(arb)
 
-	var aor []*roaring.Bitmap
-	var bor []*roaring.Bitmap
-	for _, filter := range fils {
-		field, ok := fields[filter.Facet]
-		if !ok {
-			break
-		}
-		val := field.Filter(filter.Value)
-		switch filter.Not {
-		case true:
-			bits = roaring.AndNot(bits, val)
-		default:
-			switch filter.Operator {
-			case And:
-				aor = append(aor, val)
-			case Or:
-				bor = append(bor, val)
-			}
-		}
-	}
+//  orb := roaring.ParOr(viper.GetInt("workers"), bor...)
+//  bits.Or(orb)
 
-	arb := roaring.ParAnd(viper.GetInt("workers"), aor...)
-	bits.And(arb)
-
-	orb := roaring.ParOr(viper.GetInt("workers"), bor...)
-	bits.Or(orb)
-
-	return bits, nil
-}
+//  return bits, nil
+//}
 
 func IsNegative(filter string) (string, bool) {
 	return strings.TrimPrefix(filter, "-"), strings.HasPrefix(filter, "-")
@@ -229,96 +186,4 @@ func unmarshalFilter(dec string) ([]any, error) {
 		return nil, err
 	}
 	return f, nil
-}
-
-func (f *Filters) add(filters any) {
-	switch vals := filters.(type) {
-	case string:
-		f.And(vals)
-	case []any:
-		for _, filter := range cast.ToStringSlice(vals) {
-			f.Or(filter)
-		}
-	}
-}
-
-func ParseFilters(filters any) (string, []string, error) {
-	switch vals := filters.(type) {
-	case string:
-		return And, []string{vals}, nil
-	case []any:
-		return Or, cast.ToStringSlice(vals), nil
-	default:
-		return "", []string{}, errors.New("not a filter")
-	}
-}
-
-func (f *Filters) Encode() string {
-	return f.ToValues().Encode()
-}
-
-func (f *Filters) String() string {
-	return string(f.Bytes())
-}
-
-func (f *Filters) Bytes() []byte {
-	var filters []any
-	for k, not := range f.Neg {
-		for _, n := range not {
-			filters = append(filters, k+":-"+n)
-		}
-	}
-	for k, and := range f.Con {
-		for _, a := range and {
-			filters = append(filters, k+":"+a)
-		}
-	}
-	for k, or := range f.Dis {
-		for _, o := range or {
-			filters = append(filters, k+":"+o)
-		}
-	}
-
-	filter, err := json.Marshal(filters)
-	if err != nil {
-		filter = []byte{}
-	}
-
-	return filter
-}
-
-func (f *Filters) ToValues() url.Values {
-	return url.Values{
-		"facetFilters": []string{f.String()},
-	}
-}
-
-func (f *Filters) And(fv string) *Filters {
-	label, filter, ok := cutFilter(fv)
-	if !ok {
-		return f
-	}
-	if strings.HasPrefix(filter, "-") {
-		return f.Not(label, filter)
-	}
-	f.Con.Add(label, filter)
-	return f
-}
-
-func (f *Filters) Or(fv string) *Filters {
-	label, filter, ok := cutFilter(fv)
-	if !ok {
-		return f
-	}
-	if strings.HasPrefix(filter, "-") {
-		return f.Not(label, filter)
-	}
-	f.Dis.Add(label, filter)
-	return f
-}
-
-func (f *Filters) Not(label, filter string) *Filters {
-	filter = strings.TrimPrefix(filter, "-")
-	f.Neg.Add(label, filter)
-	return f
 }

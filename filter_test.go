@@ -45,7 +45,7 @@ func TestNewFilters(t *testing.T) {
 	//fields := idx.Params.newFieldsMap(idx.FacetAttr())
 	for _, test := range testSearchFilterStrings() {
 		filters := test.vals.Get(FacetFilters)
-		bits, err := decodeFilter(idx.Bitmap(), idx.facets, filters)
+		bits, err := Filter(idx.Bitmap(), idx.facets, filters)
 		if err != nil {
 			t.Error(err)
 		}
