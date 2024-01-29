@@ -94,7 +94,6 @@ func totalBooksTest(total int, t *testing.T) {
 
 func newTestIdx() *Index {
 	idx, _ := New(libCfgStr)
-	fmt.Printf("%+v\n", idx.fac)
 	return idx
 }
 

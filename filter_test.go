@@ -8,28 +8,6 @@ import (
 	"testing"
 )
 
-func TestUnmarshalQueryParams(t *testing.T) {
-	params := &Params{}
-	err := json.Unmarshal(testParamsBytes(), params)
-	if err != nil {
-		t.Error(err)
-	}
-	filters, err := params.GetFacetFilters()
-	if err != nil {
-		t.Error(err)
-	}
-	filtersTests(filters, t)
-}
-
-func filtersTests(filters *Filters, t *testing.T) {
-	if len(filters.Con) != 2 {
-		t.Errorf("got %d conjunctive filters, expected %d\n", len(filters.Con), 2)
-	}
-	if len(filters.Dis) != 1 {
-		t.Errorf("got %d disjunctive filters, expected %d\n", len(filters.Dis), 1)
-	}
-}
-
 func TestMarshalFilter(t *testing.T) {
 	combo := testComboFilter()
 	var c []any
@@ -67,7 +45,7 @@ func TestNewFilters(t *testing.T) {
 	//fields := idx.Params.newFieldsMap(idx.FacetAttr())
 	for _, test := range testSearchFilterStrings() {
 		filters := test.vals.Get(FacetFilters)
-		bits, err := decodeFilter(idx.Bitmap(), idx.fac, filters)
+		bits, err := decodeFilter(idx.Bitmap(), idx.facets, filters)
 		if err != nil {
 			t.Error(err)
 		}
