@@ -23,12 +23,9 @@ func Filter(bits *roaring.Bitmap, fields map[string]*Field, query string) (*roar
 		return nil, err
 	}
 
-	//and, or := parseFilters(filters)
-
 	var aor []*roaring.Bitmap
 	var bor []*roaring.Bitmap
 	for name, field := range fields {
-
 		for _, fs := range filters {
 			switch vals := fs.(type) {
 			case string:
@@ -56,30 +53,6 @@ func Filter(bits *roaring.Bitmap, fields map[string]*Field, query string) (*roar
 				}
 			}
 		}
-		//for _, a := range and {
-		//  a, ok := strings.CutPrefix(a, name+":")
-		//  if ok {
-		//    a, not := strings.CutPrefix(a, "-")
-		//    if not {
-		//      bits.AndNot(field.Filter(a))
-		//    } else {
-		//      aor = append(aor, field.Filter(a))
-		//    }
-		//  }
-		//}
-
-		//for _, o := range or {
-		//  o, ok := strings.CutPrefix(o, name+":")
-		//  if ok {
-		//    o, not := strings.CutPrefix(o, "-")
-		//    if not {
-		//      bits.AndNot(field.Filter(o))
-		//    } else {
-		//      bor = append(bor, field.Filter(o))
-		//    }
-		//  }
-		//}
-
 	}
 	arb := roaring.ParAnd(viper.GetInt("workers"), aor...)
 	bits.And(arb)
