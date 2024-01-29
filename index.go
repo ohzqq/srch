@@ -22,6 +22,7 @@ func init() {
 type Index struct {
 	fields []*Field
 	facets []*Field
+	fac    map[string]*Field
 	Data   []map[string]any
 	res    *roaring.Bitmap
 
@@ -52,6 +53,7 @@ func newIndex(settings any) *Index {
 		Params: params,
 		fields: params.Fields(),
 		facets: params.Facets(),
+		fac:    params.newFieldsMap(params.FacetAttr()),
 	}
 }
 
@@ -71,6 +73,11 @@ func (idx *Index) Index(src []map[string]any) *Index {
 		for i, attr := range idx.FacetAttr() {
 			if val, ok := d[attr]; ok {
 				idx.facets[i].Add(val, []int{id})
+			}
+		}
+		for _, attr := range idx.FacetAttr() {
+			if val, ok := d[attr]; ok {
+				idx.fac[attr].Add(val, []int{id})
 			}
 		}
 	}

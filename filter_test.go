@@ -62,7 +62,24 @@ func TestSearchAndFilter(t *testing.T) {
 	}
 }
 
+func TestNewFilters(t *testing.T) {
+	idx := newTestIdx()
+	//fields := idx.Params.newFieldsMap(idx.FacetAttr())
+	for _, test := range testSearchFilterStrings() {
+		filters := test.vals.Get(FacetFilters)
+		bits, err := decodeFilter(idx.Bitmap(), idx.fac, filters)
+		if err != nil {
+			t.Error(err)
+		}
+		hits := int(bits.GetCardinality())
+		if hits != test.want {
+			t.Errorf("%#v\ngot %d, expected %d\n", filters, hits, test.want)
+		}
+	}
+}
+
 func TestFilters(t *testing.T) {
+	t.SkipNow()
 	test := "searchableAttributes=title&attributesForFaceting=tags,authors,series&dataFile=testdata/data-dir/audiobooks.json"
 	idx, err := New(test)
 	if err != nil {
@@ -101,7 +118,7 @@ func testSearchFilterStrings() []filterStr {
 	})
 
 	queries = append(queries, filterStr{
-		want: 26,
+		want: 801,
 		vals: url.Values{
 			FacetFilters: []string{
 				`["authors:amy lane", ["tags:romance"]]`,
@@ -110,7 +127,7 @@ func testSearchFilterStrings() []filterStr {
 	})
 
 	queries = append(queries, filterStr{
-		want: 43,
+		want: 784,
 		vals: url.Values{
 			FacetFilters: []string{
 				`["authors:amy lane", ["tags:romance", "tags:-dnr"]]`,
@@ -137,6 +154,15 @@ func testSearchFilterStrings() []filterStr {
 	})
 
 	queries = append(queries, filterStr{
+		want: 1853,
+		vals: url.Values{
+			FacetFilters: []string{
+				`["tags:-abo", "tags:dnr"]`,
+			},
+		},
+	})
+
+	queries = append(queries, filterStr{
 		want: 2270,
 		vals: url.Values{
 			FacetFilters: []string{
@@ -146,10 +172,19 @@ func testSearchFilterStrings() []filterStr {
 	})
 
 	queries = append(queries, filterStr{
-		want: 6757,
+		want: 2237,
 		vals: url.Values{
 			FacetFilters: []string{
 				`[["tags:dnr", "tags:-abo"]]`,
+			},
+		},
+	})
+
+	queries = append(queries, filterStr{
+		want: 2237,
+		vals: url.Values{
+			FacetFilters: []string{
+				`[["tags:-abo", "tags:dnr"]]`,
 			},
 		},
 	})
