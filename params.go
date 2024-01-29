@@ -138,17 +138,6 @@ func (p Params) FacetAttr() []string {
 	return p.GetSlice(FacetAttr)
 }
 
-func (p Params) GetFacetFilters() (*Filters, error) {
-	if !p.HasFilters() {
-		return nil, errors.New("no filters")
-	}
-	f, err := DecodeFilter(p.Values.Get(FacetFilters))
-	if err != nil {
-		return nil, err
-	}
-	return f, nil
-}
-
 func (p *Params) SortFacetsBy() string {
 	sort := SortByCount
 	if p.Values.Has(SortFacetsBy) {

@@ -21,7 +21,6 @@ func init() {
 // Index is a structure for facets and data.
 type Index struct {
 	fields []*Field
-	facetz []*Field
 	facets map[string]*Field
 	Data   []map[string]any
 	res    *roaring.Bitmap
