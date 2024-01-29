@@ -79,7 +79,7 @@ func TestNewFilters(t *testing.T) {
 }
 
 func TestFilters(t *testing.T) {
-	t.SkipNow()
+	//t.SkipNow()
 	test := "searchableAttributes=title&attributesForFaceting=tags,authors,series&dataFile=testdata/data-dir/audiobooks.json"
 	idx, err := New(test)
 	if err != nil {
@@ -89,12 +89,7 @@ func TestFilters(t *testing.T) {
 	for _, test := range testSearchFilterStrings() {
 		res := idx.Search(test.vals.Encode())
 		if r := res.NbHits(); r != test.want {
-			filters, err := idx.GetFacetFilters()
-			if err != nil {
-				fmt.Printf("vals %+v\n", test.vals)
-				t.Error(err)
-			}
-			t.Errorf("%#v\ngot %d, expected %d\n", filters, r, test.want)
+			t.Errorf("%#v\ngot %d, expected %d\n", test.vals.Get(FacetFilters), r, test.want)
 		}
 	}
 }

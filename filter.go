@@ -25,29 +25,40 @@ type filter struct {
 	Value    string
 }
 
-func Filter(bits *roaring.Bitmap, fields []*Field, query string) (*roaring.Bitmap, error) {
-	filters, err := NewFilters(query)
+func Filter(bits *roaring.Bitmap, fields map[string]*Field, query string) (*roaring.Bitmap, error) {
+	filters, err := unmarshalFilter(query)
 	if err != nil {
 		return nil, err
 	}
 
-	for _, facet := range fields {
-		if filters.Dis.Has(facet.Attribute) {
-			for _, or := range filters.Dis[facet.Attribute] {
-				bits.Or(facet.Filter(or))
-			}
+	fils := parseFilters(filters)
+
+	var aor []*roaring.Bitmap
+	var bor []*roaring.Bitmap
+	for _, filter := range fils {
+		field, ok := fields[filter.Facet]
+		if !ok {
+			break
 		}
-		if filters.Con.Has(facet.Attribute) {
-			for _, a := range filters.Con[facet.Attribute] {
-				bits.And(facet.Filter(a))
-			}
-		}
-		if filters.Neg.Has(facet.Attribute) {
-			for _, not := range filters.Neg[facet.Attribute] {
-				bits.AndNot(facet.Filter(not))
+		val := field.Filter(filter.Value)
+		switch filter.Not {
+		case true:
+			bits = roaring.AndNot(bits, val)
+		default:
+			switch filter.Operator {
+			case And:
+				aor = append(aor, val)
+			case Or:
+				bor = append(bor, val)
 			}
 		}
 	}
+
+	arb := roaring.ParAnd(viper.GetInt("workers"), aor...)
+	bits.And(arb)
+
+	orb := roaring.ParOr(viper.GetInt("workers"), bor...)
+	bits.Or(orb)
 
 	return bits, nil
 }

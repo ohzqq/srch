@@ -126,7 +126,7 @@ func (idx *Index) Filter(q string) *Response {
 	if !idx.HasResults() {
 		idx.res = idx.Bitmap()
 	}
-	filtered, err := Filter(idx.res, idx.facets, q)
+	filtered, err := Filter(idx.res, idx.fac, q)
 	if err != nil {
 		return NewResponse(idx)
 	}
