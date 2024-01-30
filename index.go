@@ -21,7 +21,7 @@ func init() {
 // Index is a structure for facets and data.
 type Index struct {
 	fields []*Field
-	facets []*Field
+	facets map[string]*Field
 	Data   []map[string]any
 	res    *roaring.Bitmap
 
@@ -51,7 +51,7 @@ func newIndex(settings any) *Index {
 	return &Index{
 		Params: params,
 		fields: params.Fields(),
-		facets: params.Facets(),
+		facets: params.newFieldsMap(params.FacetAttr()),
 	}
 }
 
@@ -68,9 +68,9 @@ func (idx *Index) Index(src []map[string]any) *Index {
 				idx.fields[i].Add(val, []int{id})
 			}
 		}
-		for i, attr := range idx.FacetAttr() {
+		for _, attr := range idx.FacetAttr() {
 			if val, ok := d[attr]; ok {
-				idx.facets[i].Add(val, []int{id})
+				idx.facets[attr].Add(val, []int{id})
 			}
 		}
 	}
@@ -174,10 +174,8 @@ func (idx *Index) Sort() {
 }
 
 func (idx *Index) GetFacet(attr string) *Field {
-	for _, f := range idx.facets {
-		if attr == f.Attribute {
-			return f
-		}
+	if f, ok := idx.facets[attr]; ok {
+		return f
 	}
 	return &Field{Attribute: attr}
 }
@@ -196,14 +194,12 @@ func (idx *Index) HasFacets() bool {
 	return len(idx.facets) > 0
 }
 
-func (idx *Index) Facets() []*Field {
+func (idx *Index) Facets() map[string]*Field {
 	return idx.facets
 }
 
 func (idx *Index) FacetLabels() []string {
-	return lo.Map(idx.facets, func(f *Field, _ int) string {
-		return f.Attribute
-	})
+	return lo.Keys(idx.facets)
 }
 
 func (idx *Index) SearchableFields() []*Field {
