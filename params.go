@@ -43,15 +43,25 @@ type Params struct {
 }
 
 func NewParams() *Params {
-	return &Params{
+	p := &Params{
 		Values: make(url.Values),
 	}
+	return p
 }
 
 func ParseParams(params any) *Params {
-	q := ParseQuery(params)
 	p := &Params{
-		Values: q,
+		Values: ParseQuery(params),
+	}
+
+	if p.Values.Has(FacetFilters) {
+		for _, filters := range p.Values[FacetFilters] {
+			fils, err := unmarshalFilter(filters)
+			if err != nil {
+				break
+			}
+			p.filters = append(p.filters, fils...)
+		}
 	}
 	return p
 }
@@ -70,18 +80,13 @@ func (p Params) Get(key string) string {
 	return ""
 }
 
-func (p *Params) Merge(queries ...*Params) {
-	for _, query := range queries {
-		for k, val := range query.Values {
-			for _, v := range val {
-				p.Values.Add(k, v)
-			}
-		}
-	}
+func (p *Params) AndFilter(field string, filters ...string) *Params {
+	p.filters = append(p.filters, NewFilter(field, filters)...)
+	return p
 }
 
-func (p Params) FieldIsSearchable(attr string) bool {
-	return slices.Contains(p.SrchAttr(), attr)
+func (p *Params) OrFilter(field string, filters ...string) {
+	p.filters = append(p.filters, NewFilter(field, filters))
 }
 
 func (p Params) IsFacet(attr string) bool {
@@ -91,12 +96,13 @@ func (p Params) IsFacet(attr string) bool {
 func (p *Params) NewField(attr string) *Field {
 	f := NewField(attr)
 
-	if p.IsFacet(attr) {
+	switch p.IsFacet(attr) {
+	case true:
 		f.SetAnalyzer(txt.Keyword())
-	}
-
-	if p.IsFullText() && p.FieldIsSearchable(attr) {
-		f.SetAnalyzer(txt.Fulltext())
+	default:
+		if p.IsFullText() {
+			f.SetAnalyzer(txt.Fulltext())
+		}
 	}
 
 	f.SortBy = p.SortFacetsBy()
@@ -137,19 +143,6 @@ func (p *Params) Facets() []*Field {
 
 func (p Params) FacetAttr() []string {
 	return p.GetSlice(FacetAttr)
-}
-
-func (p *Params) SetFacetFilter(filters Filters) *Params {
-	p.Values.Set(FacetFilters, filters.String())
-	return p
-}
-
-func (f Filters) And(field string, filters ...any) {
-	f = append(f, filters...)
-}
-
-func (f Filters) Or(field string, filters ...any) {
-	f = append(f, filters)
 }
 
 func (f Filters) String() string {

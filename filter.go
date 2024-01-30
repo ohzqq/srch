@@ -64,6 +64,14 @@ func Filter(bits *roaring.Bitmap, fields map[string]*Field, query string) (*roar
 	return bits, nil
 }
 
+func NewFilter(field string, filters []string) []any {
+	f := make([]any, len(filters))
+	for i, filter := range filters {
+		f[i] = field + ":" + filter
+	}
+	return f
+}
+
 func unmarshalFilter(dec string) ([]any, error) {
 	var f []any
 	err := json.Unmarshal([]byte(dec), &f)

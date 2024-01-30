@@ -109,7 +109,8 @@ func (idx *Index) Search(params string) *Response {
 	}
 
 	if q.HasFilters() {
-		idx.Filter(q.Values.Get(FacetFilters))
+		filters := q.Values.Get(FacetFilters)
+		idx.Filter(filters)
 	}
 
 	return NewResponse(idx)

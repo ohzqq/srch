@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"encoding/json"
 	"net/url"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -47,7 +48,7 @@ func Browse(q url.Values, data []map[string]any) *App {
 	}
 	tui.idx, _ = srch.New(q)
 	tui.params = srch.ParseParams(q)
-	tui.updateVisible(q.Encode())
+	tui.updateVisible(srch.NewResponse(tui.idx))
 	tui.Model = NewModel(SrcToItems(tui.visible))
 	return tui
 }
@@ -104,9 +105,16 @@ func (c *App) SetFacet(label string) {
 	c.facet = label
 }
 
-func (c *App) SetFilters(facet string, vals []string) {
-	//c.Filters = srch.ParseQuery(c.Filters, filters)
-	c.updateVisible(c.visible.Filter(filters.Encode()))
+func (c *App) SetFilters(vals []any) {
+	d, err := json.Marshal(vals)
+	if err != nil {
+		c.updateVisible(c.visible)
+		return
+	}
+	f := url.Values{
+		srch.FacetFilters: []string{string(d)},
+	}
+	c.updateVisible(c.visible.Filter(f.Encode()))
 }
 
 func (c *App) SetSelections(idx *srch.Index) {

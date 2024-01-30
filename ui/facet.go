@@ -1,8 +1,6 @@
 package ui
 
 import (
-	"net/url"
-
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/londek/reactea"
 	"github.com/ohzqq/srch"
@@ -16,7 +14,7 @@ type Facet struct {
 }
 
 type FacetProps struct {
-	SetFilters func(url.Values)
+	SetFilters func([]any)
 }
 
 func NewFacet(facet *srch.Field) *Facet {
@@ -38,12 +36,12 @@ func (m *Facet) Update(msg tea.Msg) tea.Cmd {
 		switch msg.String() {
 		case "enter":
 			if !m.Model.SettingFilter() {
-				toggled := m.Model.ToggledItems()
-				vals := make([]string, len(toggled))
-				for i, s := range toggled {
-					vals[i] = m.Model.Items()[s].FilterValue()
+				var filters []any
+				for _, s := range m.Model.ToggledItems() {
+					f := m.Attribute + ":" + m.Model.Items()[s].FilterValue()
+					filters = append(filters, f)
 				}
-				m.Props().SetFilters(m.Attribute, vals)
+				m.Props().SetFilters(filters)
 				reactea.SetCurrentRoute("filtered")
 				return nil
 			}

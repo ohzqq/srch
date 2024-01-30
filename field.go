@@ -5,7 +5,6 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/RoaringBitmap/roaring"
 	"github.com/ohzqq/srch/txt"
 )
 
@@ -58,17 +57,6 @@ func (f *Field) GetTokens() []*txt.Token {
 
 func (f *Field) Find(kw string) []*txt.Token {
 	return f.Tokens.Find(kw)
-}
-
-func (f *Field) And(filters []string) *roaring.Bitmap {
-	//var bits []*roaring.Bitmap
-	var bits *roaring.Bitmap
-	return bits
-	//return roaring.ParAnd(viper.GetInt("workers"), bits...)
-}
-
-func (f *Field) Or(filters ...string) *roaring.Bitmap {
-	return roaring.New()
 }
 
 func parseAttr(field *Field, attr string) {
