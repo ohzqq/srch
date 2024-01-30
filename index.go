@@ -122,12 +122,7 @@ func (idx *Index) Filter(q string) *Response {
 
 	idx.Params.Values.Set(FacetFilters, q)
 
-	filters, err := idx.GetFacetFilters()
-	if err != nil {
-		return NewResponse(idx)
-	}
-
-	filtered, err := Filter(idx.res, idx.facets, filters)
+	filtered, err := Filter(idx.res, idx.facets, q)
 	if err != nil {
 		return NewResponse(idx)
 	}
