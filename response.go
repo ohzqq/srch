@@ -9,8 +9,14 @@ type Response struct {
 }
 
 func NewResponse(idx *Index) *Response {
+	i, err := New(idx.Params.Values)
+	if err != nil {
+		i = idx
+	}
+	i.Index(idx.GetResults())
+
 	return &Response{
-		Index: idx,
+		Index: i,
 	}
 }
 
@@ -19,17 +25,15 @@ func (r *Response) MarshalJSON() ([]byte, error) {
 }
 
 func (r *Response) NbHits() int {
-	return int(r.res.GetCardinality())
+	if r.HasResults() {
+		return int(r.res.GetCardinality())
+	}
+	return int(r.Index.Bitmap().GetCardinality())
 }
 
 func (r *Response) StringMap() map[string]any {
-	idx, err := New(r.Params.Values)
-	if err != nil {
-		return map[string]any{"error": err}
-	}
-	idx.Index(r.GetResults())
-	m := idx.StringMap()
+	m := r.StringMap()
 	m[NbHits] = r.NbHits()
-	m[Hits] = idx.Data
+	m[Hits] = r.Data
 	return m
 }

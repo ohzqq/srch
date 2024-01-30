@@ -47,6 +47,7 @@ func (t *Tokens) Find(val any) []*Token {
 }
 
 func (t *Tokens) Search(term string) []*Token {
+	//tokens := t.Fuzzy(term)
 	matches := fuzzy.FindFrom(term, t)
 	tokens := make([]*Token, len(matches))
 	all := t.Tokens()
@@ -54,6 +55,17 @@ func (t *Tokens) Search(term string) []*Token {
 		tokens[i] = all[match.Index]
 	}
 	return tokens
+}
+
+func (t *Tokens) Fuzzy(term string) *roaring.Bitmap {
+	matches := fuzzy.FindFrom(term, t)
+	all := t.Tokens()
+	bits := make([]*roaring.Bitmap, len(matches))
+	for i, match := range matches {
+		b := all[match.Index].Bitmap()
+		bits[i] = b
+	}
+	return roaring.ParOr(viper.GetInt("workers"), bits...)
 }
 
 func (t *Tokens) Add(val any, ids []int) {

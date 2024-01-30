@@ -8,6 +8,32 @@ import (
 	"testing"
 )
 
+<<<<<<< HEAD
+func TestUnmarshalQueryParams(t *testing.T) {
+	t.SkipNow()
+	params := &Params{}
+	err := json.Unmarshal(testParamsBytes(), params)
+	if err != nil {
+		t.Error(err)
+	}
+	filters, err := params.GetFacetFilters()
+	if err != nil {
+		t.Error(err)
+	}
+	filtersTests(filters, t)
+}
+
+func filtersTests(filters *Filters, t *testing.T) {
+	if len(filters.Con) != 2 {
+		t.Errorf("got %d conjunctive filters, expected %d\n", len(filters.Con), 2)
+	}
+	if len(filters.Dis) != 1 {
+		t.Errorf("got %d disjunctive filters, expected %d\n", len(filters.Dis), 1)
+	}
+}
+
+=======
+>>>>>>> fix2
 func TestMarshalFilter(t *testing.T) {
 	combo := testComboFilter()
 	var c []any
@@ -40,6 +66,9 @@ func TestSearchAndFilter(t *testing.T) {
 	}
 }
 
+<<<<<<< HEAD
+func TestFilters(t *testing.T) {
+=======
 func TestNewFilters(t *testing.T) {
 	idx := newTestIdx()
 	//fields := idx.Params.newFieldsMap(idx.FacetAttr())
@@ -58,6 +87,7 @@ func TestNewFilters(t *testing.T) {
 
 func TestFilters(t *testing.T) {
 	//t.SkipNow()
+>>>>>>> fix2
 	test := "searchableAttributes=title&attributesForFaceting=tags,authors,series&dataFile=testdata/data-dir/audiobooks.json"
 	idx, err := New(test)
 	if err != nil {
@@ -67,7 +97,15 @@ func TestFilters(t *testing.T) {
 	for _, test := range testSearchFilterStrings() {
 		res := idx.Search(test.vals.Encode())
 		if r := res.NbHits(); r != test.want {
+<<<<<<< HEAD
+			filters, err := idx.GetFacetFilters()
+			if err != nil {
+				t.Error(err)
+			}
+			t.Errorf("%#v\ngot %d, expected %d\n", filters.labels, r, test.want)
+=======
 			t.Errorf("%#v\ngot %d, expected %d\n", test.vals.Get(FacetFilters), r, test.want)
+>>>>>>> fix2
 		}
 	}
 }
@@ -91,7 +129,11 @@ func testSearchFilterStrings() []filterStr {
 	})
 
 	queries = append(queries, filterStr{
+<<<<<<< HEAD
+		want: 803,
+=======
 		want: 801,
+>>>>>>> fix2
 		vals: url.Values{
 			FacetFilters: []string{
 				`["authors:amy lane", ["tags:romance"]]`,
@@ -100,7 +142,11 @@ func testSearchFilterStrings() []filterStr {
 	})
 
 	queries = append(queries, filterStr{
+<<<<<<< HEAD
+		want: 43,
+=======
 		want: 784,
+>>>>>>> fix2
 		vals: url.Values{
 			FacetFilters: []string{
 				`["authors:amy lane", ["tags:romance", "tags:-dnr"]]`,
@@ -109,7 +155,11 @@ func testSearchFilterStrings() []filterStr {
 	})
 
 	queries = append(queries, filterStr{
+<<<<<<< HEAD
+		want: 417,
+=======
 		want: 384,
+>>>>>>> fix2
 		vals: url.Values{
 			FacetFilters: []string{
 				`["tags:dnr", "tags:abo"]`,
@@ -118,7 +168,11 @@ func testSearchFilterStrings() []filterStr {
 	})
 
 	queries = append(queries, filterStr{
+<<<<<<< HEAD
+		want: 7174,
+=======
 		want: 1853,
+>>>>>>> fix2
 		vals: url.Values{
 			FacetFilters: []string{
 				`["tags:dnr", "tags:-abo"]`,
@@ -127,6 +181,8 @@ func testSearchFilterStrings() []filterStr {
 	})
 
 	queries = append(queries, filterStr{
+<<<<<<< HEAD
+=======
 		want: 1853,
 		vals: url.Values{
 			FacetFilters: []string{
@@ -136,6 +192,7 @@ func testSearchFilterStrings() []filterStr {
 	})
 
 	queries = append(queries, filterStr{
+>>>>>>> fix2
 		want: 2270,
 		vals: url.Values{
 			FacetFilters: []string{
@@ -145,13 +202,19 @@ func testSearchFilterStrings() []filterStr {
 	})
 
 	queries = append(queries, filterStr{
+<<<<<<< HEAD
+		want: 6757,
+=======
 		want: 2237,
+>>>>>>> fix2
 		vals: url.Values{
 			FacetFilters: []string{
 				`[["tags:dnr", "tags:-abo"]]`,
 			},
 		},
 	})
+<<<<<<< HEAD
+=======
 
 	queries = append(queries, filterStr{
 		want: 2237,
@@ -161,6 +224,7 @@ func testSearchFilterStrings() []filterStr {
 			},
 		},
 	})
+>>>>>>> fix2
 
 	return queries
 }

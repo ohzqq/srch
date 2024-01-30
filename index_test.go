@@ -18,6 +18,7 @@ const testDataDir = `testdata/data-dir`
 const testCfgFile = `testdata/config-old.json`
 const testYAMLCfgFile = `testdata/config.yaml`
 const testCfgFileData = `testdata/config-with-data.json`
+const libCfgStr = "searchableAttributes=title&attributesForFaceting=tags,authors,series,narrators&dataFile=testdata/data-dir/audiobooks.json"
 
 func TestData(t *testing.T) {
 	books = loadData(t)
@@ -89,6 +90,11 @@ func totalBooksTest(total int, t *testing.T) {
 	if total != 7174 {
 		t.Errorf("got %d, expected %d\n", total, 7174)
 	}
+}
+
+func newTestIdx() *Index {
+	idx, _ := New(libCfgStr)
+	return idx
 }
 
 func totalBooksErr(total int, vals ...any) error {
