@@ -40,10 +40,11 @@ func New(idx *srch.Index) *App {
 }
 
 func Browse(q url.Values, data []map[string]any) *App {
-	tui := newApp(q, data)
-	idx, _ := srch.New(q)
-
-	tui.updateVisible(idx.Search(""))
+	tui := &App{
+		mainRouter: router.New(),
+	}
+	tui.idx, _ = srch.New(q)
+	tui.updateVisible(tui.idx.Search(""))
 	tui.Model = NewModel(SrcToItems(tui.visible))
 	return tui
 }
@@ -71,7 +72,7 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 		"default":  c.idxComponent,
 		"filtered": c.idxComponent,
 		"facetMenu": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
-			component := NewFacetMenu(c.facetLabels)
+			component := NewFacetMenu(c.visible.FacetLabels())
 
 			return component, component.Init(FacetMenuProps{
 				SetFacet: c.SetFacet,
@@ -116,12 +117,13 @@ func (c *App) ClearFilters() {
 
 func (c *App) updateVisible(idx *srch.Response) {
 	c.visible = idx
-	c.facetLabels = c.visible.FacetLabels()
-	if len(c.facetLabels) > 0 {
-		//c.facets = make(map[string]*Facet)
-		//for _, label := range c.facetLabels {
-		//c.setFacet(label)
-		//}
+	facets := c.visible.Facets()
+	if len(facets) > 0 {
+		c.facets = make(map[string]*Facet)
+		for label, field := range facets {
+			c.facets[label] = NewFacet(field)
+			//c.setFacet(label)
+		}
 	}
 }
 
