@@ -38,7 +38,8 @@ const (
 )
 
 type Params struct {
-	Values url.Values
+	Values  url.Values
+	filters []any
 }
 
 func NewParams() *Params {
@@ -136,6 +137,27 @@ func (p *Params) Facets() []*Field {
 
 func (p Params) FacetAttr() []string {
 	return p.GetSlice(FacetAttr)
+}
+
+func (p *Params) SetFacetFilter(filters Filters) *Params {
+	p.Values.Set(FacetFilters, filters.String())
+	return p
+}
+
+func (f Filters) And(field string, filters ...any) {
+	f = append(f, filters...)
+}
+
+func (f Filters) Or(field string, filters ...any) {
+	f = append(f, filters)
+}
+
+func (f Filters) String() string {
+	d, err := json.Marshal(f)
+	if err != nil {
+		return ""
+	}
+	return string(d)
 }
 
 func (p *Params) SortFacetsBy() string {

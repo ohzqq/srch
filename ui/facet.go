@@ -38,11 +38,12 @@ func (m *Facet) Update(msg tea.Msg) tea.Cmd {
 		switch msg.String() {
 		case "enter":
 			if !m.Model.SettingFilter() {
-				vals := make(url.Values)
-				for _, s := range m.Model.ToggledItems() {
-					vals.Add(m.Attribute, m.Model.Items()[s].FilterValue())
+				toggled := m.Model.ToggledItems()
+				vals := make([]string, len(toggled))
+				for i, s := range toggled {
+					vals[i] = m.Model.Items()[s].FilterValue()
 				}
-				m.Props().SetFilters(vals)
+				m.Props().SetFilters(m.Attribute, vals)
 				reactea.SetCurrentRoute("filtered")
 				return nil
 			}

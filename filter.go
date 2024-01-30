@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/RoaringBitmap/roaring"
-	"github.com/samber/lo"
 	"github.com/spf13/cast"
 	"github.com/spf13/viper"
 )
@@ -16,6 +15,8 @@ type filter struct {
 	Not      bool
 	Value    string
 }
+
+type Filters []any
 
 func Filter(bits *roaring.Bitmap, fields map[string]*Field, query string) (*roaring.Bitmap, error) {
 	filters, err := unmarshalFilter(query)
@@ -52,14 +53,6 @@ func Filter(bits *roaring.Bitmap, fields map[string]*Field, query string) (*roar
 					}
 				}
 			}
-			//for _, v := range vals {
-			//  not, ok := IsNegative(v)
-			//  if ok {
-			//    bits.AndNot(facet.Filter(not))
-			//  } else {
-			//  }
-			//}
-
 		}
 	}
 	arb := roaring.ParAnd(viper.GetInt("workers"), aor...)
@@ -71,27 +64,13 @@ func Filter(bits *roaring.Bitmap, fields map[string]*Field, query string) (*roar
 	return bits, nil
 }
 
-func parseFilters(filters []any) ([]string, []string) {
-	var and, or []string
-	for _, fs := range filters {
-		switch vals := fs.(type) {
-		case string:
-			and = append(and, vals)
-		case []any:
-			or = append(or, cast.ToStringSlice(vals)...)
-		}
+func unmarshalFilter(dec string) ([]any, error) {
+	var f []any
+	err := json.Unmarshal([]byte(dec), &f)
+	if err != nil {
+		return nil, err
 	}
-	return and, or
-}
-
-func CutFilter(filter string) (string, string, bool) {
-	facet, val, _ := strings.Cut(filter, ":")
-
-	if strings.HasPrefix(val, "-") {
-		return facet, strings.TrimPrefix(val, "-"), true
-	}
-
-	return facet, val, false
+	return f, nil
 }
 
 func bitsToIntSlice(bitmap *roaring.Bitmap) []int {
@@ -117,25 +96,4 @@ func FilteredItems(data []map[string]any, ids []any) []map[string]any {
 		}
 	}
 	return items
-}
-
-func IsNegative(filter string) (string, bool) {
-	return strings.TrimPrefix(filter, "-"), strings.HasPrefix(filter, "-")
-}
-
-func FilterByAttribute(attr string, filters []string) []string {
-	fn := func(f string, _ int) (string, bool) {
-		pre := attr + ":"
-		return strings.TrimPrefix(f, pre), strings.HasPrefix(f, pre)
-	}
-	return lo.FilterMap(filters, fn)
-}
-
-func unmarshalFilter(dec string) ([]any, error) {
-	var f []any
-	err := json.Unmarshal([]byte(dec), &f)
-	if err != nil {
-		return nil, err
-	}
-	return f, nil
 }

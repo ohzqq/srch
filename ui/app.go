@@ -15,7 +15,8 @@ type App struct {
 
 	mainRouter reactea.Component[router.Props]
 
-	idx *srch.Index
+	idx    *srch.Index
+	params *srch.Params
 
 	data  []map[string]any
 	query url.Values
@@ -42,9 +43,11 @@ func New(idx *srch.Index) *App {
 func Browse(q url.Values, data []map[string]any) *App {
 	tui := &App{
 		mainRouter: router.New(),
+		params:     srch.NewParams(),
 	}
 	tui.idx, _ = srch.New(q)
-	tui.updateVisible(tui.idx.Search(""))
+	tui.params = srch.ParseParams(q)
+	tui.updateVisible(q.Encode())
 	tui.Model = NewModel(SrcToItems(tui.visible))
 	return tui
 }
@@ -101,8 +104,8 @@ func (c *App) SetFacet(label string) {
 	c.facet = label
 }
 
-func (c *App) SetFilters(filters url.Values) {
-	c.Filters = srch.ParseQuery(c.Filters, filters)
+func (c *App) SetFilters(facet string, vals []string) {
+	//c.Filters = srch.ParseQuery(c.Filters, filters)
 	c.updateVisible(c.visible.Filter(filters.Encode()))
 }
 
