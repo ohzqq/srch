@@ -122,10 +122,4 @@ func audibleApi(q string) []map[string]any {
 	return sl
 }
 
-type testSearcher struct {
-	cmd []string
-}
-
-var testS = testSearcher{
-	cmd: []string{"list", "--with-library", "http://localhost:8888/#audiobooks", "--username", "churkey", "--password", "<f:/home/mxb/.dotfiles/misc/calibre.txt>", "--limit", "2", "--for-machine"},
-}
+var testCalibreStr = []string{"list", "--with-library", "http://localhost:8888/#audiobooks", "--username", "churkey", "--password", "<f:/home/mxb/.dotfiles/misc/calibre.txt>", "--limit", "2", "--for-machine"}
