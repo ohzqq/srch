@@ -10,19 +10,6 @@ import (
 	"github.com/ohzqq/audible"
 )
 
-const testQueryString = `tags=grumpy/sunshine&tags=enemies+to+lovers`
-const testSearchString = `q=amy+lane`
-
-func testVals() url.Values {
-	vals := make(url.Values)
-	vals.Add("tags", "abo")
-	vals.Add("tags", "dnr")
-	//vals.Add("authors", "Alice Winters")
-	//vals.Add("authors", "Amy Lane")
-	//vals.Add(QueryField, "fish")
-	return vals
-}
-
 func testSearchQueryStrings() map[string]int {
 	queries := map[string]int{
 		"": 7174,
