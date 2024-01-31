@@ -37,24 +37,25 @@ const (
 )
 
 type Params struct {
-	Values  url.Values
-	filters []any
+	Settings url.Values
+	Search   url.Values
+	filters  []any
 }
 
 func NewParams() *Params {
 	p := &Params{
-		Values: make(url.Values),
+		Settings: make(url.Values),
 	}
 	return p
 }
 
 func ParseParams(params any) *Params {
 	p := &Params{
-		Values: ParseQuery(params),
+		Settings: ParseQuery(params),
 	}
 
-	if p.Values.Has(FacetFilters) {
-		for _, filters := range p.Values[FacetFilters] {
+	if p.Settings.Has(FacetFilters) {
+		for _, filters := range p.Settings[FacetFilters] {
 			fils, err := unmarshalFilter(filters)
 			if err != nil {
 				break
@@ -66,15 +67,15 @@ func ParseParams(params any) *Params {
 }
 
 func (p Params) GetSlice(key string) []string {
-	if p.Values.Has(key) {
-		return p.Values[key]
+	if p.Settings.Has(key) {
+		return p.Settings[key]
 	}
 	return []string{}
 }
 
 func (p Params) Get(key string) string {
-	if p.Values.Has(key) {
-		return p.Values.Get(key)
+	if p.Settings.Has(key) {
+		return p.Settings.Get(key)
 	}
 	return ""
 }
@@ -133,7 +134,7 @@ func (p *Params) Fields() map[string]*Field {
 }
 
 func (p Params) HasFilters() bool {
-	return p.Values.Has(FacetFilters)
+	return p.Settings.Has(FacetFilters)
 }
 
 func (p *Params) Facets() map[string]*Field {
@@ -154,8 +155,8 @@ func (f Filters) String() string {
 
 func (p *Params) SortFacetsBy() string {
 	sort := SortByCount
-	if p.Values.Has(SortFacetsBy) {
-		if by := p.Values.Get(SortFacetsBy); by == SortByCount || by == SortByAlpha {
+	if p.Settings.Has(SortFacetsBy) {
+		if by := p.Settings.Get(SortFacetsBy); by == SortByCount || by == SortByAlpha {
 			sort = by
 		}
 	}
@@ -163,7 +164,7 @@ func (p *Params) SortFacetsBy() string {
 }
 
 func (p Params) Page() int {
-	pn := p.Values.Get(Page)
+	pn := p.Settings.Get(Page)
 	page, err := strconv.Atoi(pn)
 	if err != nil {
 		return 0
@@ -172,7 +173,7 @@ func (p Params) Page() int {
 }
 
 func (p Params) HitsPerPage() int {
-	pn := p.Values.Get(HitsPerPage)
+	pn := p.Settings.Get(HitsPerPage)
 	page, err := strconv.Atoi(pn)
 	if err != nil {
 		return 0
@@ -181,15 +182,15 @@ func (p Params) HitsPerPage() int {
 }
 
 func (p *Params) IsFullText() bool {
-	return p.Values.Has(ParamFullText)
+	return p.Settings.Has(ParamFullText)
 }
 
 func (p Params) Query() string {
-	return p.Values.Get(Query)
+	return p.Settings.Get(Query)
 }
 
 func (p Params) GetAnalyzer() string {
-	if p.Values.Has(ParamFullText) {
+	if p.Settings.Has(ParamFullText) {
 		return TextAnalyzer
 	}
 	return KeywordAnalyzer
@@ -218,16 +219,16 @@ func (p *Params) UnmarshalJSON(d []byte) error {
 }
 
 func (p Params) Encode() string {
-	return p.Values.Encode()
+	return p.Settings.Encode()
 }
 
 func (p Params) String() string {
-	return p.Values.Encode()
+	return p.Settings.Encode()
 }
 
 func (p *Params) Decode(str string) error {
 	var err error
-	p.Values, err = url.ParseQuery(str)
+	p.Settings, err = url.ParseQuery(str)
 	return err
 }
 

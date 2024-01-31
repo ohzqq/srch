@@ -85,7 +85,7 @@ func (idx *Index) Search(params string) *Response {
 	q := ParseParams(params)
 
 	if query := q.Query(); query != "" {
-		idx.Params.Values.Set("query", query)
+		idx.Params.Settings.Set("query", query)
 		switch idx.Params.GetAnalyzer() {
 		case TextAnalyzer:
 			idx.res.And(idx.FullText(query))
@@ -95,8 +95,8 @@ func (idx *Index) Search(params string) *Response {
 	}
 
 	if q.HasFilters() {
-		filters := q.Values.Get(FacetFilters)
-		idx.Filter(filters)
+		filters := q.Settings.Get(FacetFilters)
+		return idx.Filter(filters)
 	}
 
 	return idx.Response()
@@ -107,7 +107,7 @@ func (idx *Index) Filter(q string) *Response {
 		idx.res = idx.Bitmap()
 	}
 
-	idx.Params.Values.Set(FacetFilters, q)
+	idx.Params.Settings.Set(FacetFilters, q)
 
 	filtered, err := Filter(idx.res, idx.facets, q)
 	if err != nil {
@@ -119,7 +119,7 @@ func (idx *Index) Filter(q string) *Response {
 }
 
 func (idx *Index) Response() *Response {
-	return NewResponse(idx.GetResults(), idx.Params.Values)
+	return NewResponse(idx.GetResults(), idx.Params.Settings)
 }
 
 func (idx *Index) FullText(q string) *roaring.Bitmap {
@@ -168,17 +168,17 @@ func (idx Index) GetResults() []map[string]any {
 }
 
 func (idx *Index) Sort() {
-	sortDataByField(idx.Data, idx.Params.Values.Get(SortBy))
-	if idx.Params.Values.Has(Order) {
-		if idx.Params.Values.Get(Order) == "desc" {
+	sortDataByField(idx.Data, idx.Params.Settings.Get(SortBy))
+	if idx.Params.Settings.Has(Order) {
+		if idx.Params.Settings.Get(Order) == "desc" {
 			slices.Reverse(idx.Data)
 		}
 	}
 }
 
 func (idx *Index) HasData() bool {
-	return idx.Values.Has(DataFile) ||
-		idx.Values.Has(DataDir)
+	return idx.Settings.Has(DataFile) ||
+		idx.Settings.Has(DataDir)
 }
 
 func (idx *Index) GetData() error {
@@ -188,12 +188,12 @@ func (idx *Index) GetData() error {
 	var data []map[string]any
 	var err error
 	switch {
-	case idx.Values.Has(DataFile):
+	case idx.Settings.Has(DataFile):
 		data, err = FileSrc(idx.GetSlice(DataFile)...)
-		idx.Values.Del(DataFile)
-	case idx.Values.Has(DataDir):
+		idx.Settings.Del(DataFile)
+	case idx.Settings.Has(DataDir):
 		data, err = DirSrc(idx.Get(DataDir))
-		idx.Values.Del(DataDir)
+		idx.Settings.Del(DataDir)
 	}
 	if err != nil {
 		return err
@@ -264,7 +264,7 @@ func (idx *Index) UnmarshalJSON(d []byte) error {
 		if err != nil {
 			return err
 		}
-		idx.Params.Values = ParseQuery(q)
+		idx.Params.Settings = ParseQuery(q)
 	}
 
 	if msg, ok := un[Hits]; ok {

@@ -21,18 +21,6 @@ func NewResponse(data []map[string]any, vals url.Values) *Response {
 	}
 }
 
-func OldResponse(idx *Index) *Response {
-	i, err := New(idx.Params.Values)
-	if err != nil {
-		i = idx
-	}
-	i.Index(idx.GetResults())
-
-	return &Response{
-		Index: i,
-	}
-}
-
 func (r *Response) MarshalJSON() ([]byte, error) {
 	return json.Marshal(r.StringMap())
 }

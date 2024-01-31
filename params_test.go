@@ -22,28 +22,28 @@ var testQuerySettings = []string{
 
 var testParsedParams = []*Params{
 	&Params{
-		Values: url.Values{
+		Settings: url.Values{
 			SrchAttr: []string{DefaultField},
 		},
 	},
 	&Params{
-		Values: url.Values{
+		Settings: url.Values{
 			SrchAttr: []string{DefaultField},
 		},
 	},
 	&Params{
-		Values: url.Values{
+		Settings: url.Values{
 			SrchAttr: []string{DefaultField},
 		},
 	},
 	&Params{
-		Values: url.Values{
+		Settings: url.Values{
 			SrchAttr: []string{DefaultField},
 			DataDir:  []string{testDataDir},
 		},
 	},
 	&Params{
-		Values: url.Values{
+		Settings: url.Values{
 			SrchAttr: []string{DefaultField},
 			FacetAttr: []string{
 				"tags",
@@ -54,7 +54,7 @@ var testParsedParams = []*Params{
 		},
 	},
 	&Params{
-		Values: url.Values{
+		Settings: url.Values{
 			SrchAttr: []string{DefaultField},
 			DataFile: []string{testData},
 			FacetAttr: []string{
@@ -66,7 +66,7 @@ var testParsedParams = []*Params{
 		},
 	},
 	&Params{
-		Values: url.Values{
+		Settings: url.Values{
 			SrchAttr: []string{DefaultField},
 			FacetAttr: []string{
 				"tags",
@@ -77,7 +77,7 @@ var testParsedParams = []*Params{
 		},
 	},
 	&Params{
-		Values: url.Values{
+		Settings: url.Values{
 			SrchAttr: []string{DefaultField},
 			DataFile: []string{testData},
 			FacetAttr: []string{
@@ -113,14 +113,14 @@ func settingsErr(got *Params, want *Params) error {
 		err = fmt.Errorf(fmtStr, err, facet, want.FacetAttr())
 	}
 
-	if got.Values.Has(DataDir) {
+	if got.Settings.Has(DataDir) {
 		vals := got.GetSlice(DataDir)
 		if !slices.Equal(vals, want.GetSlice(DataDir)) {
 			err = fmt.Errorf(fmtStr, err, vals, want.GetSlice(DataDir))
 		}
 	}
 
-	if got.Values.Has(DataFile) {
+	if got.Settings.Has(DataFile) {
 		vals := got.GetSlice(DataFile)
 		if !slices.Equal(vals, want.GetSlice(DataFile)) {
 			err = fmt.Errorf(fmtStr, err, vals, want.GetSlice(DataFile))
