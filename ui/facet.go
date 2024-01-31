@@ -14,7 +14,7 @@ type Facet struct {
 }
 
 type FacetProps struct {
-	SetFilters func([]any)
+	SetFilters func(string, []string)
 }
 
 func NewFacet(facet *srch.Field) *Facet {
@@ -36,15 +36,12 @@ func (m *Facet) Update(msg tea.Msg) tea.Cmd {
 		switch msg.String() {
 		case "enter":
 			if !m.Model.SettingFilter() {
-				var filters []any
+				var filters []string
 				for _, s := range m.Model.ToggledItems() {
-					f := srch.NewFilter(
-						m.Attribute,
-						[]string{m.Model.Items()[s].FilterValue()},
-					)
+					f := m.Model.Items()[s].FilterValue()
 					filters = append(filters, f)
 				}
-				m.Props().SetFilters(filters)
+				m.Props().SetFilters(m.Attribute, filters)
 				reactea.SetCurrentRoute("filtered")
 				return nil
 			}

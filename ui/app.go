@@ -1,13 +1,13 @@
 package ui
 
 import (
-	"encoding/json"
 	"net/url"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/londek/reactea"
 	"github.com/londek/reactea/router"
 	"github.com/ohzqq/srch"
+	"github.com/samber/lo"
 )
 
 type App struct {
@@ -29,6 +29,7 @@ type App struct {
 	visible    *srch.Response
 	facetMenu  *FacetMenu
 	Filters    url.Values
+	filters    []any
 	facet      string
 	Selections *srch.Response
 }
@@ -44,6 +45,7 @@ func New(idx *srch.Index) *App {
 func Browse(q url.Values, data []map[string]any) *App {
 	tui := newApp()
 	tui.idx, _ = srch.New(q)
+	tui.filters = tui.idx.Filters()
 	tui.params = srch.ParseParams(q)
 	tui.updateVisible(tui.idx.Response())
 	tui.Model = NewModel(SrcToItems(tui.visible))
@@ -100,16 +102,14 @@ func (c *App) SetFacet(label string) {
 	c.facet = label
 }
 
-func (c *App) SetFilters(vals []any) {
-	d, err := json.Marshal(vals)
-	if err != nil {
-		c.updateVisible(c.visible)
+func (c *App) SetFilters(field string, vals []string) {
+	if len(vals) == 0 {
 		return
 	}
-	f := url.Values{
-		srch.FacetFilters: []string{string(d)},
-	}
-	c.updateVisible(c.visible.Filter(f.Encode()))
+	f := srch.NewFilter(field, vals...)
+	c.filters = append(c.filters, lo.ToAnySlice(f)...)
+	c.idx.SetFilters(c.filters)
+	c.updateVisible(c.idx.Filter(""))
 }
 
 func (c *App) SetSelections(idx *srch.Index) {
@@ -118,6 +118,8 @@ func (c *App) SetSelections(idx *srch.Index) {
 
 func (c *App) ClearFilters() {
 	c.Filters = make(url.Values)
+	c.filters = []any{}
+	c.idx.SetFilters(c.filters)
 	c.updateVisible(c.idx.Search(""))
 }
 

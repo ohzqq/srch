@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/RoaringBitmap/roaring"
+	"github.com/samber/lo"
 	"github.com/spf13/cast"
 	"github.com/spf13/viper"
 )
@@ -59,8 +60,12 @@ func Filter(bits *roaring.Bitmap, fields map[string]*Field, filters []any) (*roa
 	return bits, nil
 }
 
-func NewFilter(field string, filters []string) []any {
-	f := make([]any, len(filters))
+func NewAnyFilter(field string, filters []string) []any {
+	return lo.ToAnySlice(NewFilter(field, filters...))
+}
+
+func NewFilter(field string, filters ...string) []string {
+	f := make([]string, len(filters))
 	for i, filter := range filters {
 		f[i] = field + ":" + filter
 	}

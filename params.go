@@ -144,25 +144,31 @@ func (p *Params) Filters() []any {
 		}
 		return fils
 	}
-	return []any{}
+	return p.filters
 }
 
 func (p *Params) SetFilters(filters []any) *Params {
+	if len(filters) == 0 {
+		p.Search.Del(FacetFilters)
+		return p
+	}
+
 	d, err := json.Marshal(filters)
 	if err != nil {
 		return p
 	}
 	p.Set(FacetFilters, string(d))
+
 	return p
 }
 
 func (p *Params) AndFilter(field string, filters ...string) *Params {
-	p.filters = append(p.filters, NewFilter(field, filters)...)
+	p.filters = append(p.filters, NewAnyFilter(field, filters)...)
 	return p
 }
 
 func (p *Params) OrFilter(field string, filters ...string) {
-	p.filters = append(p.filters, NewFilter(field, filters))
+	p.filters = append(p.filters, NewAnyFilter(field, filters))
 }
 
 func (p Params) IsFacet(attr string) bool {
