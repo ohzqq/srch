@@ -82,11 +82,12 @@ func (idx *Index) Index(src []map[string]any) *Index {
 
 func (idx *Index) Search(params string) *Response {
 	idx.res = idx.Bitmap()
-	q := ParseParams(params)
+	//q := ParseParams(params)
+	idx.SetSearch(params)
 
-	if query := q.Query(); query != "" {
-		idx.Params.Settings.Set("query", query)
-		switch idx.Params.GetAnalyzer() {
+	if query := idx.Query(); query != "" {
+		//idx.Set("query", query)
+		switch idx.GetAnalyzer() {
 		case TextAnalyzer:
 			idx.res.And(idx.FullText(query))
 		case KeywordAnalyzer:
@@ -94,8 +95,8 @@ func (idx *Index) Search(params string) *Response {
 		}
 	}
 
-	if q.HasFilters() {
-		filters := q.Get(FacetFilters)
+	if idx.Has(FacetFilters) {
+		filters := idx.Get(FacetFilters)
 		return idx.Filter(filters)
 	}
 
@@ -173,7 +174,7 @@ func (idx Index) GetResults() []map[string]any {
 
 func (idx *Index) Sort() {
 	sortDataByField(idx.Data, idx.Get(SortBy))
-	if idx.Params.Search.Has(Order) {
+	if idx.Has(Order) {
 		if idx.Get(Order) == "desc" {
 			slices.Reverse(idx.Data)
 		}
@@ -181,8 +182,8 @@ func (idx *Index) Sort() {
 }
 
 func (idx *Index) HasData() bool {
-	return idx.Settings.Has(DataFile) ||
-		idx.Settings.Has(DataDir)
+	return idx.Has(DataFile) ||
+		idx.Has(DataDir)
 }
 
 func (idx *Index) GetData() error {
@@ -192,10 +193,10 @@ func (idx *Index) GetData() error {
 	var data []map[string]any
 	var err error
 	switch {
-	case idx.Settings.Has(DataFile):
+	case idx.Has(DataFile):
 		data, err = FileSrc(idx.GetSlice(DataFile)...)
 		idx.Settings.Del(DataFile)
-	case idx.Settings.Has(DataDir):
+	case idx.Has(DataDir):
 		data, err = DirSrc(idx.Get(DataDir))
 		idx.Settings.Del(DataDir)
 	}

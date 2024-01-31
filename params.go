@@ -127,6 +127,21 @@ func (p *Params) Set(key string, val string) {
 	}
 }
 
+func (p Params) Has(key string) bool {
+	switch key {
+	case FacetAttr, SrchAttr, DataDir, DataFile:
+		return p.Settings.Has(key)
+	default:
+		return p.Search.Has(key)
+	}
+}
+
+func (p *Params) SetSearch(params string) *Params {
+	q := ParseQuery(params)
+	p.Search = lo.Assign(p.Search, q)
+	return p
+}
+
 func (p *Params) AndFilter(field string, filters ...string) *Params {
 	p.filters = append(p.filters, NewFilter(field, filters)...)
 	return p
