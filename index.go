@@ -95,8 +95,7 @@ func (idx *Index) Search(params string) *Response {
 	}
 
 	if idx.Has(FacetFilters) {
-		filters := idx.Get(FacetFilters)
-		return idx.Filter(filters)
+		return idx.Filter("")
 	}
 
 	return idx.Response()
@@ -107,9 +106,11 @@ func (idx *Index) Filter(q string) *Response {
 		idx.res = idx.Bitmap()
 	}
 
-	idx.Set(FacetFilters, q)
+	if q != "" {
+		idx.Set(FacetFilters, q)
+	}
 
-	filtered, err := OldFilter(idx.res, idx.facets, q)
+	filtered, err := Filter(idx.res, idx.facets, idx.Filters())
 	if err != nil {
 		return idx.Response()
 	}

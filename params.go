@@ -60,9 +60,6 @@ func ParseParams(params any) *Params {
 	p.Settings = GetSettings(q)
 	p.Search = GetSearchParams(q)
 
-	if p.HasFilters() {
-		p.SetFilters(p.Get(FacetFilters))
-	}
 	return p
 }
 
@@ -140,11 +137,22 @@ func (p Params) HasFilters() bool {
 	return p.Search.Has(FacetFilters)
 }
 
-func (p *Params) SetFilters(params string) *Params {
-	fils, err := unmarshalFilter(params)
-	if err != nil {
+func (p *Params) Filters() []any {
+	if p.HasFilters() {
+		fils, err := unmarshalFilter(p.Get(FacetFilters))
+		if err != nil {
+		}
+		return fils
 	}
-	p.filters = append(p.filters, fils...)
+	return []any{}
+}
+
+func (p *Params) SetFilters(filters []any) *Params {
+	d, err := json.Marshal(filters)
+	if err != nil {
+		return p
+	}
+	p.Set(FacetFilters, string(d))
 	return p
 }
 

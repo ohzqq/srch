@@ -59,15 +59,6 @@ func Filter(bits *roaring.Bitmap, fields map[string]*Field, filters []any) (*roa
 	return bits, nil
 }
 
-func OldFilter(bits *roaring.Bitmap, fields map[string]*Field, query string) (*roaring.Bitmap, error) {
-	filters, err := unmarshalFilter(query)
-	if err != nil {
-		return nil, err
-	}
-
-	return Filter(bits, fields, filters)
-}
-
 func NewFilter(field string, filters []string) []any {
 	f := make([]any, len(filters))
 	for i, filter := range filters {

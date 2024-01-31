@@ -38,10 +38,10 @@ func TestSearchAndFilter(t *testing.T) {
 
 func TestNewFilters(t *testing.T) {
 	idx := newTestIdx()
-	//fields := idx.Params.newFieldsMap(idx.FacetAttr())
 	for _, test := range testSearchFilterStrings() {
-		filters := test.vals.Get(FacetFilters)
-		bits, err := OldFilter(idx.Bitmap(), idx.facets, filters)
+		params := ParseParams(test.vals)
+		filters := params.Filters()
+		bits, err := Filter(idx.Bitmap(), idx.facets, filters)
 		if err != nil {
 			t.Error(err)
 		}

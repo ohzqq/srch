@@ -38,7 +38,10 @@ func (m *Facet) Update(msg tea.Msg) tea.Cmd {
 			if !m.Model.SettingFilter() {
 				var filters []any
 				for _, s := range m.Model.ToggledItems() {
-					f := m.Attribute + ":" + m.Model.Items()[s].FilterValue()
+					f := srch.NewFilter(
+						m.Attribute,
+						[]string{m.Model.Items()[s].FilterValue()},
+					)
 					filters = append(filters, f)
 				}
 				m.Props().SetFilters(filters)
