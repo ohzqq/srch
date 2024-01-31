@@ -7,21 +7,10 @@ import (
 	"testing"
 )
 
-var testQuerySettings = []string{
-	"",
-	"searchableAttributes=",
-	"searchableAttributes=title",
-	"searchableAttributes=title&dataDir=testdata/data-dir",
-	"attributesForFaceting=tags,authors,series,narrators",
-	"attributesForFaceting=tags,authors,series,narrators&dataFile=testdata/data-dir/audiobooks.json",
-	"searchableAttributes=title&attributesForFaceting=tags,authors,series,narrators",
-	"searchableAttributes=title&dataFile=testdata/data-dir/audiobooks.json&attributesForFaceting=tags,authors,series,narrators",
-}
-
 var (
 	defFields    = []string{DefaultField}
 	defDataDir   = []string{testDataDir}
-	defDataFile  = []string{testData}
+	defDataFile  = []string{testDataFile}
 	defFacetAttr = []string{
 		"tags",
 		"authors",
@@ -29,6 +18,17 @@ var (
 		"narrators",
 	}
 )
+
+var testQuerySettings = []string{
+	"",
+	"searchableAttributes=",
+	"searchableAttributes=title&fullText",
+	"searchableAttributes=title&dataDir=testdata/data-dir",
+	"attributesForFaceting=tags,authors,series,narrators",
+	"attributesForFaceting=tags,authors,series,narrators&dataFile=testdata/data-dir/audiobooks.json",
+	"searchableAttributes=title&attributesForFaceting=tags,authors,series,narrators",
+	"searchableAttributes=title&dataFile=testdata/data-dir/audiobooks.json&attributesForFaceting=tags,authors,series,narrators",
+}
 
 var testParsedParams = []*Params{
 	&Params{
