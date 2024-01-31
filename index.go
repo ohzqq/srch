@@ -95,7 +95,7 @@ func (idx *Index) Search(params string) *Response {
 	}
 
 	if q.HasFilters() {
-		filters := q.Settings.Get(FacetFilters)
+		filters := q.Get(FacetFilters)
 		return idx.Filter(filters)
 	}
 
@@ -107,7 +107,7 @@ func (idx *Index) Filter(q string) *Response {
 		idx.res = idx.Bitmap()
 	}
 
-	idx.Params.Settings.Set(FacetFilters, q)
+	idx.Set(FacetFilters, q)
 
 	filtered, err := Filter(idx.res, idx.facets, q)
 	if err != nil {
@@ -119,7 +119,11 @@ func (idx *Index) Filter(q string) *Response {
 }
 
 func (idx *Index) Response() *Response {
-	return NewResponse(idx.GetResults(), idx.Params.Settings)
+	return NewResponse(idx.GetResults(), idx.GetParams())
+}
+
+func (idx *Index) GetParams() url.Values {
+	return idx.Values()
 }
 
 func (idx *Index) FullText(q string) *roaring.Bitmap {
@@ -168,9 +172,9 @@ func (idx Index) GetResults() []map[string]any {
 }
 
 func (idx *Index) Sort() {
-	sortDataByField(idx.Data, idx.Params.Settings.Get(SortBy))
-	if idx.Params.Settings.Has(Order) {
-		if idx.Params.Settings.Get(Order) == "desc" {
+	sortDataByField(idx.Data, idx.Get(SortBy))
+	if idx.Params.Search.Has(Order) {
+		if idx.Get(Order) == "desc" {
 			slices.Reverse(idx.Data)
 		}
 	}
