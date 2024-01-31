@@ -20,7 +20,7 @@ func init() {
 
 // Index is a structure for facets and data.
 type Index struct {
-	fields []*Field
+	fields map[string]*Field
 	facets map[string]*Field
 	Data   []map[string]any
 	res    *roaring.Bitmap
@@ -33,7 +33,10 @@ type SearchFunc func(string) []map[string]any
 type Opt func(*Index)
 
 func New(settings any) (*Index, error) {
-	idx := newIndex(settings)
+	idx := newIndex()
+	idx.Params = ParseParams(settings)
+	idx.fields = idx.Params.Fields()
+	idx.facets = idx.Params.Facets()
 
 	if idx.Params.HasData() {
 		d, err := idx.Params.GetData()
@@ -46,12 +49,10 @@ func New(settings any) (*Index, error) {
 	return idx, nil
 }
 
-func newIndex(settings any) *Index {
-	params := ParseParams(settings)
+func newIndex() *Index {
 	return &Index{
-		Params: params,
-		fields: params.Fields(),
-		facets: params.newFieldsMap(params.FacetAttr()),
+		fields: make(map[string]*Field),
+		facets: make(map[string]*Field),
 	}
 }
 
@@ -63,9 +64,9 @@ func (idx *Index) Index(src []map[string]any) *Index {
 	}
 
 	for id, d := range idx.Data {
-		for i, attr := range idx.SrchAttr() {
+		for _, attr := range idx.SrchAttr() {
 			if val, ok := d[attr]; ok {
-				idx.fields[i].Add(val, []int{id})
+				idx.fields[attr].Add(val, []int{id})
 			}
 		}
 		for _, attr := range idx.FacetAttr() {
@@ -76,23 +77,6 @@ func (idx *Index) Index(src []map[string]any) *Index {
 	}
 
 	return idx
-}
-
-func (idx *Index) FullText(q string) *roaring.Bitmap {
-	var bits []*roaring.Bitmap
-	for _, field := range idx.SearchableFields() {
-		bits = append(bits, field.Filter(q))
-	}
-	return roaring.ParAnd(viper.GetInt("workers"), bits...)
-}
-
-func (idx *Index) FuzzySearch(q string) *roaring.Bitmap {
-	var bits []*roaring.Bitmap
-	for _, field := range idx.SearchableFields() {
-		bits = append(bits, field.Fuzzy(q))
-	}
-	res := roaring.ParAnd(viper.GetInt("workers"), bits...)
-	return res
 }
 
 func (idx *Index) Search(params string) *Response {
@@ -130,6 +114,23 @@ func (idx *Index) Filter(q string) *Response {
 
 	idx.res.And(filtered)
 	return NewResponse(idx)
+}
+
+func (idx *Index) FullText(q string) *roaring.Bitmap {
+	var bits []*roaring.Bitmap
+	for _, field := range idx.SearchableFields() {
+		bits = append(bits, field.Filter(q))
+	}
+	return roaring.ParAnd(viper.GetInt("workers"), bits...)
+}
+
+func (idx *Index) FuzzySearch(q string) *roaring.Bitmap {
+	var bits []*roaring.Bitmap
+	for _, field := range idx.SearchableFields() {
+		bits = append(bits, field.Fuzzy(q))
+	}
+	res := roaring.ParAnd(viper.GetInt("workers"), bits...)
+	return res
 }
 
 func (idx Index) Bitmap() *roaring.Bitmap {
@@ -198,7 +199,7 @@ func (idx *Index) FacetLabels() []string {
 	return lo.Keys(idx.facets)
 }
 
-func (idx *Index) SearchableFields() []*Field {
+func (idx *Index) SearchableFields() map[string]*Field {
 	return idx.fields
 }
 
