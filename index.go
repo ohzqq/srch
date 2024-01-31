@@ -99,7 +99,7 @@ func (idx *Index) Search(params string) *Response {
 		idx.Filter(filters)
 	}
 
-	return NewResponse(idx)
+	return idx.Response()
 }
 
 func (idx *Index) Filter(q string) *Response {
@@ -111,11 +111,15 @@ func (idx *Index) Filter(q string) *Response {
 
 	filtered, err := Filter(idx.res, idx.facets, q)
 	if err != nil {
-		return NewResponse(idx)
+		return idx.Response()
 	}
 
 	idx.res.And(filtered)
-	return NewResponse(idx)
+	return idx.Response()
+}
+
+func (idx *Index) Response() *Response {
+	return NewResponse(idx.GetResults(), idx.Params.Values)
 }
 
 func (idx *Index) FullText(q string) *roaring.Bitmap {
