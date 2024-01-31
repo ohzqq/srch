@@ -49,10 +49,15 @@ func srchTest(idx *Index, want int) error {
 }
 
 func searchErr(idx *Index, want int, q string) error {
-	m := idx.Search(q)
-	err := intErr(m.NbHits(), want, q)
+	res := idx.Search(q)
+	err := intErr(res.NbHits(), want, q)
 	if err != nil {
 		return err
+	}
+	op := idx.Params.String()
+	rp := res.Params.String()
+	if op != rp {
+		return fmt.Errorf("idx params %s\nres params%s\n", op, rp)
 	}
 	return nil
 }
