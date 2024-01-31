@@ -2,7 +2,6 @@ package srch
 
 import (
 	"encoding/json"
-	"errors"
 	"net/url"
 	"slices"
 	"strconv"
@@ -230,32 +229,6 @@ func (p *Params) Decode(str string) error {
 	var err error
 	p.Values, err = url.ParseQuery(str)
 	return err
-}
-
-func (p Params) HasData() bool {
-	return p.Values.Has(DataFile) || p.Values.Has(DataDir)
-}
-
-func (p Params) GetData() ([]map[string]any, error) {
-	if !p.HasData() {
-		return nil, errors.New("no data")
-	}
-	return GetDataFromQuery(&p.Values)
-}
-
-func GetDataFromQuery(q *url.Values) ([]map[string]any, error) {
-	var data []map[string]any
-	var err error
-	switch {
-	case q.Has(DataFile):
-		qu := *q
-		data, err = FileSrc(qu[DataFile]...)
-		q.Del(DataFile)
-	case q.Has(DataDir):
-		data, err = DirSrc(q.Get(DataDir))
-		q.Del(DataDir)
-	}
-	return data, err
 }
 
 func ParseQuery(queries ...any) url.Values {

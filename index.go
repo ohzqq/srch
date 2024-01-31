@@ -3,7 +3,9 @@ package srch
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
+	"net/url"
 	"os"
 	"slices"
 
@@ -38,12 +40,12 @@ func New(settings any) (*Index, error) {
 	idx.fields = idx.Params.Fields()
 	idx.facets = idx.Params.Facets()
 
-	if idx.Params.HasData() {
-		d, err := idx.Params.GetData()
+	if idx.HasData() {
+		err := idx.GetData()
 		if err != nil {
-			return nil, errors.New("data parsing error")
+			return nil, fmt.Errorf("data parsing error: %w\n", err)
 		}
-		return idx.Index(d), nil
+		return idx, nil
 	}
 
 	return idx, nil
@@ -59,9 +61,9 @@ func newIndex() *Index {
 func (idx *Index) Index(src []map[string]any) *Index {
 	idx.Data = src
 
-	if idx.Params.Values.Has("sort_by") {
-		idx.Sort()
-	}
+	//if idx.Params.Values.Has("sort_by") {
+	//  idx.Sort()
+	//}
 
 	for id, d := range idx.Data {
 		for _, attr := range idx.SrchAttr() {
@@ -84,6 +86,7 @@ func (idx *Index) Search(params string) *Response {
 	q := ParseParams(params)
 
 	if query := q.Query(); query != "" {
+		idx.Params.Values.Set("query", query)
 		switch idx.Params.GetAnalyzer() {
 		case TextAnalyzer:
 			idx.res.And(idx.FullText(query))
@@ -168,6 +171,48 @@ func (idx *Index) Sort() {
 			slices.Reverse(idx.Data)
 		}
 	}
+}
+
+func (idx *Index) HasData() bool {
+	return idx.Values.Has(DataFile) ||
+		idx.Values.Has(DataDir)
+}
+
+func (idx *Index) GetData() error {
+	if !idx.HasData() {
+		return errors.New("no data")
+	}
+	var data []map[string]any
+	var err error
+	switch {
+	case idx.Values.Has(DataFile):
+		data, err = FileSrc(idx.GetSlice(DataFile)...)
+		idx.Values.Del(DataFile)
+	case idx.Values.Has(DataDir):
+		data, err = DirSrc(idx.Get(DataDir))
+		idx.Values.Del(DataDir)
+	}
+	if err != nil {
+		return err
+	}
+
+	idx.Index(data)
+	return nil
+}
+
+func GetDataFromQuery(q *url.Values) ([]map[string]any, error) {
+	var data []map[string]any
+	var err error
+	switch {
+	case q.Has(DataFile):
+		qu := *q
+		data, err = FileSrc(qu[DataFile]...)
+		q.Del(DataFile)
+	case q.Has(DataDir):
+		data, err = DirSrc(q.Get(DataDir))
+		q.Del(DataDir)
+	}
+	return data, err
 }
 
 func (idx *Index) GetFacet(attr string) *Field {
