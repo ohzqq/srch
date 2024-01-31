@@ -3,6 +3,7 @@ package srch
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 	"testing"
 )
@@ -93,7 +94,10 @@ func totalBooksTest(total int, t *testing.T) {
 }
 
 func newTestIdx() *Index {
-	idx, _ := New(libCfgStr)
+	idx, err := New(libCfgStr)
+	if err != nil {
+		log.Fatal(err)
+	}
 	return idx
 }
 

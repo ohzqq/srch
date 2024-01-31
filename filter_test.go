@@ -18,11 +18,7 @@ func TestMarshalFilter(t *testing.T) {
 }
 
 func TestSearchAndFilter(t *testing.T) {
-	test := "searchableAttributes=title&attributesForFaceting=tags,authors,series&dataFile=testdata/data-dir/audiobooks.json"
-	idx, err := New(test)
-	if err != nil {
-		t.Error(err)
-	}
+	idx := newTestIdx()
 
 	vals := make(url.Values)
 	vals.Set(Query, "heart")

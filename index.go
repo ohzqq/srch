@@ -82,11 +82,10 @@ func (idx *Index) Index(src []map[string]any) *Index {
 
 func (idx *Index) Search(params string) *Response {
 	idx.res = idx.Bitmap()
-	//q := ParseParams(params)
 	idx.SetSearch(params)
 
-	if query := idx.Query(); query != "" {
-		//idx.Set("query", query)
+	query := idx.Query()
+	if query != "" {
 		switch idx.GetAnalyzer() {
 		case TextAnalyzer:
 			idx.res.And(idx.FullText(query))

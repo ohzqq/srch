@@ -7,8 +7,6 @@ import (
 	"testing"
 )
 
-const testValuesCfg = `and=tags:count:desc&field=title&or=authors:label:asc&or=narrators&or=series&data_file=testdata/data-dir/audiobooks.json&sort_by=title`
-
 var testQuerySettings = []string{
 	"",
 	"searchableAttributes=",
@@ -20,72 +18,64 @@ var testQuerySettings = []string{
 	"searchableAttributes=title&dataFile=testdata/data-dir/audiobooks.json&attributesForFaceting=tags,authors,series,narrators",
 }
 
+var (
+	defFields    = []string{DefaultField}
+	defDataDir   = []string{testDataDir}
+	defDataFile  = []string{testData}
+	defFacetAttr = []string{
+		"tags",
+		"authors",
+		"series",
+		"narrators",
+	}
+)
+
 var testParsedParams = []*Params{
 	&Params{
 		Settings: url.Values{
-			SrchAttr: []string{DefaultField},
+			SrchAttr: defFields,
 		},
 	},
 	&Params{
 		Settings: url.Values{
-			SrchAttr: []string{DefaultField},
+			SrchAttr: defFields,
 		},
 	},
 	&Params{
 		Settings: url.Values{
-			SrchAttr: []string{DefaultField},
+			SrchAttr: defFields,
 		},
 	},
 	&Params{
 		Settings: url.Values{
-			SrchAttr: []string{DefaultField},
+			SrchAttr: defFields,
 			DataDir:  []string{testDataDir},
 		},
 	},
 	&Params{
 		Settings: url.Values{
-			SrchAttr: []string{DefaultField},
-			FacetAttr: []string{
-				"tags",
-				"authors",
-				"series",
-				"narrators",
-			},
+			SrchAttr:  defFields,
+			FacetAttr: defFacetAttr,
 		},
 	},
 	&Params{
 		Settings: url.Values{
-			SrchAttr: []string{DefaultField},
-			DataFile: []string{testData},
-			FacetAttr: []string{
-				"tags",
-				"authors",
-				"series",
-				"narrators",
-			},
+			SrchAttr:  defFields,
+			DataFile:  defDataFile,
+			FacetAttr: defFacetAttr,
 		},
 	},
 	&Params{
 		Settings: url.Values{
-			SrchAttr: []string{DefaultField},
-			FacetAttr: []string{
-				"tags",
-				"authors",
-				"series",
-				"narrators",
-			},
+			SrchAttr:  defFields,
+			FacetAttr: defFacetAttr,
 		},
 	},
 	&Params{
 		Settings: url.Values{
-			SrchAttr: []string{DefaultField},
-			DataFile: []string{testData},
-			FacetAttr: []string{
-				"tags",
-				"authors",
-				"series",
-				"narrators",
-			},
+			SrchAttr:  defFields,
+			DataFile:  defDataFile,
+			FacetAttr: defFacetAttr,
 		},
 	},
 }
@@ -142,8 +132,4 @@ func queryParamsString() string {
 func requestParams() string {
 	p := queryParamsString()
 	return p
-}
-
-func getNewQuery() url.Values {
-	return ParseQuery(testValuesCfg, testQueryString, testSearchString)
 }
