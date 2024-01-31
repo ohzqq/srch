@@ -125,23 +125,3 @@ func loadData(t *testing.T) []map[string]any {
 
 	return books
 }
-
-const testCfg = `{
-	"fields": [
-		{
-			"attribute": "title",
-			"fieldType": "text",
-			"operator": "and"
-		},
-		{ 
-			"fieldType": "facet",
-			"attribute": "series"
-		},
-		{
-			"fieldType": "facet",
-			"attribute": "tags",
-			"operator": "and"
-		}
-	]
-}
-`
