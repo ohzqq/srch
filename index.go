@@ -109,7 +109,7 @@ func (idx *Index) Filter(q string) *Response {
 
 	idx.Set(FacetFilters, q)
 
-	filtered, err := Filter(idx.res, idx.facets, q)
+	filtered, err := OldFilter(idx.res, idx.facets, q)
 	if err != nil {
 		return idx.Response()
 	}

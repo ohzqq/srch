@@ -34,7 +34,7 @@ type App struct {
 }
 
 func New(idx *srch.Index) *App {
-	tui := newApp(idx.Params.Values, idx.Data)
+	tui := newApp()
 	tui.idx = idx
 	tui.updateVisible(idx.Search(""))
 	tui.Model = NewModel(SrcToItems(tui.visible))
@@ -42,21 +42,16 @@ func New(idx *srch.Index) *App {
 }
 
 func Browse(q url.Values, data []map[string]any) *App {
-	tui := &App{
-		mainRouter: router.New(),
-		params:     srch.NewParams(),
-	}
+	tui := newApp()
 	tui.idx, _ = srch.New(q)
 	tui.params = srch.ParseParams(q)
-	tui.updateVisible(srch.NewResponse(tui.idx))
+	tui.updateVisible(tui.idx.Response())
 	tui.Model = NewModel(SrcToItems(tui.visible))
 	return tui
 }
 
-func newApp(q url.Values, data []map[string]any) *App {
+func newApp() *App {
 	return &App{
-		query:      q,
-		data:       data,
 		mainRouter: router.New(),
 	}
 }
@@ -118,7 +113,7 @@ func (c *App) SetFilters(vals []any) {
 }
 
 func (c *App) SetSelections(idx *srch.Index) {
-	c.Selections = srch.NewResponse(idx)
+	c.Selections = idx.Response()
 }
 
 func (c *App) ClearFilters() {

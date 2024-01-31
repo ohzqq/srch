@@ -18,12 +18,7 @@ type filter struct {
 
 type Filters []any
 
-func Filter(bits *roaring.Bitmap, fields map[string]*Field, query string) (*roaring.Bitmap, error) {
-	filters, err := unmarshalFilter(query)
-	if err != nil {
-		return nil, err
-	}
-
+func Filter(bits *roaring.Bitmap, fields map[string]*Field, filters []any) (*roaring.Bitmap, error) {
 	var aor []*roaring.Bitmap
 	var bor []*roaring.Bitmap
 	for name, field := range fields {
@@ -62,6 +57,15 @@ func Filter(bits *roaring.Bitmap, fields map[string]*Field, query string) (*roar
 	bits.Or(orb)
 
 	return bits, nil
+}
+
+func OldFilter(bits *roaring.Bitmap, fields map[string]*Field, query string) (*roaring.Bitmap, error) {
+	filters, err := unmarshalFilter(query)
+	if err != nil {
+		return nil, err
+	}
+
+	return Filter(bits, fields, filters)
 }
 
 func NewFilter(field string, filters []string) []any {

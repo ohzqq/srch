@@ -61,13 +61,7 @@ func ParseParams(params any) *Params {
 	p.Search = GetSearchParams(q)
 
 	if p.HasFilters() {
-		for _, filters := range p.Search[FacetFilters] {
-			fils, err := unmarshalFilter(filters)
-			if err != nil {
-				break
-			}
-			p.filters = append(p.filters, fils...)
-		}
+		p.SetFilters(p.Get(FacetFilters))
 	}
 	return p
 }
@@ -142,6 +136,18 @@ func (p *Params) SetSearch(params string) *Params {
 	return p
 }
 
+func (p Params) HasFilters() bool {
+	return p.Search.Has(FacetFilters)
+}
+
+func (p *Params) SetFilters(params string) *Params {
+	fils, err := unmarshalFilter(params)
+	if err != nil {
+	}
+	p.filters = append(p.filters, fils...)
+	return p
+}
+
 func (p *Params) AndFilter(field string, filters ...string) *Params {
 	p.filters = append(p.filters, NewFilter(field, filters)...)
 	return p
@@ -185,10 +191,6 @@ func (p *Params) SrchAttr() []string {
 
 func (p *Params) Fields() map[string]*Field {
 	return p.newFieldsMap(p.SrchAttr())
-}
-
-func (p Params) HasFilters() bool {
-	return p.Search.Has(FacetFilters)
 }
 
 func (p *Params) Facets() map[string]*Field {
