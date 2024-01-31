@@ -16,7 +16,7 @@ func testSearchQueryStrings() map[string]int {
 	}
 	v := make(url.Values)
 
-	v.Set(Query, "heart")
+	v.Set(Query, "fish")
 	queries[v.Encode()] = 303
 
 	v.Set(Query, "")
@@ -28,12 +28,33 @@ func testSearchQueryStrings() map[string]int {
 func TestFuzzySearch(t *testing.T) {
 	idx := newTestIdx()
 
-	for q, want := range testSearchQueryStrings() {
-		m := idx.Search(q)
-		if m.NbHits() != want {
-			t.Errorf("%s: num res %d, expected %d \n", q, m.NbHits(), want)
-		}
+	err := srchTest(idx, 56)
+	if err != nil {
+		t.Error(err)
 	}
+
+}
+
+func srchTest(idx *Index, want int) error {
+	err := searchErr(idx, 7174, "")
+	if err != nil {
+		return err
+	}
+
+	err = searchErr(idx, want, "query=fish")
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func searchErr(idx *Index, want int, q string) error {
+	m := idx.Search(q)
+	err := intErr(m.NbHits(), want, q)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func TestFuzzyFieldSearch(t *testing.T) {
@@ -56,12 +77,9 @@ func TestFullTextSearch(t *testing.T) {
 		t.Errorf("get %s, expected %s\n", ana, TextAnalyzer)
 	}
 
-	vals := make(url.Values)
-	vals.Set(Query, "fish")
-
-	res := idx.Search(vals.Encode())
-	if h := res.NbHits(); h != 8 {
-		t.Errorf("get %d, expected %d\n", h, 8)
+	err = srchTest(idx, 8)
+	if err != nil {
+		t.Error(err)
 	}
 }
 

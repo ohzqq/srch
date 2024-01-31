@@ -56,7 +56,7 @@ func TestNewIndex(t *testing.T) {
 	}
 }
 
-func indexFieldErr(got, want int, msg ...any) error {
+func intErr(got, want int, msg ...any) error {
 	if got != want {
 		err := fmt.Errorf("got %d, want %d\n", got, want)
 		if len(msg) > 0 {
