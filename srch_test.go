@@ -39,13 +39,7 @@ func testSearchQueryStrings() map[string]int {
 }
 
 func TestFuzzySearch(t *testing.T) {
-	//t.SkipNow()
-	test := "searchableAttributes=title&attributesForFaceting=tags,authors,series&dataFile=testdata/data-dir/audiobooks.json"
-	idx, err := New(test)
-	if err != nil {
-		t.Error(err)
-	}
-	totalBooksErr(idx.Len(), test)
+	idx := newTestIdx()
 
 	for q, want := range testSearchQueryStrings() {
 		m := idx.Search(q)
@@ -56,13 +50,7 @@ func TestFuzzySearch(t *testing.T) {
 }
 
 func TestFuzzyFieldSearch(t *testing.T) {
-	//t.SkipNow()
-	test := "searchableAttributes=title&attributesForFaceting=tags,authors,series&dataFile=testdata/data-dir/audiobooks.json"
-	idx, err := New(test)
-	if err != nil {
-		t.Error(err)
-	}
-	totalBooksErr(idx.Len(), test)
+	idx := newTestIdx()
 
 	facet := idx.GetFacet("authors")
 	if total := facet.Len(); total != len(facet.GetLabels()) {
@@ -71,8 +59,8 @@ func TestFuzzyFieldSearch(t *testing.T) {
 }
 
 func TestFullTextSearch(t *testing.T) {
-	test := "searchableAttributes=title&attributesForFaceting=tags&fullText&dataFile=testdata/data-dir/audiobooks.json"
-	idx, err := New(test)
+	cfg := libCfgStr + "&fullText"
+	idx, err := New(cfg)
 	if err != nil {
 		t.Error(err)
 	}
