@@ -2,6 +2,7 @@ package srch
 
 import (
 	"encoding/json"
+	"log"
 )
 
 type Response struct {
@@ -11,6 +12,7 @@ type Response struct {
 func NewResponse(idx *Index) *Response {
 	i, err := New(idx.Params.Values)
 	if err != nil {
+		log.Fatal(err)
 		i = idx
 	}
 	i.Index(idx.GetResults())

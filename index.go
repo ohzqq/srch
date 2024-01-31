@@ -30,6 +30,8 @@ type Index struct {
 	*Params `json:"params"`
 }
 
+var NoDataErr = errors.New("no data")
+
 type SearchFunc func(string) []map[string]any
 
 type Opt func(*Index)
@@ -40,12 +42,9 @@ func New(settings any) (*Index, error) {
 	idx.fields = idx.Params.Fields()
 	idx.facets = idx.Params.Facets()
 
-	if idx.HasData() {
-		err := idx.GetData()
-		if err != nil {
-			return nil, fmt.Errorf("data parsing error: %w\n", err)
-		}
-		return idx, nil
+	err := idx.GetData()
+	if err != nil && !errors.Is(err, NoDataErr) {
+		return nil, fmt.Errorf("data parsing error: %w\n", err)
 	}
 
 	return idx, nil
@@ -180,7 +179,7 @@ func (idx *Index) HasData() bool {
 
 func (idx *Index) GetData() error {
 	if !idx.HasData() {
-		return errors.New("no data")
+		return NoDataErr
 	}
 	var data []map[string]any
 	var err error
