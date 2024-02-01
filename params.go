@@ -310,8 +310,7 @@ func (p Params) String() string {
 }
 
 func (p Params) Values() url.Values {
-	m := lo.Assign(p.Settings, p.Search)
-	return url.Values(m)
+	return lo.Assign(p.Settings, p.Search)
 }
 
 func (p *Params) Decode(str string) error {

@@ -34,21 +34,23 @@ func (r *Response) NbHits() int {
 }
 
 func (r *Response) StringMap() map[string]any {
-	m := make(map[string]any)
-	m[Query] = r.Params.Query()
-	m[Page] = r.Page()
-	m["params"] = r.Params
-	m[ParamFacets] = r.Facets()
+	m := map[string]any{
+		"processingTimeMS": 1,
+		"params":           r.Params,
+		Query:              r.Params.Query(),
+		Page:               r.Page(),
+		ParamFacets:        r.Facets(),
+		Hits:               r.Data,
+	}
+
 	hpp := r.HitsPerPage()
 	nbh := r.NbHits()
 	m[HitsPerPage] = hpp
 	m[NbHits] = nbh
-	m["processingTimeMS"] = 1
 
 	if nbh > 0 {
 		m["nbPages"] = nbh/hpp + 1
 	}
-	//m[Hits] = r.Data
 	return m
 }
 

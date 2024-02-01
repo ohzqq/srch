@@ -10,13 +10,6 @@ import (
 	"github.com/spf13/viper"
 )
 
-type filter struct {
-	Facet    string
-	Operator string
-	Not      bool
-	Value    string
-}
-
 type Filters []any
 
 func Filter(bits *roaring.Bitmap, fields map[string]*Field, filters []any) (*roaring.Bitmap, error) {
