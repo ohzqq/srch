@@ -216,14 +216,6 @@ func (p Params) FacetAttr() []string {
 	return p.GetSlice(FacetAttr)
 }
 
-func (f Filters) String() string {
-	d, err := json.Marshal(f)
-	if err != nil {
-		return ""
-	}
-	return string(d)
-}
-
 func (p *Params) SortFacetsBy() string {
 	sort := SortByCount
 	if p.Search.Has(SortFacetsBy) {

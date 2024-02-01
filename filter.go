@@ -10,8 +10,6 @@ import (
 	"github.com/spf13/viper"
 )
 
-type Filters []any
-
 func Filter(bits *roaring.Bitmap, fields map[string]*Field, filters []any) (*roaring.Bitmap, error) {
 	var aor []*roaring.Bitmap
 	var bor []*roaring.Bitmap
