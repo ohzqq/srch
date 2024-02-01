@@ -5,9 +5,7 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/RoaringBitmap/roaring"
 	"github.com/ohzqq/srch/txt"
-	"github.com/spf13/viper"
 )
 
 const (
@@ -59,73 +57,6 @@ func (f *Field) GetTokens() []*txt.Token {
 
 func (f *Field) Find(kw string) []*txt.Token {
 	return f.Tokens.Find(kw)
-}
-
-func (f *Field) And(filters []string) *roaring.Bitmap {
-	//var bits []*roaring.Bitmap
-	var bits *roaring.Bitmap
-	for _, filt := range filters {
-		var not string
-		var ok bool
-		var tokens []*txt.Token
-		not, ok = IsNegative(filt)
-		if ok {
-			tokens = f.Find(not)
-		} else {
-			tokens = f.Find(filt)
-		}
-		for i, token := range tokens {
-			if i == 0 {
-				bits = token.Bitmap()
-			}
-			switch ok {
-			case true:
-				bits.AndNot(token.Bitmap())
-			default:
-				bits.And(token.Bitmap())
-			}
-			//bits = append(bits, token.Bitmap())
-		}
-	}
-	return bits
-	//return roaring.ParAnd(viper.GetInt("workers"), bits...)
-}
-
-func (f *Field) Or(filters ...string) *roaring.Bitmap {
-	var tOr []*txt.Token
-	var not []*txt.Token
-	for _, filt := range filters {
-		var n string
-		var ok bool
-		//var tokens []*txt.Token
-		n, ok = IsNegative(filt)
-		if ok {
-			//tOr = append(tOr, f.Find(not))
-			not = f.Find(n)
-		} else {
-			//not = append(not, f.Find(filt))
-			tOr = f.Find(filt)
-		}
-		//for _, token := range tokens {
-		//  switch ok {
-		//  case true:
-		//    ex = append(ex, token.Bitmap())
-		//  default:
-		//    bits = append(bits, token.Bitmap())
-		//  }
-		//  //bits = append(bits, token.Bitmap())
-		//}
-	}
-	orb := make([]*roaring.Bitmap, len(tOr))
-	for i, token := range tOr {
-		orb[i] = token.Bitmap()
-	}
-	or := roaring.ParAnd(viper.GetInt("workers"), orb...)
-
-	for _, n := range not {
-		or.AndNot(n.Bitmap())
-	}
-	return or
 }
 
 func parseAttr(field *Field, attr string) {

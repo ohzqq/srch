@@ -10,26 +10,13 @@ import (
 	"github.com/ohzqq/audible"
 )
 
-const testQueryString = `tags=grumpy/sunshine&tags=enemies+to+lovers`
-const testSearchString = `q=amy+lane`
-
-func testVals() url.Values {
-	vals := make(url.Values)
-	vals.Add("tags", "abo")
-	vals.Add("tags", "dnr")
-	//vals.Add("authors", "Alice Winters")
-	//vals.Add("authors", "Amy Lane")
-	//vals.Add(QueryField, "fish")
-	return vals
-}
-
 func testSearchQueryStrings() map[string]int {
 	queries := map[string]int{
 		"": 7174,
 	}
 	v := make(url.Values)
 
-	v.Set(Query, "heart")
+	v.Set(Query, "fish")
 	queries[v.Encode()] = 303
 
 	v.Set(Query, "")
@@ -39,30 +26,44 @@ func testSearchQueryStrings() map[string]int {
 }
 
 func TestFuzzySearch(t *testing.T) {
-	//t.SkipNow()
-	test := "searchableAttributes=title&attributesForFaceting=tags,authors,series&dataFile=testdata/data-dir/audiobooks.json"
-	idx, err := New(test)
+	idx := newTestIdx()
+
+	err := srchTest(idx, 56)
 	if err != nil {
 		t.Error(err)
 	}
-	totalBooksErr(idx.Len(), test)
 
-	for q, want := range testSearchQueryStrings() {
-		m := idx.Search(q)
-		if m.NbHits() != want {
-			t.Errorf("%s: num res %d, expected %d \n", q, m.NbHits(), want)
-		}
+}
+
+func srchTest(idx *Index, want int) error {
+	err := searchErr(idx, 7174, "")
+	if err != nil {
+		return err
 	}
+
+	err = searchErr(idx, want, "query=fish")
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func searchErr(idx *Index, want int, q string) error {
+	res := idx.Search(q)
+	err := intErr(res.NbHits(), want, q)
+	if err != nil {
+		return err
+	}
+	op := idx.Params.String()
+	rp := res.Params.String()
+	if op != rp {
+		return fmt.Errorf("idx params %s\nres params%s\n", op, rp)
+	}
+	return nil
 }
 
 func TestFuzzyFieldSearch(t *testing.T) {
-	//t.SkipNow()
-	test := "searchableAttributes=title&attributesForFaceting=tags,authors,series&dataFile=testdata/data-dir/audiobooks.json"
-	idx, err := New(test)
-	if err != nil {
-		t.Error(err)
-	}
-	totalBooksErr(idx.Len(), test)
+	idx := newTestIdx()
 
 	facet := idx.GetFacet("authors")
 	if total := facet.Len(); total != len(facet.GetLabels()) {
@@ -71,8 +72,8 @@ func TestFuzzyFieldSearch(t *testing.T) {
 }
 
 func TestFullTextSearch(t *testing.T) {
-	test := "searchableAttributes=title&attributesForFaceting=tags&fullText&dataFile=testdata/data-dir/audiobooks.json"
-	idx, err := New(test)
+	cfg := libCfgStr + "&fullText"
+	idx, err := New(cfg)
 	if err != nil {
 		t.Error(err)
 	}
@@ -81,12 +82,9 @@ func TestFullTextSearch(t *testing.T) {
 		t.Errorf("get %s, expected %s\n", ana, TextAnalyzer)
 	}
 
-	vals := make(url.Values)
-	vals.Set(Query, "fish")
-
-	res := idx.Search(vals.Encode())
-	if h := res.NbHits(); h != 8 {
-		t.Errorf("get %d, expected %d\n", h, 8)
+	err = srchTest(idx, 8)
+	if err != nil {
+		t.Error(err)
 	}
 }
 
@@ -134,10 +132,4 @@ func audibleApi(q string) []map[string]any {
 	return sl
 }
 
-type testSearcher struct {
-	cmd []string
-}
-
-var testS = testSearcher{
-	cmd: []string{"list", "--with-library", "http://localhost:8888/#audiobooks", "--username", "churkey", "--password", "<f:/home/mxb/.dotfiles/misc/calibre.txt>", "--limit", "2", "--for-machine"},
-}
+var testCalibreStr = []string{"list", "--with-library", "http://localhost:8888/#audiobooks", "--username", "churkey", "--password", "<f:/home/mxb/.dotfiles/misc/calibre.txt>", "--limit", "2", "--for-machine"}

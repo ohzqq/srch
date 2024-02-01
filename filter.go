@@ -17,12 +17,9 @@ type filter struct {
 	Value    string
 }
 
-func Filter(bits *roaring.Bitmap, fields map[string]*Field, query string) (*roaring.Bitmap, error) {
-	filters, err := unmarshalFilter(query)
-	if err != nil {
-		return nil, err
-	}
+type Filters []any
 
+func Filter(bits *roaring.Bitmap, fields map[string]*Field, filters []any) (*roaring.Bitmap, error) {
 	var aor []*roaring.Bitmap
 	var bor []*roaring.Bitmap
 	for name, field := range fields {
@@ -52,14 +49,6 @@ func Filter(bits *roaring.Bitmap, fields map[string]*Field, query string) (*roar
 					}
 				}
 			}
-			//for _, v := range vals {
-			//  not, ok := IsNegative(v)
-			//  if ok {
-			//    bits.AndNot(facet.Filter(not))
-			//  } else {
-			//  }
-			//}
-
 		}
 	}
 	arb := roaring.ParAnd(viper.GetInt("workers"), aor...)
@@ -71,27 +60,25 @@ func Filter(bits *roaring.Bitmap, fields map[string]*Field, query string) (*roar
 	return bits, nil
 }
 
-func parseFilters(filters []any) ([]string, []string) {
-	var and, or []string
-	for _, fs := range filters {
-		switch vals := fs.(type) {
-		case string:
-			and = append(and, vals)
-		case []any:
-			or = append(or, cast.ToStringSlice(vals)...)
-		}
-	}
-	return and, or
+func NewAnyFilter(field string, filters []string) []any {
+	return lo.ToAnySlice(NewFilter(field, filters...))
 }
 
-func CutFilter(filter string) (string, string, bool) {
-	facet, val, _ := strings.Cut(filter, ":")
-
-	if strings.HasPrefix(val, "-") {
-		return facet, strings.TrimPrefix(val, "-"), true
+func NewFilter(field string, filters ...string) []string {
+	f := make([]string, len(filters))
+	for i, filter := range filters {
+		f[i] = field + ":" + filter
 	}
+	return f
+}
 
-	return facet, val, false
+func unmarshalFilter(dec string) ([]any, error) {
+	var f []any
+	err := json.Unmarshal([]byte(dec), &f)
+	if err != nil {
+		return nil, err
+	}
+	return f, nil
 }
 
 func bitsToIntSlice(bitmap *roaring.Bitmap) []int {
@@ -117,25 +104,4 @@ func FilteredItems(data []map[string]any, ids []any) []map[string]any {
 		}
 	}
 	return items
-}
-
-func IsNegative(filter string) (string, bool) {
-	return strings.TrimPrefix(filter, "-"), strings.HasPrefix(filter, "-")
-}
-
-func FilterByAttribute(attr string, filters []string) []string {
-	fn := func(f string, _ int) (string, bool) {
-		pre := attr + ":"
-		return strings.TrimPrefix(f, pre), strings.HasPrefix(f, pre)
-	}
-	return lo.FilterMap(filters, fn)
-}
-
-func unmarshalFilter(dec string) ([]any, error) {
-	var f []any
-	err := json.Unmarshal([]byte(dec), &f)
-	if err != nil {
-		return nil, err
-	}
-	return f, nil
 }

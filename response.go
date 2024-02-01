@@ -2,21 +2,22 @@ package srch
 
 import (
 	"encoding/json"
+	"log"
+	"net/url"
 )
 
 type Response struct {
 	*Index
 }
 
-func NewResponse(idx *Index) *Response {
-	i, err := New(idx.Params.Values)
+func NewResponse(data []map[string]any, vals url.Values) *Response {
+	idx, err := New(vals)
 	if err != nil {
-		i = idx
+		log.Fatal(err)
 	}
-	i.Index(idx.GetResults())
-
+	idx.Index(data)
 	return &Response{
-		Index: i,
+		Index: idx,
 	}
 }
 

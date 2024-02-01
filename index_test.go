@@ -3,6 +3,7 @@ package srch
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 	"testing"
 )
@@ -13,7 +14,7 @@ var books []map[string]any
 
 const numBooks = 7174
 
-const testData = `testdata/data-dir/audiobooks.json`
+const testDataFile = `testdata/data-dir/audiobooks.json`
 const testDataDir = `testdata/data-dir`
 const testCfgFile = `testdata/config-old.json`
 const testYAMLCfgFile = `testdata/config.yaml`
@@ -38,35 +39,15 @@ var testQueryNewIndex = []string{
 var titleField = NewField(DefaultField)
 
 func TestNewIndex(t *testing.T) {
-	for i := 0; i < len(testQueryNewIndex); i++ {
-		q := testQueryNewIndex[i]
+	for i := 0; i < len(testQuerySettings); i++ {
+		q := testQuerySettings[i]
 		idx, err := New(q)
 		if err != nil {
 			t.Error(err)
 		}
-		switch i {
-		case 0:
+		if !idx.HasData() {
 			data := loadData(t)
 			idx.Index(data)
-		case 1:
-			err := indexFieldErr(len(idx.Facets()), 0, q)
-			if err != nil {
-				t.Error(err)
-			}
-		case 2:
-			err := indexFieldErr(len(idx.Facets()), 4, q)
-			if err != nil {
-				t.Error(err)
-			}
-		case 3:
-			err := indexFieldErr(len(idx.Facets()), 4, q)
-			if err != nil {
-				t.Error(err)
-			}
-		}
-		err = indexFieldErr(len(idx.SearchableFields()), 1, q)
-		if err != nil {
-			t.Error(err)
 		}
 		err = totalBooksErr(idx.Len(), q)
 		if err != nil {
@@ -75,7 +56,7 @@ func TestNewIndex(t *testing.T) {
 	}
 }
 
-func indexFieldErr(got, want int, msg ...any) error {
+func intErr(got, want int, msg ...any) error {
 	if got != want {
 		err := fmt.Errorf("got %d, want %d\n", got, want)
 		if len(msg) > 0 {
@@ -93,7 +74,10 @@ func totalBooksTest(total int, t *testing.T) {
 }
 
 func newTestIdx() *Index {
-	idx, _ := New(libCfgStr)
+	idx, err := New(libCfgStr)
+	if err != nil {
+		log.Fatal(err)
+	}
 	return idx
 }
 
@@ -106,7 +90,7 @@ func totalBooksErr(total int, vals ...any) error {
 }
 
 func loadData(t *testing.T) []map[string]any {
-	d, err := os.ReadFile(testData)
+	d, err := os.ReadFile(testDataFile)
 	if err != nil {
 		t.Error(err)
 	}
@@ -121,23 +105,3 @@ func loadData(t *testing.T) []map[string]any {
 
 	return books
 }
-
-const testCfg = `{
-	"fields": [
-		{
-			"attribute": "title",
-			"fieldType": "text",
-			"operator": "and"
-		},
-		{ 
-			"fieldType": "facet",
-			"attribute": "series"
-		},
-		{
-			"fieldType": "facet",
-			"attribute": "tags",
-			"operator": "and"
-		}
-	]
-}
-`

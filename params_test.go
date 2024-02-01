@@ -7,12 +7,22 @@ import (
 	"testing"
 )
 
-const testValuesCfg = `and=tags:count:desc&field=title&or=authors:label:asc&or=narrators&or=series&data_file=testdata/data-dir/audiobooks.json&sort_by=title`
+var (
+	defFields    = []string{DefaultField}
+	defDataDir   = []string{testDataDir}
+	defDataFile  = []string{testDataFile}
+	defFacetAttr = []string{
+		"tags",
+		"authors",
+		"series",
+		"narrators",
+	}
+)
 
 var testQuerySettings = []string{
 	"",
 	"searchableAttributes=",
-	"searchableAttributes=title",
+	"searchableAttributes=title&fullText",
 	"searchableAttributes=title&dataDir=testdata/data-dir",
 	"attributesForFaceting=tags,authors,series,narrators",
 	"attributesForFaceting=tags,authors,series,narrators&dataFile=testdata/data-dir/audiobooks.json",
@@ -22,70 +32,50 @@ var testQuerySettings = []string{
 
 var testParsedParams = []*Params{
 	&Params{
-		Values: url.Values{
-			SrchAttr: []string{DefaultField},
+		Settings: url.Values{
+			SrchAttr: defFields,
 		},
 	},
 	&Params{
-		Values: url.Values{
-			SrchAttr: []string{DefaultField},
+		Settings: url.Values{
+			SrchAttr: defFields,
 		},
 	},
 	&Params{
-		Values: url.Values{
-			SrchAttr: []string{DefaultField},
+		Settings: url.Values{
+			SrchAttr: defFields,
 		},
 	},
 	&Params{
-		Values: url.Values{
-			SrchAttr: []string{DefaultField},
+		Settings: url.Values{
+			SrchAttr: defFields,
 			DataDir:  []string{testDataDir},
 		},
 	},
 	&Params{
-		Values: url.Values{
-			SrchAttr: []string{DefaultField},
-			FacetAttr: []string{
-				"tags",
-				"authors",
-				"series",
-				"narrators",
-			},
+		Settings: url.Values{
+			SrchAttr:  defFields,
+			FacetAttr: defFacetAttr,
 		},
 	},
 	&Params{
-		Values: url.Values{
-			SrchAttr: []string{DefaultField},
-			DataFile: []string{testData},
-			FacetAttr: []string{
-				"tags",
-				"authors",
-				"series",
-				"narrators",
-			},
+		Settings: url.Values{
+			SrchAttr:  defFields,
+			DataFile:  defDataFile,
+			FacetAttr: defFacetAttr,
 		},
 	},
 	&Params{
-		Values: url.Values{
-			SrchAttr: []string{DefaultField},
-			FacetAttr: []string{
-				"tags",
-				"authors",
-				"series",
-				"narrators",
-			},
+		Settings: url.Values{
+			SrchAttr:  defFields,
+			FacetAttr: defFacetAttr,
 		},
 	},
 	&Params{
-		Values: url.Values{
-			SrchAttr: []string{DefaultField},
-			DataFile: []string{testData},
-			FacetAttr: []string{
-				"tags",
-				"authors",
-				"series",
-				"narrators",
-			},
+		Settings: url.Values{
+			SrchAttr:  defFields,
+			DataFile:  defDataFile,
+			FacetAttr: defFacetAttr,
 		},
 	},
 }
@@ -113,14 +103,14 @@ func settingsErr(got *Params, want *Params) error {
 		err = fmt.Errorf(fmtStr, err, facet, want.FacetAttr())
 	}
 
-	if got.Values.Has(DataDir) {
+	if got.Settings.Has(DataDir) {
 		vals := got.GetSlice(DataDir)
 		if !slices.Equal(vals, want.GetSlice(DataDir)) {
 			err = fmt.Errorf(fmtStr, err, vals, want.GetSlice(DataDir))
 		}
 	}
 
-	if got.Values.Has(DataFile) {
+	if got.Settings.Has(DataFile) {
 		vals := got.GetSlice(DataFile)
 		if !slices.Equal(vals, want.GetSlice(DataFile)) {
 			err = fmt.Errorf(fmtStr, err, vals, want.GetSlice(DataFile))
@@ -142,8 +132,4 @@ func queryParamsString() string {
 func requestParams() string {
 	p := queryParamsString()
 	return p
-}
-
-func getNewQuery() url.Values {
-	return ParseQuery(testValuesCfg, testQueryString, testSearchString)
 }

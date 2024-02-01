@@ -7,6 +7,7 @@ import (
 	"github.com/londek/reactea"
 	"github.com/londek/reactea/router"
 	"github.com/ohzqq/srch"
+	"github.com/samber/lo"
 )
 
 type App struct {
@@ -15,7 +16,8 @@ type App struct {
 
 	mainRouter reactea.Component[router.Props]
 
-	idx *srch.Index
+	idx    *srch.Index
+	params *srch.Params
 
 	data  []map[string]any
 	query url.Values
@@ -27,12 +29,13 @@ type App struct {
 	visible    *srch.Response
 	facetMenu  *FacetMenu
 	Filters    url.Values
+	filters    []any
 	facet      string
 	Selections *srch.Response
 }
 
 func New(idx *srch.Index) *App {
-	tui := newApp(idx.Params.Values, idx.Data)
+	tui := newApp()
 	tui.idx = idx
 	tui.updateVisible(idx.Search(""))
 	tui.Model = NewModel(SrcToItems(tui.visible))
@@ -40,18 +43,17 @@ func New(idx *srch.Index) *App {
 }
 
 func Browse(q url.Values, data []map[string]any) *App {
-	tui := newApp(q, data)
-	idx, _ := srch.New(q)
-
-	tui.updateVisible(idx.Search(""))
+	tui := newApp()
+	tui.idx, _ = srch.New(q)
+	tui.filters = tui.idx.Filters()
+	tui.params = srch.ParseParams(q)
+	tui.updateVisible(tui.idx.Response())
 	tui.Model = NewModel(SrcToItems(tui.visible))
 	return tui
 }
 
-func newApp(q url.Values, data []map[string]any) *App {
+func newApp() *App {
 	return &App{
-		query:      q,
-		data:       data,
 		mainRouter: router.New(),
 	}
 }
@@ -71,7 +73,7 @@ func (c *App) Init(reactea.NoProps) tea.Cmd {
 		"default":  c.idxComponent,
 		"filtered": c.idxComponent,
 		"facetMenu": func(router.Params) (reactea.SomeComponent, tea.Cmd) {
-			component := NewFacetMenu(c.facetLabels)
+			component := NewFacetMenu(c.visible.FacetLabels())
 
 			return component, component.Init(FacetMenuProps{
 				SetFacet: c.SetFacet,
@@ -100,28 +102,36 @@ func (c *App) SetFacet(label string) {
 	c.facet = label
 }
 
-func (c *App) SetFilters(filters url.Values) {
-	c.Filters = srch.ParseQuery(c.Filters, filters)
-	c.updateVisible(c.visible.Filter(filters.Encode()))
+func (c *App) SetFilters(field string, vals []string) {
+	if len(vals) == 0 {
+		return
+	}
+	f := srch.NewFilter(field, vals...)
+	c.filters = append(c.filters, lo.ToAnySlice(f)...)
+	c.idx.SetFilters(c.filters)
+	c.updateVisible(c.idx.Filter(""))
 }
 
 func (c *App) SetSelections(idx *srch.Index) {
-	c.Selections = srch.NewResponse(idx)
+	c.Selections = idx.Response()
 }
 
 func (c *App) ClearFilters() {
 	c.Filters = make(url.Values)
+	c.filters = []any{}
+	c.idx.SetFilters(c.filters)
 	c.updateVisible(c.idx.Search(""))
 }
 
 func (c *App) updateVisible(idx *srch.Response) {
 	c.visible = idx
-	c.facetLabels = c.visible.FacetLabels()
-	if len(c.facetLabels) > 0 {
-		//c.facets = make(map[string]*Facet)
-		//for _, label := range c.facetLabels {
-		//c.setFacet(label)
-		//}
+	facets := c.visible.Facets()
+	if len(facets) > 0 {
+		c.facets = make(map[string]*Facet)
+		for label, field := range facets {
+			c.facets[label] = NewFacet(field)
+			//c.setFacet(label)
+		}
 	}
 }
 

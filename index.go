@@ -3,7 +3,9 @@ package srch
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
+	"net/url"
 	"os"
 	"slices"
 
@@ -20,7 +22,7 @@ func init() {
 
 // Index is a structure for facets and data.
 type Index struct {
-	fields []*Field
+	fields map[string]*Field
 	facets map[string]*Field
 	Data   []map[string]any
 	res    *roaring.Bitmap
@@ -28,44 +30,44 @@ type Index struct {
 	*Params `json:"params"`
 }
 
+var NoDataErr = errors.New("no data")
+
 type SearchFunc func(string) []map[string]any
 
 type Opt func(*Index)
 
 func New(settings any) (*Index, error) {
-	idx := newIndex(settings)
+	idx := newIndex()
+	idx.Params = ParseParams(settings)
+	idx.fields = idx.Params.Fields()
+	idx.facets = idx.Params.Facets()
 
-	if idx.Params.HasData() {
-		d, err := idx.Params.GetData()
-		if err != nil {
-			return nil, errors.New("data parsing error")
-		}
-		return idx.Index(d), nil
+	err := idx.GetData()
+	if err != nil && !errors.Is(err, NoDataErr) {
+		return nil, fmt.Errorf("data parsing error: %w\n", err)
 	}
 
 	return idx, nil
 }
 
-func newIndex(settings any) *Index {
-	params := ParseParams(settings)
+func newIndex() *Index {
 	return &Index{
-		Params: params,
-		fields: params.Fields(),
-		facets: params.newFieldsMap(params.FacetAttr()),
+		fields: make(map[string]*Field),
+		facets: make(map[string]*Field),
 	}
 }
 
 func (idx *Index) Index(src []map[string]any) *Index {
 	idx.Data = src
 
-	if idx.Params.Values.Has("sort_by") {
-		idx.Sort()
-	}
+	//if idx.Params.Values.Has("sort_by") {
+	//  idx.Sort()
+	//}
 
 	for id, d := range idx.Data {
-		for i, attr := range idx.SrchAttr() {
+		for _, attr := range idx.SrchAttr() {
 			if val, ok := d[attr]; ok {
-				idx.fields[i].Add(val, []int{id})
+				idx.fields[attr].Add(val, []int{id})
 			}
 		}
 		for _, attr := range idx.FacetAttr() {
@@ -76,6 +78,53 @@ func (idx *Index) Index(src []map[string]any) *Index {
 	}
 
 	return idx
+}
+
+func (idx *Index) Search(params string) *Response {
+	idx.res = idx.Bitmap()
+	idx.SetSearch(params)
+
+	query := idx.Query()
+	if query != "" {
+		switch idx.GetAnalyzer() {
+		case TextAnalyzer:
+			idx.res.And(idx.FullText(query))
+		case KeywordAnalyzer:
+			idx.res.And(idx.FuzzySearch(query))
+		}
+	}
+
+	if idx.Has(FacetFilters) {
+		return idx.Filter("")
+	}
+
+	return idx.Response()
+}
+
+func (idx *Index) Filter(q string) *Response {
+	if !idx.HasResults() {
+		idx.res = idx.Bitmap()
+	}
+
+	if q != "" {
+		idx.Set(FacetFilters, q)
+	}
+
+	filtered, err := Filter(idx.res, idx.facets, idx.Filters())
+	if err != nil {
+		return idx.Response()
+	}
+
+	idx.res.And(filtered)
+	return idx.Response()
+}
+
+func (idx *Index) Response() *Response {
+	return NewResponse(idx.GetResults(), idx.GetParams())
+}
+
+func (idx *Index) GetParams() url.Values {
+	return idx.Values()
 }
 
 func (idx *Index) FullText(q string) *roaring.Bitmap {
@@ -93,42 +142,6 @@ func (idx *Index) FuzzySearch(q string) *roaring.Bitmap {
 	}
 	res := roaring.ParAnd(viper.GetInt("workers"), bits...)
 	return res
-}
-
-func (idx *Index) Search(params string) *Response {
-	idx.res = idx.Bitmap()
-	q := ParseParams(params)
-
-	if query := q.Query(); query != "" {
-		switch idx.Params.GetAnalyzer() {
-		case TextAnalyzer:
-			idx.res.And(idx.FullText(query))
-		case KeywordAnalyzer:
-			idx.res.And(idx.FuzzySearch(query))
-		}
-	}
-
-	if q.HasFilters() {
-		idx.Filter(q.Values.Get(FacetFilters))
-	}
-
-	return NewResponse(idx)
-}
-
-func (idx *Index) Filter(q string) *Response {
-	if !idx.HasResults() {
-		idx.res = idx.Bitmap()
-	}
-
-	idx.Params.Values.Set(FacetFilters, q)
-
-	filtered, err := Filter(idx.res, idx.facets, q)
-	if err != nil {
-		return NewResponse(idx)
-	}
-
-	idx.res.And(filtered)
-	return NewResponse(idx)
 }
 
 func (idx Index) Bitmap() *roaring.Bitmap {
@@ -160,12 +173,54 @@ func (idx Index) GetResults() []map[string]any {
 }
 
 func (idx *Index) Sort() {
-	sortDataByField(idx.Data, idx.Params.Values.Get(SortBy))
-	if idx.Params.Values.Has(Order) {
-		if idx.Params.Values.Get(Order) == "desc" {
+	sortDataByField(idx.Data, idx.Get(SortBy))
+	if idx.Has(Order) {
+		if idx.Get(Order) == "desc" {
 			slices.Reverse(idx.Data)
 		}
 	}
+}
+
+func (idx *Index) HasData() bool {
+	return idx.Has(DataFile) ||
+		idx.Has(DataDir)
+}
+
+func (idx *Index) GetData() error {
+	if !idx.HasData() {
+		return NoDataErr
+	}
+	var data []map[string]any
+	var err error
+	switch {
+	case idx.Has(DataFile):
+		data, err = FileSrc(idx.GetSlice(DataFile)...)
+		idx.Settings.Del(DataFile)
+	case idx.Has(DataDir):
+		data, err = DirSrc(idx.Get(DataDir))
+		idx.Settings.Del(DataDir)
+	}
+	if err != nil {
+		return err
+	}
+
+	idx.Index(data)
+	return nil
+}
+
+func GetDataFromQuery(q *url.Values) ([]map[string]any, error) {
+	var data []map[string]any
+	var err error
+	switch {
+	case q.Has(DataFile):
+		qu := *q
+		data, err = FileSrc(qu[DataFile]...)
+		q.Del(DataFile)
+	case q.Has(DataDir):
+		data, err = DirSrc(q.Get(DataDir))
+		q.Del(DataDir)
+	}
+	return data, err
 }
 
 func (idx *Index) GetFacet(attr string) *Field {
@@ -197,7 +252,7 @@ func (idx *Index) FacetLabels() []string {
 	return lo.Keys(idx.facets)
 }
 
-func (idx *Index) SearchableFields() []*Field {
+func (idx *Index) SearchableFields() map[string]*Field {
 	return idx.fields
 }
 
@@ -214,7 +269,7 @@ func (idx *Index) UnmarshalJSON(d []byte) error {
 		if err != nil {
 			return err
 		}
-		idx.Params.Values = ParseQuery(q)
+		idx.Params.Settings = ParseQuery(q)
 	}
 
 	if msg, ok := un[Hits]; ok {

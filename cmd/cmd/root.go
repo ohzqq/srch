@@ -68,21 +68,16 @@ By default, results are printed to stdout as json.
 				log.Fatal(err)
 			}
 		} else {
-			//idx = res.Index.Index(data)
 			if res != nil {
 				idx = res.Index
 			}
-
-			//if keywords != "" {
-			//res = idx.Search(keywords)
-			//}
 		}
 
 		if p, err := cmd.Flags().GetBool("pretty"); err == nil && p {
 			idx.PrettyPrint()
 		} else {
-			println(res.NbHits())
-			//idx.Print()
+			//println(res.NbHits())
+			idx.Print()
 			//d, err := json.Marshal(res)
 			//if err != nil {
 			//log.Fatal(err)

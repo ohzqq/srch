@@ -2,21 +2,20 @@ package srch
 
 import (
 	"encoding/json"
-	"errors"
 	"net/url"
 	"slices"
 	"strconv"
 	"strings"
 
 	"github.com/ohzqq/srch/txt"
+	"github.com/samber/lo"
 	"github.com/spf13/cast"
 )
 
 const (
+	// search params
 	Hits                 = `hits`
 	AttributesToRetrieve = `attributesToRetrieve`
-	SrchAttr             = `searchableAttributes`
-	FacetAttr            = `attributesForFaceting`
 	Page                 = "page"
 	HitsPerPage          = "hitsPerPage"
 	SortFacetsBy         = `sortFacetValuesBy`
@@ -24,63 +23,152 @@ const (
 	ParamFacets          = "facets"
 	ParamFilters         = "filters"
 	FacetFilters         = `facetFilters`
-	DataDir              = `dataDir`
-	DataFile             = `dataFile`
 	ParamFullText        = `fullText`
 	NbHits               = `nbHits`
 	NbPages              = `nbPages`
-	DefaultField         = `title`
 	SortBy               = `sortBy`
 	Order                = `order`
+
+	// Settings
+	SrchAttr     = `searchableAttributes`
+	FacetAttr    = `attributesForFaceting`
+	DataDir      = `dataDir`
+	DataFile     = `dataFile`
+	DefaultField = `title`
 
 	TextAnalyzer    = "text"
 	KeywordAnalyzer = "keyword"
 )
 
 type Params struct {
-	Values url.Values
+	Settings url.Values
+	Search   url.Values
+	filters  []any
 }
 
 func NewParams() *Params {
-	return &Params{
-		Values: make(url.Values),
-	}
-}
-
-func ParseParams(params any) *Params {
-	q := ParseQuery(params)
 	p := &Params{
-		Values: q,
+		Settings: make(url.Values),
+		Search:   make(url.Values),
 	}
 	return p
 }
 
+func ParseParams(params any) *Params {
+	q := ParseQuery(params)
+	p := NewParams()
+	p.Settings = GetSettings(q)
+	p.Search = GetSearchParams(q)
+
+	return p
+}
+
+func GetSettings(vals url.Values) url.Values {
+	settings := make(url.Values)
+	for l, v := range vals {
+		if l == SrchAttr ||
+			l == FacetAttr ||
+			l == DataDir ||
+			l == DataFile {
+			settings[l] = v
+		}
+	}
+	return settings
+}
+
+func GetSearchParams(vals url.Values) url.Values {
+	params := make(url.Values)
+	for l, v := range vals {
+		if l != SrchAttr &&
+			l != FacetAttr &&
+			l != DataDir &&
+			l != DataFile {
+			params[l] = v
+		}
+	}
+	return params
+}
+
 func (p Params) GetSlice(key string) []string {
-	if p.Values.Has(key) {
-		return p.Values[key]
+	if p.Settings.Has(key) {
+		return p.Settings[key]
+	}
+	if p.Search.Has(key) {
+		return p.Search[key]
 	}
 	return []string{}
 }
 
 func (p Params) Get(key string) string {
-	if p.Values.Has(key) {
-		return p.Values.Get(key)
+	if p.Settings.Has(key) {
+		return p.Settings.Get(key)
+	}
+	if p.Search.Has(key) {
+		return p.Search.Get(key)
 	}
 	return ""
 }
 
-func (p *Params) Merge(queries ...*Params) {
-	for _, query := range queries {
-		for k, val := range query.Values {
-			for _, v := range val {
-				p.Values.Add(k, v)
-			}
-		}
+func (p *Params) Set(key string, val string) {
+	switch key {
+	case FacetAttr, SrchAttr, DataDir, DataFile:
+		p.Settings.Set(key, val)
+	default:
+		p.Search.Set(key, val)
 	}
 }
 
-func (p Params) FieldIsSearchable(attr string) bool {
-	return slices.Contains(p.SrchAttr(), attr)
+func (p Params) Has(key string) bool {
+	switch key {
+	case FacetAttr, SrchAttr, DataDir, DataFile:
+		return p.Settings.Has(key)
+	default:
+		return p.Search.Has(key)
+	}
+}
+
+func (p *Params) SetSearch(params string) *Params {
+	q := ParseQuery(params)
+	p.Search = lo.Assign(p.Search, q)
+	return p
+}
+
+func (p Params) HasFilters() bool {
+	return p.Search.Has(FacetFilters)
+}
+
+func (p *Params) Filters() []any {
+	if p.HasFilters() {
+		fils, err := unmarshalFilter(p.Get(FacetFilters))
+		if err != nil {
+		}
+		return fils
+	}
+	return p.filters
+}
+
+func (p *Params) SetFilters(filters []any) *Params {
+	if len(filters) == 0 {
+		p.Search.Del(FacetFilters)
+		return p
+	}
+
+	d, err := json.Marshal(filters)
+	if err != nil {
+		return p
+	}
+	p.Set(FacetFilters, string(d))
+
+	return p
+}
+
+func (p *Params) AndFilter(field string, filters ...string) *Params {
+	p.filters = append(p.filters, NewAnyFilter(field, filters)...)
+	return p
+}
+
+func (p *Params) OrFilter(field string, filters ...string) {
+	p.filters = append(p.filters, NewAnyFilter(field, filters))
 }
 
 func (p Params) IsFacet(attr string) bool {
@@ -90,24 +178,17 @@ func (p Params) IsFacet(attr string) bool {
 func (p *Params) NewField(attr string) *Field {
 	f := NewField(attr)
 
-	if p.IsFacet(attr) {
+	switch p.IsFacet(attr) {
+	case true:
 		f.SetAnalyzer(txt.Keyword())
-	}
-
-	if p.IsFullText() && p.FieldIsSearchable(attr) {
-		f.SetAnalyzer(txt.Fulltext())
+	default:
+		if p.IsFullText() {
+			f.SetAnalyzer(txt.Fulltext())
+		}
 	}
 
 	f.SortBy = p.SortFacetsBy()
 	return f
-}
-
-func (p *Params) newFields(attrs []string) []*Field {
-	fields := make([]*Field, len(attrs))
-	for i, attr := range attrs {
-		fields[i] = p.NewField(attr)
-	}
-	return fields
 }
 
 func (p *Params) newFieldsMap(attrs []string) map[string]*Field {
@@ -122,26 +203,30 @@ func (p *Params) SrchAttr() []string {
 	return p.GetSlice(SrchAttr)
 }
 
-func (p *Params) Fields() []*Field {
-	return p.newFields(p.SrchAttr())
+func (p *Params) Fields() map[string]*Field {
+	return p.newFieldsMap(p.SrchAttr())
 }
 
-func (p Params) HasFilters() bool {
-	return p.Values.Has(FacetFilters)
-}
-
-func (p *Params) Facets() []*Field {
-	return p.newFields(p.FacetAttr())
+func (p *Params) Facets() map[string]*Field {
+	return p.newFieldsMap(p.FacetAttr())
 }
 
 func (p Params) FacetAttr() []string {
 	return p.GetSlice(FacetAttr)
 }
 
+func (f Filters) String() string {
+	d, err := json.Marshal(f)
+	if err != nil {
+		return ""
+	}
+	return string(d)
+}
+
 func (p *Params) SortFacetsBy() string {
 	sort := SortByCount
-	if p.Values.Has(SortFacetsBy) {
-		if by := p.Values.Get(SortFacetsBy); by == SortByCount || by == SortByAlpha {
+	if p.Search.Has(SortFacetsBy) {
+		if by := p.Search.Get(SortFacetsBy); by == SortByCount || by == SortByAlpha {
 			sort = by
 		}
 	}
@@ -149,16 +234,20 @@ func (p *Params) SortFacetsBy() string {
 }
 
 func (p Params) Page() int {
-	pn := p.Values.Get(Page)
+	pn := p.Search.Get(Page)
 	page, err := strconv.Atoi(pn)
 	if err != nil {
 		return 0
 	}
 	return page
+}
+
+func (p *Params) SetPage(i any) {
+	p.Search.Set(Page, cast.ToString(i))
 }
 
 func (p Params) HitsPerPage() int {
-	pn := p.Values.Get(HitsPerPage)
+	pn := p.Search.Get(HitsPerPage)
 	page, err := strconv.Atoi(pn)
 	if err != nil {
 		return 0
@@ -166,16 +255,20 @@ func (p Params) HitsPerPage() int {
 	return page
 }
 
+func (p Params) SetHitsPerPage(i any) {
+	p.Search.Set(HitsPerPage, cast.ToString(i))
+}
+
 func (p *Params) IsFullText() bool {
-	return p.Values.Has(ParamFullText)
+	return p.Search.Has(ParamFullText)
 }
 
 func (p Params) Query() string {
-	return p.Values.Get(Query)
+	return p.Get(Query)
 }
 
 func (p Params) GetAnalyzer() string {
-	if p.Values.Has(ParamFullText) {
+	if p.IsFullText() {
 		return TextAnalyzer
 	}
 	return KeywordAnalyzer
@@ -204,61 +297,27 @@ func (p *Params) UnmarshalJSON(d []byte) error {
 }
 
 func (p Params) Encode() string {
-	return p.Values.Encode()
+	return p.Values().Encode()
 }
 
 func (p Params) String() string {
-	return p.Values.Encode()
+	return p.Values().Encode()
+}
+
+func (p Params) Values() url.Values {
+	m := lo.Assign(p.Settings, p.Search)
+	return url.Values(m)
 }
 
 func (p *Params) Decode(str string) error {
-	var err error
-	p.Values, err = url.ParseQuery(str)
-	return err
-}
-
-func (p Params) HasData() bool {
-	return p.Values.Has(DataFile) || p.Values.Has(DataDir)
-}
-
-func (p Params) GetData() ([]map[string]any, error) {
-	if !p.HasData() {
-		return nil, errors.New("no data")
+	q, err := url.ParseQuery(str)
+	if err != nil {
+		return err
 	}
-	return GetDataFromQuery(&p.Values)
-}
 
-func GetDataFromQuery(q *url.Values) ([]map[string]any, error) {
-	var data []map[string]any
-	var err error
-	switch {
-	case q.Has(DataFile):
-		qu := *q
-		data, err = FileSrc(qu[DataFile]...)
-		q.Del(DataFile)
-	case q.Has(DataDir):
-		data, err = DirSrc(q.Get(DataDir))
-		q.Del(DataDir)
-	}
-	return data, err
-}
-
-func parseSrchAttr(vals url.Values) []string {
-	if !vals.Has(SrchAttr) {
-		return []string{DefaultField}
-	}
-	vals[SrchAttr] = GetQueryStringSlice(SrchAttr, vals)
-	if len(vals[SrchAttr]) < 1 {
-		vals[SrchAttr] = []string{DefaultField}
-	}
-	return vals[SrchAttr]
-}
-
-func parseFacetAttr(vals url.Values) []string {
-	if !vals.Has(ParamFacets) {
-		vals[ParamFacets] = GetQueryStringSlice(FacetAttr, vals)
-	}
-	return vals[ParamFacets]
+	p.Settings = GetSettings(q)
+	p.Search = GetSearchParams(q)
+	return nil
 }
 
 func ParseQuery(queries ...any) url.Values {
@@ -297,6 +356,24 @@ func ParseValues(f any) (url.Values, error) {
 	filters[SrchAttr] = parseSrchAttr(filters)
 	filters[FacetAttr] = parseFacetAttr(filters)
 	return filters, nil
+}
+
+func parseSrchAttr(vals url.Values) []string {
+	if !vals.Has(SrchAttr) {
+		return []string{DefaultField}
+	}
+	vals[SrchAttr] = GetQueryStringSlice(SrchAttr, vals)
+	if len(vals[SrchAttr]) < 1 {
+		vals[SrchAttr] = []string{DefaultField}
+	}
+	return vals[SrchAttr]
+}
+
+func parseFacetAttr(vals url.Values) []string {
+	if !vals.Has(ParamFacets) {
+		vals[ParamFacets] = GetQueryStringSlice(FacetAttr, vals)
+	}
+	return vals[ParamFacets]
 }
 
 // ParseQueryString parses an encoded filter string.

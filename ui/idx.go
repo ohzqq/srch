@@ -63,6 +63,11 @@ func (m *Idx) Init(props IdxProps) tea.Cmd {
 
 func (m *Idx) Update(msg tea.Msg) tea.Cmd {
 	var cmds []tea.Cmd
+
+	if reactea.CurrentRoute() == "filtered" {
+		cmds = append(cmds, m.Model.NewStatusMessage(m.Get(srch.FacetFilters)))
+	}
+
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch {
