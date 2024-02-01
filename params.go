@@ -192,6 +192,14 @@ func (p *Params) NewField(attr string) *Field {
 	return f
 }
 
+func (p *Params) Fields() map[string]*Field {
+	return p.newFieldsMap(p.SrchAttr())
+}
+
+func (p *Params) Facets() map[string]*Field {
+	return p.newFieldsMap(p.FacetAttr())
+}
+
 func (p *Params) newFieldsMap(attrs []string) map[string]*Field {
 	fields := make(map[string]*Field)
 	for _, attr := range attrs {
@@ -202,14 +210,6 @@ func (p *Params) newFieldsMap(attrs []string) map[string]*Field {
 
 func (p *Params) SrchAttr() []string {
 	return p.GetSlice(SrchAttr)
-}
-
-func (p *Params) Fields() map[string]*Field {
-	return p.newFieldsMap(p.SrchAttr())
-}
-
-func (p *Params) Facets() map[string]*Field {
-	return p.newFieldsMap(p.FacetAttr())
 }
 
 func (p Params) FacetAttr() []string {

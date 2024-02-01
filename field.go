@@ -75,7 +75,7 @@ func (t *Field) FindByIndex(ti ...int) []*txt.Token {
 	return tokens
 }
 
-func (t *Field) Sort() []*txt.Token {
+func (t *Field) SortTokens() []*txt.Token {
 	tokens := t.GetTokens()
 
 	switch t.SortBy {
@@ -175,7 +175,7 @@ func SortByCountFunc(a *txt.Token, b *txt.Token) int {
 	aC := a.Count()
 	bC := b.Count()
 	switch {
-	case aC < bC:
+	case aC > bC:
 		return 1
 	case aC == bC:
 		return 0
@@ -185,10 +185,12 @@ func SortByCountFunc(a *txt.Token, b *txt.Token) int {
 }
 
 func SortByAlphaFunc(a *txt.Token, b *txt.Token) int {
+	aL := strings.ToLower(a.Label)
+	bL := strings.ToLower(b.Label)
 	switch {
-	case a.Label > b.Label:
+	case aL > bL:
 		return 1
-	case a.Label == b.Label:
+	case aL == bL:
 		return 0
 	default:
 		return -1
