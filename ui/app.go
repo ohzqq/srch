@@ -112,15 +112,15 @@ func (c *App) SetFilters(field string, vals []string) {
 	c.updateVisible(c.idx.Filter(""))
 }
 
-func (c *App) SetSelections(idx *srch.Index) {
-	c.Selections = idx.Response()
-}
-
 func (c *App) ClearFilters() {
 	c.Filters = make(url.Values)
 	c.filters = []any{}
 	c.idx.SetFilters(c.filters)
 	c.updateVisible(c.idx.Search(""))
+}
+
+func (c *App) SetSelections(idx *srch.Response) {
+	c.Selections = idx
 }
 
 func (c *App) updateVisible(idx *srch.Response) {

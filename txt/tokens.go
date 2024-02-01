@@ -89,7 +89,7 @@ func (t *Tokens) Tokenize(val any) []*Token {
 	return t.analyzer.Tokenize(val)
 }
 
-func (t *Tokens) GetByLabel(label string) *Token {
+func (t *Tokens) FindByLabel(label string) *Token {
 	for _, token := range t.tokens {
 		if token.Label == label {
 			return token
@@ -113,7 +113,7 @@ func (t *Tokens) FindByIndex(ti ...int) []*Token {
 func (t *Tokens) Tokens() []*Token {
 	var tokens []*Token
 	for _, label := range t.labels {
-		tok := t.GetByLabel(label)
+		tok := t.FindByLabel(label)
 		tokens = append(tokens, tok)
 	}
 	return tokens
@@ -142,13 +142,13 @@ func (t *Tokens) String(i int) string {
 	return t.labels[i]
 }
 
-func (f *Token) MarshalJSON() ([]byte, error) {
-	item := map[string]any{
-		"value": f.Value,
-		"label": f.Label,
-		"count": f.Count(),
+func (t *Tokens) MarshalJSON() ([]byte, error) {
+	tokens := make(map[string]int)
+	for _, label := range t.labels {
+		token := t.FindByLabel(label)
+		tokens[label] = token.Count()
 	}
-	d, err := json.Marshal(item)
+	d, err := json.Marshal(tokens)
 	if err != nil {
 		return nil, err
 	}

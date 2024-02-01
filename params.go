@@ -10,6 +10,7 @@ import (
 	"github.com/ohzqq/srch/txt"
 	"github.com/samber/lo"
 	"github.com/spf13/cast"
+	"github.com/spf13/viper"
 )
 
 const (
@@ -215,14 +216,6 @@ func (p Params) FacetAttr() []string {
 	return p.GetSlice(FacetAttr)
 }
 
-func (f Filters) String() string {
-	d, err := json.Marshal(f)
-	if err != nil {
-		return ""
-	}
-	return string(d)
-}
-
 func (p *Params) SortFacetsBy() string {
 	sort := SortByCount
 	if p.Search.Has(SortFacetsBy) {
@@ -247,10 +240,14 @@ func (p *Params) SetPage(i any) {
 }
 
 func (p Params) HitsPerPage() int {
-	pn := p.Search.Get(HitsPerPage)
-	page, err := strconv.Atoi(pn)
-	if err != nil {
-		return 0
+	page := viper.GetInt(HitsPerPage)
+	if p.Has(HitsPerPage) {
+		pn := p.Search.Get(HitsPerPage)
+		page, err := strconv.Atoi(pn)
+		if err != nil {
+			return 25
+		}
+		return page
 	}
 	return page
 }
@@ -305,8 +302,7 @@ func (p Params) String() string {
 }
 
 func (p Params) Values() url.Values {
-	m := lo.Assign(p.Settings, p.Search)
-	return url.Values(m)
+	return lo.Assign(p.Settings, p.Search)
 }
 
 func (p *Params) Decode(str string) error {
