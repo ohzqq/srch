@@ -8,6 +8,22 @@ import (
 	"testing"
 )
 
+var boolFilterStr = []string{
+	`tags:dnr`,
+	`tags:dnr AND tags:abo`,
+	`tags:dnr OR tags:abo`,
+	`NOT tags:dnr AND tags:abo`,
+	`NOT tags:dnr OR tags:abo`,
+	`tags:dnr AND NOT tags:abo`,
+	`tags:dnr OR NOT tags:abo`,
+}
+
+func TestFilterParser(t *testing.T) {
+	parser := FilterParser()
+	for _, filter := range boolFilterStr {
+	}
+}
+
 func TestMarshalFilter(t *testing.T) {
 	combo := testComboFilter()
 	var c []any

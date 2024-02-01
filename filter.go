@@ -5,9 +5,14 @@ import (
 	"strings"
 
 	"github.com/RoaringBitmap/roaring"
+	"github.com/bzick/tokenizer"
 	"github.com/samber/lo"
 	"github.com/spf13/cast"
 	"github.com/spf13/viper"
+)
+
+const (
+	TBool = 1
 )
 
 func Filter(bits *roaring.Bitmap, fields map[string]*Field, filters []any) (*roaring.Bitmap, error) {
@@ -49,6 +54,12 @@ func Filter(bits *roaring.Bitmap, fields map[string]*Field, filters []any) (*roa
 	bits.Or(orb)
 
 	return bits, nil
+}
+
+func FilterParser() *tokenizer.Tokenizer {
+	parser := tokenizer.New()
+	parser.DefineTokens(TBool, []string{And, Or, Not})
+	return parser
 }
 
 func NewAnyFilter(field string, filters []string) []any {
