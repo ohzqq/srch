@@ -101,3 +101,20 @@ func sortDataByTextField(data []map[string]any, field string) []map[string]any {
 	slices.SortFunc(data, fn)
 	return data
 }
+
+func sortDataByNumField(data []map[string]any, field string) []map[string]any {
+	fn := func(a, b map[string]any) int {
+		x := cast.ToInt(a[field])
+		y := cast.ToInt(b[field])
+		switch {
+		case x > y:
+			return 1
+		case x == y:
+			return 0
+		default:
+			return -1
+		}
+	}
+	slices.SortFunc(data, fn)
+	return data
+}

@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"os"
 	"slices"
+	"strings"
 
 	"github.com/RoaringBitmap/roaring"
 	"github.com/samber/lo"
@@ -121,7 +122,19 @@ func (idx *Index) Filter(q string) *Response {
 }
 
 func (idx *Index) Sort() {
-	sortDataByTextField(idx.Data, idx.Get(SortBy))
+	sort := idx.Get(SortBy)
+	var sortType string
+	for _, sb := range idx.SortAttr() {
+		if t, found := strings.CutPrefix(sb, sort+":"); found {
+			sortType = t
+		}
+	}
+	switch sortType {
+	case "text":
+		sortDataByTextField(idx.Data, sort)
+	case "num":
+		sortDataByNumField(idx.Data, sort)
+	}
 	if idx.Has(Order) {
 		if idx.Get(Order) == "desc" {
 			slices.Reverse(idx.Data)

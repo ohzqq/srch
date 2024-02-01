@@ -81,6 +81,24 @@ func newTestIdx() *Index {
 	return idx
 }
 
+func TestSortIndexByTitle(t *testing.T) {
+	title := libCfgStr + "&sortBy=title"
+	idx, err := New(title)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("%+v\n", idx.Data[0])
+}
+
+func TestSortIndexByDate(t *testing.T) {
+	title := libCfgStr + "&sortableAttributes=title:text&sortableAttributes=added_stamp:num" + "&sortBy=added_stamp&order=desc"
+	idx, err := New(title)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("%+v\n", idx.Data[0])
+}
+
 func totalBooksErr(total int, vals ...any) error {
 	if total != 7174 {
 		err := fmt.Errorf("got %d, expected %d\n", total, 7174)
