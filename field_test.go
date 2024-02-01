@@ -1,31 +1,36 @@
 package srch
 
 import (
-	"fmt"
 	"log"
 	"testing"
+
+	"github.com/ohzqq/srch/txt"
 )
 
 var fieldSortParams = []string{}
 
 func TestFieldSort(t *testing.T) {
-	var sortErr error
+	var sorted []*txt.Token
 	alpha := libCfgStr + "&sortFacetValuesBy=alpha"
 	idx, err := New(alpha)
 	if err != nil {
 		log.Fatal(err)
 	}
 	tags := idx.GetFacet("tags")
-	tags.Order = "asc"
-	sorted := tags.SortTokens()
-	switch tags.Order {
-	case "desc":
-		if sorted[0].Label != "zombies" {
-			sortErr = fmt.Errorf("alpha: %s (%d)\n", sorted[0].Label, sorted[0].Count())
-		}
-	case "asc":
-		if sorted[0].Label != "abo" {
-			sortErr = fmt.Errorf("alpha: %s (%d)\n", sorted[0].Label, sorted[0].Count())
+	for _, o := range []string{"desc", "asc"} {
+		tags.Order = o
+		sorted = tags.SortTokens()
+		switch tags.Order {
+		case "asc":
+			if sorted[0].Label != "abo" {
+				t.Errorf("alpha: %s (%d)\n", sorted[0].Label, sorted[0].Count())
+			}
+		case "desc":
+			fallthrough
+		default:
+			if sorted[0].Label != "zombies" {
+				t.Errorf("alpha: %s (%d)\n", sorted[0].Label, sorted[0].Count())
+			}
 		}
 	}
 
@@ -35,19 +40,20 @@ func TestFieldSort(t *testing.T) {
 		log.Fatal(err)
 	}
 	tags = idx.GetFacet("tags")
-	tags.Order = "asc"
-	sorted = tags.SortTokens()
-	switch tags.Order {
-	case "desc":
-		if sorted[0].Label != "dnr" {
-			sortErr = fmt.Errorf("count: %s (%d)\n", sorted[0].Label, sorted[0].Count())
+	for _, o := range []string{"desc", "asc"} {
+		tags.Order = o
+		sorted = tags.SortTokens()
+		switch tags.Order {
+		case "asc":
+			if sorted[0].Label != "courting" {
+				t.Errorf("count: %s (%d)\n", sorted[0].Label, sorted[0].Count())
+			}
+		case "desc":
+			fallthrough
+		default:
+			if sorted[0].Label != "dnr" {
+				t.Errorf("count: %s (%d)\n", sorted[0].Label, sorted[0].Count())
+			}
 		}
-	case "asc":
-		if sorted[0].Label != "courting" {
-			sortErr = fmt.Errorf("count: %s (%d)\n", sorted[0].Label, sorted[0].Count())
-		}
-	}
-	if sortErr != nil {
-		t.Error(sortErr)
 	}
 }

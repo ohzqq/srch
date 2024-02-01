@@ -33,8 +33,6 @@ type Field struct {
 func NewField(attr string) *Field {
 	f := &Field{
 		Sep:    ".",
-		SortBy: "count",
-		Order:  "desc",
 		Tokens: txt.NewTokens(),
 	}
 	parseAttr(f, attr)
@@ -80,8 +78,14 @@ func (t *Field) SortTokens() []*txt.Token {
 
 	switch t.SortBy {
 	case SortByAlpha:
+		if t.Order == "" {
+			t.Order = "asc"
+		}
 		SortTokensByAlpha(tokens)
 	default:
+		if t.Order == "" {
+			t.Order = "desc"
+		}
 		SortTokensByCount(tokens)
 	}
 
