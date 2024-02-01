@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/RoaringBitmap/roaring"
-	"github.com/bzick/tokenizer"
 	"github.com/samber/lo"
 	"github.com/spf13/cast"
 	"github.com/spf13/viper"
@@ -16,50 +15,52 @@ const (
 )
 
 func Filter(bits *roaring.Bitmap, fields map[string]*Field, filters []any) (*roaring.Bitmap, error) {
-	var aor []*roaring.Bitmap
-	var bor []*roaring.Bitmap
+	var and []*roaring.Bitmap
+	var or []*roaring.Bitmap
+	var not []*roaring.Bitmap
 	for name, field := range fields {
 		for _, fs := range filters {
 			switch vals := fs.(type) {
 			case string:
 				vals, ok := strings.CutPrefix(vals, name+":")
 				if ok {
-					vals, not := strings.CutPrefix(vals, "-")
-					if not {
-						bits.AndNot(field.Filter(vals))
+					vals, n := strings.CutPrefix(vals, "-")
+					if n {
+						//bits.AndNot(field.Filter(vals))
+						not = append(not, field.Filter(vals))
 					} else {
-						aor = append(aor, field.Filter(vals))
+						and = append(and, field.Filter(vals))
 					}
 				}
 			case []any:
-				or := cast.ToStringSlice(vals)
-				for _, o := range or {
+				os := cast.ToStringSlice(vals)
+				for _, o := range os {
 					o, ok := strings.CutPrefix(o, name+":")
 					if ok {
-						o, not := strings.CutPrefix(o, "-")
-						if not {
-							bits.AndNot(field.Filter(o))
+						o, n := strings.CutPrefix(o, "-")
+						if n {
+							//bits.AndNot(field.Filter(o))
+							not = append(not, field.Filter(o))
 						} else {
-							bor = append(bor, field.Filter(o))
+							or = append(or, field.Filter(o))
 						}
 					}
 				}
 			}
 		}
 	}
-	arb := roaring.ParAnd(viper.GetInt("workers"), aor...)
+
+	for _, n := range not {
+		bits.AndNot(n)
+	}
+
+	arb := roaring.ParAnd(viper.GetInt("workers"), and...)
 	bits.And(arb)
 
-	orb := roaring.ParOr(viper.GetInt("workers"), bor...)
+	orb := roaring.ParOr(viper.GetInt("workers"), or...)
 	bits.Or(orb)
 
 	return bits, nil
-}
-
-func FilterParser() *tokenizer.Tokenizer {
-	parser := tokenizer.New()
-	parser.DefineTokens(TBool, []string{And, Or, Not})
-	return parser
 }
 
 func NewAnyFilter(field string, filters []string) []any {

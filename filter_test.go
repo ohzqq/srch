@@ -18,12 +18,6 @@ var boolFilterStr = []string{
 	`tags:dnr OR NOT tags:abo`,
 }
 
-func TestFilterParser(t *testing.T) {
-	parser := FilterParser()
-	for _, filter := range boolFilterStr {
-	}
-}
-
 func TestMarshalFilter(t *testing.T) {
 	combo := testComboFilter()
 	var c []any

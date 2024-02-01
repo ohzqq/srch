@@ -27,7 +27,7 @@ func (t *Tokens) SetAnalyzer(ana Analyzer) *Tokens {
 	return t
 }
 
-func (t *Tokens) Filter(val any) *roaring.Bitmap {
+func (t *Tokens) Filter(val string) *roaring.Bitmap {
 	tokens := t.Find(val)
 	bits := make([]*roaring.Bitmap, len(tokens))
 	for i, token := range tokens {
