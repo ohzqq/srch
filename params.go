@@ -33,6 +33,7 @@ const (
 	// Settings
 	SrchAttr     = `searchableAttributes`
 	FacetAttr    = `attributesForFaceting`
+	SortAttr     = `sortableAttributes`
 	DataDir      = `dataDir`
 	DataFile     = `dataFile`
 	DefaultField = `title`
@@ -40,6 +41,32 @@ const (
 	TextAnalyzer    = "text"
 	KeywordAnalyzer = "keyword"
 )
+
+var paramsSettings = []string{
+	SrchAttr,
+	FacetAttr,
+	SortAttr,
+	DataDir,
+	DataFile,
+	DefaultField,
+}
+
+var paramsSearch = []string{
+	Hits,
+	AttributesToRetrieve,
+	Page,
+	HitsPerPage,
+	SortFacetsBy,
+	Query,
+	ParamFacets,
+	ParamFilters,
+	FacetFilters,
+	ParamFullText,
+	NbHits,
+	NbPages,
+	SortBy,
+	Order,
+}
 
 type Params struct {
 	Settings url.Values
@@ -65,28 +92,12 @@ func ParseParams(params any) *Params {
 }
 
 func GetSettings(vals url.Values) url.Values {
-	settings := make(url.Values)
-	for l, v := range vals {
-		if l == SrchAttr ||
-			l == FacetAttr ||
-			l == DataDir ||
-			l == DataFile {
-			settings[l] = v
-		}
-	}
-	return settings
+	settings := lo.PickByKeys(vals, paramsSettings)
+	return url.Values(settings)
 }
 
 func GetSearchParams(vals url.Values) url.Values {
-	params := make(url.Values)
-	for l, v := range vals {
-		if l != SrchAttr &&
-			l != FacetAttr &&
-			l != DataDir &&
-			l != DataFile {
-			params[l] = v
-		}
-	}
+	params := lo.PickByKeys(vals, paramsSearch)
 	return params
 }
 
@@ -97,7 +108,7 @@ func (p Params) GetSlice(key string) []string {
 	if p.Search.Has(key) {
 		return p.Search[key]
 	}
-	return []string{}
+	return nil
 }
 
 func (p Params) Get(key string) string {
@@ -112,7 +123,7 @@ func (p Params) Get(key string) string {
 
 func (p *Params) Set(key string, val string) {
 	switch key {
-	case FacetAttr, SrchAttr, DataDir, DataFile:
+	case FacetAttr, SrchAttr, DataDir, DataFile, SortAttr:
 		p.Settings.Set(key, val)
 	default:
 		p.Search.Set(key, val)
@@ -121,7 +132,7 @@ func (p *Params) Set(key string, val string) {
 
 func (p Params) Has(key string) bool {
 	switch key {
-	case FacetAttr, SrchAttr, DataDir, DataFile:
+	case FacetAttr, SrchAttr, DataDir, DataFile, SortAttr:
 		return p.Settings.Has(key)
 	default:
 		return p.Search.Has(key)
@@ -163,15 +174,6 @@ func (p *Params) SetFilters(filters []any) *Params {
 	return p
 }
 
-func (p *Params) AndFilter(field string, filters ...string) *Params {
-	p.filters = append(p.filters, NewAnyFilter(field, filters)...)
-	return p
-}
-
-func (p *Params) OrFilter(field string, filters ...string) {
-	p.filters = append(p.filters, NewAnyFilter(field, filters))
-}
-
 func (p Params) IsFacet(attr string) bool {
 	return slices.Contains(p.FacetAttr(), attr)
 }
@@ -192,6 +194,14 @@ func (p *Params) NewField(attr string) *Field {
 	return f
 }
 
+func (p *Params) Fields() map[string]*Field {
+	return p.newFieldsMap(p.SrchAttr())
+}
+
+func (p *Params) Facets() map[string]*Field {
+	return p.newFieldsMap(p.FacetAttr())
+}
+
 func (p *Params) newFieldsMap(attrs []string) map[string]*Field {
 	fields := make(map[string]*Field)
 	for _, attr := range attrs {
@@ -204,16 +214,16 @@ func (p *Params) SrchAttr() []string {
 	return p.GetSlice(SrchAttr)
 }
 
-func (p *Params) Fields() map[string]*Field {
-	return p.newFieldsMap(p.SrchAttr())
-}
-
-func (p *Params) Facets() map[string]*Field {
-	return p.newFieldsMap(p.FacetAttr())
-}
-
 func (p Params) FacetAttr() []string {
 	return p.GetSlice(FacetAttr)
+}
+
+func (p Params) SortAttr() []string {
+	sort := p.GetSlice(SortAttr)
+	if sort != nil {
+		return sort
+	}
+	return []string{"title:text"}
 }
 
 func (p *Params) SortFacetsBy() string {
@@ -262,6 +272,13 @@ func (p *Params) IsFullText() bool {
 
 func (p Params) Query() string {
 	return p.Get(Query)
+}
+
+func (p Params) SortBy() string {
+	if p.Has(SortBy) {
+		return p.Get(SortBy)
+	}
+	return DefaultField
 }
 
 func (p Params) GetAnalyzer() string {

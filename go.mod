@@ -19,6 +19,7 @@ require (
 	github.com/blugelabs/bluge_segment_api v0.2.0 // indirect
 	github.com/blugelabs/ice v1.0.0 // indirect
 	github.com/blugelabs/ice/v2 v2.0.1 // indirect
+	github.com/bzick/tokenizer v1.4.0 // indirect
 	github.com/caio/go-tdigest v3.1.0+incompatible // indirect
 	github.com/charmbracelet/bubbles v0.16.1 // indirect
 	github.com/charmbracelet/bubbletea v0.25.0 // indirect

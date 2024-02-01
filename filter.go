@@ -11,41 +11,49 @@ import (
 )
 
 func Filter(bits *roaring.Bitmap, fields map[string]*Field, filters []any) (*roaring.Bitmap, error) {
-	var aor []*roaring.Bitmap
-	var bor []*roaring.Bitmap
+	var and []*roaring.Bitmap
+	var or []*roaring.Bitmap
+	var not []*roaring.Bitmap
 	for name, field := range fields {
 		for _, fs := range filters {
 			switch vals := fs.(type) {
 			case string:
 				vals, ok := strings.CutPrefix(vals, name+":")
 				if ok {
-					vals, not := strings.CutPrefix(vals, "-")
-					if not {
-						bits.AndNot(field.Filter(vals))
+					vals, n := strings.CutPrefix(vals, "-")
+					f := field.Filter(vals)
+					if n {
+						not = append(not, f)
 					} else {
-						aor = append(aor, field.Filter(vals))
+						and = append(and, f)
 					}
 				}
 			case []any:
-				or := cast.ToStringSlice(vals)
-				for _, o := range or {
+				os := cast.ToStringSlice(vals)
+				for _, o := range os {
 					o, ok := strings.CutPrefix(o, name+":")
 					if ok {
-						o, not := strings.CutPrefix(o, "-")
-						if not {
-							bits.AndNot(field.Filter(o))
+						o, n := strings.CutPrefix(o, "-")
+						f := field.Filter(o)
+						if n {
+							not = append(not, f)
 						} else {
-							bor = append(bor, field.Filter(o))
+							or = append(or, f)
 						}
 					}
 				}
 			}
 		}
 	}
-	arb := roaring.ParAnd(viper.GetInt("workers"), aor...)
+
+	for _, n := range not {
+		bits.AndNot(n)
+	}
+
+	arb := roaring.ParAnd(viper.GetInt("workers"), and...)
 	bits.And(arb)
 
-	orb := roaring.ParOr(viper.GetInt("workers"), bor...)
+	orb := roaring.ParOr(viper.GetInt("workers"), or...)
 	bits.Or(orb)
 
 	return bits, nil

@@ -8,6 +8,16 @@ import (
 	"testing"
 )
 
+var boolFilterStr = []string{
+	`tags:dnr`,
+	`tags:dnr AND tags:abo`,
+	`tags:dnr OR tags:abo`,
+	`NOT tags:dnr AND tags:abo`,
+	`NOT tags:dnr OR tags:abo`,
+	`tags:dnr AND NOT tags:abo`,
+	`tags:dnr OR NOT tags:abo`,
+}
+
 func TestMarshalFilter(t *testing.T) {
 	combo := testComboFilter()
 	var c []any
@@ -150,6 +160,15 @@ func testSearchFilterStrings() []filterStr {
 		vals: url.Values{
 			FacetFilters: []string{
 				`[["tags:-abo", "tags:dnr"]]`,
+			},
+		},
+	})
+
+	queries = append(queries, filterStr{
+		want: 0,
+		vals: url.Values{
+			FacetFilters: []string{
+				`["tags:abo", "tags:dnr", "tags:horror"]`,
 			},
 		},
 	})
