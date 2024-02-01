@@ -66,8 +66,8 @@ func TestFuzzyFieldSearch(t *testing.T) {
 	idx := newTestIdx()
 
 	facet := idx.GetFacet("authors")
-	if total := facet.Len(); total != len(facet.GetLabels()) {
-		t.Errorf("got %d, expected %d\n", len(facet.GetLabels()), facet.Len())
+	if total := facet.Len(); total != len(facet.Tokens.Tokens) {
+		t.Errorf("got %d, expected %d\n", len(facet.Tokens.Tokens), facet.Len())
 	}
 }
 

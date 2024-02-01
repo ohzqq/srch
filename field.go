@@ -43,7 +43,7 @@ func NewField(attr string) *Field {
 
 func (f *Field) MarshalJSON() ([]byte, error) {
 	tokens := make(map[string]int)
-	for _, label := range f.GetLabels() {
+	for _, label := range f.Tokens.Tokens {
 		token := f.FindByLabel(label)
 		tokens[label] = token.Count()
 	}
@@ -54,8 +54,42 @@ func (f *Field) MarshalJSON() ([]byte, error) {
 	return d, err
 }
 
-func (f *Field) GetTokens() []*txt.Token {
-	return f.Tokens.Tokens()
+func (t *Field) GetTokens() []*txt.Token {
+	var tokens []*txt.Token
+	for _, label := range t.Tokens.Tokens {
+		tok := t.FindByLabel(label)
+		tokens = append(tokens, tok)
+	}
+	return tokens
+}
+
+func (t *Field) FindByIndex(ti ...int) []*txt.Token {
+	var tokens []*txt.Token
+	toks := t.GetTokens()
+	total := t.Count()
+	for _, tok := range ti {
+		if tok < total {
+			tokens = append(tokens, toks[tok])
+		}
+	}
+	return tokens
+}
+
+func (t *Field) Sort() []*txt.Token {
+	tokens := t.GetTokens()
+
+	switch t.SortBy {
+	case SortByAlpha:
+		SortTokensByAlpha(tokens)
+	default:
+		SortTokensByCount(tokens)
+	}
+
+	if t.Order == "desc" {
+		slices.Reverse(tokens)
+	}
+
+	return tokens
 }
 
 func (t *Field) Search(term string) []*txt.Token {
@@ -88,6 +122,15 @@ func (t *Field) Fuzzy(term string) *roaring.Bitmap {
 	return roaring.ParOr(viper.GetInt("workers"), bits...)
 }
 
+func (t *Field) GetValues() []string {
+	sorted := t.GetTokens()
+	tokens := make([]string, len(sorted))
+	for i, t := range sorted {
+		tokens[i] = t.Value
+	}
+	return tokens
+}
+
 // Len returns the number of items, to satisfy the fuzzy.Source interface.
 func (t *Field) Len() int {
 	return t.Count()
@@ -95,7 +138,7 @@ func (t *Field) Len() int {
 
 // String returns an Item.Value, to satisfy the fuzzy.Source interface.
 func (t *Field) String(i int) string {
-	return t.GetLabels()[i]
+	return t.Tokens.Tokens[i]
 }
 
 func parseAttr(field *Field, attr string) {
@@ -118,13 +161,13 @@ func parseAttr(field *Field, attr string) {
 	}
 }
 
-func SortItemsByCount(items []*txt.Token) []*txt.Token {
+func SortTokensByCount(items []*txt.Token) []*txt.Token {
 	slices.SortStableFunc(items, SortByCountFunc)
 	return items
 }
 
-func SortItemsByLabel(items []*txt.Token) []*txt.Token {
-	slices.SortStableFunc(items, SortByLabelFunc)
+func SortTokensByAlpha(items []*txt.Token) []*txt.Token {
+	slices.SortStableFunc(items, SortByAlphaFunc)
 	return items
 }
 
@@ -141,7 +184,7 @@ func SortByCountFunc(a *txt.Token, b *txt.Token) int {
 	}
 }
 
-func SortByLabelFunc(a *txt.Token, b *txt.Token) int {
+func SortByAlphaFunc(a *txt.Token, b *txt.Token) int {
 	switch {
 	case a.Label > b.Label:
 		return 1

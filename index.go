@@ -117,7 +117,6 @@ func (idx *Index) Filter(q string) *Response {
 	}
 
 	idx.res.And(filtered)
-	println(idx.res.GetCardinality())
 	return idx.Response()
 }
 

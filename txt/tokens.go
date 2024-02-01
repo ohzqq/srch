@@ -2,7 +2,7 @@ package txt
 
 type Tokens struct {
 	tokens   map[string]*Token
-	labels   []string
+	Tokens   []string
 	analyzer Analyzer
 }
 
@@ -35,7 +35,7 @@ func (t *Tokens) Add(val any, ids []int) {
 			t.tokens = make(map[string]*Token)
 		}
 		if _, ok := t.tokens[token.Value]; !ok {
-			t.labels = append(t.labels, token.Label)
+			t.Tokens = append(t.Tokens, token.Label)
 			t.tokens[token.Value] = token
 		}
 		t.tokens[token.Value].Add(ids...)
@@ -53,40 +53,6 @@ func (t *Tokens) FindByLabel(label string) *Token {
 		}
 	}
 	return NewToken(label)
-}
-
-func (t *Tokens) FindByIndex(ti ...int) []*Token {
-	var tokens []*Token
-	toks := t.Tokens()
-	total := t.Count()
-	for _, tok := range ti {
-		if tok < total {
-			tokens = append(tokens, toks[tok])
-		}
-	}
-	return tokens
-}
-
-func (t *Tokens) Tokens() []*Token {
-	var tokens []*Token
-	for _, label := range t.labels {
-		tok := t.FindByLabel(label)
-		tokens = append(tokens, tok)
-	}
-	return tokens
-}
-
-func (t *Tokens) GetLabels() []string {
-	return t.labels
-}
-
-func (t *Tokens) GetValues() []string {
-	sorted := t.Tokens()
-	tokens := make([]string, len(sorted))
-	for i, t := range sorted {
-		tokens[i] = t.Value
-	}
-	return tokens
 }
 
 func (t *Tokens) Count() int {
