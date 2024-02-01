@@ -5,6 +5,9 @@ import (
 	"log"
 	"net/url"
 	"os"
+	"slices"
+
+	"github.com/spf13/cast"
 )
 
 type Response struct {
@@ -80,4 +83,21 @@ func (idx *Response) PrettyPrint() {
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+func sortDataByTextField(data []map[string]any, field string) []map[string]any {
+	fn := func(a, b map[string]any) int {
+		x := cast.ToString(a[field])
+		y := cast.ToString(b[field])
+		switch {
+		case x > y:
+			return 1
+		case x == y:
+			return 0
+		default:
+			return -1
+		}
+	}
+	slices.SortFunc(data, fn)
+	return data
 }

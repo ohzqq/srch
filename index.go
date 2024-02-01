@@ -61,9 +61,9 @@ func newIndex() *Index {
 func (idx *Index) Index(src []map[string]any) *Index {
 	idx.Data = src
 
-	//if idx.Params.Values.Has("sort_by") {
-	//  idx.Sort()
-	//}
+	if idx.Has(SortBy) {
+		idx.Sort()
+	}
 
 	for id, d := range idx.Data {
 		for _, attr := range idx.SrchAttr() {
@@ -118,6 +118,15 @@ func (idx *Index) Filter(q string) *Response {
 
 	idx.res.And(filtered)
 	return idx.Response()
+}
+
+func (idx *Index) Sort() {
+	sortDataByTextField(idx.Data, idx.Get(SortBy))
+	if idx.Has(Order) {
+		if idx.Get(Order) == "desc" {
+			slices.Reverse(idx.Data)
+		}
+	}
 }
 
 func (idx *Index) Response() *Response {
@@ -181,15 +190,6 @@ func (idx *Index) FilterID(ids ...int) *Response {
 		idx.res.AddInt(id)
 	}
 	return idx.Response()
-}
-
-func (idx *Index) Sort() {
-	sortDataByField(idx.Data, idx.Get(SortBy))
-	if idx.Has(Order) {
-		if idx.Get(Order) == "desc" {
-			slices.Reverse(idx.Data)
-		}
-	}
 }
 
 func (idx *Index) HasData() bool {
@@ -318,21 +318,4 @@ func exist(path string) bool {
 		return false
 	}
 	return true
-}
-
-func sortDataByField(data []map[string]any, field string) []map[string]any {
-	fn := func(a, b map[string]any) int {
-		x := cast.ToString(a[field])
-		y := cast.ToString(b[field])
-		switch {
-		case x > y:
-			return 1
-		case x == y:
-			return 0
-		default:
-			return -1
-		}
-	}
-	slices.SortFunc(data, fn)
-	return data
 }

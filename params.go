@@ -264,6 +264,13 @@ func (p Params) Query() string {
 	return p.Get(Query)
 }
 
+func (p Params) SortBy() string {
+	if p.Has(SortBy) {
+		return p.Get(SortBy)
+	}
+	return DefaultField
+}
+
 func (p Params) GetAnalyzer() string {
 	if p.IsFullText() {
 		return TextAnalyzer
