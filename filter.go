@@ -27,7 +27,6 @@ func Filter(bits *roaring.Bitmap, fields map[string]*Field, filters []any) (*roa
 					vals, n := strings.CutPrefix(vals, "-")
 					f := field.Filter(vals)
 					if n {
-						//bits.AndNot(field.Filter(vals))
 						not = append(not, f)
 					} else {
 						and = append(and, f)

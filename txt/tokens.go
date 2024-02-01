@@ -1,10 +1,7 @@
 package txt
 
 import (
-	"encoding/json"
-
 	"github.com/RoaringBitmap/roaring"
-	"github.com/sahilm/fuzzy"
 	"github.com/spf13/viper"
 )
 
@@ -46,43 +43,17 @@ func (t *Tokens) Find(val any) []*Token {
 	return tokens
 }
 
-func (t *Tokens) Search(term string) []*Token {
-	//tokens := t.Fuzzy(term)
-	matches := fuzzy.FindFrom(term, t)
-	tokens := make([]*Token, len(matches))
-	all := t.Tokens()
-	for i, match := range matches {
-		tokens[i] = all[match.Index]
-	}
-	return tokens
-}
-
-func (t *Tokens) Fuzzy(term string) *roaring.Bitmap {
-	matches := fuzzy.FindFrom(term, t)
-	all := t.Tokens()
-	bits := make([]*roaring.Bitmap, len(matches))
-	for i, match := range matches {
-		b := all[match.Index].Bitmap()
-		bits[i] = b
-	}
-	return roaring.ParOr(viper.GetInt("workers"), bits...)
-}
-
 func (t *Tokens) Add(val any, ids []int) {
 	for _, token := range t.Tokenize(val) {
-		t.add(token, ids)
+		if t.tokens == nil {
+			t.tokens = make(map[string]*Token)
+		}
+		if _, ok := t.tokens[token.Value]; !ok {
+			t.labels = append(t.labels, token.Label)
+			t.tokens[token.Value] = token
+		}
+		t.tokens[token.Value].Add(ids...)
 	}
-}
-
-func (t *Tokens) add(token *Token, ids []int) {
-	if t.tokens == nil {
-		t.tokens = make(map[string]*Token)
-	}
-	if _, ok := t.tokens[token.Value]; !ok {
-		t.labels = append(t.labels, token.Label)
-		t.tokens[token.Value] = token
-	}
-	t.tokens[token.Value].Add(ids...)
 }
 
 func (t *Tokens) Tokenize(val any) []*Token {
@@ -101,7 +72,7 @@ func (t *Tokens) FindByLabel(label string) *Token {
 func (t *Tokens) FindByIndex(ti ...int) []*Token {
 	var tokens []*Token
 	toks := t.Tokens()
-	total := t.Len()
+	total := t.Count()
 	for _, tok := range ti {
 		if tok < total {
 			tokens = append(tokens, toks[tok])
@@ -132,25 +103,6 @@ func (t *Tokens) GetValues() []string {
 	return tokens
 }
 
-// Len returns the number of items, to satisfy the fuzzy.Source interface.
-func (t *Tokens) Len() int {
+func (t *Tokens) Count() int {
 	return len(t.tokens)
-}
-
-// String returns an Item.Value, to satisfy the fuzzy.Source interface.
-func (t *Tokens) String(i int) string {
-	return t.labels[i]
-}
-
-func (t *Tokens) MarshalJSON() ([]byte, error) {
-	tokens := make(map[string]int)
-	for _, label := range t.labels {
-		token := t.FindByLabel(label)
-		tokens[label] = token.Count()
-	}
-	d, err := json.Marshal(tokens)
-	if err != nil {
-		return nil, err
-	}
-	return d, nil
 }

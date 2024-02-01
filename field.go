@@ -5,7 +5,10 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/RoaringBitmap/roaring"
 	"github.com/ohzqq/srch/txt"
+	"github.com/sahilm/fuzzy"
+	"github.com/spf13/viper"
 )
 
 const (
@@ -39,11 +42,16 @@ func NewField(attr string) *Field {
 }
 
 func (f *Field) MarshalJSON() ([]byte, error) {
-	d, err := json.Marshal(f.Tokens)
+	tokens := make(map[string]int)
+	for _, label := range f.GetLabels() {
+		token := f.FindByLabel(label)
+		tokens[label] = token.Count()
+	}
+	d, err := json.Marshal(tokens)
 	if err != nil {
 		return nil, err
 	}
-	return d, nil
+	return d, err
 }
 
 func (f *Field) GetTokens() []*txt.Token {
@@ -52,6 +60,37 @@ func (f *Field) GetTokens() []*txt.Token {
 
 func (f *Field) Find(kw string) []*txt.Token {
 	return f.Tokens.Find(kw)
+}
+
+func (t *Field) Search(term string) []*txt.Token {
+	matches := fuzzy.FindFrom(term, t)
+	tokens := make([]*txt.Token, len(matches))
+	all := t.GetTokens()
+	for i, match := range matches {
+		tokens[i] = all[match.Index]
+	}
+	return tokens
+}
+
+func (t *Field) Fuzzy(term string) *roaring.Bitmap {
+	matches := fuzzy.FindFrom(term, t)
+	all := t.GetTokens()
+	bits := make([]*roaring.Bitmap, len(matches))
+	for i, match := range matches {
+		b := all[match.Index].Bitmap()
+		bits[i] = b
+	}
+	return roaring.ParOr(viper.GetInt("workers"), bits...)
+}
+
+// Len returns the number of items, to satisfy the fuzzy.Source interface.
+func (t *Field) Len() int {
+	return t.Count()
+}
+
+// String returns an Item.Value, to satisfy the fuzzy.Source interface.
+func (t *Field) String(i int) string {
+	return t.GetLabels()[i]
 }
 
 func parseAttr(field *Field, attr string) {
