@@ -10,6 +10,7 @@ import (
 	"github.com/ohzqq/srch/txt"
 	"github.com/samber/lo"
 	"github.com/spf13/cast"
+	"github.com/spf13/viper"
 )
 
 const (
@@ -247,10 +248,14 @@ func (p *Params) SetPage(i any) {
 }
 
 func (p Params) HitsPerPage() int {
-	pn := p.Search.Get(HitsPerPage)
-	page, err := strconv.Atoi(pn)
-	if err != nil {
-		return 0
+	page := viper.GetInt(HitsPerPage)
+	if p.Has(HitsPerPage) {
+		pn := p.Search.Get(HitsPerPage)
+		page, err := strconv.Atoi(pn)
+		if err != nil {
+			return 25
+		}
+		return page
 	}
 	return page
 }

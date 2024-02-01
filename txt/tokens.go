@@ -142,13 +142,13 @@ func (t *Tokens) String(i int) string {
 	return t.labels[i]
 }
 
-func (f *Token) MarshalJSON() ([]byte, error) {
-	item := map[string]any{
-		"value": f.Value,
-		"label": f.Label,
-		"count": f.Count(),
+func (t *Tokens) MarshalJSON() ([]byte, error) {
+	tokens := make(map[string]int)
+	for _, label := range t.labels {
+		token := t.GetByLabel(label)
+		tokens[label] = token.Count()
 	}
-	d, err := json.Marshal(item)
+	d, err := json.Marshal(tokens)
 	if err != nil {
 		return nil, err
 	}

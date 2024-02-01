@@ -18,6 +18,7 @@ import (
 func init() {
 	log.SetFlags(log.Lshortfile)
 	viper.SetDefault("workers", 1)
+	viper.SetDefault(HitsPerPage, 25)
 }
 
 // Index is a structure for facets and data.
@@ -282,44 +283,6 @@ func (idx *Index) UnmarshalJSON(d []byte) error {
 	}
 
 	return nil
-}
-
-func (idx *Index) StringMap() map[string]any {
-	m := make(map[string]any)
-	m[Query] = idx.Params.Query()
-	m[Page] = idx.Page()
-	m["params"] = idx.Params
-	m[HitsPerPage] = idx.HitsPerPage()
-	m[ParamFacets] = idx.Facets()
-	return m
-}
-
-// JSON marshals an Index to json.
-func (idx *Index) JSON() []byte {
-	d, err := json.Marshal(idx)
-	if err != nil {
-		return []byte{}
-	}
-	return d
-}
-
-// Print writes Index json to stdout.
-func (idx *Index) Print() {
-	enc := json.NewEncoder(os.Stdout)
-	err := enc.Encode(idx)
-	if err != nil {
-		log.Fatal(err)
-	}
-}
-
-// PrettyPrint writes Index indented json to stdout.
-func (idx *Index) PrettyPrint() {
-	enc := json.NewEncoder(os.Stdout)
-	enc.SetIndent("", "  ")
-	err := enc.Encode(idx)
-	if err != nil {
-		log.Fatal(err)
-	}
 }
 
 // String satisfies the fuzzy.Source interface.

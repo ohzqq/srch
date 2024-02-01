@@ -1,6 +1,8 @@
 package txt
 
 import (
+	"encoding/json"
+
 	"github.com/RoaringBitmap/roaring"
 	"github.com/sahilm/fuzzy"
 )
@@ -43,4 +45,15 @@ func (f *Token) Add(ids ...int) {
 			f.bits.AddInt(id)
 		}
 	}
+}
+
+func (f *Token) MarshalJSON() ([]byte, error) {
+	item := map[string]any{
+		f.Label: f.Count(),
+	}
+	d, err := json.Marshal(item)
+	if err != nil {
+		return nil, err
+	}
+	return d, nil
 }

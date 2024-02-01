@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/url"
+	"os"
 )
 
 type Response struct {
@@ -33,8 +34,48 @@ func (r *Response) NbHits() int {
 }
 
 func (r *Response) StringMap() map[string]any {
-	m := r.StringMap()
-	m[NbHits] = r.NbHits()
-	m[Hits] = r.Data
+	m := make(map[string]any)
+	m[Query] = r.Params.Query()
+	m[Page] = r.Page()
+	m["params"] = r.Params
+	m[ParamFacets] = r.Facets()
+	hpp := r.HitsPerPage()
+	nbh := r.NbHits()
+	m[HitsPerPage] = hpp
+	m[NbHits] = nbh
+	m["processingTimeMS"] = 1
+
+	if nbh > 0 {
+		m["nbPages"] = nbh/hpp + 1
+	}
+	//m[Hits] = r.Data
 	return m
+}
+
+// JSON marshals an Index to json.
+func (idx *Response) JSON() []byte {
+	d, err := json.Marshal(idx)
+	if err != nil {
+		return []byte{}
+	}
+	return d
+}
+
+// Print writes Index json to stdout.
+func (idx *Response) Print() {
+	enc := json.NewEncoder(os.Stdout)
+	err := enc.Encode(idx)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+// PrettyPrint writes Index indented json to stdout.
+func (idx *Response) PrettyPrint() {
+	enc := json.NewEncoder(os.Stdout)
+	enc.SetIndent("", "  ")
+	err := enc.Encode(idx)
+	if err != nil {
+		log.Fatal(err)
+	}
 }

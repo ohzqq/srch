@@ -37,14 +37,7 @@ func NewField(attr string) *Field {
 }
 
 func (f *Field) MarshalJSON() ([]byte, error) {
-	field := map[string]any{
-		"attribute": f.Attribute,
-		"sort_by":   f.SortBy,
-		"order":     f.Order,
-		"items":     f.GetTokens(),
-	}
-
-	d, err := json.Marshal(field)
+	d, err := json.Marshal(f.Tokens)
 	if err != nil {
 		return nil, err
 	}
