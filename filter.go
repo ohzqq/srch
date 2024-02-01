@@ -25,11 +25,12 @@ func Filter(bits *roaring.Bitmap, fields map[string]*Field, filters []any) (*roa
 				vals, ok := strings.CutPrefix(vals, name+":")
 				if ok {
 					vals, n := strings.CutPrefix(vals, "-")
+					f := field.Filter(vals)
 					if n {
 						//bits.AndNot(field.Filter(vals))
-						not = append(not, field.Filter(vals))
+						not = append(not, f)
 					} else {
-						and = append(and, field.Filter(vals))
+						and = append(and, f)
 					}
 				}
 			case []any:
@@ -38,11 +39,11 @@ func Filter(bits *roaring.Bitmap, fields map[string]*Field, filters []any) (*roa
 					o, ok := strings.CutPrefix(o, name+":")
 					if ok {
 						o, n := strings.CutPrefix(o, "-")
+						f := field.Filter(o)
 						if n {
-							//bits.AndNot(field.Filter(o))
-							not = append(not, field.Filter(o))
+							not = append(not, f)
 						} else {
-							or = append(or, field.Filter(o))
+							or = append(or, f)
 						}
 					}
 				}
