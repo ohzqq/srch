@@ -164,6 +164,15 @@ func testSearchFilterStrings() []filterStr {
 		},
 	})
 
+	queries = append(queries, filterStr{
+		want: 0,
+		vals: url.Values{
+			FacetFilters: []string{
+				`["tags:abo", "tags:dnr", "tags:horror"]`,
+			},
+		},
+	})
+
 	return queries
 }
 

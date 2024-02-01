@@ -1,10 +1,5 @@
 package txt
 
-import (
-	"github.com/RoaringBitmap/roaring"
-	"github.com/spf13/viper"
-)
-
 type Tokens struct {
 	tokens   map[string]*Token
 	labels   []string
@@ -22,15 +17,6 @@ func NewTokens() *Tokens {
 func (t *Tokens) SetAnalyzer(ana Analyzer) *Tokens {
 	t.analyzer = ana
 	return t
-}
-
-func (t *Tokens) Filter(val string) *roaring.Bitmap {
-	tokens := t.Find(val)
-	bits := make([]*roaring.Bitmap, len(tokens))
-	for i, token := range tokens {
-		bits[i] = token.Bitmap()
-	}
-	return roaring.ParAnd(viper.GetInt("workers"), bits...)
 }
 
 func (t *Tokens) Find(val any) []*Token {

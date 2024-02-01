@@ -58,10 +58,6 @@ func (f *Field) GetTokens() []*txt.Token {
 	return f.Tokens.Tokens()
 }
 
-func (f *Field) Find(kw string) []*txt.Token {
-	return f.Tokens.Find(kw)
-}
-
 func (t *Field) Search(term string) []*txt.Token {
 	matches := fuzzy.FindFrom(term, t)
 	tokens := make([]*txt.Token, len(matches))
@@ -70,6 +66,15 @@ func (t *Field) Search(term string) []*txt.Token {
 		tokens[i] = all[match.Index]
 	}
 	return tokens
+}
+
+func (t *Field) Filter(val string) *roaring.Bitmap {
+	tokens := t.Find(val)
+	bits := make([]*roaring.Bitmap, len(tokens))
+	for i, token := range tokens {
+		bits[i] = token.Bitmap()
+	}
+	return roaring.ParAnd(viper.GetInt("workers"), bits...)
 }
 
 func (t *Field) Fuzzy(term string) *roaring.Bitmap {

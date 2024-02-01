@@ -10,10 +10,6 @@ import (
 	"github.com/spf13/viper"
 )
 
-const (
-	TBool = 1
-)
-
 func Filter(bits *roaring.Bitmap, fields map[string]*Field, filters []any) (*roaring.Bitmap, error) {
 	var and []*roaring.Bitmap
 	var or []*roaring.Bitmap

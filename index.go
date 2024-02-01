@@ -117,6 +117,7 @@ func (idx *Index) Filter(q string) *Response {
 	}
 
 	idx.res.And(filtered)
+	println(idx.res.GetCardinality())
 	return idx.Response()
 }
 
@@ -170,7 +171,7 @@ func (idx Index) GetResults() []map[string]any {
 		})
 		return res
 	}
-	return idx.Data
+	return []map[string]any{}
 }
 
 func (idx *Index) FilterID(ids ...int) *Response {
