@@ -112,8 +112,8 @@ func (c *App) SetFilters(field string, vals []string) {
 	c.updateVisible(c.idx.Filter(""))
 }
 
-func (c *App) SetSelections(idx *srch.Index) {
-	c.Selections = idx.Response()
+func (c *App) SetSelections(idx *srch.Response) {
+	c.Selections = idx
 }
 
 func (c *App) ClearFilters() {

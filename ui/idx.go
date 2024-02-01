@@ -6,7 +6,6 @@ import (
 	"github.com/ohzqq/bubbles/key"
 	"github.com/ohzqq/bubbles/list"
 	"github.com/ohzqq/srch"
-	"github.com/samber/lo"
 )
 
 type Idx struct {
@@ -21,7 +20,7 @@ type Idx struct {
 
 type IdxProps struct {
 	ClearFilters  func()
-	SetSelections func(*srch.Index)
+	SetSelections func(*srch.Response)
 }
 
 func NewIdx(idx *srch.Response) *Idx {
@@ -83,16 +82,16 @@ func (m *Idx) Update(msg tea.Msg) tea.Cmd {
 				sel := m.Model.ToggledItems()
 
 				if len(sel) < 1 {
-					m.Props().SetSelections(m.Index)
+					m.Props().SetSelections(m.Index.Response())
 					return reactea.Destroy
 				}
 
-				res := srch.FilteredItems(
-					m.Data,
-					lo.ToAnySlice(sel),
-				)
-
-				m.Props().SetSelections(m.Index.Index(res))
+				res := m.Index.FilterID(sel...)
+				//idx, err := srch.New(m.Index.Params.Values())
+				//if err != nil {
+				//idx = m.Index
+				//}
+				m.Props().SetSelections(res)
 				return reactea.Destroy
 			}
 		}

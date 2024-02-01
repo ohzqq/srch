@@ -173,6 +173,16 @@ func (idx Index) GetResults() []map[string]any {
 	return idx.Data
 }
 
+func (idx *Index) FilterID(ids ...int) *Response {
+	if !idx.HasResults() {
+		idx.res = roaring.New()
+	}
+	for _, id := range ids {
+		idx.res.AddInt(id)
+	}
+	return idx.Response()
+}
+
 func (idx *Index) Sort() {
 	sortDataByField(idx.Data, idx.Get(SortBy))
 	if idx.Has(Order) {
