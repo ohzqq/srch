@@ -76,8 +76,8 @@ By default, results are printed to stdout as json.
 		if p, err := cmd.Flags().GetBool("pretty"); err == nil && p {
 			idx.PrettyPrint()
 		} else {
-			println(res.NbHits())
-			//idx.Print()
+			//println(res.NbHits())
+			idx.Print()
 			//d, err := json.Marshal(res)
 			//if err != nil {
 			//log.Fatal(err)
