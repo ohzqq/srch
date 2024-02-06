@@ -42,20 +42,21 @@ func (r *Response) StringMap() map[string]any {
 		"processingTimeMS": 1,
 		"params":           r.Params,
 		Query:              r.Params.Query(),
-		Page:               r.Page(),
 		ParamFacets:        r.Facets(),
 	}
 
+	page := r.Page()
 	hpp := r.HitsPerPage()
 	nbh := r.NbHits()
 	m[HitsPerPage] = hpp
 	m[NbHits] = nbh
+	m[Page] = page
 
 	if nbh > 0 {
 		m["nbPages"] = nbh/hpp + 1
 	}
 
-	m.Hits = r.VisibleHits(m.Page, nbh, hpp)
+	m[Hits] = r.VisibleHits(page, nbh, hpp)
 
 	return m
 }
@@ -65,7 +66,8 @@ func (r *Response) VisibleHits(page, nbh, hpp int) []map[string]any {
 		return r.Data
 	}
 	b := hpp * page
-	return lo.Slice(r.Data, b, b+1)
+	e := b + hpp
+	return lo.Slice(r.Data, b, e)
 }
 
 // JSON marshals an Index to json.

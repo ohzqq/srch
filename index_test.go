@@ -74,7 +74,15 @@ func totalBooksTest(total int, t *testing.T) {
 }
 
 func newTestIdx() *Index {
-	idx, err := New(libCfgStr)
+	//idx, err := New(libCfgStr)
+	//if err != nil {
+	//log.Fatal(err)
+	//}
+	return newTestIdxCfg("")
+}
+
+func newTestIdxCfg(p string) *Index {
+	idx, err := New(libCfgStr + p)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -85,9 +93,16 @@ func TestSortIndexByTitle(t *testing.T) {
 	title := libCfgStr + "&sortBy=title"
 	idx, err := New(title)
 	if err != nil {
-		log.Fatal(err)
+		t.Error(err)
 	}
-	fmt.Printf("%+v\n", idx.Data[0])
+	title, ok := idx.Data[0][DefaultField].(string)
+	if !ok {
+		t.Errorf("not a string")
+	}
+	if title != "#Blur" {
+		t.Errorf("sorting err, got %s, expected %s\n", title, "#Blur")
+	}
+	//fmt.Printf("%+v\n", idx.Data[0])
 }
 
 func TestSortIndexByDate(t *testing.T) {
@@ -96,7 +111,13 @@ func TestSortIndexByDate(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Printf("%+v\n", idx.Data[0])
+	title, ok := idx.Data[0][DefaultField].(string)
+	if !ok {
+		t.Errorf("not a string")
+	}
+	if title != "Risk the Fall" {
+		t.Errorf("sorting err, got %s, expected %s\n", title, "Risk the Fall")
+	}
 }
 
 func totalBooksErr(total int, vals ...any) error {
