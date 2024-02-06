@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestResponseParams(t *testing.T) {
+func TestResponsePagination(t *testing.T) {
 	idx := newTestIdx()
 	res := idx.Search("page=0&query")
 	m := res.StringMap()
