@@ -7,6 +7,7 @@ import (
 	"os"
 	"slices"
 
+	"github.com/samber/lo"
 	"github.com/spf13/cast"
 )
 
@@ -43,7 +44,6 @@ func (r *Response) StringMap() map[string]any {
 		Query:              r.Params.Query(),
 		Page:               r.Page(),
 		ParamFacets:        r.Facets(),
-		Hits:               r.Data,
 	}
 
 	hpp := r.HitsPerPage()
@@ -54,7 +54,18 @@ func (r *Response) StringMap() map[string]any {
 	if nbh > 0 {
 		m["nbPages"] = nbh/hpp + 1
 	}
+
+	m.Hits = r.VisibleHits(m.Page, nbh, hpp)
+
 	return m
+}
+
+func (r *Response) VisibleHits(page, nbh, hpp int) []map[string]any {
+	if nbh < hpp {
+		return r.Data
+	}
+	b := hpp * page
+	return lo.Slice(r.Data, b, b+1)
 }
 
 // JSON marshals an Index to json.
