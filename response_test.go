@@ -6,7 +6,7 @@ import (
 
 func TestResponsePagination(t *testing.T) {
 	idx := newTestIdx()
-	res := idx.Search("page=0&query")
+	res := idx.Search("page=0")
 	m := res.StringMap()
 	hits, ok := m[Hits].([]map[string]any)
 	if !ok {
@@ -25,7 +25,7 @@ func TestResponsePagination(t *testing.T) {
 		t.Errorf("sorting err, got %s, expected %s\n", title, tw)
 	}
 
-	res = idx.Search("page=1&query")
+	res = idx.Search("page=1")
 	m = res.StringMap()
 	hits, ok = m[Hits].([]map[string]any)
 	if !ok {

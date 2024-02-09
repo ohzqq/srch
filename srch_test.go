@@ -12,7 +12,7 @@ import (
 
 func testSearchQueryStrings() map[string]int {
 	queries := map[string]int{
-		"": 7174,
+		"": numBooks,
 	}
 	v := make(url.Values)
 
@@ -20,7 +20,7 @@ func testSearchQueryStrings() map[string]int {
 	queries[v.Encode()] = 303
 
 	v.Set(Query, "")
-	queries[v.Encode()] = 7174
+	queries[v.Encode()] = numBooks
 
 	return queries
 }
@@ -36,7 +36,7 @@ func TestFuzzySearch(t *testing.T) {
 }
 
 func srchTest(idx *Index, want int) error {
-	err := searchErr(idx, 7174, "")
+	err := searchErr(idx, numBooks, "")
 	if err != nil {
 		return err
 	}

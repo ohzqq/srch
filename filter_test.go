@@ -93,7 +93,7 @@ func testSearchFilterStrings() []filterStr {
 	})
 
 	queries = append(queries, filterStr{
-		want: 801,
+		want: 806,
 		vals: url.Values{
 			FacetFilters: []string{
 				`["authors:amy lane", ["tags:romance"]]`,
@@ -102,7 +102,7 @@ func testSearchFilterStrings() []filterStr {
 	})
 
 	queries = append(queries, filterStr{
-		want: 784,
+		want: 789,
 		vals: url.Values{
 			FacetFilters: []string{
 				`["authors:amy lane", ["tags:romance", "tags:-dnr"]]`,
@@ -120,7 +120,7 @@ func testSearchFilterStrings() []filterStr {
 	})
 
 	queries = append(queries, filterStr{
-		want: 1853,
+		want: 1856,
 		vals: url.Values{
 			FacetFilters: []string{
 				`["tags:dnr", "tags:-abo"]`,
@@ -129,7 +129,7 @@ func testSearchFilterStrings() []filterStr {
 	})
 
 	queries = append(queries, filterStr{
-		want: 1853,
+		want: 1856,
 		vals: url.Values{
 			FacetFilters: []string{
 				`["tags:-abo", "tags:dnr"]`,
@@ -138,7 +138,7 @@ func testSearchFilterStrings() []filterStr {
 	})
 
 	queries = append(queries, filterStr{
-		want: 2270,
+		want: 2273,
 		vals: url.Values{
 			FacetFilters: []string{
 				`[["tags:dnr", "tags:abo"]]`,
@@ -147,7 +147,7 @@ func testSearchFilterStrings() []filterStr {
 	})
 
 	queries = append(queries, filterStr{
-		want: 2237,
+		want: 2240,
 		vals: url.Values{
 			FacetFilters: []string{
 				`[["tags:dnr", "tags:-abo"]]`,
@@ -156,7 +156,7 @@ func testSearchFilterStrings() []filterStr {
 	})
 
 	queries = append(queries, filterStr{
-		want: 2237,
+		want: 2240,
 		vals: url.Values{
 			FacetFilters: []string{
 				`[["tags:-abo", "tags:dnr"]]`,

@@ -12,7 +12,7 @@ var idx = &Index{}
 
 var books []map[string]any
 
-const numBooks = 7174
+const numBooks = 7253
 
 const testDataFile = `testdata/data-dir/audiobooks.json`
 const testDataDir = `testdata/data-dir`
@@ -68,8 +68,8 @@ func intErr(got, want int, msg ...any) error {
 }
 
 func totalBooksTest(total int, t *testing.T) {
-	if total != 7174 {
-		t.Errorf("got %d, expected %d\n", total, 7174)
+	if total != numBooks {
+		t.Errorf("got %d, expected %d\n", total, numBooks)
 	}
 }
 
@@ -115,14 +115,15 @@ func TestSortIndexByDate(t *testing.T) {
 	if !ok {
 		t.Errorf("not a string")
 	}
-	if title != "Risk the Fall" {
-		t.Errorf("sorting err, got %s, expected %s\n", title, "Risk the Fall")
+	first := "Bonds of Blood"
+	if title != first {
+		t.Errorf("sorting err, got %s, expected %s\n", title, first)
 	}
 }
 
 func totalBooksErr(total int, vals ...any) error {
-	if total != 7174 {
-		err := fmt.Errorf("got %d, expected %d\n", total, 7174)
+	if total != numBooks {
+		err := fmt.Errorf("got %d, expected %d\n", total, numBooks)
 		return fmt.Errorf("%w\nmsg: %v", err, vals)
 	}
 	return nil
