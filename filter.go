@@ -11,9 +11,12 @@ import (
 )
 
 func Filter(bits *roaring.Bitmap, fields map[string]*Field, filters []any) (*roaring.Bitmap, error) {
-	var and []*roaring.Bitmap
-	var or []*roaring.Bitmap
-	var not []*roaring.Bitmap
+	var (
+		and []*roaring.Bitmap
+		or  []*roaring.Bitmap
+		not []*roaring.Bitmap
+	)
+
 	for name, field := range fields {
 		for _, fs := range filters {
 			switch vals := fs.(type) {

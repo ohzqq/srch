@@ -333,6 +333,45 @@ func (p *Params) Decode(str string) error {
 	return nil
 }
 
+func parseSearchParamsJSON(sp any) url.Values {
+	q := make(url.Values)
+
+	var fs []byte
+	switch val := sp.(type) {
+	case string:
+		fs = []byte(val)
+	case []byte:
+		fs = val
+	}
+
+	raw := make(map[string]any)
+	err := json.Unmarshal(fs, &raw)
+	if err != nil {
+		return q
+	}
+
+	for key, param := range raw {
+		switch val := param.(type) {
+		case []any:
+			for _, v := range val {
+				q.Add(key, cast.ToString(v))
+			}
+		case float64:
+			q.Set(key, cast.ToString(val))
+		case bool:
+			q.Set(key, "")
+		case string:
+			q.Set(key, val)
+		}
+	}
+
+	return q
+}
+
+func ParseSearchParamsJSON(sp any) string {
+	return parseSearchParamsJSON(sp).Encode()
+}
+
 func ParseQuery(queries ...any) url.Values {
 	q := make(url.Values)
 	for _, query := range queries {
@@ -340,6 +379,7 @@ func ParseQuery(queries ...any) url.Values {
 		if err != nil {
 			continue
 		}
+		println(vals.Get("page"))
 		for k, val := range vals {
 			for _, v := range val {
 				q.Add(k, v)
@@ -400,6 +440,7 @@ func ParseQueryString(val string) (url.Values, error) {
 
 // ParseQueryBytes parses a byte slice to url.Values.
 func ParseQueryBytes(val []byte) (url.Values, error) {
+	println(string(val))
 	filters, err := cast.ToStringMapStringSliceE(string(val))
 	if err != nil {
 		return nil, err

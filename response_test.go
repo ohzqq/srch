@@ -6,16 +6,23 @@ import (
 
 func TestResponsePagination(t *testing.T) {
 	idx := newTestIdx()
-	res := idx.Search("page=0")
+	//params := ParseSearchParamsJSON(`{"facets":["authors","narrators","series","tags"],"maxValuesPerFacet":200,"page":0,"query":"","tagFilters":""}`)
+	res := idx.Post(`{"facets":["authors","narrators","series","tags"],"maxValuesPerFacet":200,"page":0,"query":"","tagFilters":""}`)
 	m := res.StringMap()
 	hits, ok := m[Hits].([]map[string]any)
 	if !ok {
 		t.Error("wrong")
 	}
+
 	hpp := res.HitsPerPage()
 	if len(hits) != hpp {
 		t.Errorf("got %d, expected %d\n", len(hits), hpp)
 	}
+
+	if res.Page() != 0 {
+		t.Errorf("got %d, expected %d\n", res.Page(), 0)
+	}
+
 	title, ok := hits[0][DefaultField].(string)
 	if !ok {
 		t.Errorf("not a string")
@@ -25,7 +32,8 @@ func TestResponsePagination(t *testing.T) {
 		t.Errorf("sorting err, got %s, expected %s\n", title, tw)
 	}
 
-	res = idx.Search("page=1")
+	params := ParseSearchParamsJSON(`{"facets":["authors","narrators","series","tags"],"maxValuesPerFacet":200,"page":1,"query":"","tagFilters":""}`)
+	res = idx.Search(params)
 	m = res.StringMap()
 	hits, ok = m[Hits].([]map[string]any)
 	if !ok {
@@ -35,6 +43,11 @@ func TestResponsePagination(t *testing.T) {
 	if len(hits) != hpp {
 		t.Errorf("got %d, expected %d\n", len(hits), hpp)
 	}
+
+	if res.Page() != 1 {
+		t.Errorf("got %d, expected %d\n", res.Page(), 1)
+	}
+
 	title, ok = hits[0][DefaultField].(string)
 	if !ok {
 		t.Errorf("not a string")

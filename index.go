@@ -82,6 +82,15 @@ func (idx *Index) Index(src []map[string]any) *Index {
 	return idx
 }
 
+func (idx *Index) Get(params string) *Response {
+	return idx.Search(params)
+}
+
+func (idx *Index) Post(params any) *Response {
+	p := ParseSearchParamsJSON(params)
+	return idx.Search(p)
+}
+
 func (idx *Index) Search(params string) *Response {
 	idx.res = idx.Bitmap()
 	idx.SetSearch(params)
@@ -109,7 +118,7 @@ func (idx *Index) Filter(q string) *Response {
 	}
 
 	if q != "" {
-		idx.Set(FacetFilters, q)
+		idx.Params.Set(FacetFilters, q)
 	}
 
 	filtered, err := Filter(idx.res, idx.facets, idx.Filters())
@@ -122,7 +131,7 @@ func (idx *Index) Filter(q string) *Response {
 }
 
 func (idx *Index) Sort() {
-	sort := idx.Get(SortBy)
+	sort := idx.Params.Get(SortBy)
 	var sortType string
 	for _, sb := range idx.SortAttr() {
 		if t, found := strings.CutPrefix(sb, sort+":"); found {
@@ -135,8 +144,8 @@ func (idx *Index) Sort() {
 	case "num":
 		sortDataByNumField(idx.Data, sort)
 	}
-	if idx.Has(Order) {
-		if idx.Get(Order) == "desc" {
+	if idx.Params.Has(Order) {
+		if idx.Params.Get(Order) == "desc" {
 			slices.Reverse(idx.Data)
 		}
 	}
@@ -206,8 +215,8 @@ func (idx *Index) FilterID(ids ...int) *Response {
 }
 
 func (idx *Index) HasData() bool {
-	return idx.Has(DataFile) ||
-		idx.Has(DataDir)
+	return idx.Params.Has(DataFile) ||
+		idx.Params.Has(DataDir)
 }
 
 func (idx *Index) GetData() error {
@@ -217,11 +226,11 @@ func (idx *Index) GetData() error {
 	var data []map[string]any
 	var err error
 	switch {
-	case idx.Has(DataFile):
+	case idx.Params.Has(DataFile):
 		data, err = FileSrc(idx.GetSlice(DataFile)...)
 		idx.Settings.Del(DataFile)
 	case idx.Has(DataDir):
-		data, err = DirSrc(idx.Get(DataDir))
+		data, err = DirSrc(idx.Params.Get(DataDir))
 		idx.Settings.Del(DataDir)
 	}
 	if err != nil {
