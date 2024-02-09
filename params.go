@@ -2,6 +2,7 @@ package srch
 
 import (
 	"encoding/json"
+	"log"
 	"net/url"
 	"slices"
 	"strconv"
@@ -347,12 +348,21 @@ func parseSearchParamsJSON(sp any) url.Values {
 	raw := make(map[string]any)
 	err := json.Unmarshal(fs, &raw)
 	if err != nil {
+		log.Fatal(err)
 		return q
 	}
 
 	for key, param := range raw {
 		switch val := param.(type) {
 		case []any:
+			if key == FacetFilters {
+				d, err := json.Marshal(val)
+				if err != nil {
+					break
+				}
+				q.Set(FacetFilters, string(d))
+				break
+			}
 			for _, v := range val {
 				q.Add(key, cast.ToString(v))
 			}
@@ -379,7 +389,6 @@ func ParseQuery(queries ...any) url.Values {
 		if err != nil {
 			continue
 		}
-		println(vals.Get("page"))
 		for k, val := range vals {
 			for _, v := range val {
 				q.Add(k, v)
@@ -440,7 +449,6 @@ func ParseQueryString(val string) (url.Values, error) {
 
 // ParseQueryBytes parses a byte slice to url.Values.
 func ParseQueryBytes(val []byte) (url.Values, error) {
-	println(string(val))
 	filters, err := cast.ToStringMapStringSliceE(string(val))
 	if err != nil {
 		return nil, err

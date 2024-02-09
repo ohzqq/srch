@@ -27,6 +27,29 @@ func TestMarshalFilter(t *testing.T) {
 	}
 }
 
+func TestJSONFilter(t *testing.T) {
+	idx := newTestIdx()
+	tf := `["authors:amy lane",["tags:romance"]]`
+
+	jq := `{"facetFilters":["authors:amy lane", ["tags:romance"]],"facets":["authors","narrators","series","tags"],"maxValuesPerFacet":200,"page":0,"query":""}`
+
+	parsed := parseSearchParamsJSON(jq)
+	//println(parsed.Get(FacetFilters))
+
+	err := searchErr(idx, 806, parsed.Encode())
+	if err != nil {
+		t.Error(err)
+	}
+
+	vals := url.Values{
+		FacetFilters: []string{tf},
+	}
+	err = searchErr(idx, 806, vals.Encode())
+	if err != nil {
+		t.Error(err)
+	}
+}
+
 func TestSearchAndFilter(t *testing.T) {
 	idx := newTestIdx()
 

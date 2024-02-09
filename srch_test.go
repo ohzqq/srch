@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/url"
+	"slices"
 	"testing"
 
 	"github.com/mitchellh/mapstructure"
@@ -54,10 +55,25 @@ func searchErr(idx *Index, want int, q string) error {
 	if err != nil {
 		return err
 	}
-	op := idx.Params.String()
-	rp := res.Params.String()
+	op, err := url.QueryUnescape(idx.Params.String())
+	if err != nil {
+		return err
+	}
+	rp, err := url.QueryUnescape(res.Params.String())
+	if err != nil {
+		return err
+	}
 	if op != rp {
-		return fmt.Errorf("idx params %s\nres params%s\n", op, rp)
+		for key, val := range res.Params.Search {
+			has := idx.Params.Has(key)
+			if !has {
+				return fmt.Errorf("doesn't have key %v\n", has)
+			}
+			o := idx.Params.Search[key]
+			if !slices.Equal(val, o) {
+				return fmt.Errorf("idx params: %s\nres params: %s\n", op, rp)
+			}
+		}
 	}
 	return nil
 }

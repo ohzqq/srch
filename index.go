@@ -118,6 +118,7 @@ func (idx *Index) Filter(q string) *Response {
 	}
 
 	if q != "" {
+		println(q)
 		idx.Params.Set(FacetFilters, q)
 	}
 

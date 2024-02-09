@@ -1,8 +1,28 @@
 package srch
 
 import (
+	"net/url"
 	"testing"
 )
+
+func TestParseFilterJSON(t *testing.T) {
+	tf := `["authors:amy lane",["tags:romance"]]`
+	jq := `{"facetFilters":["authors:amy lane", ["tags:romance"]],"facets":["authors","narrators","series","tags"],"maxValuesPerFacet":200,"page":0,"query":""}`
+	parsed := parseSearchParamsJSON(jq)
+
+	parsedFilter := parsed.Get(FacetFilters)
+	if tf != parsedFilter {
+		t.Errorf("parsed %s, og %s\n", parsedFilter, tf)
+	}
+
+	esc, err := url.QueryUnescape(parsedFilter)
+	if err != nil {
+		t.Error(err)
+	}
+	if tf != esc {
+		t.Errorf("parsed %s, og %s\n", esc, tf)
+	}
+}
 
 func TestResponsePagination(t *testing.T) {
 	idx := newTestIdx()
