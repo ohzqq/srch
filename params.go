@@ -142,7 +142,7 @@ func (p Params) Has(key string) bool {
 
 func (p *Params) SetSearch(params string) *Params {
 	q := ParseQuery(params)
-	p.Search = lo.Assign(p.Search, q)
+	p.Search = q
 	return p
 }
 

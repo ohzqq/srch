@@ -31,11 +31,24 @@ func TestJSONPostFilter(t *testing.T) {
 	idx := newTestIdx()
 	with := `{"facetFilters":["authors:Andrew Grey"],"facets":["authors","narrators","series","tags"],"maxValuesPerFacet":200,"page":0,"query":"","tagFilters":""}`
 	without := `{"facets":["authors","narrators","series","tags"],"maxValuesPerFacet":200,"page":0,"query":"","tagFilters":""}`
-	res := idx.Post(without)
-	res.Print()
+	res1 := idx.Post(without)
+	//res.Print()
+	if res1.NbHits() != numBooks {
+		t.Error("wrong hits")
+	}
 
-	res = res.Post(with)
-	res.Print()
+	res2 := idx.Post(with)
+	if res2.NbHits() != 99 {
+		res2.Print()
+		t.Error("wrong hits")
+	}
+
+	res3 := idx.Post(without)
+	if res3.NbHits() != numBooks {
+		//res3.Print()
+		fmt.Printf("%+v\n", res3.Filters())
+		t.Errorf("wrong hits: got %d, expected %d\n", res3.NbHits(), numBooks)
+	}
 }
 
 func TestJSONFilter(t *testing.T) {

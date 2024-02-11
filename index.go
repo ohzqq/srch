@@ -94,6 +94,7 @@ func (idx *Index) Post(params any) *Response {
 func (idx *Index) Search(params string) *Response {
 	idx.res = idx.Bitmap()
 	idx.SetSearch(params)
+	fmt.Printf("params %+v\n", idx.Params)
 
 	query := idx.Query()
 	if query != "" {
@@ -105,7 +106,7 @@ func (idx *Index) Search(params string) *Response {
 		}
 	}
 
-	if idx.Params.Has(FacetFilters) {
+	if idx.HasFilters() {
 		return idx.Filter(idx.Params.Get(FacetFilters))
 	} else {
 		idx.Params.Search.Del(FacetFilters)
