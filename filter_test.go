@@ -29,14 +29,14 @@ func TestMarshalFilter(t *testing.T) {
 
 func TestJSONFilter(t *testing.T) {
 	idx := newTestIdx()
-	tf := `["authors:amy lane",["tags:romance"]]`
+	tf := `["authors:Andrew Grey"]`
 
-	jq := `{"facetFilters":["authors:amy lane", ["tags:romance"]],"facets":["authors","narrators","series","tags"],"maxValuesPerFacet":200,"page":0,"query":""}`
+	jq := `{"facetFilters":["authors:Andrew Grey"],"facets":["authors","narrators","series","tags"],"maxValuesPerFacet":200,"page":0,"query":"","tagFilters":""}`
 
 	parsed := parseSearchParamsJSON(jq)
 	//println(parsed.Get(FacetFilters))
 
-	err := searchErr(idx, 806, parsed.Encode())
+	err := searchErr(idx, 99, parsed.Encode())
 	if err != nil {
 		t.Error(err)
 	}
@@ -44,7 +44,7 @@ func TestJSONFilter(t *testing.T) {
 	vals := url.Values{
 		FacetFilters: []string{tf},
 	}
-	err = searchErr(idx, 806, vals.Encode())
+	err = searchErr(idx, 99, vals.Encode())
 	if err != nil {
 		t.Error(err)
 	}
