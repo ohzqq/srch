@@ -105,8 +105,11 @@ func (idx *Index) Search(params string) *Response {
 		}
 	}
 
-	if idx.Has(FacetFilters) {
-		return idx.Filter("")
+	if idx.Params.Has(FacetFilters) {
+		return idx.Filter(idx.Params.Get(FacetFilters))
+	} else {
+		idx.Params.Search.Del(FacetFilters)
+		//idx.Params.Set(FacetFilters, "")
 	}
 
 	return idx.Response()
@@ -115,11 +118,6 @@ func (idx *Index) Search(params string) *Response {
 func (idx *Index) Filter(q string) *Response {
 	if !idx.HasResults() {
 		idx.res = idx.Bitmap()
-	}
-
-	if q != "" {
-		println(q)
-		idx.Params.Set(FacetFilters, q)
 	}
 
 	filtered, err := Filter(idx.res, idx.facets, idx.Filters())

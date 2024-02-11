@@ -27,16 +27,27 @@ func TestMarshalFilter(t *testing.T) {
 	}
 }
 
+func TestJSONPostFilter(t *testing.T) {
+	idx := newTestIdx()
+	with := `{"facetFilters":["authors:Andrew Grey"],"facets":["authors","narrators","series","tags"],"maxValuesPerFacet":200,"page":0,"query":"","tagFilters":""}`
+	without := `{"facets":["authors","narrators","series","tags"],"maxValuesPerFacet":200,"page":0,"query":"","tagFilters":""}`
+	res := idx.Post(without)
+	res.Print()
+
+	res = res.Post(with)
+	res.Print()
+}
+
 func TestJSONFilter(t *testing.T) {
 	idx := newTestIdx()
 	tf := `["authors:Andrew Grey"]`
 
 	jq := `{"facetFilters":["authors:Andrew Grey"],"facets":["authors","narrators","series","tags"],"maxValuesPerFacet":200,"page":0,"query":"","tagFilters":""}`
 
-	parsed := parseSearchParamsJSON(jq)
+	parsed := ParseSearchParamsJSON(jq)
 	//println(parsed.Get(FacetFilters))
 
-	err := searchErr(idx, 99, parsed.Encode())
+	err := searchErr(idx, 99, parsed)
 	if err != nil {
 		t.Error(err)
 	}
