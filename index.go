@@ -72,11 +72,12 @@ func (idx *Index) Index(src []map[string]any) *Index {
 				idx.fields[attr].Add(val, []int{id})
 			}
 		}
-		for _, attr := range idx.FacetAttr() {
-			if val, ok := d[attr]; ok {
-				idx.facets[attr].Add(val, []int{id})
-			}
-		}
+		//for _, attr := range idx.FacetAttr() {
+		//  if val, ok := d[attr]; ok {
+		//    idx.facets[attr].Add(val, []int{id})
+		//  }
+		//}
+
 	}
 
 	return idx
@@ -94,7 +95,7 @@ func (idx *Index) Post(params any) *Response {
 func (idx *Index) Search(params string) *Response {
 	idx.res = idx.Bitmap()
 	idx.SetSearch(params)
-	fmt.Printf("params %+v\n", idx.Params)
+	//fmt.Printf("params %+v\n", idx.Params)
 
 	query := idx.Query()
 	if query != "" {
@@ -106,14 +107,22 @@ func (idx *Index) Search(params string) *Response {
 		}
 	}
 
-	if idx.HasFilters() {
-		return idx.Filter(idx.Params.Get(FacetFilters))
-	} else {
-		idx.Params.Search.Del(FacetFilters)
-		//idx.Params.Set(FacetFilters, "")
+	res := idx.Response()
+
+	if !idx.HasFilters() {
+		return res
 	}
 
-	return idx.Response()
+	//if idx.HasFilters() {
+	//  return idx.Filter(idx.Params.Get(FacetFilters))
+	//} else {
+	//  idx.Params.Search.Del(FacetFilters)
+	//  //idx.Params.Set(FacetFilters, "")
+	//}
+
+	filters := idx.Params.Get(FacetFilters)
+
+	return res.Filter(filters)
 }
 
 func (idx *Index) Filter(q string) *Response {

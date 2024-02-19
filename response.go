@@ -13,6 +13,7 @@ import (
 
 type Response struct {
 	*Index
+	facets map[string]*Field
 }
 
 func NewResponse(data []map[string]any, vals url.Values) *Response {
@@ -20,10 +21,39 @@ func NewResponse(data []map[string]any, vals url.Values) *Response {
 	if err != nil {
 		log.Fatal(err)
 	}
-	idx.Index(data)
-	return &Response{
-		Index: idx,
+	idx.Data = data
+	idx.res = idx.Bitmap()
+	//idx.Index(data)
+	r := &Response{
+		Index:  idx,
+		facets: idx.Params.Facets(),
 	}
+
+	r.calculateFacets()
+
+	return r
+}
+
+func (idx *Response) calculateFacets() {
+	for id, d := range idx.Data {
+		for _, attr := range idx.FacetAttr() {
+			if val, ok := d[attr]; ok {
+				idx.facets[attr].Add(val, []int{id})
+			}
+		}
+	}
+}
+
+func (idx *Response) Filter(q string) *Response {
+	filters := idx.Filters()
+
+	filtered, err := Filter(idx.res, idx.facets, filters)
+	if err != nil {
+		return idx
+	}
+
+	idx.res.And(filtered)
+	return idx.Response()
 }
 
 func (r *Response) MarshalJSON() ([]byte, error) {
