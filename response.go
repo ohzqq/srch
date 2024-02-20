@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"net/url"
 	"os"
 	"slices"
 
@@ -17,14 +16,14 @@ type Response struct {
 	facets map[string]*Field
 }
 
-func NewResponse(data []map[string]any, vals url.Values) *Response {
+func NewResponse(data []map[string]any, vals any) *Response {
 	idx, err := New(vals)
 	if err != nil {
 		log.Fatal(err)
 	}
 	idx.Data = data
 	idx.res = idx.Bitmap()
-	//idx.Index(data)
+
 	r := &Response{
 		Index:  idx,
 		facets: idx.Params.Facets(),
@@ -46,8 +45,6 @@ func (idx *Response) calculateFacets() {
 }
 
 func (idx *Response) Filter(q string) *Response {
-	//println(q)
-	//filters := idx.Filters()
 	filters, err := unmarshalFilter(q)
 	if err != nil {
 		return idx
@@ -74,7 +71,13 @@ func (r *Response) NbHits() int {
 	return int(r.Index.Bitmap().GetCardinality())
 }
 
+func (idx *Response) Response() *Response {
+	res := NewResponse(idx.GetResults(), idx.GetParams())
+	return res
+}
+
 func (r *Response) StringMap() map[string]any {
+
 	m := map[string]any{
 		"processingTimeMS": 1,
 		"params":           r.Params,
@@ -96,6 +99,28 @@ func (r *Response) StringMap() map[string]any {
 	m[Hits] = r.VisibleHits(page, nbh, hpp)
 
 	return m
+}
+
+func (idx *Response) GetFacet(attr string) *Field {
+	if f, ok := idx.facets[attr]; ok {
+		return f
+	}
+	return &Field{Attribute: attr}
+}
+
+// HasFacets returns true if facets are configured.
+func (idx *Response) HasFacets() bool {
+	return len(idx.facets) > 0
+}
+
+func (idx *Response) Facets() map[string]*Field {
+	return idx.facets
+}
+
+func (idx *Response) FacetLabels() []string {
+	facets := lo.Keys(idx.facets)
+	slices.Sort(facets)
+	return facets
 }
 
 func (r *Response) VisibleHits(page, nbh, hpp int) []map[string]any {

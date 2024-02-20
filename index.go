@@ -11,7 +11,6 @@ import (
 	"strings"
 
 	"github.com/RoaringBitmap/roaring"
-	"github.com/samber/lo"
 	"github.com/spf13/cast"
 	"github.com/spf13/viper"
 )
@@ -25,7 +24,6 @@ func init() {
 // Index is a structure for facets and data.
 type Index struct {
 	fields map[string]*Field
-	facets map[string]*Field
 	Data   []map[string]any
 	res    *roaring.Bitmap
 
@@ -42,7 +40,6 @@ func New(settings any) (*Index, error) {
 	idx := newIndex()
 	idx.Params = ParseParams(settings)
 	idx.fields = idx.Params.Fields()
-	idx.facets = idx.Params.Facets()
 
 	err := idx.GetData()
 	if err != nil && !errors.Is(err, NoDataErr) {
@@ -55,7 +52,6 @@ func New(settings any) (*Index, error) {
 func newIndex() *Index {
 	return &Index{
 		fields: make(map[string]*Field),
-		facets: make(map[string]*Field),
 	}
 }
 
@@ -72,12 +68,6 @@ func (idx *Index) Index(src []map[string]any) *Index {
 				idx.fields[attr].Add(val, []int{id})
 			}
 		}
-		//for _, attr := range idx.FacetAttr() {
-		//  if val, ok := d[attr]; ok {
-		//    idx.facets[attr].Add(val, []int{id})
-		//  }
-		//}
-
 	}
 
 	return idx
@@ -95,7 +85,6 @@ func (idx *Index) Post(params any) *Response {
 func (idx *Index) Search(params string) *Response {
 	idx.res = idx.Bitmap()
 	idx.SetSearch(params)
-	//fmt.Printf("params %+v\n", idx.Params)
 
 	query := idx.Query()
 	if query != "" {
@@ -113,30 +102,8 @@ func (idx *Index) Search(params string) *Response {
 		return res
 	}
 
-	//if idx.HasFilters() {
-	//  return idx.Filter(idx.Params.Get(FacetFilters))
-	//} else {
-	//  idx.Params.Search.Del(FacetFilters)
-	//  //idx.Params.Set(FacetFilters, "")
-	//}
-
 	filters := idx.Params.Get(FacetFilters)
-
 	return res.Filter(filters)
-}
-
-func (idx *Index) Filter(q string) *Response {
-	if !idx.HasResults() {
-		idx.res = idx.Bitmap()
-	}
-
-	filtered, err := Filter(idx.res, idx.facets, idx.Filters())
-	if err != nil {
-		return idx.Response()
-	}
-
-	idx.res.And(filtered)
-	return idx.Response()
 }
 
 func (idx *Index) Sort() {
@@ -265,13 +232,6 @@ func GetDataFromQuery(q *url.Values) ([]map[string]any, error) {
 	return data, err
 }
 
-func (idx *Index) GetFacet(attr string) *Field {
-	if f, ok := idx.facets[attr]; ok {
-		return f
-	}
-	return &Field{Attribute: attr}
-}
-
 func (idx *Index) GetField(attr string) *Field {
 	for _, f := range idx.fields {
 		if attr == f.Attribute {
@@ -279,19 +239,6 @@ func (idx *Index) GetField(attr string) *Field {
 		}
 	}
 	return &Field{Attribute: attr}
-}
-
-// HasFacets returns true if facets are configured.
-func (idx *Index) HasFacets() bool {
-	return len(idx.facets) > 0
-}
-
-func (idx *Index) Facets() map[string]*Field {
-	return idx.facets
-}
-
-func (idx *Index) FacetLabels() []string {
-	return lo.Keys(idx.facets)
 }
 
 func (idx *Index) SearchableFields() map[string]*Field {
