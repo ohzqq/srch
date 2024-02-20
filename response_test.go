@@ -1,9 +1,28 @@
 package srch
 
 import (
+	"fmt"
 	"net/url"
 	"testing"
 )
+
+func TestResponseFacets(t *testing.T) {
+	idx := newTestIdx()
+
+	jq := `{"facetFilters":["authors:amy lane", ["tags:romance"]],"facets":["authors","narrators","series","tags"],"maxValuesPerFacet":200,"page":0,"query":""}`
+	params := ParseSearchParamsJSON(jq)
+	res := idx.Search(params)
+
+	if res.HasFilters() {
+		filters := res.Params.Get(FacetFilters)
+		println(filters)
+		res = res.Filter(filters)
+	}
+
+	for _, facet := range res.facets {
+		fmt.Printf("%+v\n", facet.Len())
+	}
+}
 
 func TestParseFilterJSON(t *testing.T) {
 	tf := `["authors:amy lane",["tags:romance"]]`

@@ -2,8 +2,8 @@ package srch
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
-	"net/url"
 	"os"
 	"slices"
 
@@ -13,17 +13,51 @@ import (
 
 type Response struct {
 	*Index
+	facets map[string]*Field
 }
 
-func NewResponse(data []map[string]any, vals url.Values) *Response {
+func NewResponse(data []map[string]any, vals any) *Response {
 	idx, err := New(vals)
 	if err != nil {
 		log.Fatal(err)
 	}
-	idx.Index(data)
-	return &Response{
-		Index: idx,
+	idx.Data = data
+	idx.res = idx.Bitmap()
+
+	r := &Response{
+		Index:  idx,
+		facets: idx.Params.Facets(),
 	}
+
+	r.calculateFacets()
+
+	return r
+}
+
+func (idx *Response) calculateFacets() {
+	for id, d := range idx.Data {
+		for _, attr := range idx.FacetAttr() {
+			if val, ok := d[attr]; ok {
+				idx.facets[attr].Add(val, []int{id})
+			}
+		}
+	}
+}
+
+func (idx *Response) Filter(q string) *Response {
+	filters, err := unmarshalFilter(q)
+	if err != nil {
+		return idx
+	}
+
+	filtered, err := Filter(idx.res, idx.facets, filters)
+	if err != nil {
+		fmt.Printf("%+v\n", filters)
+		return idx
+	}
+
+	idx.res.And(filtered)
+	return idx.Response()
 }
 
 func (r *Response) MarshalJSON() ([]byte, error) {
@@ -37,7 +71,13 @@ func (r *Response) NbHits() int {
 	return int(r.Index.Bitmap().GetCardinality())
 }
 
+func (idx *Response) Response() *Response {
+	res := NewResponse(idx.GetResults(), idx.GetParams())
+	return res
+}
+
 func (r *Response) StringMap() map[string]any {
+
 	m := map[string]any{
 		"processingTimeMS": 1,
 		"params":           r.Params,
@@ -59,6 +99,28 @@ func (r *Response) StringMap() map[string]any {
 	m[Hits] = r.VisibleHits(page, nbh, hpp)
 
 	return m
+}
+
+func (idx *Response) GetFacet(attr string) *Field {
+	if f, ok := idx.facets[attr]; ok {
+		return f
+	}
+	return &Field{Attribute: attr}
+}
+
+// HasFacets returns true if facets are configured.
+func (idx *Response) HasFacets() bool {
+	return len(idx.facets) > 0
+}
+
+func (idx *Response) Facets() map[string]*Field {
+	return idx.facets
+}
+
+func (idx *Response) FacetLabels() []string {
+	facets := lo.Keys(idx.facets)
+	slices.Sort(facets)
+	return facets
 }
 
 func (r *Response) VisibleHits(page, nbh, hpp int) []map[string]any {

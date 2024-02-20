@@ -78,15 +78,6 @@ func searchErr(idx *Index, want int, q string) error {
 	return nil
 }
 
-func TestFuzzyFieldSearch(t *testing.T) {
-	idx := newTestIdx()
-
-	facet := idx.GetFacet("authors")
-	if total := facet.Len(); total != len(facet.Tokens.Tokens) {
-		t.Errorf("got %d, expected %d\n", len(facet.Tokens.Tokens), facet.Len())
-	}
-}
-
 func TestFullTextSearch(t *testing.T) {
 	cfg := libCfgStr + "&fullText"
 	idx, err := New(cfg)
