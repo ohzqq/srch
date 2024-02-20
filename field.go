@@ -61,6 +61,23 @@ func (t *Field) GetTokens() []*txt.Token {
 	return tokens
 }
 
+func GetFieldItems(data []map[string]any, field *Field) []map[string]any {
+	field.SortBy = SortByAlpha
+	tokens := field.SortTokens()
+
+	items := make([]map[string]any, len(tokens))
+	for i, token := range tokens {
+		items[i] = map[string]any{
+			"attribute": field.Attribute,
+			"value":     token.Value,
+			"label":     token.Label,
+			"count":     token.Count(),
+			"hits":      ItemsByBitmap(data, token.Bitmap()),
+		}
+	}
+	return items
+}
+
 func (t *Field) FindByIndex(ti ...int) []*txt.Token {
 	var tokens []*txt.Token
 	toks := t.GetTokens()

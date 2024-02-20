@@ -170,14 +170,18 @@ func (idx Index) HasResults() bool {
 
 func (idx Index) GetResults() []map[string]any {
 	if idx.HasResults() {
-		var res []map[string]any
-		idx.res.Iterate(func(x uint32) bool {
-			res = append(res, idx.Data[int(x)])
-			return true
-		})
-		return res
+		return ItemsByBitmap(idx.Data, idx.res)
 	}
 	return []map[string]any{}
+}
+
+func ItemsByBitmap(data []map[string]any, bits *roaring.Bitmap) []map[string]any {
+	var res []map[string]any
+	bits.Iterate(func(x uint32) bool {
+		res = append(res, data[int(x)])
+		return true
+	})
+	return res
 }
 
 func (idx *Index) FilterID(ids ...int) *Response {

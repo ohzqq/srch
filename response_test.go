@@ -1,7 +1,6 @@
 package srch
 
 import (
-	"fmt"
 	"net/url"
 	"testing"
 )
@@ -15,13 +14,20 @@ func TestResponseFacets(t *testing.T) {
 
 	if res.HasFilters() {
 		filters := res.Params.Get(FacetFilters)
-		println(filters)
 		res = res.Filter(filters)
 	}
 
-	for _, facet := range res.facets {
-		fmt.Printf("%+v\n", facet.Len())
+	if l := res.Len(); l != 806 {
+		t.Errorf("got %d, expected %d\n", l, 806)
 	}
+
+	for _, field := range res.facets {
+		items := GetFieldItems(res.Data, field)
+		if c := field.Count(); len(items) != c {
+			t.Errorf("got %d, expected %d\n", len(items), c)
+		}
+	}
+
 }
 
 func TestParseFilterJSON(t *testing.T) {
