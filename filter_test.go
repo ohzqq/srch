@@ -95,17 +95,27 @@ func TestSearchAndFilter(t *testing.T) {
 
 func TestNewFilters(t *testing.T) {
 	i := newTestIdx()
+
 	for _, test := range testSearchFilterStrings() {
-		idx := NewResponse(i.Data, test.vals)
+		idx := NewResponse(i.Data, i.Params.Values())
 		//params := ParseParams(test.vals)
-		filters := idx.Params.Get(FacetFilters)
-		res := idx.Filter("")
-		//bits, err := Filter(idx.Bitmap(), idx.facets, filters)
-		//if err != nil {
-		//t.Error(err)
-		//}
-		//hits := int(bits.GetCardinality())
-		hits := res.Len()
+		filters := test.vals.Get(FacetFilters)
+
+		fils, err := unmarshalFilter(filters)
+		if err != nil {
+			t.Error(err)
+		}
+		bits, err := Filter(idx.Bitmap(), idx.facets, fils)
+		if err != nil {
+			t.Error(err)
+		}
+		hits := int(bits.GetCardinality())
+		if hits != test.want {
+			t.Errorf("%#v\ngot %d, expected %d\n", filters, hits, test.want)
+		}
+
+		res := idx.Filter(filters)
+		hits = res.Len()
 		if hits != test.want {
 			t.Errorf("%#v\ngot %d, expected %d\n", filters, hits, test.want)
 		}

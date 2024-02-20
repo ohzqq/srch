@@ -2,6 +2,7 @@ package srch
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/url"
 	"os"
@@ -45,10 +46,16 @@ func (idx *Response) calculateFacets() {
 }
 
 func (idx *Response) Filter(q string) *Response {
-	filters := idx.Filters()
+	//println(q)
+	//filters := idx.Filters()
+	filters, err := unmarshalFilter(q)
+	if err != nil {
+		return idx
+	}
 
 	filtered, err := Filter(idx.res, idx.facets, filters)
 	if err != nil {
+		fmt.Printf("%+v\n", filters)
 		return idx
 	}
 
