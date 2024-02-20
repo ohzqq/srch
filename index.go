@@ -98,7 +98,7 @@ func (idx *Index) Search(params string) *Response {
 
 	res := idx.Response()
 
-	if !idx.HasFilters() {
+	if !idx.Params.HasFilters() {
 		return res
 	}
 
