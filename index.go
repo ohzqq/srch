@@ -213,8 +213,13 @@ func (idx *Index) GetData() error {
 		return err
 	}
 
-	idx.Index(data)
+	idx.SetData(data)
 	return nil
+}
+
+func (idx *Index) SetData(data []map[string]any) *Index {
+	idx.Data = data
+	return idx.Index(data)
 }
 
 func GetDataFromQuery(q *url.Values) ([]map[string]any, error) {
