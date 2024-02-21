@@ -8,7 +8,8 @@ import (
 func TestResponseFacets(t *testing.T) {
 	idx := newTestIdx()
 
-	jq := `{"facetFilters":["authors:amy lane", ["tags:romance"]],"facets":["authors","narrators","series","tags"],"maxValuesPerFacet":200,"page":0,"query":""}`
+	jq := `{"facetFilters":["tags:litrpg"],"facets":["authors","narrators","series","tags"],"maxValuesPerFacet":200,"page":0,"query":""}`
+	//jq := `{"facetFilters":["authors:amy lane", ["tags:romance"]],"facets":["authors","narrators","series","tags"],"maxValuesPerFacet":200,"page":0,"query":""}`
 	params := ParseSearchParamsJSON(jq)
 	res := idx.Search(params)
 
