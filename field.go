@@ -12,14 +12,15 @@ import (
 )
 
 const (
-	Or          = "OR"
-	And         = "AND"
-	Not         = `NOT`
-	AndNot      = `AND NOT`
-	OrNot       = `OR NOT`
-	FacetField  = `facet`
-	SortByCount = `count`
-	SortByAlpha = `alpha`
+	Or               = "OR"
+	And              = "AND"
+	Not              = `NOT`
+	AndNot           = `AND NOT`
+	OrNot            = `OR NOT`
+	FacetField       = `facet`
+	SortByCount      = `count`
+	SortByAlpha      = `alpha`
+	StandardAnalyzer = `standard`
 )
 
 type Field struct {
