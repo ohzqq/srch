@@ -5,14 +5,14 @@ import (
 )
 
 type FullText struct {
-	*bleve.Index
+	bleve.Index
 	memOnly bool
 	path    string
 }
 
 type FTOpt func(*FullText)
 
-func NewTextIndex(opts ...FTOpt) (*bleve.Index, error) {
+func NewTextIndex(opts ...FTOpt) (bleve.Index, error) {
 	ft := &FullText{
 		path: "idx",
 	}
@@ -23,10 +23,11 @@ func NewTextIndex(opts ...FTOpt) (*bleve.Index, error) {
 
 	m := bleve.NewIndexMapping()
 
-	if tf.memOnly {
+	if ft.memOnly {
 		return bleve.NewMemOnly(m)
 	}
 
+	return bleve.New(ft.path, m)
 }
 
 func MemOnly(tf *FullText) {
@@ -34,7 +35,7 @@ func MemOnly(tf *FullText) {
 }
 
 func FTPath(path string) FTOpt {
-	return func(ft FullText) {
+	return func(ft *FullText) {
 		ft.path = path
 	}
 }
