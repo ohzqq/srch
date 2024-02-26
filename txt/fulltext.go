@@ -10,16 +10,16 @@ import (
 )
 
 func Fulltext() Analyzer {
-	return fulltext{}
+	return FullText{}
 }
 
-type fulltext struct{}
+type FullText struct{}
 
-func (ft fulltext) Tokenize(val any) []*Token {
+func (ft FullText) Tokenize(val any) []*Token {
 	return FulltextTokenizer(val)
 }
 
-func (ft fulltext) Search(text string) []*Token {
+func (ft FullText) Search(text string) []*Token {
 	return FulltextTokenizer(text)
 }
 

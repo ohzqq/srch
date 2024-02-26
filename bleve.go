@@ -2,25 +2,39 @@ package srch
 
 import (
 	"github.com/blevesearch/bleve/v2"
-	"github.com/blevesearch/bleve/v2/mapping"
 )
 
-func FieldMappings(fields []string) []*mapping.FieldMapping {
-	mapping := make([]*mapping.FieldMapping, len(fields))
-	for i, field := range fields {
-		mapping[i] = bleve.NewTextFieldMapping()
-		mapping[i].Analyzer = StandardAnalyzer
-		mapping[i].SkipFreqNorm = true
-		mapping[i].DocValues = true
-		mapping[i].Name = field
-	}
-	return mapping
+type FullText struct {
+	*bleve.Index
+	memOnly bool
+	path    string
 }
 
-func DocMapping(fields []*mapping.FieldMapping) *mapping.IndexMappingImpl {
-	doc := bleve.NewIndexMapping()
-	for _, field := range fields {
-		doc.AddFieldMappingAt(field.Name, field)
+type FTOpt func(*FullText)
+
+func NewTextIndex(opts ...FTOpt) (*bleve.Index, error) {
+	ft := &FullText{
+		path: "idx",
 	}
-	return doc
+
+	for _, opt := range opts {
+		opt(ft)
+	}
+
+	m := bleve.NewIndexMapping()
+
+	if tf.memOnly {
+		return bleve.NewMemOnly(m)
+	}
+
+}
+
+func MemOnly(tf *FullText) {
+	tf.memOnly = true
+}
+
+func FTPath(path string) FTOpt {
+	return func(ft FullText) {
+		ft.path = path
+	}
 }
