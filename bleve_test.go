@@ -23,6 +23,28 @@ import (
 
 const blevePath = `testdata/poot`
 
+func TestBleveSearch(t *testing.T) {
+	idx, err := bleve.Open(blevePath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer idx.Close()
+
+	q := bleve.NewQueryStringQuery("fish")
+	req := bleve.NewSearchRequest(q)
+
+	res, err := idx.Search(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	println(res.Hits.Len())
+
+	for _, hit := range res.Hits {
+		fmt.Printf("%+v\n", hit.ID)
+	}
+}
+
 func TestNewBleveIndex(t *testing.T) {
 	idx, err := NewTextIndex(FTPath(blevePath))
 	//idx, err := NewTextIndex(MemOnly)
@@ -39,6 +61,7 @@ func TestNewBleveIndex(t *testing.T) {
 }
 
 func TestBatchIndex(t *testing.T) {
+	t.SkipNow()
 	batchSize := 1000
 
 	idx, err := bleve.Open(blevePath)

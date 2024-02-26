@@ -70,9 +70,18 @@ var paramsSearch = []string{
 }
 
 type Params struct {
-	Settings url.Values
-	Search   url.Values
-	filters  []any
+	Settings     url.Values
+	Search       url.Values
+	filters      []any
+	FacetAttrs   []string `mapstructure:"attributesForFaceting"`
+	SrchAttrs    []string `mapstructure:"searchableAttributes"`
+	SortAttrs    []string `mapstructure:"sortableAttributes"`
+	QueryStr     []string `mapstructure:"query"`
+	ParamFacets  []string `mapstructure:"facets"`
+	ParamFilters []string `mapstructure:"filters"`
+	FacetFilters []string `mapstructure:"facetFilters"`
+	DataDir      []string `mapstructure:"dataDir"`
+	DataFile     []string `mapstructure:"dataFile"`
 }
 
 func NewParams() *Params {

@@ -5,6 +5,8 @@ import (
 	"net/url"
 	"slices"
 	"testing"
+
+	"github.com/mitchellh/mapstructure"
 )
 
 var (
@@ -78,6 +80,24 @@ var testParsedParams = []*Params{
 			FacetAttr: defFacetAttr,
 		},
 	},
+}
+
+func TestMapStruct(t *testing.T) {
+	for _, query := range testQuerySettings {
+		vals, err := url.ParseQuery(query)
+		if err != nil {
+			t.Error(err)
+		}
+
+		fmt.Printf("%+v\n", vals)
+
+		params := &Params{}
+		err = mapstructure.Decode(vals, params)
+		if err != nil {
+			t.Error(err)
+		}
+		fmt.Printf("%+v\n", params)
+	}
 }
 
 func TestParseQueryStrings(t *testing.T) {
