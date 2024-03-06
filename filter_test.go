@@ -66,6 +66,7 @@ func TestJSONFilter(t *testing.T) {
 	}
 
 	vals := url.Values{
+		ParamFacets:  []string{"authors", "tags", "series", "narrators"},
 		FacetFilters: []string{tf},
 	}
 	err = searchErr(idx, 99, vals.Encode())
@@ -82,6 +83,7 @@ func TestSearchAndFilter(t *testing.T) {
 
 	//total := 7174
 
+	vals.Set(ParamFacets, "authors")
 	vals.Set(FacetFilters, `["authors:amy lane"]`)
 
 	afterFilter := 5
@@ -146,6 +148,7 @@ func testSearchFilterStrings() []filterStr {
 	queries = append(queries, filterStr{
 		want: 58,
 		vals: url.Values{
+			ParamFacets: []string{"authors", "tags"},
 			FacetFilters: []string{
 				`["authors:amy lane"]`,
 			},
@@ -155,6 +158,7 @@ func testSearchFilterStrings() []filterStr {
 	queries = append(queries, filterStr{
 		want: 806,
 		vals: url.Values{
+			ParamFacets: []string{"authors", "tags"},
 			FacetFilters: []string{
 				`["authors:amy lane", ["tags:romance"]]`,
 			},
@@ -164,6 +168,7 @@ func testSearchFilterStrings() []filterStr {
 	queries = append(queries, filterStr{
 		want: 789,
 		vals: url.Values{
+			ParamFacets: []string{"authors", "tags"},
 			FacetFilters: []string{
 				`["authors:amy lane", ["tags:romance", "tags:-dnr"]]`,
 			},
@@ -173,6 +178,7 @@ func testSearchFilterStrings() []filterStr {
 	queries = append(queries, filterStr{
 		want: 384,
 		vals: url.Values{
+			ParamFacets: []string{"authors", "tags"},
 			FacetFilters: []string{
 				`["tags:dnr", "tags:abo"]`,
 			},
@@ -182,6 +188,7 @@ func testSearchFilterStrings() []filterStr {
 	queries = append(queries, filterStr{
 		want: 1856,
 		vals: url.Values{
+			ParamFacets: []string{"authors", "tags"},
 			FacetFilters: []string{
 				`["tags:dnr", "tags:-abo"]`,
 			},
@@ -191,6 +198,7 @@ func testSearchFilterStrings() []filterStr {
 	queries = append(queries, filterStr{
 		want: 1856,
 		vals: url.Values{
+			ParamFacets: []string{"authors", "tags"},
 			FacetFilters: []string{
 				`["tags:-abo", "tags:dnr"]`,
 			},
@@ -200,6 +208,7 @@ func testSearchFilterStrings() []filterStr {
 	queries = append(queries, filterStr{
 		want: 2273,
 		vals: url.Values{
+			ParamFacets: []string{"authors", "tags"},
 			FacetFilters: []string{
 				`[["tags:dnr", "tags:abo"]]`,
 			},
@@ -209,6 +218,7 @@ func testSearchFilterStrings() []filterStr {
 	queries = append(queries, filterStr{
 		want: 2240,
 		vals: url.Values{
+			ParamFacets: []string{"authors", "tags"},
 			FacetFilters: []string{
 				`[["tags:dnr", "tags:-abo"]]`,
 			},
@@ -218,6 +228,7 @@ func testSearchFilterStrings() []filterStr {
 	queries = append(queries, filterStr{
 		want: 2240,
 		vals: url.Values{
+			ParamFacets: []string{"authors", "tags"},
 			FacetFilters: []string{
 				`[["tags:-abo", "tags:dnr"]]`,
 			},
@@ -227,6 +238,7 @@ func testSearchFilterStrings() []filterStr {
 	queries = append(queries, filterStr{
 		want: 0,
 		vals: url.Values{
+			ParamFacets: []string{"authors", "tags"},
 			FacetFilters: []string{
 				`["tags:abo", "tags:dnr", "tags:horror"]`,
 			},

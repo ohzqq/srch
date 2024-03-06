@@ -65,9 +65,9 @@ func searchErr(idx *Index, want int, q string) error {
 	}
 	if op != rp {
 		for key, val := range res.Params.Search {
-			has := idx.Params.Has(key)
+			has := idx.Params.Search.Has(key)
 			if !has {
-				return fmt.Errorf("doesn't have key %v\n", has)
+				return fmt.Errorf("doesn't have key %v\n", key)
 			}
 			o := idx.Params.Search[key]
 			if !slices.Equal(val, o) {
