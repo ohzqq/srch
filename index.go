@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/RoaringBitmap/roaring"
+	"github.com/blevesearch/bleve/v2"
 	"github.com/spf13/cast"
 	"github.com/spf13/viper"
 )
@@ -26,6 +27,7 @@ type Index struct {
 	fields map[string]*Field
 	Data   []map[string]any
 	res    *roaring.Bitmap
+	idx    *FullText
 
 	*Params `json:"params"`
 }
@@ -41,9 +43,19 @@ func New(settings any) (*Index, error) {
 	idx.Params = ParseParams(settings)
 	idx.fields = idx.Params.Fields()
 
+	data := idx.Params.GetData()
 	err := idx.GetData()
 	if err != nil && !errors.Is(err, NoDataErr) {
 		return nil, fmt.Errorf("data parsing error: %w\n", err)
+	}
+
+	idx.idx, err = NewTextIndex(FTPath(blevePath))
+	if err != nil {
+		return nil, err
+		//return idx, nil
+	}
+	if data != "" {
+		//BatchIndex(idx.idx, data)
 	}
 
 	return idx, nil
@@ -88,12 +100,27 @@ func (idx *Index) Search(params string) *Response {
 
 	query := idx.Query()
 	if query != "" {
-		switch idx.GetAnalyzer() {
-		case TextAnalyzer:
-			idx.res.And(idx.FullText(query))
-		case KeywordAnalyzer:
-			idx.res.And(idx.FuzzySearch(query))
+		println(query)
+		q := bleve.NewQueryStringQuery(query)
+		req := bleve.NewSearchRequest(q)
+		r, err := idx.idx.Search(req)
+		if err != nil {
+			println("error")
 		}
+		var hits []uint32
+		for _, hit := range r.Hits {
+			hits = append(hits, cast.ToUint32(hit.ID))
+		}
+		h := roaring.New()
+		h.AddMany(hits)
+		idx.res.And(h)
+		//switch idx.GetAnalyzer() {
+		//case TextAnalyzer:
+		//  idx.res.And(idx.FullText(query))
+		//case KeywordAnalyzer:
+		//  idx.res.And(idx.FuzzySearch(query))
+		//}
+
 	}
 
 	res := idx.Response()
@@ -102,8 +129,9 @@ func (idx *Index) Search(params string) *Response {
 		return res
 	}
 
-	filters := idx.Params.Get(FacetFilters)
-	return res.Filter(filters)
+	//filters := idx.Params.Get(FacetFilters)
+	//return res.Filter(filters)
+	return res
 }
 
 func (idx *Index) Sort() {
@@ -194,13 +222,8 @@ func (idx *Index) FilterID(ids ...int) *Response {
 	return idx.Response()
 }
 
-func (idx *Index) HasData() bool {
-	return idx.Params.Has(DataFile) ||
-		idx.Params.Has(DataDir)
-}
-
 func (idx *Index) GetData() error {
-	if !idx.HasData() {
+	if !idx.Params.HasData() {
 		return NoDataErr
 	}
 	var data []map[string]any

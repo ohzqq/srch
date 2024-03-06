@@ -332,6 +332,22 @@ func (p Params) Values() url.Values {
 	return lo.Assign(p.Settings, p.Search)
 }
 
+func (p *Params) HasData() bool {
+	return p.Has(DataFile) ||
+		p.Has(DataDir)
+}
+
+func (p Params) GetData() string {
+	switch {
+	case p.Has(DataFile):
+		return p.Get(DataFile)
+	case p.Has(DataDir):
+		return p.Get(DataDir)
+	default:
+		return ""
+	}
+}
+
 func (p *Params) Decode(str string) error {
 	q, err := url.ParseQuery(str)
 	if err != nil {

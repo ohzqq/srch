@@ -25,6 +25,7 @@ const blevePath = `testdata/poot`
 
 func TestBleveSearch(t *testing.T) {
 	idx, err := bleve.Open(blevePath)
+	//idx, err := NewTextIndex(MemOnly)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -46,8 +47,8 @@ func TestBleveSearch(t *testing.T) {
 }
 
 func TestNewBleveIndex(t *testing.T) {
-	idx, err := NewTextIndex(FTPath(blevePath))
-	//idx, err := NewTextIndex(MemOnly)
+	//idx, err := NewTextIndex(FTPath(blevePath))
+	idx, err := NewTextIndex(MemOnly)
 	if err != nil {
 		//t.Fatal(err)
 		t.Skipf("%v\n", err)
@@ -70,7 +71,7 @@ func TestBatchIndex(t *testing.T) {
 	}
 	defer idx.Close()
 
-	file, err := os.Open("testdata/audiobks.json")
+	file, err := os.Open("testdata/ndbooks.json")
 	if err != nil {
 		t.Error(err)
 	}
@@ -105,8 +106,8 @@ func TestBatchIndex(t *testing.T) {
 
 		book := cast.ToStringMap(doc)
 
-		docID := cast.ToString(book["id"])
-		//docID := cast.ToString(i)
+		//docID := cast.ToString(book["id"])
+		docID := cast.ToString(i)
 		err = batch.Index(docID, book)
 		if err != nil {
 			t.Error(err)
