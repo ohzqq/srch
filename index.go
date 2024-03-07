@@ -11,7 +11,6 @@ import (
 	"strings"
 
 	"github.com/RoaringBitmap/roaring"
-	"github.com/blevesearch/bleve/v2"
 	"github.com/spf13/cast"
 	"github.com/spf13/viper"
 )
@@ -104,16 +103,11 @@ func (idx *Index) Search(params string) *Response {
 	query := idx.Query()
 	if query != "" {
 		if path, ok := idx.Params.GetIndexPath(); ok {
-			blv, err := bleve.Open(path)
+
+			r, err := SearchBleve(path, query)
 			if err != nil {
-				println("error")
-			}
-			defer blv.Close()
-			q := bleve.NewQueryStringQuery(query)
-			req := bleve.NewSearchRequest(q)
-			r, err := blv.Search(req)
-			if err != nil {
-				println("error")
+				println(err.Error())
+				return nil
 			}
 			var hits []uint32
 			for _, hit := range r.Hits {
@@ -130,6 +124,9 @@ func (idx *Index) Search(params string) *Response {
 		//case KeywordAnalyzer:
 		//  idx.res.And(idx.FuzzySearch(query))
 		//}
+
+		idx.res.And(idx.FuzzySearch(query))
+		return idx.Response()
 
 	}
 

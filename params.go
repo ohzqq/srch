@@ -50,6 +50,7 @@ var paramsSettings = []string{
 	SortAttr,
 	DataDir,
 	DataFile,
+	IndexPath,
 	DefaultField,
 }
 
@@ -168,8 +169,8 @@ func (p Params) GetIndexPath() (string, bool) {
 	if !p.HasBleveIndex() {
 		return "", false
 	}
-	if p.Has(IndexPath) {
-		return p.Get(IndexPath), true
+	if p.Settings.Has(IndexPath) {
+		return p.Settings.Get(IndexPath), true
 	}
 	return "memOnly", true
 }

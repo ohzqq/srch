@@ -1,9 +1,7 @@
 package srch
 
-import (
-	"github.com/RoaringBitmap/roaring"
-)
+import "github.com/RoaringBitmap/roaring"
 
-func Search(idx *Index, kw string) *roaring.Bitmap {
-	return idx.res
+type Searcher interface {
+	Search(string, ...*roaring.Bitmap) (*Response, error)
 }

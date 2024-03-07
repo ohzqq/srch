@@ -82,13 +82,20 @@ func searchErr(idx *Index, want int, q string) error {
 }
 
 func TestFullTextSearch(t *testing.T) {
-	idx := newTestIdxCfg("&indexPath=" + blevePath)
+	idx := newTestIdx()
 	println(idx.Len())
 
 	res := idx.Search("query=fish")
 
 	println(res.NbHits())
 
+	cfg := libCfgStr + "&indexPath=" + blevePath
+
+	println(cfg)
+	idx = newTestIdxCfg("&indexPath=" + blevePath)
+	res = idx.Search("query=fish")
+
+	println(res.NbHits())
 	//if ana := idx.GetAnalyzer(); ana != TextAnalyzer {
 	//t.Errorf("get %s, expected %s\n", ana, TextAnalyzer)
 	//}

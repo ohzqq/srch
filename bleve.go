@@ -48,6 +48,19 @@ func NewTextIndex(opts ...FTOpt) (bleve.Index, error) {
 	return idx, nil
 }
 
+func SearchBleve(path, query string) (*bleve.SearchResult, error) {
+	blv, err := bleve.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer blv.Close()
+
+	//q := bleve.NewQueryStringQuery(query)
+	q := bleve.NewTermQuery(query)
+	req := bleve.NewSearchRequest(q)
+	return blv.Search(req)
+}
+
 func NewMemOnly(fd string) (bleve.Index, error) {
 	idx, err := bleve.NewMemOnly(bleve.NewIndexMapping())
 	if err != nil {
