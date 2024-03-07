@@ -39,6 +39,7 @@ const (
 	DataFile     = `dataFile`
 	IndexPath    = `indexPath`
 	DefaultField = `title`
+	UID          = `uid`
 
 	TextAnalyzer    = "text"
 	KeywordAnalyzer = "keyword"
@@ -52,6 +53,7 @@ var paramsSettings = []string{
 	DataFile,
 	IndexPath,
 	DefaultField,
+	UID,
 }
 
 var paramsSearch = []string{
@@ -140,6 +142,9 @@ func (p *Params) Set(key string, val string) {
 	default:
 		p.Search.Set(key, val)
 	}
+}
+
+func (p Params) GetUID() string {
 }
 
 func (p Params) Has(key string) bool {

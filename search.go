@@ -5,8 +5,8 @@ import (
 )
 
 type Indexer interface {
-	New(settings string) (*Index, error)
-	Open(settings string) (*Index, error)
+	New(settings string) (Searcher, error)
+	Open(settings string) (Searcher, error)
 	Index(uid string, data ...map[string]any) error
 }
 
