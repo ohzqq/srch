@@ -37,6 +37,7 @@ const (
 	SortAttr     = `sortableAttributes`
 	DataDir      = `dataDir`
 	DataFile     = `dataFile`
+	IndexPath    = `indexPath`
 	DefaultField = `title`
 
 	TextAnalyzer    = "text"
@@ -133,7 +134,7 @@ func (p Params) Get(key string) string {
 
 func (p *Params) Set(key string, val string) {
 	switch key {
-	case FacetAttr, SrchAttr, DataDir, DataFile, SortAttr:
+	case FacetAttr, SrchAttr, DataDir, DataFile, SortAttr, IndexPath:
 		p.Settings.Set(key, val)
 	default:
 		p.Search.Set(key, val)
@@ -142,7 +143,7 @@ func (p *Params) Set(key string, val string) {
 
 func (p Params) Has(key string) bool {
 	switch key {
-	case FacetAttr, SrchAttr, DataDir, DataFile, SortAttr:
+	case FacetAttr, SrchAttr, DataDir, DataFile, SortAttr, IndexPath:
 		return p.Settings.Has(key)
 	default:
 		return p.Search.Has(key)
@@ -157,6 +158,20 @@ func (p *Params) SetSearch(params string) *Params {
 
 func (p Params) HasFilters() bool {
 	return p.Search.Has(FacetFilters)
+}
+
+func (p Params) HasBleveIndex() bool {
+	return p.Has(IndexPath) || p.Has(ParamFullText)
+}
+
+func (p Params) GetIndexPath() (string, bool) {
+	if !p.HasBleveIndex() {
+		return "", false
+	}
+	if p.Has(IndexPath) {
+		return p.Get(IndexPath), true
+	}
+	return "memOnly", true
 }
 
 func (p *Params) Filters() []any {

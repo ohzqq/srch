@@ -24,10 +24,11 @@ func init() {
 
 // Index is a structure for facets and data.
 type Index struct {
-	fields map[string]*Field
-	Data   []map[string]any
-	res    *roaring.Bitmap
-	idx    *FullText
+	fields  map[string]*Field
+	Data    []map[string]any
+	res     *roaring.Bitmap
+	idx     *FullText
+	isBleve bool
 
 	*Params `json:"params"`
 }
@@ -36,27 +37,29 @@ var NoDataErr = errors.New("no data")
 
 type SearchFunc func(string) []map[string]any
 
-type Opt func(*Index)
+type Opt func(*Index) error
 
 func New(settings any) (*Index, error) {
 	idx := newIndex()
 	idx.Params = ParseParams(settings)
 	idx.fields = idx.Params.Fields()
 
-	data := idx.Params.GetData()
+	//data := idx.Params.GetData()
+
 	err := idx.GetData()
 	if err != nil && !errors.Is(err, NoDataErr) {
 		return nil, fmt.Errorf("data parsing error: %w\n", err)
 	}
 
-	idx.idx, err = NewTextIndex(FTPath(blevePath))
-	if err != nil {
-		return nil, err
-		//return idx, nil
-	}
-	if data != "" {
-		//BatchIndex(idx.idx, data)
-	}
+	//blv, err := bleve.Open(blevePath)
+	//idx.idx, err = NewTextIndex(FTPath(blevePath))
+	//if err != nil {
+	//return nil, err
+	//return idx, nil
+	//}
+	//idx.idx = &FullText{
+	//Index: blv,
+	//}
 
 	return idx, nil
 }
@@ -100,20 +103,27 @@ func (idx *Index) Search(params string) *Response {
 
 	query := idx.Query()
 	if query != "" {
-		println(query)
-		q := bleve.NewQueryStringQuery(query)
-		req := bleve.NewSearchRequest(q)
-		r, err := idx.idx.Search(req)
-		if err != nil {
-			println("error")
+		if path, ok := idx.Params.GetIndexPath(); ok {
+			blv, err := bleve.Open(path)
+			if err != nil {
+				println("error")
+			}
+			defer blv.Close()
+			q := bleve.NewQueryStringQuery(query)
+			req := bleve.NewSearchRequest(q)
+			r, err := blv.Search(req)
+			if err != nil {
+				println("error")
+			}
+			var hits []uint32
+			for _, hit := range r.Hits {
+				hits = append(hits, cast.ToUint32(hit.ID))
+			}
+			h := roaring.New()
+			h.AddMany(hits)
+			idx.res.And(h)
+			return idx.Response()
 		}
-		var hits []uint32
-		for _, hit := range r.Hits {
-			hits = append(hits, cast.ToUint32(hit.ID))
-		}
-		h := roaring.New()
-		h.AddMany(hits)
-		idx.res.And(h)
 		//switch idx.GetAnalyzer() {
 		//case TextAnalyzer:
 		//  idx.res.And(idx.FullText(query))
@@ -132,6 +142,10 @@ func (idx *Index) Search(params string) *Response {
 	//filters := idx.Params.Get(FacetFilters)
 	//return res.Filter(filters)
 	return res
+}
+
+func (idx *Index) Response() *Response {
+	return NewResponse(idx.GetResults(), idx.GetParams())
 }
 
 func (idx *Index) Sort() {
@@ -153,10 +167,6 @@ func (idx *Index) Sort() {
 			slices.Reverse(idx.Data)
 		}
 	}
-}
-
-func (idx *Index) Response() *Response {
-	return NewResponse(idx.GetResults(), idx.GetParams())
 }
 
 func (idx *Index) GetParams() url.Values {

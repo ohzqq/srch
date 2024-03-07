@@ -29,7 +29,7 @@ func NewResponse(data []map[string]any, vals any) *Response {
 		facets: idx.Params.Facets(),
 	}
 
-	r.calculateFacets()
+	//r.calculateFacets()
 
 	return r
 }

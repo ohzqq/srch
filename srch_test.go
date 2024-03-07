@@ -82,10 +82,10 @@ func searchErr(idx *Index, want int, q string) error {
 }
 
 func TestFullTextSearch(t *testing.T) {
-	idx := newTestIdx()
+	idx := newTestIdxCfg("&indexPath=" + blevePath)
 	println(idx.Len())
 
-	res := idx.Search("fish")
+	res := idx.Search("query=fish")
 
 	println(res.NbHits())
 

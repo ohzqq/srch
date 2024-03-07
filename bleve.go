@@ -18,7 +18,7 @@ type FullText struct {
 
 type FTOpt func(*FullText)
 
-func NewTextIndex(opts ...FTOpt) (*FullText, error) {
+func NewTextIndex(opts ...FTOpt) (bleve.Index, error) {
 	ft := &FullText{
 		path: "idx",
 	}
@@ -41,16 +41,30 @@ func NewTextIndex(opts ...FTOpt) (*FullText, error) {
 	//idx, err = bleve.New(ft.path, m)
 	idx, err = bleve.Open(ft.path)
 	if err != nil {
+		println("new index")
 		return nil, err
 	}
 
-	ft.Index = idx
-	return ft, nil
+	return idx, nil
+}
+
+func NewMemOnly(fd string) (bleve.Index, error) {
+	idx, err := bleve.NewMemOnly(bleve.NewIndexMapping())
+	if err != nil {
+		return nil, err
+	}
+
+	err = BatchIndex(idx, fd)
+	if err != nil {
+		return nil, err
+	}
+
+	return idx, nil
 }
 
 func BatchIndex(idx bleve.Index, fd string) error {
 	batchSize := 1000
-	file, err := os.Open("testdata/ndbooks.json")
+	file, err := os.Open(fd)
 	if err != nil {
 		return err
 	}
