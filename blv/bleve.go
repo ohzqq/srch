@@ -63,13 +63,14 @@ func (idx *Index) Batch(uid string, data []map[string]any) error {
 	}
 	defer blv.Close()
 
+	batch := blv.NewBatch()
+
 	batchSize := 1000
 	total := len(data)
 	numB := total / batchSize
 	if total%batchSize > 0 {
 		numB++
 	}
-	batch := blv.NewBatch()
 	s := 0
 	c := 0
 	for b := 1; b < numB+1; b++ {

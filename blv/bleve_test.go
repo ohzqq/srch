@@ -6,23 +6,18 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
-)
 
-//func TestDocMapping(t *testing.T) {
-//  doc := DocMapping(testFieldMappings())
-//  d, err := json.Marshal(doc)
-//  if err != nil {
-//    t.Error(err)
-//  }
-//  println(string(d))
-//}
+	"github.com/spf13/cast"
+)
 
 const blevePath = `../testdata/poot`
 const testDataFile = `../testdata/ndbooks.json`
 
 func TestNewBleveIndex(t *testing.T) {
-	t.SkipNow()
+	//t.SkipNow()
+	cleanIdx()
 	_, err := New(blevePath)
 	if err != nil {
 		t.Error(err)
@@ -32,25 +27,51 @@ func TestNewBleveIndex(t *testing.T) {
 func TestBatchIndex(t *testing.T) {
 	//t.SkipNow()
 	books := loadData(t)
-	println(len(books))
 
 	idx := Open(blevePath)
 	err := idx.Index("id", books...)
 	if err != nil {
 		t.Error(err)
 	}
+
+	if idx.Len() != 7252 {
+		t.Errorf("got %d docs, expected %d\n", idx.Len(), 7252)
+	}
 }
 
 func TestOpenIndex(t *testing.T) {
 	idx := Open(blevePath)
 	docs := idx.Len()
-	println(docs)
-	if docs != 7000 {
+	if docs != 7252 {
 		t.Errorf("got %d docs, expected %d\n", docs, 7252)
 	}
 }
 
 func TestBleveSearch(t *testing.T) {
+	idx := Open(blevePath)
+	bits, err := idx.Search("fish")
+	if err != nil {
+		t.Error(err)
+	}
+	if h := bits.GetCardinality(); h != 8 {
+		t.Errorf("got %d hits, expected %d\n", h, 8)
+	}
+
+	books := loadData(t)
+	for id, doc := range books {
+		if i, ok := doc["id"]; ok {
+			id = cast.ToInt(i)
+		}
+		if bits.ContainsInt(id) {
+			if title, ok := doc["title"].(string); ok {
+				if !strings.Contains(strings.ToLower(title), "fish") {
+					t.Errorf("result %s, doesn't contain query %s\n", title, "fish")
+				}
+			} else {
+				t.Errorf("no field\n")
+			}
+		}
+	}
 }
 
 func cleanIdx() {
@@ -83,7 +104,10 @@ func loadData(t *testing.T) []map[string]any {
 		if err != nil {
 			t.Error(err)
 		}
-		books = append(books, b)
+		books = append(books, map[string]any{
+			"title": b["title"],
+			//"id":    b["id"],
+		})
 	}
 
 	return books
