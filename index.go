@@ -32,10 +32,6 @@ type Idx struct {
 	*Params `json:"params"`
 }
 
-type Index interface {
-	Search(string) ([]map[string]any, error)
-}
-
 var NoDataErr = errors.New("no data")
 
 type SearchFunc func(string) []map[string]any

@@ -1,51 +1,63 @@
 package blv
 
 import (
-	"bufio"
-	"encoding/json"
 	"fmt"
-	"os"
 
 	"github.com/blevesearch/bleve/v2"
 	"github.com/spf13/cast"
 )
 
-type FullText struct {
+type Index struct {
 	bleve.Index
 	memOnly bool
 	path    string
 }
 
-type FTOpt func(*FullText)
+type FTOpt func(*Index)
 
-func NewTextIndex(opts ...FTOpt) (bleve.Index, error) {
-	ft := &FullText{
-		path: "idx",
+func New(path string) (*Index, error) {
+	idx := &Index{
+		path: path,
 	}
 
-	for _, opt := range opts {
-		opt(ft)
-	}
-
-	m := bleve.NewIndexMapping()
-
-	var idx bleve.Index
-	var err error
-	if ft.memOnly {
-		idx, err = bleve.NewMemOnly(m)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	//idx, err = bleve.New(ft.path, m)
-	idx, err = bleve.Open(ft.path)
+	b, err := bleve.New(path, bleve.NewIndexMapping())
 	if err != nil {
-		println("new index")
-		return nil, err
+		return idx, err
 	}
 
-	return idx, nil
+	idx.Index = b
+	return idx
+}
+
+func (idx *Index) Open(path string) *Index {
+}
+
+func (idx *Index) Index(uid string, data ...map[string]any) error {
+	batchSize := 1000
+	i := 0
+	batch := idx.Index.NewBatch()
+	for di, b := range data {
+		if i%batchSize == 0 {
+			fmt.Printf("Indexing batch (%d docs)...\n", i)
+			err := idx.Index.Batch(batch)
+			if err != nil {
+				return err
+			}
+			batch = idx.Index.NewBatch()
+		}
+
+		id := cast.ToString(di)
+		if it, ok := b[uid]; ok {
+			id = cast.ToString(it)
+		}
+
+		err = batch.Index(id, b)
+		if err != nil {
+			return err
+		}
+		i++
+	}
+	return nil
 }
 
 func SearchBleve(path, query string) (*bleve.SearchResult, error) {
@@ -75,66 +87,12 @@ func NewMemOnly(fd string) (bleve.Index, error) {
 	return idx, nil
 }
 
-func BatchIndex(idx bleve.Index, fd string) error {
-	batchSize := 1000
-	file, err := os.Open(fd)
-	if err != nil {
-		return err
-	}
-
-	i := 0
-	batch := idx.NewBatch()
-
-	r := bufio.NewReader(file)
-
-	for {
-		if i%batchSize == 0 {
-			fmt.Printf("Indexing batch (%d docs)...\n", i)
-			err := idx.Batch(batch)
-			if err != nil {
-				return err
-			}
-			batch = idx.NewBatch()
-		}
-
-		b, _ := r.ReadBytes('\n')
-		if len(b) == 0 {
-			break
-		}
-
-		var doc interface{}
-		doc = b
-		var err error
-		err = json.Unmarshal(b, &doc)
-		if err != nil {
-			return fmt.Errorf("error parsing JSON: %v", err)
-		}
-
-		book := cast.ToStringMap(doc)
-
-		//docID := cast.ToString(book["id"])
-		docID := cast.ToString(i)
-		err = batch.Index(docID, book)
-		if err != nil {
-			return err
-		}
-		i++
-	}
-
-	err = file.Close()
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func MemOnly(tf *FullText) {
+func MemOnly(tf *Index) {
 	tf.memOnly = true
 }
 
 func FTPath(path string) FTOpt {
-	return func(ft *FullText) {
+	return func(ft *Index) {
 		ft.path = path
 	}
 }
