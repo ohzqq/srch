@@ -33,6 +33,26 @@ func New(path string) (*Index, error) {
 	return idx, nil
 }
 
+func (idx *Index) Search(query string) (*roaring.Bitmap, error) {
+	blv, err := bleve.Open(idx.path)
+	if err != nil {
+		return nil, err
+	}
+	defer blv.Close()
+
+	q := bleve.NewTermQuery(query)
+	req := bleve.NewSearchRequest(q)
+	res, err := blv.Search(req)
+	if err != nil {
+		return nil, err
+	}
+
+	bits := roaring.New()
+	for _, hit := range res.Hits {
+		bits.Add(cast.ToUint32(hit.ID))
+	}
+	return bits, nil
+}
 func (idx *Index) Index(uid string, data ...map[string]any) error {
 	switch len(data) {
 	case 0:
@@ -124,38 +144,4 @@ func (idx *Index) Len() int {
 
 	c, _ := blv.DocCount()
 	return int(c)
-}
-
-func (idx *Index) Search(query string) (*roaring.Bitmap, error) {
-	blv, err := bleve.Open(idx.path)
-	if err != nil {
-		return nil, err
-	}
-	defer blv.Close()
-
-	q := bleve.NewTermQuery(query)
-	req := bleve.NewSearchRequest(q)
-	res, err := blv.Search(req)
-	if err != nil {
-		return nil, err
-	}
-
-	bits := roaring.New()
-	for _, hit := range res.Hits {
-		bits.Add(cast.ToUint32(hit.ID))
-	}
-	return bits, nil
-}
-
-func SearchBleve(path, query string) (*bleve.SearchResult, error) {
-	blv, err := bleve.Open(path)
-	if err != nil {
-		return nil, err
-	}
-	defer blv.Close()
-
-	//q := bleve.NewQueryStringQuery(query)
-	q := bleve.NewTermQuery(query)
-	req := bleve.NewSearchRequest(q)
-	return blv.Search(req)
 }
