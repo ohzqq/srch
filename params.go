@@ -145,6 +145,7 @@ func (p *Params) Set(key string, val string) {
 }
 
 func (p Params) GetUID() string {
+	return p.Settings.Get("uid")
 }
 
 func (p Params) Has(key string) bool {

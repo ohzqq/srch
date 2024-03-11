@@ -21,8 +21,8 @@ func init() {
 	viper.SetDefault(HitsPerPage, 25)
 }
 
-// Index is a structure for facets and data.
-type Index struct {
+// Idx is a structure for facets and data.
+type Idx struct {
 	fields  map[string]*Field
 	Data    []map[string]any
 	res     *roaring.Bitmap
@@ -36,9 +36,9 @@ var NoDataErr = errors.New("no data")
 
 type SearchFunc func(string) []map[string]any
 
-type Opt func(*Index) error
+type Opt func(*Idx) error
 
-func New(settings any) (*Index, error) {
+func New(settings any) (*Idx, error) {
 	idx := newIndex()
 	idx.Params = ParseParams(settings)
 	idx.fields = idx.Params.Fields()
@@ -63,13 +63,13 @@ func New(settings any) (*Index, error) {
 	return idx, nil
 }
 
-func newIndex() *Index {
-	return &Index{
+func newIndex() *Idx {
+	return &Idx{
 		fields: make(map[string]*Field),
 	}
 }
 
-func (idx *Index) Index(src []map[string]any) *Index {
+func (idx *Idx) Index(src []map[string]any) *Idx {
 	idx.Data = src
 
 	if idx.Has(SortBy) {
@@ -87,16 +87,16 @@ func (idx *Index) Index(src []map[string]any) *Index {
 	return idx
 }
 
-func (idx *Index) Get(params string) *Response {
+func (idx *Idx) Get(params string) *Response {
 	return idx.Search(params)
 }
 
-func (idx *Index) Post(params any) *Response {
+func (idx *Idx) Post(params any) *Response {
 	p := ParseSearchParamsJSON(params)
 	return idx.Search(p)
 }
 
-func (idx *Index) Search(params string) *Response {
+func (idx *Idx) Search(params string) *Response {
 	idx.res = idx.Bitmap()
 	idx.SetSearch(params)
 
@@ -141,11 +141,11 @@ func (idx *Index) Search(params string) *Response {
 	return res
 }
 
-func (idx *Index) Response() *Response {
+func (idx *Idx) Response() *Response {
 	return NewResponse(idx.GetResults(), idx.GetParams())
 }
 
-func (idx *Index) Sort() {
+func (idx *Idx) Sort() {
 	sort := idx.Params.Get(SortBy)
 	var sortType string
 	for _, sb := range idx.SortAttr() {
@@ -166,11 +166,11 @@ func (idx *Index) Sort() {
 	}
 }
 
-func (idx *Index) GetParams() url.Values {
+func (idx *Idx) GetParams() url.Values {
 	return idx.Values()
 }
 
-func (idx *Index) FullText(q string) *roaring.Bitmap {
+func (idx *Idx) FullText(q string) *roaring.Bitmap {
 	var bits []*roaring.Bitmap
 	for _, field := range idx.SearchableFields() {
 		bits = append(bits, field.Filter(q))
@@ -178,7 +178,7 @@ func (idx *Index) FullText(q string) *roaring.Bitmap {
 	return roaring.ParAnd(viper.GetInt("workers"), bits...)
 }
 
-func (idx *Index) FuzzySearch(q string) *roaring.Bitmap {
+func (idx *Idx) FuzzySearch(q string) *roaring.Bitmap {
 	var bits []*roaring.Bitmap
 	for _, field := range idx.SearchableFields() {
 		bits = append(bits, field.Fuzzy(q))
@@ -187,13 +187,13 @@ func (idx *Index) FuzzySearch(q string) *roaring.Bitmap {
 	return res
 }
 
-func (idx Index) Bitmap() *roaring.Bitmap {
+func (idx Idx) Bitmap() *roaring.Bitmap {
 	bits := roaring.New()
 	bits.AddRange(0, uint64(len(idx.Data)))
 	return bits
 }
 
-func (idx Index) HasResults() bool {
+func (idx Idx) HasResults() bool {
 	if idx.res == nil {
 		return false
 	}
@@ -203,7 +203,7 @@ func (idx Index) HasResults() bool {
 	return true
 }
 
-func (idx Index) GetResults() []map[string]any {
+func (idx Idx) GetResults() []map[string]any {
 	if idx.HasResults() {
 		return ItemsByBitmap(idx.Data, idx.res)
 	}
@@ -219,7 +219,7 @@ func ItemsByBitmap(data []map[string]any, bits *roaring.Bitmap) []map[string]any
 	return res
 }
 
-func (idx *Index) FilterID(ids ...int) *Response {
+func (idx *Idx) FilterID(ids ...int) *Response {
 	if !idx.HasResults() {
 		idx.res = roaring.New()
 	}
@@ -229,7 +229,7 @@ func (idx *Index) FilterID(ids ...int) *Response {
 	return idx.Response()
 }
 
-func (idx *Index) GetData() error {
+func (idx *Idx) GetData() error {
 	if !idx.Params.HasData() {
 		return NoDataErr
 	}
@@ -251,7 +251,7 @@ func (idx *Index) GetData() error {
 	return nil
 }
 
-func (idx *Index) SetData(data []map[string]any) *Index {
+func (idx *Idx) SetData(data []map[string]any) *Idx {
 	idx.Data = data
 	return idx.Index(data)
 }
@@ -271,7 +271,7 @@ func GetDataFromQuery(q *url.Values) ([]map[string]any, error) {
 	return data, err
 }
 
-func (idx *Index) GetField(attr string) *Field {
+func (idx *Idx) GetField(attr string) *Field {
 	for _, f := range idx.fields {
 		if attr == f.Attribute {
 			return f
@@ -280,11 +280,11 @@ func (idx *Index) GetField(attr string) *Field {
 	return &Field{Attribute: attr}
 }
 
-func (idx *Index) SearchableFields() map[string]*Field {
+func (idx *Idx) SearchableFields() map[string]*Field {
 	return idx.fields
 }
 
-func (idx *Index) UnmarshalJSON(d []byte) error {
+func (idx *Idx) UnmarshalJSON(d []byte) error {
 	un := make(map[string]json.RawMessage)
 	err := json.Unmarshal(d, &un)
 	if err != nil {
@@ -313,7 +313,7 @@ func (idx *Index) UnmarshalJSON(d []byte) error {
 }
 
 // String satisfies the fuzzy.Source interface.
-func (idx *Index) String(i int) string {
+func (idx *Idx) String(i int) string {
 	attr := idx.SrchAttr()
 	var str string
 	for _, a := range attr {
@@ -326,7 +326,7 @@ func (idx *Index) String(i int) string {
 }
 
 // Len satisfies the fuzzy.Source interface.
-func (idx *Index) Len() int {
+func (idx *Idx) Len() int {
 	return len(idx.Data)
 }
 

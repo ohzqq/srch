@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-var idx = &Index{}
+var idx = &Idx{}
 
 var books []map[string]any
 
@@ -73,7 +73,7 @@ func totalBooksTest(total int, t *testing.T) {
 	}
 }
 
-func newTestIdx() *Index {
+func newTestIdx() *Idx {
 	//idx, err := New(libCfgStr)
 	//if err != nil {
 	//log.Fatal(err)
@@ -81,7 +81,7 @@ func newTestIdx() *Index {
 	return newTestIdxCfg("")
 }
 
-func newTestIdxCfg(p string) *Index {
+func newTestIdxCfg(p string) *Idx {
 	idx, err := New(libCfgStr + p)
 	if err != nil {
 		log.Fatal(err)

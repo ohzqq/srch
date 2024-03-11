@@ -36,7 +36,7 @@ func TestFuzzySearch(t *testing.T) {
 
 }
 
-func srchTest(idx *Index, want int) error {
+func srchTest(idx *Idx, want int) error {
 	err := searchErr(idx, numBooks, "")
 	if err != nil {
 		return err
@@ -49,7 +49,7 @@ func srchTest(idx *Index, want int) error {
 	return nil
 }
 
-func searchErr(idx *Index, want int, q string) error {
+func searchErr(idx *Idx, want int, q string) error {
 	res := idx.Search(q)
 	err := intErr(res.NbHits(), want, q)
 	if err != nil {

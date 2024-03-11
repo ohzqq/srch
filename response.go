@@ -12,7 +12,7 @@ import (
 )
 
 type Response struct {
-	*Index
+	*Idx
 	facets map[string]*Field
 }
 
@@ -25,7 +25,7 @@ func NewResponse(data []map[string]any, vals any) *Response {
 	idx.res = idx.Bitmap()
 
 	r := &Response{
-		Index:  idx,
+		Idx:    idx,
 		facets: idx.Params.Facets(),
 	}
 
@@ -68,7 +68,7 @@ func (r *Response) NbHits() int {
 	if r.HasResults() {
 		return int(r.res.GetCardinality())
 	}
-	return int(r.Index.Bitmap().GetCardinality())
+	return int(r.Idx.Bitmap().GetCardinality())
 }
 
 func (idx *Response) Response() *Response {
