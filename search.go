@@ -5,7 +5,6 @@ import (
 )
 
 type Indexer interface {
-	Open(settings string) (Searcher, error)
 	Index(uid string, data ...map[string]any) error
 	Searcher
 }

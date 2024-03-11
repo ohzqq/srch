@@ -12,7 +12,7 @@ import (
 	"github.com/spf13/cast"
 )
 
-const blevePath = `../testdata/poot`
+const blevePath = `../testdata/poot.bleve`
 const testDataFile = `../testdata/ndbooks.json`
 
 func TestNewBleveIndex(t *testing.T) {
@@ -28,8 +28,8 @@ func TestBatchIndex(t *testing.T) {
 	//t.SkipNow()
 	books := loadData(t)
 
-	idx := Open(blevePath)
-	err := idx.Index("id", books...)
+	idx := Open(blevePath, "id")
+	err := idx.Index("", books...)
 	if err != nil {
 		t.Error(err)
 	}

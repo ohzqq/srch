@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/RoaringBitmap/roaring"
+	"github.com/ohzqq/srch/blv"
 	"github.com/spf13/cast"
 	"github.com/spf13/viper"
 )
@@ -28,6 +29,7 @@ type Idx struct {
 	res    *roaring.Bitmap
 	//idx     *FullText
 	isBleve bool
+	idx     Indexer
 
 	*Params `json:"params"`
 }
@@ -44,6 +46,7 @@ func New(settings any) (*Idx, error) {
 	idx.fields = idx.Params.Fields()
 
 	//data := idx.Params.GetData()
+	//println(data)
 
 	err := idx.GetData()
 	if err != nil && !errors.Is(err, NoDataErr) {
@@ -102,6 +105,16 @@ func (idx *Idx) Search(params string) *Response {
 
 	query := idx.Query()
 	if query != "" {
+		println(query)
+		if idx.Params.IsFullText() {
+			idx.idx = blv.Open(idx.Params.GetFullText())
+			bits, err := idx.idx.Search(query)
+			if err != nil {
+				log.Fatal(err)
+			}
+			idx.res.And(bits)
+			return idx.Response()
+		}
 		//if path, ok := idx.Params.GetIndexPath(); ok {
 
 		//r, err := SearchBleve(path, query)

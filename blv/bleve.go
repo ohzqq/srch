@@ -10,11 +10,15 @@ import (
 
 type Index struct {
 	path string
+	uid  string
 }
 
-func Open(path string) *Index {
+func Open(path string, uid ...string) *Index {
 	idx := &Index{
 		path: path,
+	}
+	if len(uid) > 0 {
+		idx.uid = uid[0]
 	}
 	return idx
 }
@@ -53,6 +57,7 @@ func (idx *Index) Search(query string) (*roaring.Bitmap, error) {
 	}
 	return bits, nil
 }
+
 func (idx *Index) Index(uid string, data ...map[string]any) error {
 	switch len(data) {
 	case 0:
@@ -60,7 +65,7 @@ func (idx *Index) Index(uid string, data ...map[string]any) error {
 	}
 
 	if len(data) > 1 {
-		return idx.Batch(uid, data)
+		return idx.Batch(data)
 	}
 
 	blv, err := bleve.Open(idx.path)
@@ -69,14 +74,14 @@ func (idx *Index) Index(uid string, data ...map[string]any) error {
 	}
 	defer blv.Close()
 
-	if id, ok := data[0][uid]; ok {
+	if id, ok := data[0][idx.uid]; ok {
 		uid = cast.ToString(id)
 	}
 
 	return blv.Index(uid, data[0])
 }
 
-func (idx *Index) Batch(uid string, data []map[string]any) error {
+func (idx *Index) Batch(data []map[string]any) error {
 	blv, err := bleve.Open(idx.path)
 	if err != nil {
 		return err
@@ -116,7 +121,7 @@ func (idx *Index) Batch(uid string, data []map[string]any) error {
 			doc := data[c]
 
 			id := cast.ToString(c)
-			if it, ok := doc[uid]; ok {
+			if it, ok := doc[idx.uid]; ok {
 				id = cast.ToString(it)
 			}
 

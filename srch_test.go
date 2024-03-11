@@ -9,7 +9,26 @@ import (
 
 	"github.com/mitchellh/mapstructure"
 	"github.com/ohzqq/audible"
+	"github.com/ohzqq/srch/blv"
 )
+
+func TestNewBlvSearch(t *testing.T) {
+	var i Indexer
+	i = blv.Open(`testdata/poot.bleve`)
+	bits, err := i.Search("fish")
+	if err != nil {
+		t.Error(err)
+	}
+	if h := bits.GetCardinality(); h != 8 {
+		t.Errorf("got %d hits, expected %d\n", h, 8)
+	}
+
+	idx := newTestIdxCfg("&fullText=testdata/poot.bleve")
+	res := idx.Search("query=fish")
+	if h := res.NbHits(); h != 8 {
+		t.Errorf("got %d hits, expected %d\n", h, 8)
+	}
+}
 
 func testSearchQueryStrings() map[string]int {
 	queries := map[string]int{

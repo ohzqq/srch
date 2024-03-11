@@ -302,6 +302,10 @@ func (p *Params) IsFullText() bool {
 	return p.Search.Has(ParamFullText)
 }
 
+func (p *Params) GetFullText() string {
+	return p.Search.Get(ParamFullText)
+}
+
 func (p Params) Query() string {
 	return p.Get(Query)
 }
