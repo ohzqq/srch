@@ -16,7 +16,7 @@ type App struct {
 
 	mainRouter reactea.Component[router.Props]
 
-	idx    *srch.Index
+	idx    *srch.Idx
 	params *srch.Params
 
 	data  []map[string]any
@@ -34,7 +34,7 @@ type App struct {
 	Selections *srch.Response
 }
 
-func New(idx *srch.Index) *App {
+func New(idx *srch.Idx) *App {
 	tui := newApp()
 	tui.idx = idx
 	tui.updateVisible(idx.Search(""))
