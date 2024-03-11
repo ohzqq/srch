@@ -103,31 +103,6 @@ func searchErr(idx *Idx, want int, q string) error {
 	return nil
 }
 
-//func TestFullTextSearch(t *testing.T) {
-//  idx := newTestIdx()
-//  println(idx.Len())
-
-//  res := idx.Search("query=fish")
-
-//  println(res.NbHits())
-
-//  cfg := libCfgStr + "&indexPath=" + blevePath
-
-//  println(cfg)
-//  idx = newTestIdxCfg("&indexPath=" + blevePath)
-//  res = idx.Search("query=fish")
-
-//  println(res.NbHits())
-//  //if ana := idx.GetAnalyzer(); ana != TextAnalyzer {
-//  //t.Errorf("get %s, expected %s\n", ana, TextAnalyzer)
-//  //}
-
-//  //err = srchTest(idx, 8)
-//  //if err != nil {
-//  //t.Error(err)
-//  //}
-//}
-
 func parseValueTest(t *testing.T, q string) {
 	_, err := ParseValues(q)
 	if err != nil {
