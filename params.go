@@ -25,21 +25,21 @@ const (
 	ParamFacets          = "facets"
 	ParamFilters         = "filters"
 	FacetFilters         = `facetFilters`
-	ParamFullText        = `fullText`
 	NbHits               = `nbHits`
 	NbPages              = `nbPages`
 	SortBy               = `sortBy`
 	Order                = `order`
 
 	// Settings
-	SrchAttr     = `searchableAttributes`
-	FacetAttr    = `attributesForFaceting`
-	SortAttr     = `sortableAttributes`
-	DataDir      = `dataDir`
-	DataFile     = `dataFile`
-	IndexPath    = `indexPath`
-	DefaultField = `title`
-	UID          = `uid`
+	ParamFullText = `fullText`
+	SrchAttr      = `searchableAttributes`
+	FacetAttr     = `attributesForFaceting`
+	SortAttr      = `sortableAttributes`
+	DataDir       = `dataDir`
+	DataFile      = `dataFile`
+	IndexPath     = `indexPath`
+	DefaultField  = `title`
+	UID           = `uid`
 
 	TextAnalyzer    = "text"
 	KeywordAnalyzer = "keyword"
@@ -53,6 +53,7 @@ var paramsSettings = []string{
 	DataFile,
 	IndexPath,
 	DefaultField,
+	ParamFullText,
 	UID,
 }
 
@@ -66,7 +67,6 @@ var paramsSearch = []string{
 	ParamFacets,
 	ParamFilters,
 	FacetFilters,
-	ParamFullText,
 	NbHits,
 	NbPages,
 	SortBy,
@@ -137,7 +137,7 @@ func (p Params) Get(key string) string {
 
 func (p *Params) Set(key string, val string) {
 	switch key {
-	case FacetAttr, SrchAttr, DataDir, DataFile, SortAttr, IndexPath:
+	case FacetAttr, SrchAttr, DataDir, DataFile, SortAttr, IndexPath, ParamFullText:
 		p.Settings.Set(key, val)
 	default:
 		p.Search.Set(key, val)
@@ -150,7 +150,7 @@ func (p Params) GetUID() string {
 
 func (p Params) Has(key string) bool {
 	switch key {
-	case FacetAttr, SrchAttr, DataDir, DataFile, SortAttr, IndexPath:
+	case FacetAttr, SrchAttr, DataDir, DataFile, SortAttr, IndexPath, ParamFullText:
 		return p.Settings.Has(key)
 	default:
 		return p.Search.Has(key)
@@ -165,20 +165,6 @@ func (p *Params) SetSearch(params string) *Params {
 
 func (p Params) HasFilters() bool {
 	return p.Search.Has(FacetFilters)
-}
-
-func (p Params) HasBleveIndex() bool {
-	return p.Has(IndexPath) || p.Has(ParamFullText)
-}
-
-func (p Params) GetIndexPath() (string, bool) {
-	if !p.HasBleveIndex() {
-		return "", false
-	}
-	if p.Settings.Has(IndexPath) {
-		return p.Settings.Get(IndexPath), true
-	}
-	return "memOnly", true
 }
 
 func (p *Params) Filters() []any {
@@ -217,9 +203,6 @@ func (p *Params) NewField(attr string) *Field {
 	case true:
 		f.SetAnalyzer(txt.Keyword())
 	default:
-		if p.IsFullText() {
-			f.SetAnalyzer(txt.Fulltext())
-		}
 	}
 
 	f.SortBy = p.SortFacetsBy()
@@ -299,11 +282,11 @@ func (p Params) SetHitsPerPage(i any) {
 }
 
 func (p *Params) IsFullText() bool {
-	return p.Search.Has(ParamFullText)
+	return p.Has(ParamFullText)
 }
 
 func (p *Params) GetFullText() string {
-	return p.Search.Get(ParamFullText)
+	return p.Get(ParamFullText)
 }
 
 func (p Params) Query() string {
@@ -318,9 +301,6 @@ func (p Params) SortBy() string {
 }
 
 func (p Params) GetAnalyzer() string {
-	if p.IsFullText() {
-		return TextAnalyzer
-	}
 	return KeywordAnalyzer
 }
 

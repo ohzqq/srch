@@ -105,7 +105,6 @@ func (idx *Idx) Search(params string) *Response {
 
 	query := idx.Query()
 	if query != "" {
-		println(query)
 		if idx.Params.IsFullText() {
 			idx.idx = blv.Open(idx.Params.GetFullText())
 			bits, err := idx.idx.Search(query)

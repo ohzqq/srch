@@ -26,6 +26,9 @@ func TestNewBlvSearch(t *testing.T) {
 	idx := newTestIdxCfg("&fullText=testdata/poot.bleve")
 	res := idx.Search("query=fish")
 	if h := res.NbHits(); h != 8 {
+		for _, hit := range res.Data {
+			fmt.Printf("data %+v\n", hit["title"])
+		}
 		t.Errorf("got %d hits, expected %d\n", h, 8)
 	}
 }
