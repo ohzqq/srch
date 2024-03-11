@@ -23,13 +23,17 @@ func init() {
 
 // Idx is a structure for facets and data.
 type Idx struct {
-	fields  map[string]*Field
-	Data    []map[string]any
-	res     *roaring.Bitmap
-	idx     *FullText
+	fields map[string]*Field
+	Data   []map[string]any
+	res    *roaring.Bitmap
+	//idx     *FullText
 	isBleve bool
 
 	*Params `json:"params"`
+}
+
+type Index interface {
+	Search(string) ([]map[string]any, error)
 }
 
 var NoDataErr = errors.New("no data")
@@ -102,22 +106,22 @@ func (idx *Idx) Search(params string) *Response {
 
 	query := idx.Query()
 	if query != "" {
-		if path, ok := idx.Params.GetIndexPath(); ok {
+		//if path, ok := idx.Params.GetIndexPath(); ok {
 
-			r, err := SearchBleve(path, query)
-			if err != nil {
-				println(err.Error())
-				return nil
-			}
-			var hits []uint32
-			for _, hit := range r.Hits {
-				hits = append(hits, cast.ToUint32(hit.ID))
-			}
-			h := roaring.New()
-			h.AddMany(hits)
-			idx.res.And(h)
-			return idx.Response()
-		}
+		//r, err := SearchBleve(path, query)
+		//if err != nil {
+		//println(err.Error())
+		//return nil
+		//}
+		//var hits []uint32
+		//for _, hit := range r.Hits {
+		//hits = append(hits, cast.ToUint32(hit.ID))
+		//}
+		//h := roaring.New()
+		//h.AddMany(hits)
+		//idx.res.And(h)
+		//return idx.Response()
+		//}
 		//switch idx.GetAnalyzer() {
 		//case TextAnalyzer:
 		//  idx.res.And(idx.FullText(query))
