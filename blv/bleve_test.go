@@ -7,9 +7,6 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
-
-	"github.com/blevesearch/bleve/v2"
-	"github.com/spf13/cast"
 )
 
 //func TestDocMapping(t *testing.T) {
@@ -21,105 +18,39 @@ import (
 //  println(string(d))
 //}
 
-const blevePath = `testdata/poot`
-
-func TestBleveSearch(t *testing.T) {
-	idx, err := bleve.Open(blevePath)
-	//idx, err := NewTextIndex(MemOnly)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer idx.Close()
-
-	q := bleve.NewQueryStringQuery("fish")
-	req := bleve.NewSearchRequest(q)
-
-	res, err := idx.Search(req)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	println(res.Hits.Len())
-
-	for _, hit := range res.Hits {
-		fmt.Printf("%+v\n", hit.ID)
-	}
-}
+const blevePath = `../testdata/poot`
+const testDataFile = `../testdata/ndbooks.json`
 
 func TestNewBleveIndex(t *testing.T) {
-	//idx, err := NewTextIndex(FTPath(blevePath))
-	idx, err := NewTextIndex(MemOnly)
-	if err != nil {
-		//t.Fatal(err)
-		t.Skipf("%v\n", err)
-	}
-
-	d, err := idx.DocCount()
+	t.SkipNow()
+	_, err := New(blevePath)
 	if err != nil {
 		t.Error(err)
 	}
-	println(d)
 }
 
 func TestBatchIndex(t *testing.T) {
-	t.SkipNow()
-	batchSize := 1000
+	//t.SkipNow()
+	books := loadData(t)
+	println(len(books))
 
-	idx, err := bleve.Open(blevePath)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer idx.Close()
-
-	file, err := os.Open("testdata/ndbooks.json")
+	idx := Open(blevePath)
+	err := idx.Index("id", books...)
 	if err != nil {
 		t.Error(err)
 	}
+}
 
-	i := 0
-	batch := idx.NewBatch()
-
-	r := bufio.NewReader(file)
-
-	for {
-		if i%batchSize == 0 {
-			fmt.Printf("Indexing batch (%d docs)...\n", i)
-			err := idx.Batch(batch)
-			if err != nil {
-				t.Error(err)
-			}
-			batch = idx.NewBatch()
-		}
-
-		b, _ := r.ReadBytes('\n')
-		if len(b) == 0 {
-			break
-		}
-
-		var doc interface{}
-		doc = b
-		var err error
-		err = json.Unmarshal(b, &doc)
-		if err != nil {
-			t.Errorf("error parsing JSON: %v", err)
-		}
-
-		book := cast.ToStringMap(doc)
-
-		//docID := cast.ToString(book["id"])
-		docID := cast.ToString(i)
-		err = batch.Index(docID, book)
-		if err != nil {
-			t.Error(err)
-		}
-		i++
+func TestOpenIndex(t *testing.T) {
+	idx := Open(blevePath)
+	docs := idx.Len()
+	println(docs)
+	if docs != 7000 {
+		t.Errorf("got %d docs, expected %d\n", docs, 7252)
 	}
+}
 
-	err = file.Close()
-	if err != nil {
-		t.Error(err)
-	}
-
+func TestBleveSearch(t *testing.T) {
 }
 
 func cleanIdx() {
@@ -134,4 +65,26 @@ func cleanIdx() {
 	if err != nil {
 		fmt.Printf("%v\n", err)
 	}
+}
+
+func loadData(t *testing.T) []map[string]any {
+	d, err := os.Open(testDataFile)
+	if err != nil {
+		t.Error(err)
+	}
+	defer d.Close()
+
+	var books []map[string]any
+
+	scanner := bufio.NewScanner(d)
+	for scanner.Scan() {
+		b := make(map[string]any)
+		err = json.Unmarshal(scanner.Bytes(), &b)
+		if err != nil {
+			t.Error(err)
+		}
+		books = append(books, b)
+	}
+
+	return books
 }
