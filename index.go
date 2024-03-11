@@ -114,32 +114,9 @@ func (idx *Idx) Search(params string) *Response {
 			idx.res.And(bits)
 			return idx.Response()
 		}
-		//if path, ok := idx.Params.GetIndexPath(); ok {
-
-		//r, err := SearchBleve(path, query)
-		//if err != nil {
-		//println(err.Error())
-		//return nil
-		//}
-		//var hits []uint32
-		//for _, hit := range r.Hits {
-		//hits = append(hits, cast.ToUint32(hit.ID))
-		//}
-		//h := roaring.New()
-		//h.AddMany(hits)
-		//idx.res.And(h)
-		//return idx.Response()
-		//}
-		//switch idx.GetAnalyzer() {
-		//case TextAnalyzer:
-		//  idx.res.And(idx.FullText(query))
-		//case KeywordAnalyzer:
-		//  idx.res.And(idx.FuzzySearch(query))
-		//}
 
 		idx.res.And(idx.FuzzySearch(query))
 		return idx.Response()
-
 	}
 
 	res := idx.Response()
@@ -180,14 +157,6 @@ func (idx *Idx) Sort() {
 
 func (idx *Idx) GetParams() url.Values {
 	return idx.Values()
-}
-
-func (idx *Idx) FullText(q string) *roaring.Bitmap {
-	var bits []*roaring.Bitmap
-	for _, field := range idx.SearchableFields() {
-		bits = append(bits, field.Filter(q))
-	}
-	return roaring.ParAnd(viper.GetInt("workers"), bits...)
 }
 
 func (idx *Idx) FuzzySearch(q string) *roaring.Bitmap {
