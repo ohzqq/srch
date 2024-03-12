@@ -108,18 +108,6 @@ func (p Settings) GetDataFiles() ([]string, error) {
 	return data, nil
 }
 
-func (p *Settings) IsFullText() bool {
-	return p.params.Has(FullText)
-}
-
-func (p *Settings) GetFullText() string {
-	return p.params.Get(FullText)
-}
-
-func (p Settings) GetUID() string {
-	return p.params.Get("uid")
-}
-
 func DecodeData(r io.Reader, ct string, data *[]map[string]any) error {
 	b, _, ok := strings.Cut(ct, ";")
 	if ok {
