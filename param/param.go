@@ -4,76 +4,50 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/samber/lo"
 	"github.com/spf13/cast"
 )
 
 type Params struct {
-	*Settings
-	*Search
-	params url.Values
+	// Settings
+	*Settings `mapstructure:",squash"`
+	*Search   `mapstructure:",squash"`
+	Other     url.Values `mapstructure:"params,omitempty"`
 }
 
 func New() *Params {
 	return &Params{
 		Settings: NewSettings(),
 		Search:   NewSearch(),
-		params:   make(url.Values),
+		Other:    make(url.Values),
 	}
 }
 
-func Parse(q string) *Params {
-}
+func Parse(params string) (*Params, error) {
+	p := New()
 
-func (p *Params) Get(key string) string {
-	if p.params.Has(key) {
-		return p.params.Get(key)
+	vals, err := url.ParseQuery(params)
+	if err != nil {
+		return nil, err
 	}
-	if p.Search.params.Has(key) {
-		return p.Search.params.Get(key)
-	}
-}
 
-func (p *Params) All(key string) []string {
-	if p.Settings.params.Has(key) {
-		return p.Settings.params[key]
+	err = p.Settings.Parse(vals)
+	if err != nil {
+		return nil, err
 	}
-	if p.Search.params.Has(key) {
-		return p.Search.params[key]
+	err = p.Search.Parse(vals)
+	if err != nil {
+		return nil, err
 	}
-}
 
-func (p *Params) Del(key string) {
-	if p.Settings.params.Has(key) {
-		p.Settings.params.Del(key)
-	}
-	if p.Search.params.Has(key) {
-		p.Search.params.Del(key)
-	}
-}
+	p.Other = vals
 
-func (p *Params) Set(key string, val any) {
-	v := cast.ToString(val)
-	if p.Settings.params.Has(key) {
-		p.Settings.params.Set(key, v)
-	}
-	if p.Search.params.Has(key) {
-		p.Search.params.Set(key, v)
-	}
-}
-
-func (p *Params) Add(key string, val any) {
-	v := cast.ToString(val)
-	if p.Settings.params.Has(key) {
-		p.Settings.params.Add(key, v)
-	}
-	if p.Search.params.Has(key) {
-		p.Search.params.Add(key, v)
-	}
+	return p, nil
 }
 
 // ParseParams takes an interface{} and returns a url.Values.
 func ParseParams(f string) (url.Values, error) {
-	vals, err := url.ParseQuery(val)
+	vals, err := url.ParseQuery(f)
 	if err != nil {
 		return nil, err
 	}
@@ -95,10 +69,10 @@ func parseSrchAttr(vals url.Values) []string {
 }
 
 func parseFacetAttr(vals url.Values) []string {
-	if !vals.Has(ParamFacets) {
-		vals[ParamFacets] = GetQueryStringSlice(FacetAttr, vals)
+	if !vals.Has(Facets) {
+		vals[Facets] = GetQueryStringSlice(FacetAttr, vals)
 	}
-	return vals[ParamFacets]
+	return vals[Facets]
 }
 
 // ParseQueryString parses an encoded filter string.
@@ -108,6 +82,17 @@ func ParseQueryString(val string) (url.Values, error) {
 		return nil, err
 	}
 	return q, err
+}
+
+func GetAnySlice(key string, vals url.Values) []any {
+	return lo.ToAnySlice(GetQueryStringSlice(key, vals))
+}
+
+func GetQueryInt(key string, vals url.Values) int {
+	if vals.Has(key) {
+		return cast.ToInt(vals.Get(key))
+	}
+	return 0
 }
 
 func GetQueryStringSlice(key string, q url.Values) []string {

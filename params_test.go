@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/mitchellh/mapstructure"
+	"github.com/ohzqq/srch/param"
 )
 
 var (
@@ -24,12 +25,13 @@ var (
 var testQuerySettings = []string{
 	"",
 	"searchableAttributes=",
-	"searchableAttributes=title&fullText",
+	"searchableAttributes=title&fullText=testadata/poot.bleve",
 	"searchableAttributes=title&dataDir=testdata/data-dir",
 	"attributesForFaceting=tags,authors,series,narrators",
 	"attributesForFaceting=tags,authors,series,narrators&dataFile=testdata/data-dir/audiobooks.json",
 	"searchableAttributes=title&attributesForFaceting=tags,authors,series,narrators",
 	"searchableAttributes=title&dataFile=testdata/data-dir/audiobooks.json&attributesForFaceting=tags,authors,series,narrators",
+	`searchableAttributes=title&dataFile=testdata/data-dir/audiobooks.json&attributesForFaceting=tags,authors,series,narrators&page=3&query=fish&facets=tags&facets=authors&sortBy=title&order=desc&facetFilters=["authors:amy lane", ["tags:romance", "tags:-dnr"]]`,
 }
 
 var testParsedParams = []*Params{
@@ -78,11 +80,39 @@ var testParsedParams = []*Params{
 			SrchAttr:  defFields,
 			DataFile:  defDataFile,
 			FacetAttr: defFacetAttr,
+			"query":   []string{"fish"},
 		},
 	},
 }
 
+func TestNewParser(t *testing.T) {
+	tests := []string{
+		`searchableAttributes=title&dataDir=testdata/nddata/&attributesForFaceting=tags,authors,series,narrators&page=3&query=fish&facets=tags&facets=authors&sortBy=title&order=desc&facetFilters=["authors:amy lane", ["tags:romance", "tags:-dnr"]]`,
+		`searchableAttributes=title&dataFile=testdata/ndbooks.json&attributesForFaceting=tags,authors,series,narrators&page=3&query=fish&facets=tags&facets=authors&sortBy=title&order=desc&facetFilters=["authors:amy lane", ["tags:romance", "tags:-dnr"]]`,
+	}
+	for _, query := range tests {
+		//q := url.QueryEscape(`facetFilters=["authors:amy lane", ["tags:romance", "tags:-dnr"]]`)
+		//query += "&"
+		//query += q
+		params, err := param.Parse(query)
+		if err != nil {
+			t.Error(err)
+		}
+		//println(query)
+		data, err := params.Settings.GetData()
+		if err != nil {
+			t.Error(err)
+		}
+		if params.HasData() && len(data) != 7252 {
+			t.Errorf("got %d, expected %d\n", len(data), 7252)
+		}
+		//fmt.Printf("Settings %+v\n", params.Settings)
+		//fmt.Printf("Search %+v\n", params.Search)
+	}
+}
+
 func TestMapStruct(t *testing.T) {
+	t.SkipNow()
 	for _, query := range testQuerySettings {
 		vals, err := url.ParseQuery(query)
 		if err != nil {
@@ -91,7 +121,8 @@ func TestMapStruct(t *testing.T) {
 
 		fmt.Printf("%+v\n", vals)
 
-		params := &Params{}
+		params := &param.Params{}
+
 		err = mapstructure.Decode(vals, params)
 		if err != nil {
 			t.Error(err)

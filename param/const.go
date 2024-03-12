@@ -29,3 +29,30 @@ const (
 	TextAnalyzer    = "text"
 	KeywordAnalyzer = "keyword"
 )
+
+var paramsSettings = []string{
+	SrchAttr,
+	FacetAttr,
+	SortAttr,
+	DataDir,
+	DataFile,
+	DefaultField,
+	FullText,
+	UID,
+}
+
+var paramsSearch = []string{
+	Hits,
+	AttributesToRetrieve,
+	Page,
+	HitsPerPage,
+	SortFacetsBy,
+	Query,
+	Facets,
+	Filters,
+	FacetFilters,
+	NbHits,
+	NbPages,
+	SortBy,
+	Order,
+}
