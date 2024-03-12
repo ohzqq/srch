@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 func init() {
@@ -120,6 +121,10 @@ func (p Settings) GetUID() string {
 }
 
 func DecodeData(r io.Reader, ct string, data *[]map[string]any) error {
+	b, _, ok := strings.Cut(ct, ";")
+	if ok {
+		ct = b
+	}
 	switch ct {
 	case "application/x-ndjson":
 		return DecodeNDJSON(r, data)
