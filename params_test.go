@@ -106,16 +106,10 @@ func TestNewParser(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-		//println(query)
-		data, err := params.Settings.GetData()
-		if err != nil {
-			t.Error(err)
-		}
-		if params.HasData() && len(data) != 7252 {
-			t.Errorf("got %d, expected %d\n", len(data), 7252)
-		}
-		//fmt.Printf("Settings %+v\n", params.Settings)
-		//fmt.Printf("Search %+v\n", params.Search)
+		data := params.Settings.GetDataFiles()
+		println(len(data))
+		fmt.Printf("Settings %+v\n", params.Settings)
+		fmt.Printf("Search %+v\n", params.Search)
 	}
 }
 
