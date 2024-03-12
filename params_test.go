@@ -85,6 +85,15 @@ var testParsedParams = []*Params{
 	},
 }
 
+func TestGetData(t *testing.T) {
+	var data []map[string]any
+	err := GetData(&data, testDataDir)
+	if err != nil {
+		t.Error(err)
+	}
+	println(len(data))
+}
+
 func TestNewParser(t *testing.T) {
 	tests := []string{
 		`searchableAttributes=title&dataDir=testdata/nddata/&attributesForFaceting=tags,authors,series,narrators&page=3&query=fish&facets=tags&facets=authors&sortBy=title&order=desc&facetFilters=["authors:amy lane", ["tags:romance", "tags:-dnr"]]`,

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/url"
 
-	"github.com/spf13/cast"
+	"github.com/spf13/viper"
 )
 
 type Search struct {
@@ -17,17 +17,13 @@ type Search struct {
 	Facets               []string `query:"facets,omitempty" json:"facets,omitempty"`
 	Filters              string   `query:"filters,omitempty" json:"filters,omitempty"`
 	FacetFilters         []any    `query:"facetFilters,omitempty" json:"facetFilters,omitempty"`
-	NbHits               int      `query:"nbHits,omitempty" json:"nbHits,omitempty"`
-	NbPages              int      `query:"nbPages,omitempty" json:"nbPages,omitempty"`
 	SortBy               string   `query:"sortBy,omitempty" json:"sortBy,omitempty"`
 	Order                string   `query:"order,omitempty" json:"order,omitempty"`
-
-	params url.Values
 }
 
 func NewSearch() *Search {
 	return &Search{
-		params: make(url.Values),
+		HitsPerPage: viper.GetInt("hitsPerPage"),
 	}
 }
 
@@ -59,10 +55,6 @@ func (s *Search) Parse(v url.Values) error {
 				}
 				s.FacetFilters = f
 			}
-		case NbHits:
-			s.NbHits = GetQueryInt(key, v)
-		case NbPages:
-			s.NbPages = GetQueryInt(key, v)
 		case SortBy:
 			s.SortBy = v.Get(key)
 		case Order:
@@ -71,71 +63,6 @@ func (s *Search) Parse(v url.Values) error {
 		v.Del(key)
 	}
 	return nil
-}
-
-func (p Search) HasFilters() bool {
-	return p.params.Has(FacetFilters)
-}
-
-//func (p *Search) Filters() []any {
-//  if p.HasFilters() {
-//    fils, err := unmarshalFilter(p.params.Get(FacetFilters))
-//    if err != nil {
-//    }
-//    return fils
-//  }
-//  return []any{}
-//}
-
-//func (p Search) HitsPerPage() int {
-//  page := viper.GetInt(HitsPerPage)
-//  if p.params.Has(HitsPerPage) {
-//    pn := p.params.Get(HitsPerPage)
-//    page, err := strconv.Atoi(pn)
-//    if err != nil {
-//      return 25
-//    }
-//    return page
-//  }
-//  return page
-//}
-
-func (p Search) SetHitsPerPage(i any) {
-	p.params.Set(HitsPerPage, cast.ToString(i))
-}
-
-//func (p Search) Query() string {
-//  return p.params.Get(Query)
-//}
-
-//func (p Search) SortBy() string {
-//  if p.params.Has(SortBy) {
-//    return p.params.Get(SortBy)
-//  }
-//  return DefaultField
-//}
-
-//func (p *Search) SortFacetsBy() string {
-//  sort := SortByCount
-//  if p.params.Has(SortFacetsBy) {
-//    if by := p.params.Get(SortFacetsBy); by == SortByCount || by == SortByAlpha {
-//      sort = by
-//    }
-//  }
-//  return sort
-//}
-
-//func (p Search) Page() int {
-//  pn := p.params.Get(Page)
-//  page, err := strconv.Atoi(pn)
-//  if err != nil {
-//    return 0
-//  }
-//  return page
-//}
-
-func (p *Search) SetPage(i any) {
-	p.params.Set(Page, cast.ToString(i))
 }
 
 func unmarshalFilter(dec string) ([]any, error) {
