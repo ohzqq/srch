@@ -88,12 +88,11 @@ var testParsedParams = []*Params{
 func TestNewParser(t *testing.T) {
 	tests := []string{
 		`searchableAttributes=title&dataDir=testdata/nddata/&attributesForFaceting=tags,authors,series,narrators&page=3&query=fish&facets=tags&facets=authors&sortBy=title&order=desc&facetFilters=["authors:amy lane", ["tags:romance", "tags:-dnr"]]`,
-		`searchableAttributes=title&dataFile=testdata/ndbooks.json&attributesForFaceting=tags,authors,series,narrators&page=3&query=fish&facets=tags&facets=authors&sortBy=title&order=desc&facetFilters=["authors:amy lane", ["tags:romance", "tags:-dnr"]]`,
+		`searchableAttributes=title&dataFile=testdata/ndbooks.ndjson&attributesForFaceting=tags,authors,series,narrators&page=3&query=fish&facets=tags&facets=authors&sortBy=title&order=desc&facetFilters=["authors:amy lane", ["tags:romance", "tags:-dnr"]]`,
 	}
+
 	for _, query := range tests {
-		//q := url.QueryEscape(`facetFilters=["authors:amy lane", ["tags:romance", "tags:-dnr"]]`)
-		//query += "&"
-		//query += q
+		//for _, query := range testQuerySettings {
 		params, err := param.Parse(query)
 		if err != nil {
 			t.Error(err)

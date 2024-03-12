@@ -2,22 +2,26 @@ package param
 
 import (
 	"encoding/json"
-	"errors"
 	"io"
+	"mime"
 	"net/url"
 	"os"
 	"path/filepath"
 )
 
+func init() {
+	mime.AddExtensionType(".ndjson", "application/x-ndjson")
+}
+
 type Settings struct {
-	FullText     string   `query:"fullText,omitempty" json:"fullText,omitempty" mapstructure:"fullText,omitempty"`
-	SrchAttr     []string `query:"searchableAttributes,omitempty" json:"searchableAttributes,omitempty" mapstructure:"searchableAttributes,omitempty"`
-	FacetAttr    []string `query:"attributesForFaceting,omitempty" json:"attributesForFaceting,omitempty" mapstructure:"attributesForFaceting,omitempty"`
-	SortAttr     []string `query:"sortableAttributes,omitempty" json:"sortableAttributes,omitempty" mapstructure:"sortableAttributes,omitempty"`
-	DataDir      string   `query:"dataDir,omitempty" json:"dataDir,omitempty" mapstructure:"dataDir,omitempty"`
-	DataFile     []string `query:"dataFile,omitempty" json:"dataFile,omitempty" mapstructure:"dataFile,omitempty"`
-	DefaultField string   `query:"defaultField,omitempty" json:"defaultField,omitempty" mapstructure:"defaultField,omitempty"`
-	UID          string   `query:"uid,omitempty" json:"uid,omitempty" mapstructure:"uid,omitempty"`
+	FullText     string   `query:"fullText,omitempty" json:"fullText,omitempty"`
+	SrchAttr     []string `query:"searchableAttributes,omitempty" json:"searchableAttributes,omitempty"`
+	FacetAttr    []string `query:"attributesForFaceting,omitempty" json:"attributesForFaceting,omitempty"`
+	SortAttr     []string `query:"sortableAttributes,omitempty" json:"sortableAttributes,omitempty"`
+	DataDir      string   `query:"dataDir,omitempty" json:"dataDir,omitempty"`
+	DataFile     []string `query:"dataFile,omitempty" json:"dataFile,omitempty"`
+	DefaultField string   `query:"defaultField,omitempty" json:"defaultField,omitempty"`
+	UID          string   `query:"uid,omitempty" json:"uid,omitempty"`
 
 	params url.Values
 }
@@ -73,7 +77,9 @@ func (p Settings) GetData() ([]map[string]any, error) {
 		}
 		defer f.Close()
 
-		err = DecodeData(f, &data)
+		ct := mime.TypeByExtension(filepath.Ext(file))
+
+		err = DecodeData(f, ct, &data)
 		if err != nil {
 			return nil, err
 		}
@@ -82,18 +88,23 @@ func (p Settings) GetData() ([]map[string]any, error) {
 }
 
 func (p Settings) GetDataFiles() ([]string, error) {
+	var data []string
 	switch {
 	case p.DataDir != "":
 		d, err := filepath.Glob(filepath.Join(p.DataDir, "*.json"))
 		if err != nil {
 			return nil, err
 		}
-		return d, nil
+		data = append(data, d...)
+		nd, err := filepath.Glob(filepath.Join(p.DataDir, "*.ndjson"))
+		if err != nil {
+			return nil, err
+		}
+		data = append(data, nd...)
 	case len(p.DataFile) > 0:
 		return p.DataFile, nil
-	default:
-		return []string{}, errors.New("no data")
 	}
+	return data, nil
 }
 
 func (p *Settings) IsFullText() bool {
@@ -108,8 +119,18 @@ func (p Settings) GetUID() string {
 	return p.params.Get("uid")
 }
 
-// DecodeData decodes data from a io.Reader.
-func DecodeData(r io.Reader, data *[]map[string]any) error {
+func DecodeData(r io.Reader, ct string, data *[]map[string]any) error {
+	switch ct {
+	case "application/x-ndjson":
+		return DecodeNDJSON(r, data)
+	case "application/json":
+		return DecodeJSON(r, data)
+	}
+	return nil
+}
+
+// DecodeNDJSON decodes data from a io.Reader.
+func DecodeNDJSON(r io.Reader, data *[]map[string]any) error {
 	dec := json.NewDecoder(r)
 	for {
 		m := make(map[string]any)
@@ -119,6 +140,20 @@ func DecodeData(r io.Reader, data *[]map[string]any) error {
 			return err
 		}
 		*data = append(*data, m)
+	}
+	return nil
+}
+
+func DecodeJSON(r io.Reader, data *[]map[string]any) error {
+	dec := json.NewDecoder(r)
+	for {
+		m := []map[string]any{}
+		if err := dec.Decode(&m); err == io.EOF {
+			break
+		} else if err != nil {
+			return err
+		}
+		*data = append(*data, m...)
 	}
 	return nil
 }

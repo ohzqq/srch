@@ -8,19 +8,19 @@ import (
 )
 
 type Search struct {
-	Hits                 int      `query:"hits,omitempty" json:"hits,omitempty" mapstructure:"hits,omitempty"`
-	AttributesToRetrieve []string `query:"attributesToRetrieve,omitempty" json:"attributesToRetrieve,omitempty" mapstructure:"attributesToRetrieve,omitempty"`
-	Page                 int      `query:"page,omitempty" json:"page,omitempty" mapstructure:"page,omitempty"`
-	HitsPerPage          int      `query:"hitsPerPage,omitempty" json:"hitsPerPage,omitempty" mapstructure:"hitsPerPage,omitempty"`
-	SortFacetsBy         string   `query:"sortFacetsBy,omitempty" json:"sortFacetsBy,omitempty" mapstructure:"sortFacetsBy,omitempty"`
-	Query                string   `query:"query,omitempty" json:"query,omitempty" mapstructure:"query,omitempty"`
-	Facets               []string `query:"facets,omitempty" json:"facets,omitempty" mapstructure:"facets,omitempty"`
-	Filters              string   `query:"filters,omitempty" json:"filters,omitempty" mapstructure:"filters,omitempty"`
-	FacetFilters         []any    `query:"facetFilters,omitempty" json:"facetFilters,omitempty" mapstructure:"facetFilters,omitempty"`
-	NbHits               int      `query:"nbHits,omitempty" json:"nbHits,omitempty" mapstructure:"nbHits,omitempty"`
-	NbPages              int      `query:"nbPages,omitempty" json:"nbPages,omitempty" mapstructure:"nbPages,omitempty"`
-	SortBy               string   `query:"sortBy,omitempty" json:"sortBy,omitempty" mapstructure:"sortBy,omitempty"`
-	Order                string   `query:"order,omitempty" json:"order,omitempty" mapstructure:"order,omitempty"`
+	Hits                 int      `query:"hits,omitempty" json:"hits,omitempty"`
+	AttributesToRetrieve []string `query:"attributesToRetrieve,omitempty" json:"attributesToRetrieve,omitempty"`
+	Page                 int      `query:"page,omitempty" json:"page,omitempty"`
+	HitsPerPage          int      `query:"hitsPerPage,omitempty" json:"hitsPerPage,omitempty"`
+	SortFacetsBy         string   `query:"sortFacetsBy,omitempty" json:"sortFacetsBy,omitempty"`
+	Query                string   `query:"query,omitempty" json:"query,omitempty"`
+	Facets               []string `query:"facets,omitempty" json:"facets,omitempty"`
+	Filters              string   `query:"filters,omitempty" json:"filters,omitempty"`
+	FacetFilters         []any    `query:"facetFilters,omitempty" json:"facetFilters,omitempty"`
+	NbHits               int      `query:"nbHits,omitempty" json:"nbHits,omitempty"`
+	NbPages              int      `query:"nbPages,omitempty" json:"nbPages,omitempty"`
+	SortBy               string   `query:"sortBy,omitempty" json:"sortBy,omitempty"`
+	Order                string   `query:"order,omitempty" json:"order,omitempty"`
 
 	params url.Values
 }
