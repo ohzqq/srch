@@ -44,16 +44,6 @@ func NewField(attr string) *Field {
 	return f
 }
 
-func (t *Field) Find(val any) []*Token {
-	var tokens []*Token
-	for _, tok := range t.Tokenize(val) {
-		if token, ok := t.tokens[tok.Value]; ok {
-			tokens = append(tokens, token)
-		}
-	}
-	return tokens
-}
-
 func (t *Field) Add(val any, ids []int) {
 	for _, token := range t.Tokenize(val) {
 		if t.tokens == nil {
@@ -67,13 +57,44 @@ func (t *Field) Add(val any, ids []int) {
 	}
 }
 
-func (t *Field) Tokenize(val any) []*Token {
-	tokens, _ := t.ana.Tokenize(cast.ToString(val))
-	toks := make([]*Token, len(tokens))
-	for i, t := range tokens {
-		toks[i] = newTok(t)
+func (t *Field) Find(val any) []*Token {
+	var tokens []*Token
+	for _, tok := range t.Tokenize(val) {
+		if token, ok := t.tokens[tok.Value]; ok {
+			tokens = append(tokens, token)
+		}
 	}
-	return toks
+	return tokens
+}
+
+func (t *Field) Search(term string) []*Token {
+	matches := fuzzy.FindFrom(term, t)
+	tokens := make([]*Token, len(matches))
+	all := t.GetTokens()
+	for i, match := range matches {
+		tokens[i] = all[match.Index]
+	}
+	return tokens
+}
+
+func (t *Field) Filter(val string) *roaring.Bitmap {
+	tokens := t.Find(val)
+	bits := make([]*roaring.Bitmap, len(tokens))
+	for i, token := range tokens {
+		bits[i] = token.Bitmap()
+	}
+	return roaring.ParAnd(viper.GetInt("workers"), bits...)
+}
+
+func (t *Field) Fuzzy(term string) *roaring.Bitmap {
+	matches := fuzzy.FindFrom(term, t)
+	all := t.GetTokens()
+	bits := make([]*roaring.Bitmap, len(matches))
+	for i, match := range matches {
+		b := all[match.Index].Bitmap()
+		bits[i] = b
+	}
+	return roaring.ParOr(viper.GetInt("workers"), bits...)
 }
 
 func (t *Field) FindByLabel(label string) *Token {
@@ -83,6 +104,65 @@ func (t *Field) FindByLabel(label string) *Token {
 		}
 	}
 	return NewToken(label, label)
+}
+
+func (t *Field) FindByIndex(ti ...int) []*Token {
+	var tokens []*Token
+	toks := t.GetTokens()
+	total := t.Count()
+	for _, tok := range ti {
+		if tok < total {
+			tokens = append(tokens, toks[tok])
+		}
+	}
+	return tokens
+}
+
+func (t *Field) SortTokens() []*Token {
+	tokens := t.GetTokens()
+
+	switch t.SortBy {
+	case SortByAlpha:
+		if t.Order == "" {
+			t.Order = "asc"
+		}
+		SortTokensByAlpha(tokens)
+	default:
+		if t.Order == "" {
+			t.Order = "desc"
+		}
+		SortTokensByCount(tokens)
+	}
+
+	if t.Order == "desc" {
+		slices.Reverse(tokens)
+	}
+
+	return tokens
+}
+
+func (f *Field) SetAnalyzer(ana *txt.Analyzer) *Field {
+	f.ana = ana
+	return f
+}
+
+func (f *Field) Keywords() *Field {
+	f.ana = txt.Keywords()
+	return f
+}
+
+func (f *Field) Normalize() *Field {
+	f.ana = txt.NewNormalizer()
+	return f
+}
+
+func (t *Field) Tokenize(val any) []*Token {
+	tokens, _ := t.ana.Tokenize(cast.ToString(val))
+	toks := make([]*Token, len(tokens))
+	for i, t := range tokens {
+		toks[i] = newTok(t)
+	}
+	return toks
 }
 
 func (t *Field) Count() int {
@@ -126,71 +206,6 @@ func GetFieldItems(data []map[string]any, field *Field) []map[string]any {
 		}
 	}
 	return items
-}
-
-func (t *Field) FindByIndex(ti ...int) []*Token {
-	var tokens []*Token
-	toks := t.GetTokens()
-	total := t.Count()
-	for _, tok := range ti {
-		if tok < total {
-			tokens = append(tokens, toks[tok])
-		}
-	}
-	return tokens
-}
-
-func (t *Field) SortTokens() []*Token {
-	tokens := t.GetTokens()
-
-	switch t.SortBy {
-	case SortByAlpha:
-		if t.Order == "" {
-			t.Order = "asc"
-		}
-		SortTokensByAlpha(tokens)
-	default:
-		if t.Order == "" {
-			t.Order = "desc"
-		}
-		SortTokensByCount(tokens)
-	}
-
-	if t.Order == "desc" {
-		slices.Reverse(tokens)
-	}
-
-	return tokens
-}
-
-func (t *Field) Search(term string) []*Token {
-	matches := fuzzy.FindFrom(term, t)
-	tokens := make([]*Token, len(matches))
-	all := t.GetTokens()
-	for i, match := range matches {
-		tokens[i] = all[match.Index]
-	}
-	return tokens
-}
-
-func (t *Field) Filter(val string) *roaring.Bitmap {
-	tokens := t.Find(val)
-	bits := make([]*roaring.Bitmap, len(tokens))
-	for i, token := range tokens {
-		bits[i] = token.Bitmap()
-	}
-	return roaring.ParAnd(viper.GetInt("workers"), bits...)
-}
-
-func (t *Field) Fuzzy(term string) *roaring.Bitmap {
-	matches := fuzzy.FindFrom(term, t)
-	all := t.GetTokens()
-	bits := make([]*roaring.Bitmap, len(matches))
-	for i, match := range matches {
-		b := all[match.Index].Bitmap()
-		bits[i] = b
-	}
-	return roaring.ParOr(viper.GetInt("workers"), bits...)
 }
 
 func (t *Field) GetValues() []string {
