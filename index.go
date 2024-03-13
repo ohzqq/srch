@@ -58,15 +58,22 @@ func NewIdx(settings string) (*Idx, error) {
 	return idx, nil
 }
 
-func New(settings any) (*Idx, error) {
+func New(settings string) (*Idx, error) {
 	idx := newIndex()
+
+	var err error
+	idx.params, err = param.Parse(cast.ToString(settings))
+	if err != nil {
+		return nil, err
+	}
+
 	idx.Params = ParseParams(settings)
 	idx.fields = idx.Params.Fields()
 
 	//data := idx.Params.GetData()
 	//println(data)
 
-	err := idx.GetData()
+	err = idx.GetData()
 	if err != nil && !errors.Is(err, NoDataErr) {
 		return nil, fmt.Errorf("data parsing error: %w\n", err)
 	}
@@ -88,6 +95,7 @@ func newIndex() *Idx {
 	return &Idx{
 		fields: make(map[string]*Field),
 		Params: NewParams(),
+		params: param.New(),
 	}
 }
 
@@ -99,7 +107,7 @@ func (idx *Idx) Index(src []map[string]any) *Idx {
 	}
 
 	for id, d := range idx.Data {
-		for _, attr := range idx.SrchAttr() {
+		for _, attr := range idx.params.SrchAttr {
 			if val, ok := d[attr]; ok {
 				idx.fields[attr].Add(val, []int{id})
 			}
@@ -150,7 +158,7 @@ func (idx *Idx) Search(params string) *Response {
 }
 
 func (idx *Idx) Response() *Response {
-	return NewResponse(idx.GetResults(), idx.GetParams())
+	return NewResponse(idx.GetResults(), idx.GetParams().Encode())
 }
 
 func (idx *Idx) Sort() {

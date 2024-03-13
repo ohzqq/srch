@@ -16,7 +16,7 @@ type Response struct {
 	facets map[string]*Field
 }
 
-func NewResponse(data []map[string]any, vals any) *Response {
+func NewResponse(data []map[string]any, vals string) *Response {
 	idx, err := New(vals)
 	if err != nil {
 		log.Fatal(err)
@@ -72,7 +72,7 @@ func (r *Response) NbHits() int {
 }
 
 func (idx *Response) Response() *Response {
-	res := NewResponse(idx.GetResults(), idx.GetParams())
+	res := NewResponse(idx.GetResults(), idx.GetParams().Encode())
 	return res
 }
 

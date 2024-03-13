@@ -97,7 +97,7 @@ func TestNewFilters(t *testing.T) {
 	i := newTestIdx()
 
 	for _, test := range testSearchFilterStrings() {
-		idx := NewResponse(i.Data, i.Params.Values())
+		idx := NewResponse(i.Data, i.Params.Values().Encode())
 		//params := ParseParams(test.vals)
 		filters := test.vals.Get(FacetFilters)
 
