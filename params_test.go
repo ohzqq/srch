@@ -87,7 +87,7 @@ var testParsedParams = []*Params{
 
 func TestGetData(t *testing.T) {
 	var data []map[string]any
-	err := GetData(&data, testDataDir)
+	err := GetData(&data, testDataFile)
 	if err != nil {
 		t.Error(err)
 	}
