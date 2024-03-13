@@ -29,7 +29,15 @@ func NewSettings() *Settings {
 	}
 }
 
-func (s *Settings) Parse(v url.Values) error {
+func (s *Settings) Parse(q string) error {
+	vals, err := url.ParseQuery(q)
+	if err != nil {
+		return err
+	}
+	return s.Set(vals)
+}
+
+func (s *Settings) Set(v url.Values) error {
 	for _, key := range paramsSettings {
 		switch key {
 		case SrchAttr:
@@ -68,4 +76,22 @@ func (p Settings) GetDataFiles() []string {
 		data = append(data, p.DataFile...)
 	}
 	return data
+}
+
+func parseSrchAttr(vals url.Values) []string {
+	if !vals.Has(SrchAttr) {
+		return []string{DefaultField}
+	}
+	vals[SrchAttr] = GetQueryStringSlice(SrchAttr, vals)
+	if len(vals[SrchAttr]) < 1 {
+		vals[SrchAttr] = []string{DefaultField}
+	}
+	return vals[SrchAttr]
+}
+
+func parseFacetAttr(vals url.Values) []string {
+	if !vals.Has(Facets) {
+		vals[Facets] = GetQueryStringSlice(FacetAttr, vals)
+	}
+	return vals[Facets]
 }

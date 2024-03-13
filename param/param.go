@@ -31,11 +31,11 @@ func Parse(params string) (*Params, error) {
 		return nil, err
 	}
 
-	err = p.Settings.Parse(vals)
+	err = p.Settings.Set(vals)
 	if err != nil {
 		return nil, err
 	}
-	err = p.Search.Parse(vals)
+	err = p.Search.Set(vals)
 	if err != nil {
 		return nil, err
 	}
@@ -43,36 +43,6 @@ func Parse(params string) (*Params, error) {
 	p.Other = vals
 
 	return p, nil
-}
-
-// ParseParams takes an interface{} and returns a url.Values.
-func ParseParams(f string) (url.Values, error) {
-	vals, err := url.ParseQuery(f)
-	if err != nil {
-		return nil, err
-	}
-
-	vals[SrchAttr] = parseSrchAttr(vals)
-	vals[FacetAttr] = parseFacetAttr(vals)
-	return vals, nil
-}
-
-func parseSrchAttr(vals url.Values) []string {
-	if !vals.Has(SrchAttr) {
-		return []string{DefaultField}
-	}
-	vals[SrchAttr] = GetQueryStringSlice(SrchAttr, vals)
-	if len(vals[SrchAttr]) < 1 {
-		vals[SrchAttr] = []string{DefaultField}
-	}
-	return vals[SrchAttr]
-}
-
-func parseFacetAttr(vals url.Values) []string {
-	if !vals.Has(Facets) {
-		vals[Facets] = GetQueryStringSlice(FacetAttr, vals)
-	}
-	return vals[Facets]
 }
 
 // ParseQueryString parses an encoded filter string.

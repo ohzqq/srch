@@ -27,7 +27,15 @@ func NewSearch() *Search {
 	}
 }
 
-func (s *Search) Parse(v url.Values) error {
+func (s *Search) Parse(q string) error {
+	vals, err := url.ParseQuery(q)
+	if err != nil {
+		return err
+	}
+	return s.Set(vals)
+}
+
+func (s *Search) Set(v url.Values) error {
 	for _, key := range paramsSearch {
 		switch key {
 		case Hits:
