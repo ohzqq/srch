@@ -50,6 +50,10 @@ func NewIdx(settings string) (*Idx, error) {
 		return nil, err
 	}
 
+	for _, attr := range idx.params.SrchAttr {
+		idx.fields[attr] = NewField(attr)
+	}
+
 	err = idx.GetData()
 	if err != nil && !errors.Is(err, NoDataErr) {
 		return nil, fmt.Errorf("data parsing error: %w\n", err)
@@ -132,8 +136,8 @@ func (idx *Idx) Search(params string) *Response {
 
 	query := idx.Query()
 	if query != "" {
-		if idx.Params.IsFullText() {
-			idx.idx = blv.Open(idx.Params.GetFullText())
+		if idx.params.IsFullText() {
+			idx.idx = blv.Open(idx.params.FullText)
 			bits, err := idx.idx.Search(query)
 			if err != nil {
 				log.Fatal(err)
@@ -164,7 +168,7 @@ func (idx *Idx) Response() *Response {
 func (idx *Idx) Sort() {
 	sort := idx.Params.Get(SortBy)
 	var sortType string
-	for _, sb := range idx.SortAttr() {
+	for _, sb := range idx.params.SortAttr {
 		if t, found := strings.CutPrefix(sb, sort+":"); found {
 			sortType = t
 		}

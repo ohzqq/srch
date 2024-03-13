@@ -6,7 +6,9 @@ import (
 	"strings"
 
 	"github.com/RoaringBitmap/roaring"
+	"github.com/ohzqq/srch/txt"
 	"github.com/sahilm/fuzzy"
+	"github.com/spf13/cast"
 	"github.com/spf13/viper"
 )
 
@@ -27,21 +29,69 @@ type Field struct {
 	Sep       string `json:"-"`
 	SortBy    string
 	Order     string
-	*Tokens
+	tokens    map[string]*Token
+	Tokens    []string
+	ana       *txt.Analyzer
 }
 
 func NewField(attr string) *Field {
 	f := &Field{
+		tokens: make(map[string]*Token),
 		Sep:    ".",
-		Tokens: NewTokens(),
+		ana:    txt.Keywords(),
 	}
 	parseAttr(f, attr)
 	return f
 }
 
+func (t *Field) Find(val any) []*Token {
+	var tokens []*Token
+	for _, tok := range t.Tokenize(val) {
+		if token, ok := t.tokens[tok.Value]; ok {
+			tokens = append(tokens, token)
+		}
+	}
+	return tokens
+}
+
+func (t *Field) Add(val any, ids []int) {
+	for _, token := range t.Tokenize(val) {
+		if t.tokens == nil {
+			t.tokens = make(map[string]*Token)
+		}
+		if _, ok := t.tokens[token.Value]; !ok {
+			t.Tokens = append(t.Tokens, token.Label)
+			t.tokens[token.Value] = token
+		}
+		t.tokens[token.Value].Add(ids...)
+	}
+}
+
+func (t *Field) Tokenize(val any) []*Token {
+	tokens, _ := t.ana.Tokenize(cast.ToString(val))
+	toks := make([]*Token, len(tokens))
+	for i, t := range tokens {
+		toks[i] = newTok(t)
+	}
+	return toks
+}
+
+func (t *Field) FindByLabel(label string) *Token {
+	for _, token := range t.tokens {
+		if token.Label == label {
+			return token
+		}
+	}
+	return NewToken(label, label)
+}
+
+func (t *Field) Count() int {
+	return len(t.tokens)
+}
+
 func (f *Field) MarshalJSON() ([]byte, error) {
 	tokens := make(map[string]int)
-	for _, label := range f.Tokens.Tokens {
+	for _, label := range f.Tokens {
 		token := f.FindByLabel(label)
 		tokens[label] = token.Count()
 	}
@@ -54,7 +104,7 @@ func (f *Field) MarshalJSON() ([]byte, error) {
 
 func (t *Field) GetTokens() []*Token {
 	var tokens []*Token
-	for _, label := range t.Tokens.Tokens {
+	for _, label := range t.Tokens {
 		tok := t.FindByLabel(label)
 		tokens = append(tokens, tok)
 	}
@@ -159,7 +209,7 @@ func (t *Field) Len() int {
 
 // String returns an Item.Value, to satisfy the fuzzy.Source interface.
 func (t *Field) String(i int) string {
-	return t.Tokens.Tokens[i]
+	return t.Tokens[i]
 }
 
 func parseAttr(field *Field, attr string) {

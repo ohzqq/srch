@@ -6,7 +6,6 @@ type Facet struct {
 
 func NewFacet(attr string) *Facet {
 	f := NewField(attr)
-	f.SetAnalyzer(Keyword())
 
 	return &Facet{
 		Field: f,

@@ -13,7 +13,8 @@ type Analyzer interface {
 type Simple struct{}
 
 func (s Simple) Tokenize(str any) []*Token {
-	return []*Token{NewToken(cast.ToString(str))}
+	v := cast.ToString(str)
+	return []*Token{NewToken(v, v)}
 }
 
 func normalizeText(token string) string {

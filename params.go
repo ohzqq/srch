@@ -200,7 +200,6 @@ func (p *Params) NewField(attr string) *Field {
 
 	switch p.IsFacet(attr) {
 	case true:
-		f.SetAnalyzer(Keyword())
 	default:
 	}
 

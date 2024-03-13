@@ -3,7 +3,7 @@ package txt
 import (
 	"slices"
 
-	"github.com/ohzqq/txt/sep"
+	"github.com/ohzqq/srch/txt/sep"
 )
 
 type Analyzer struct {

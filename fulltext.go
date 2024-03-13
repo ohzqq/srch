@@ -29,7 +29,7 @@ func FulltextTokenizer(str any) []*Token {
 	for _, token := range strings.FieldsFunc(cast.ToString(str), NotAlphaNumeric) {
 		lower := strings.ToLower(token)
 		if !lo.Contains(stopWords, lower) {
-			items = append(items, NewToken(token))
+			items = append(items, NewToken(token, token))
 			tokens = append(tokens, lower)
 		}
 	}

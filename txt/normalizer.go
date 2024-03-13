@@ -4,7 +4,7 @@ import (
 	"strings"
 
 	"github.com/kljensen/snowball/english"
-	"github.com/ohzqq/txt/sep"
+	"github.com/ohzqq/srch/txt/sep"
 )
 
 type Normalizer func(string) string

@@ -4,20 +4,24 @@ import (
 	"encoding/json"
 
 	"github.com/RoaringBitmap/roaring"
-	"github.com/sahilm/fuzzy"
+	"github.com/ohzqq/srch/txt"
 )
 
 type Token struct {
-	Value       string `json:"value"`
-	Label       string `json:"label"`
-	bits        *roaring.Bitmap
-	fuzzy.Match `json:"-"`
+	*txt.Token
+	bits *roaring.Bitmap
 }
 
-func NewToken(label string) *Token {
+func NewToken(label, val string) *Token {
 	return &Token{
-		Value: label,
-		Label: label,
+		Token: txt.NewToken(label, val),
+		bits:  roaring.New(),
+	}
+}
+
+func newTok(t *txt.Token) *Token {
+	return &Token{
+		Token: t,
 		bits:  roaring.New(),
 	}
 }

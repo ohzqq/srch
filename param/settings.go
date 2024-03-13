@@ -62,6 +62,10 @@ func (s *Settings) Set(v url.Values) error {
 	return nil
 }
 
+func (p Settings) IsFullText() bool {
+	return p.FullText != ""
+}
+
 func (p Settings) HasData() bool {
 	return len(p.DataFile) > 0 ||
 		p.DataDir != ""
