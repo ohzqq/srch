@@ -56,6 +56,24 @@ func TestNewIndex(t *testing.T) {
 	}
 }
 
+func TestNewIndexWithParams(t *testing.T) {
+	for i := 0; i < len(testQuerySettings); i++ {
+		q := testQuerySettings[i]
+		idx, err := NewIdx(q)
+		if err != nil {
+			t.Error(err)
+		}
+		if !idx.HasData() {
+			data := loadData(t)
+			idx.Index(data)
+		}
+		err = totalBooksErr(idx.Len(), q)
+		if err != nil {
+			t.Error(err)
+		}
+	}
+}
+
 func intErr(got, want int, msg ...any) error {
 	if got != want {
 		err := fmt.Errorf("got %d, want %d\n", got, want)

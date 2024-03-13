@@ -12,6 +12,7 @@ import (
 
 	"github.com/RoaringBitmap/roaring"
 	"github.com/ohzqq/srch/blv"
+	"github.com/ohzqq/srch/param"
 	"github.com/spf13/cast"
 	"github.com/spf13/viper"
 )
@@ -32,6 +33,7 @@ type Idx struct {
 	idx     Indexer
 
 	*Params `json:"params"`
+	params  *param.Params
 }
 
 var NoDataErr = errors.New("no data")
@@ -39,6 +41,22 @@ var NoDataErr = errors.New("no data")
 type SearchFunc func(string) []map[string]any
 
 type Opt func(*Idx) error
+
+func NewIdx(settings string) (*Idx, error) {
+	idx := newIndex()
+	var err error
+	idx.params, err = param.Parse(settings)
+	if err != nil {
+		return nil, err
+	}
+
+	err = idx.GetData()
+	if err != nil && !errors.Is(err, NoDataErr) {
+		return nil, fmt.Errorf("data parsing error: %w\n", err)
+	}
+
+	return idx, nil
+}
 
 func New(settings any) (*Idx, error) {
 	idx := newIndex()
@@ -69,6 +87,7 @@ func New(settings any) (*Idx, error) {
 func newIndex() *Idx {
 	return &Idx{
 		fields: make(map[string]*Field),
+		Params: NewParams(),
 	}
 }
 
@@ -211,11 +230,23 @@ func (idx *Idx) FilterID(ids ...int) *Response {
 }
 
 func (idx *Idx) GetData() error {
-	if !idx.Params.HasData() {
+	if !idx.HasData() {
 		return NoDataErr
 	}
+
 	var data []map[string]any
 	var err error
+
+	if idx.params.HasData() {
+		files := idx.params.GetDataFiles()
+		err = GetData(&data, files...)
+		if err != nil {
+			return err
+		}
+		idx.SetData(data)
+		return nil
+	}
+
 	switch {
 	case idx.Params.Has(DataFile):
 		data, err = FileSrc(idx.GetSlice(DataFile)...)
@@ -230,6 +261,11 @@ func (idx *Idx) GetData() error {
 
 	idx.SetData(data)
 	return nil
+}
+
+func (idx *Idx) HasData() bool {
+	return idx.Params.HasData() ||
+		idx.params.HasData()
 }
 
 func (idx *Idx) SetData(data []map[string]any) *Idx {
