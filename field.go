@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/RoaringBitmap/roaring"
-	"github.com/ohzqq/srch/txt"
 	"github.com/sahilm/fuzzy"
 	"github.com/spf13/viper"
 )
@@ -28,13 +27,13 @@ type Field struct {
 	Sep       string `json:"-"`
 	SortBy    string
 	Order     string
-	*txt.Tokens
+	*Tokens
 }
 
 func NewField(attr string) *Field {
 	f := &Field{
 		Sep:    ".",
-		Tokens: txt.NewTokens(),
+		Tokens: NewTokens(),
 	}
 	parseAttr(f, attr)
 	return f
@@ -53,8 +52,8 @@ func (f *Field) MarshalJSON() ([]byte, error) {
 	return d, err
 }
 
-func (t *Field) GetTokens() []*txt.Token {
-	var tokens []*txt.Token
+func (t *Field) GetTokens() []*Token {
+	var tokens []*Token
 	for _, label := range t.Tokens.Tokens {
 		tok := t.FindByLabel(label)
 		tokens = append(tokens, tok)
@@ -79,8 +78,8 @@ func GetFieldItems(data []map[string]any, field *Field) []map[string]any {
 	return items
 }
 
-func (t *Field) FindByIndex(ti ...int) []*txt.Token {
-	var tokens []*txt.Token
+func (t *Field) FindByIndex(ti ...int) []*Token {
+	var tokens []*Token
 	toks := t.GetTokens()
 	total := t.Count()
 	for _, tok := range ti {
@@ -91,7 +90,7 @@ func (t *Field) FindByIndex(ti ...int) []*txt.Token {
 	return tokens
 }
 
-func (t *Field) SortTokens() []*txt.Token {
+func (t *Field) SortTokens() []*Token {
 	tokens := t.GetTokens()
 
 	switch t.SortBy {
@@ -114,9 +113,9 @@ func (t *Field) SortTokens() []*txt.Token {
 	return tokens
 }
 
-func (t *Field) Search(term string) []*txt.Token {
+func (t *Field) Search(term string) []*Token {
 	matches := fuzzy.FindFrom(term, t)
-	tokens := make([]*txt.Token, len(matches))
+	tokens := make([]*Token, len(matches))
 	all := t.GetTokens()
 	for i, match := range matches {
 		tokens[i] = all[match.Index]
@@ -183,17 +182,17 @@ func parseAttr(field *Field, attr string) {
 	}
 }
 
-func SortTokensByCount(items []*txt.Token) []*txt.Token {
+func SortTokensByCount(items []*Token) []*Token {
 	slices.SortStableFunc(items, SortByCountFunc)
 	return items
 }
 
-func SortTokensByAlpha(items []*txt.Token) []*txt.Token {
+func SortTokensByAlpha(items []*Token) []*Token {
 	slices.SortStableFunc(items, SortByAlphaFunc)
 	return items
 }
 
-func SortByCountFunc(a *txt.Token, b *txt.Token) int {
+func SortByCountFunc(a *Token, b *Token) int {
 	aC := a.Count()
 	bC := b.Count()
 	switch {
@@ -206,7 +205,7 @@ func SortByCountFunc(a *txt.Token, b *txt.Token) int {
 	}
 }
 
-func SortByAlphaFunc(a *txt.Token, b *txt.Token) int {
+func SortByAlphaFunc(a *Token, b *Token) int {
 	aL := strings.ToLower(a.Label)
 	bL := strings.ToLower(b.Label)
 	switch {

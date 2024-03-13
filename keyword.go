@@ -1,4 +1,4 @@
-package txt
+package srch
 
 import (
 	"github.com/spf13/cast"

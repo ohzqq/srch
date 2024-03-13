@@ -8,7 +8,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/ohzqq/srch/txt"
 	"github.com/samber/lo"
 	"github.com/spf13/cast"
 	"github.com/spf13/viper"
@@ -201,7 +200,7 @@ func (p *Params) NewField(attr string) *Field {
 
 	switch p.IsFacet(attr) {
 	case true:
-		f.SetAnalyzer(txt.Keyword())
+		f.SetAnalyzer(Keyword())
 	default:
 	}
 

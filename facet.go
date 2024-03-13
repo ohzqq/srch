@@ -1,14 +1,12 @@
 package srch
 
-import "github.com/ohzqq/srch/txt"
-
 type Facet struct {
 	*Field
 }
 
 func NewFacet(attr string) *Facet {
 	f := NewField(attr)
-	f.SetAnalyzer(txt.Keyword())
+	f.SetAnalyzer(Keyword())
 
 	return &Facet{
 		Field: f,

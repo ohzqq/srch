@@ -1,4 +1,4 @@
-package txt
+package srch
 
 type Tokens struct {
 	tokens   map[string]*Token

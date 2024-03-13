@@ -3,15 +3,13 @@ package srch
 import (
 	"log"
 	"testing"
-
-	"github.com/ohzqq/srch/txt"
 )
 
 var fieldSortParams = []string{}
 
 func TestFieldSort(t *testing.T) {
 	t.SkipNow()
-	var sorted []*txt.Token
+	var sorted []*Token
 	alpha := libCfgStr + "&sortFacetValuesBy=alpha"
 	i, err := New(alpha)
 	if err != nil {
