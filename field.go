@@ -87,12 +87,10 @@ func (t *Field) Filter(val string) *roaring.Bitmap {
 }
 
 func (t *Field) Fuzzy(term string) *roaring.Bitmap {
-	matches := fuzzy.FindFrom(term, t)
-	all := t.GetTokens()
+	matches := t.Search(term)
 	bits := make([]*roaring.Bitmap, len(matches))
 	for i, match := range matches {
-		b := all[match.Index].Bitmap()
-		bits[i] = b
+		bits[i] = match.Bitmap()
 	}
 	return roaring.ParOr(viper.GetInt("workers"), bits...)
 }
