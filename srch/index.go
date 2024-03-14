@@ -2,12 +2,12 @@ package srch
 
 import (
 	"errors"
-	"fmt"
 	"log"
 	"os"
 
 	"github.com/RoaringBitmap/roaring"
 	"github.com/ohzqq/srch/blv"
+	"github.com/ohzqq/srch/mem"
 	"github.com/ohzqq/srch/param"
 	"github.com/ohzqq/srch/txt"
 	"github.com/spf13/viper"
@@ -51,6 +51,7 @@ func newIndex() *Index {
 	return &Index{
 		fields: make(map[string]*txt.Field),
 		Params: param.New(),
+		idx:    mem.New(),
 	}
 }
 
@@ -72,9 +73,12 @@ func New(settings string) (*Index, error) {
 		return idx, nil
 	}
 
-	err = idx.GetData()
-	if err != nil && !errors.Is(err, NoDataErr) {
-		return nil, fmt.Errorf("data parsing error: %w\n", err)
+	if idx.Params.HasData() {
+		idx.Data, err = idx.GetData()
+		if err != nil {
+			return nil, NoDataErr
+		}
+		idx.idx.Batch(idx.Data)
 	}
 
 	return idx, nil
@@ -116,25 +120,14 @@ func ItemsByBitmap(data []map[string]any, bits *roaring.Bitmap) []map[string]any
 
 func (idx *Index) GetData() ([]map[string]any, error) {
 	var data []map[string]any
-
-	if !idx.HasData() {
-		return data, NoDataErr
-	}
-
 	var err error
 
-	files := idx.GetDataFiles()
+	files := idx.Params.GetDataFiles()
 	err = GetData(&data, files...)
 	if err != nil {
 		return data, err
 	}
 	return data, nil
-}
-
-func (idx *Index) SetData(data []map[string]any) *Index {
-	idx.Data = data
-	//return idx.Index(data)
-	return idx
 }
 
 func exist(path string) bool {

@@ -11,7 +11,7 @@ import (
 	"github.com/ohzqq/srch/txt"
 )
 
-var idx = &Idx{}
+var idx = &Index{}
 
 var books []map[string]any
 
@@ -114,7 +114,7 @@ func totalBooksTest(total int, t *testing.T) {
 	}
 }
 
-func newTestIdx() *Idx {
+func newTestIdx() *Index {
 	//idx, err := New(libCfgStr)
 	//if err != nil {
 	//log.Fatal(err)
@@ -122,7 +122,7 @@ func newTestIdx() *Idx {
 	return newTestIdxCfg("")
 }
 
-func newTestIdxCfg(p string) *Idx {
+func newTestIdxCfg(p string) *Index {
 	idx, err := New(libCfgStr + p)
 	if err != nil {
 		log.Fatal(err)

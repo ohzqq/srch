@@ -19,14 +19,13 @@ type Index struct {
 
 var NoDataErr = errors.New("no data")
 
-func New(cfg *param.SrchCfg) *Index {
-	return &Index{
-		SrchCfg: cfg,
-	}
+func New() *Index {
+	return &Index{}
 }
 
 func Open(cfg *param.SrchCfg) *Index {
-	idx := New(cfg)
+	idx := New()
+	idx.SrchCfg = cfg
 	return idx
 }
 
