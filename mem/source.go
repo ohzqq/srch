@@ -1,4 +1,4 @@
-package srch
+package mem
 
 import (
 	"bytes"

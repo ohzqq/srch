@@ -19,7 +19,7 @@ type IndexSettings struct {
 
 func NewSettings() *IndexSettings {
 	return &IndexSettings{
-		SrchAttr: []string{DefaultField},
+		//SrchAttr: []string{"*"},
 	}
 }
 
@@ -52,13 +52,13 @@ func (s *IndexSettings) Set(v url.Values) error {
 
 func parseSrchAttr(vals url.Values) []string {
 	if !vals.Has(SrchAttr) {
-		return []string{DefaultField}
+		return []string{"*"}
 	}
-	vals[SrchAttr] = GetQueryStringSlice(SrchAttr, vals)
-	if len(vals[SrchAttr]) < 1 {
-		vals[SrchAttr] = []string{DefaultField}
+	v := GetQueryStringSlice(SrchAttr, vals)
+	if len(v) > 0 {
+		return v
 	}
-	return vals[SrchAttr]
+	return []string{"*"}
 }
 
 func parseFacetAttr(vals url.Values) []string {

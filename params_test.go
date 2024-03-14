@@ -106,9 +106,9 @@ func TestNewParser(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-		data := params.Settings.GetDataFiles()
+		data := params.IndexSettings.GetDataFiles()
 		println(len(data))
-		fmt.Printf("Settings %+v\n", params.Settings)
+		fmt.Printf("Settings %+v\n", params.IndexSettings)
 		fmt.Printf("Search %+v\n", params.Search)
 	}
 }

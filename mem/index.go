@@ -3,51 +3,125 @@ package mem
 import (
 	"errors"
 	"os"
+	"strings"
 
 	"github.com/ohzqq/srch/param"
-	"github.com/ohzqq/srch/txt"
+	"github.com/sahilm/fuzzy"
+	"github.com/spf13/cast"
 )
 
 type Index struct {
-	fields map[string]*txt.Field
-	Data   []map[string]any
+	Data []map[string]any
+	data []string
 
 	*param.SrchCfg
 }
 
-func New(cfg *param.SrchCfg) *Index {
-	return &Index{
-		cfg: param.SrchCfg,
-	}
-}
+var NoDataErr = errors.New("no data")
 
-func Open(cfg *param.SrchCfg) *Index {
+func New(cfg *param.SrchCfg) *Index {
 	return &Index{
 		SrchCfg: cfg,
 	}
 }
 
-func (idx *Index) GetData() error {
-	if !idx.Params.HasData() {
-		return NoDataErr
-	}
+func Open(cfg *param.SrchCfg) (*Index, error) {
+	idx := New(cfg)
 
-	var data []map[string]any
-	var err error
+	//data, err := idx.GetData()
+	//if err != nil {
+	//return nil, fmt.Errorf("data parsing error: %w\n", err)
+	//}
 
-	files := idx.Params.GetDataFiles()
-	err = GetData(&data, files...)
-	if err != nil {
-		return err
+	//idx.Batch(data)
+
+	return idx, nil
+}
+
+func (idx *Index) Search(query string) ([]map[string]any, error) {
+	if idx.Len() == 0 {
+		return idx.Data, nil
 	}
-	idx.SetData(data)
+	if query == "" {
+		return idx.Data, nil
+	}
+	matches := fuzzy.FindFromNoSort(query, idx)
+	//matches := fuzzy.FindNoSort(query, idx.data)
+	res := make([]map[string]any, matches.Len())
+	for i, m := range matches {
+		res[i] = idx.Data[m.Index]
+	}
+	return res, nil
+}
+
+func (idx *Index) Index(_ string, data map[string]any) error {
+	idx.Data = append(idx.Data, data)
+
+	var val []string
+	for _, f := range idx.SrchAttr {
+		if f == "*" {
+			for _, v := range data {
+				val = append(val, cast.ToString(v))
+			}
+		} else {
+			if v, ok := data[f]; ok {
+				val = append(val, cast.ToString(v))
+			}
+		}
+	}
+	idx.data = append(idx.data, strings.Join(val, " "))
 	return nil
 }
 
-func (idx *Index) SetData(data []map[string]any) *Idx {
-	idx.Data = data
-	//return idx.Index(data)
-	return idx
+func (idx *Index) Batch(data []map[string]any) error {
+
+	if len(data) < 1 {
+		return NoDataErr
+	}
+
+	for _, d := range data {
+		idx.Index("", d)
+	}
+	return nil
+}
+
+func getSrchValue(data map[string]any, fields ...string) string {
+
+	var val []string
+	for _, f := range fields {
+		if v, ok := data[f]; ok {
+			val = append(val, cast.ToString(v))
+		}
+	}
+	return strings.Join(val, " ")
+}
+
+func (idx *Index) GetData() ([]map[string]any, error) {
+	var data []map[string]any
+
+	if !idx.HasData() {
+		return data, NoDataErr
+	}
+
+	var err error
+
+	files := idx.GetDataFiles()
+	err = GetData(&data, files...)
+	if err != nil {
+		return data, err
+	}
+	return data, nil
+}
+
+func (idx *Index) Len() int {
+	return len(idx.Data)
+}
+
+func (idx *Index) String(i int) string {
+	if i < idx.Len() {
+		return idx.data[i]
+	}
+	return ""
 }
 
 func exist(path string) bool {
