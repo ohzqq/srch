@@ -2,6 +2,7 @@ package blv
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/blevesearch/bleve/v2"
 	"github.com/ohzqq/srch/param"
@@ -10,12 +11,26 @@ import (
 
 type Index struct {
 	*param.SrchCfg
+	count int
 }
 
 func Open(cfg *param.SrchCfg) *Index {
+	blv, err := bleve.Open(cfg.BlvPath)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer blv.Close()
+
+	c, err := blv.DocCount()
+	if err != nil {
+		c = 0
+	}
+
 	idx := &Index{
 		SrchCfg: cfg,
+		count:   int(c),
 	}
+	fmt.Printf("%+v\n", idx)
 	return idx
 }
 
@@ -32,11 +47,18 @@ func New(cfg *param.SrchCfg) (*Index, error) {
 }
 
 func (idx *Index) Search(query string) ([]map[string]any, error) {
+
+	var req *bleve.SearchRequest
+
 	if query == "" {
-		return idx.Bitmap()
+		q := bleve.NewMatchAllQuery()
+		req = bleve.NewSearchRequestOptions(q, idx.count, 0, true)
+		return idx.search(req)
 	}
+
 	q := bleve.NewTermQuery(query)
-	req := bleve.NewSearchRequest(q)
+	req = bleve.NewSearchRequest(q)
+
 	return idx.search(req)
 }
 
@@ -51,6 +73,8 @@ func (idx *Index) search(req *bleve.SearchRequest) ([]map[string]any, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	println(res.Total)
 
 	data := make([]map[string]any, res.Hits.Len())
 	for i, hit := range res.Hits {
@@ -140,15 +164,5 @@ func (idx *Index) Bitmap() ([]map[string]any, error) {
 }
 
 func (idx *Index) Len() int {
-	blv, err := bleve.Open(idx.BlvPath)
-	if err != nil {
-		return 0
-	}
-	defer blv.Close()
-
-	c, err := blv.DocCount()
-	if err != nil {
-		return 0
-	}
-	return int(c)
+	return idx.count
 }
