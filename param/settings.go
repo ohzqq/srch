@@ -9,7 +9,7 @@ func init() {
 	mime.AddExtensionType(".ndjson", "application/x-ndjson")
 }
 
-type Settings struct {
+type IndexSettings struct {
 	SrchAttr     []string `query:"searchableAttributes,omitempty" json:"searchableAttributes,omitempty"`
 	FacetAttr    []string `query:"attributesForFaceting,omitempty" json:"attributesForFaceting,omitempty"`
 	SortAttr     []string `query:"sortableAttributes,omitempty" json:"sortableAttributes,omitempty"`
@@ -17,13 +17,13 @@ type Settings struct {
 	UID          string   `query:"uid,omitempty" json:"uid,omitempty"`
 }
 
-func NewSettings() *Settings {
-	return &Settings{
+func NewSettings() *IndexSettings {
+	return &IndexSettings{
 		SrchAttr: []string{DefaultField},
 	}
 }
 
-func (s *Settings) Parse(q string) error {
+func (s *IndexSettings) Parse(q string) error {
 	vals, err := url.ParseQuery(q)
 	if err != nil {
 		return err
@@ -31,7 +31,7 @@ func (s *Settings) Parse(q string) error {
 	return s.Set(vals)
 }
 
-func (s *Settings) Set(v url.Values) error {
+func (s *IndexSettings) Set(v url.Values) error {
 	for _, key := range paramsSettings {
 		switch key {
 		case SrchAttr:

@@ -62,7 +62,6 @@ func TestNewIndex(t *testing.T) {
 		}
 		var num int
 		if !idx.Params.HasData() {
-			println("no data")
 			data := loadData(t)
 			num = len(data)
 		} else {

@@ -10,18 +10,18 @@ import (
 
 type Params struct {
 	// Settings
-	*Settings `mapstructure:",squash"`
-	*Search   `mapstructure:",squash"`
+	*IndexSettings `mapstructure:",squash"`
+	*Search        `mapstructure:",squash"`
 	*Cfg
 	Other url.Values `mapstructure:"params,omitempty"`
 }
 
 func New() *Params {
 	return &Params{
-		Settings: NewSettings(),
-		Search:   NewSearch(),
-		Cfg:      NewCfg(),
-		Other:    make(url.Values),
+		IndexSettings: NewSettings(),
+		Search:        NewSearch(),
+		Cfg:           NewCfg(),
+		Other:         make(url.Values),
 	}
 }
 
@@ -33,7 +33,7 @@ func Parse(params string) (*Params, error) {
 		return nil, err
 	}
 
-	err = p.Settings.Set(vals)
+	err = p.IndexSettings.Set(vals)
 	if err != nil {
 		return nil, err
 	}
