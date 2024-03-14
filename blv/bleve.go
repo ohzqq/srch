@@ -5,30 +5,27 @@ import (
 
 	"github.com/RoaringBitmap/roaring"
 	"github.com/blevesearch/bleve/v2"
+	"github.com/ohzqq/srch/param"
 	"github.com/spf13/cast"
 )
 
 type Index struct {
-	path string
-	uid  string
+	//BlvPath string
+	//UID     string
+	*param.SrchCfg
 }
 
-func Open(path string, uid ...string) *Index {
+func Open(cfg *param.SrchCfg) *Index {
 	idx := &Index{
-		path: path,
-	}
-	if len(uid) > 0 {
-		idx.uid = uid[0]
+		SrchCfg: cfg,
 	}
 	return idx
 }
 
-func New(path string) (*Index, error) {
-	idx := &Index{
-		path: path,
-	}
+func New(cfg *param.SrchCfg) (*Index, error) {
+	idx := Open(cfg)
 
-	blv, err := bleve.New(path, bleve.NewIndexMapping())
+	blv, err := bleve.New(idx.BlvPath, bleve.NewIndexMapping())
 	if err != nil {
 		return idx, err
 	}
@@ -38,7 +35,7 @@ func New(path string) (*Index, error) {
 }
 
 func (idx *Index) Search(query string) (*roaring.Bitmap, error) {
-	blv, err := bleve.Open(idx.path)
+	blv, err := bleve.Open(idx.BlvPath)
 	if err != nil {
 		return nil, err
 	}
@@ -58,31 +55,18 @@ func (idx *Index) Search(query string) (*roaring.Bitmap, error) {
 	return bits, nil
 }
 
-func (idx *Index) Index(uid string, data ...map[string]any) error {
-	switch len(data) {
-	case 0:
-		return nil
-	}
-
-	if len(data) > 1 {
-		return idx.Batch(data)
-	}
-
-	blv, err := bleve.Open(idx.path)
+func (idx *Index) Index(uid string, data map[string]any) error {
+	blv, err := bleve.Open(idx.BlvPath)
 	if err != nil {
 		return err
 	}
 	defer blv.Close()
 
-	if id, ok := data[0][idx.uid]; ok {
-		uid = cast.ToString(id)
-	}
-
-	return blv.Index(uid, data[0])
+	return blv.Index(uid, data)
 }
 
 func (idx *Index) Batch(data []map[string]any) error {
-	blv, err := bleve.Open(idx.path)
+	blv, err := bleve.Open(idx.BlvPath)
 	if err != nil {
 		return err
 	}
@@ -121,7 +105,7 @@ func (idx *Index) Batch(data []map[string]any) error {
 			doc := data[c]
 
 			id := cast.ToString(c)
-			if it, ok := doc[idx.uid]; ok {
+			if it, ok := doc[idx.UID]; ok {
 				id = cast.ToString(it)
 			}
 
@@ -141,12 +125,15 @@ func (idx *Index) Batch(data []map[string]any) error {
 }
 
 func (idx *Index) Len() int {
-	blv, err := bleve.Open(idx.path)
+	blv, err := bleve.Open(idx.BlvPath)
 	if err != nil {
 		return 0
 	}
 	defer blv.Close()
 
-	c, _ := blv.DocCount()
+	c, err := blv.DocCount()
+	if err != nil {
+		return 0
+	}
 	return int(c)
 }

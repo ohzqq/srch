@@ -20,7 +20,8 @@ func init() {
 }
 
 type Indexer interface {
-	Index(uid string, data ...map[string]any) error
+	Index(uid string, data map[string]any) error
+	Batch(data []map[string]any) error
 	Searcher
 }
 

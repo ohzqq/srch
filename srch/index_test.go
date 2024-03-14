@@ -7,6 +7,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/ohzqq/srch/blv"
 	"github.com/ohzqq/srch/param"
 	"github.com/ohzqq/srch/txt"
 )
@@ -95,6 +96,16 @@ func TestNewIndexWithParams(t *testing.T) {
 			t.Error(err)
 		}
 	}
+}
+
+func TestOpenBlvIndex(t *testing.T) {
+	cfgStr := `searchableAttributes=title&fullText=../testadata/poot.bleve&uid=id`
+	params, err := param.Parse(cfgStr)
+	if err != nil {
+		t.Error(err)
+	}
+
+	blev := blv.Open(params.Cfg)
 }
 
 func intErr(got, want int, msg ...any) error {

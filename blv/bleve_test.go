@@ -9,16 +9,24 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/ohzqq/srch/param"
 	"github.com/spf13/cast"
 )
 
 const blevePath = `../testdata/poot.bleve`
-const testDataFile = `../testdata/ndbooks.json`
+const testDataFile = `../testdata/nddata/ndbooks.ndjson`
+const cfgStr = `searchableAttributes=title&fullText=../testdata/poot.bleve&uid=id`
 
 func TestNewBleveIndex(t *testing.T) {
 	//t.SkipNow()
 	cleanIdx()
-	_, err := New(blevePath)
+
+	params, err := param.Parse(cfgStr)
+	if err != nil {
+		t.Error(err)
+	}
+
+	_, err = New(params.SrchCfg)
 	if err != nil {
 		t.Error(err)
 	}
@@ -28,8 +36,13 @@ func TestBatchIndex(t *testing.T) {
 	//t.SkipNow()
 	books := loadData(t)
 
-	idx := Open(blevePath, "id")
-	err := idx.Index("", books...)
+	params, err := param.Parse(cfgStr)
+	if err != nil {
+		t.Error(err)
+	}
+
+	idx := Open(params.SrchCfg)
+	err = idx.Batch(books)
 	if err != nil {
 		t.Error(err)
 	}
@@ -40,7 +53,12 @@ func TestBatchIndex(t *testing.T) {
 }
 
 func TestOpenIndex(t *testing.T) {
-	idx := Open(blevePath)
+	params, err := param.Parse(cfgStr)
+	if err != nil {
+		t.Error(err)
+	}
+
+	idx := Open(params.SrchCfg)
 	docs := idx.Len()
 	if docs != 7252 {
 		t.Errorf("got %d docs, expected %d\n", docs, 7252)
@@ -48,7 +66,12 @@ func TestOpenIndex(t *testing.T) {
 }
 
 func TestBleveSearch(t *testing.T) {
-	idx := Open(blevePath)
+	params, err := param.Parse(cfgStr)
+	if err != nil {
+		t.Error(err)
+	}
+
+	idx := Open(params.SrchCfg)
 	bits, err := idx.Search("fish")
 	if err != nil {
 		t.Error(err)
