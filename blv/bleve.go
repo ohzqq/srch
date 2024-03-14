@@ -3,15 +3,12 @@ package blv
 import (
 	"fmt"
 
-	"github.com/RoaringBitmap/roaring"
 	"github.com/blevesearch/bleve/v2"
 	"github.com/ohzqq/srch/param"
 	"github.com/spf13/cast"
 )
 
 type Index struct {
-	//BlvPath string
-	//UID     string
 	*param.SrchCfg
 }
 
@@ -34,25 +31,37 @@ func New(cfg *param.SrchCfg) (*Index, error) {
 	return idx, nil
 }
 
-func (idx *Index) Search(query string) (*roaring.Bitmap, error) {
+func (idx *Index) Search(query string) ([]map[string]any, error) {
+	if query == "" {
+		return idx.Bitmap()
+	}
+	q := bleve.NewTermQuery(query)
+	req := bleve.NewSearchRequest(q)
+	return idx.search(req)
+}
+
+func (idx *Index) search(req *bleve.SearchRequest) ([]map[string]any, error) {
 	blv, err := bleve.Open(idx.BlvPath)
 	if err != nil {
 		return nil, err
 	}
 	defer blv.Close()
 
-	q := bleve.NewTermQuery(query)
-	req := bleve.NewSearchRequest(q)
 	res, err := blv.Search(req)
 	if err != nil {
 		return nil, err
 	}
 
-	bits := roaring.New()
-	for _, hit := range res.Hits {
-		bits.Add(cast.ToUint32(hit.ID))
+	data := make([]map[string]any, res.Hits.Len())
+	for i, hit := range res.Hits {
+		data[i] = hit.Fields
 	}
-	return bits, nil
+
+	//bits := roaring.New()
+	//for _, hit := range res.Hits {
+	//bits.Add(cast.ToUint32(hit.ID))
+	//}
+	return data, nil
 }
 
 func (idx *Index) Index(uid string, data map[string]any) error {
@@ -122,6 +131,12 @@ func (idx *Index) Batch(data []map[string]any) error {
 	}
 
 	return nil
+}
+
+func (idx *Index) Bitmap() ([]map[string]any, error) {
+	q := bleve.NewMatchAllQuery()
+	req := bleve.NewSearchRequest(q)
+	return idx.search(req)
 }
 
 func (idx *Index) Len() int {

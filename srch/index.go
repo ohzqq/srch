@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/RoaringBitmap/roaring"
+	"github.com/ohzqq/srch/blv"
 	"github.com/ohzqq/srch/param"
 	"github.com/ohzqq/srch/txt"
 	"github.com/spf13/cast"
@@ -26,7 +27,7 @@ type Indexer interface {
 }
 
 type Searcher interface {
-	Search(query string) (*roaring.Bitmap, error)
+	Search(query string) ([]map[string]any, error)
 }
 
 // Idx is a structure for facets and data.
@@ -47,6 +48,13 @@ type SearchFunc func(string) []map[string]any
 
 type Opt func(*Idx) error
 
+func newIndex() *Idx {
+	return &Idx{
+		fields: make(map[string]*txt.Field),
+		Params: param.New(),
+	}
+}
+
 func New(settings string) (*Idx, error) {
 	idx := newIndex()
 	var err error
@@ -61,6 +69,8 @@ func New(settings string) (*Idx, error) {
 
 	if idx.Params.SrchCfg.BlvPath != "" {
 		idx.isBleve = false
+		idx.idx = blv.Open(idx.Params.SrchCfg)
+		return idx, nil
 	}
 
 	err = idx.GetData()
@@ -71,18 +81,36 @@ func New(settings string) (*Idx, error) {
 	return idx, nil
 }
 
-func newIndex() *Idx {
-	return &Idx{
-		fields: make(map[string]*txt.Field),
-		Params: param.New(),
-	}
+func (idx *Idx) Search(query string) ([]map[string]any, error) {
+	var (
+		data []map[string]any
+		//res  = idx.Bitmap()
+		//err error
+	)
+
+	return data, nil
 }
 
-func (idx Idx) Bitmap() *roaring.Bitmap {
-	bits := roaring.New()
-	bits.AddRange(0, uint64(len(idx.Data)))
-	return bits
-}
+//func (idx Idx) Bitmap() *roaring.Bitmap {
+//  bits := roaring.New()
+
+//  if idx.isBleve {
+//    b, err := idx.idx.Search("")
+//    if b != nil {
+//      return bits
+//    }
+//    return b
+//  }
+
+//  if uid := idx.Params.SrchCfg.UID; uid != "" {
+//    for _, d := range idx.Data {
+//      bits.AddInt(cast.ToInt(d[uid]))
+//    }
+//  } else {
+//    bits.AddRange(0, uint64(len(idx.Data)))
+//  }
+//  return bits
+//}
 
 func ItemsByBitmap(data []map[string]any, bits *roaring.Bitmap) []map[string]any {
 	var res []map[string]any
