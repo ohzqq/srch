@@ -17,10 +17,12 @@ const (
 	Order                = `order`
 
 	// Settings
+	SrchAttr  = `searchableAttributes`
+	FacetAttr = `attributesForFaceting`
+	SortAttr  = `sortableAttributes`
+
+	// Cfg
 	FullText     = `fullText`
-	SrchAttr     = `searchableAttributes`
-	FacetAttr    = `attributesForFaceting`
-	SortAttr     = `sortableAttributes`
 	DataDir      = `dataDir`
 	DataFile     = `dataFile`
 	DefaultField = `title`
@@ -34,6 +36,10 @@ var paramsSettings = []string{
 	SrchAttr,
 	FacetAttr,
 	SortAttr,
+	UID,
+}
+
+var paramsCfg = []string{
 	DataDir,
 	DataFile,
 	DefaultField,

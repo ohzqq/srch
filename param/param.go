@@ -12,13 +12,15 @@ type Params struct {
 	// Settings
 	*Settings `mapstructure:",squash"`
 	*Search   `mapstructure:",squash"`
-	Other     url.Values `mapstructure:"params,omitempty"`
+	*Cfg
+	Other url.Values `mapstructure:"params,omitempty"`
 }
 
 func New() *Params {
 	return &Params{
 		Settings: NewSettings(),
 		Search:   NewSearch(),
+		Cfg:      NewCfg(),
 		Other:    make(url.Values),
 	}
 }
@@ -36,6 +38,10 @@ func Parse(params string) (*Params, error) {
 		return nil, err
 	}
 	err = p.Search.Set(vals)
+	if err != nil {
+		return nil, err
+	}
+	err = p.Cfg.Set(vals)
 	if err != nil {
 		return nil, err
 	}

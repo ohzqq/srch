@@ -1,35 +1,21 @@
 package param
 
 import (
-	"mime"
 	"net/url"
 )
 
-func init() {
-	mime.AddExtensionType(".ndjson", "application/x-ndjson")
+type Cfg struct {
+	FullText string   `query:"fullText,omitempty" json:"fullText,omitempty"`
+	DataDir  string   `query:"dataDir,omitempty" json:"dataDir,omitempty"`
+	DataFile []string `query:"dataFile,omitempty" json:"dataFile,omitempty"`
+	UID      string   `query:"uid,omitempty" json:"uid,omitempty"`
 }
 
-type Settings struct {
-	FullText     string   `query:"fullText,omitempty" json:"fullText,omitempty"`
-	SrchAttr     []string `query:"searchableAttributes,omitempty" json:"searchableAttributes,omitempty"`
-	FacetAttr    []string `query:"attributesForFaceting,omitempty" json:"attributesForFaceting,omitempty"`
-	SortAttr     []string `query:"sortableAttributes,omitempty" json:"sortableAttributes,omitempty"`
-	DataDir      string   `query:"dataDir,omitempty" json:"dataDir,omitempty"`
-	DataFile     []string `query:"dataFile,omitempty" json:"dataFile,omitempty"`
-	DefaultField string   `query:"defaultField,omitempty" json:"defaultField,omitempty"`
-	UID          string   `query:"uid,omitempty" json:"uid,omitempty"`
-
-	params url.Values
+func NewCfg() *Cfg {
+	return &Cfg{}
 }
 
-func NewSettings() *Settings {
-	return &Settings{
-		params:   make(url.Values),
-		SrchAttr: []string{DefaultField},
-	}
-}
-
-func (s *Settings) Parse(q string) error {
+func (s *Cfg) Parse(q string) error {
 	vals, err := url.ParseQuery(q)
 	if err != nil {
 		return err
@@ -37,21 +23,13 @@ func (s *Settings) Parse(q string) error {
 	return s.Set(vals)
 }
 
-func (s *Settings) Set(v url.Values) error {
-	for _, key := range paramsSettings {
+func (s *Cfg) Set(v url.Values) error {
+	for _, key := range paramsCfg {
 		switch key {
-		case SrchAttr:
-			s.SrchAttr = parseSrchAttr(v)
-		case FacetAttr:
-			s.FacetAttr = parseFacetAttr(v)
-		case SortAttr:
-			s.SortAttr = GetQueryStringSlice(key, v)
 		case DataDir:
 			s.DataDir = v.Get(key)
 		case DataFile:
 			s.DataFile = GetQueryStringSlice(key, v)
-		case DefaultField:
-			s.DefaultField = v.Get(key)
 		case FullText:
 			s.FullText = v.Get(key)
 		case UID:
@@ -62,16 +40,16 @@ func (s *Settings) Set(v url.Values) error {
 	return nil
 }
 
-func (p Settings) IsFullText() bool {
+func (p Cfg) IsFullText() bool {
 	return p.FullText != ""
 }
 
-func (p Settings) HasData() bool {
+func (p Cfg) HasData() bool {
 	return len(p.DataFile) > 0 ||
 		p.DataDir != ""
 }
 
-func (p Settings) GetDataFiles() []string {
+func (p Cfg) GetDataFiles() []string {
 	var data []string
 	switch {
 	case p.DataDir != "":
@@ -80,22 +58,4 @@ func (p Settings) GetDataFiles() []string {
 		data = append(data, p.DataFile...)
 	}
 	return data
-}
-
-func parseSrchAttr(vals url.Values) []string {
-	if !vals.Has(SrchAttr) {
-		return []string{DefaultField}
-	}
-	vals[SrchAttr] = GetQueryStringSlice(SrchAttr, vals)
-	if len(vals[SrchAttr]) < 1 {
-		vals[SrchAttr] = []string{DefaultField}
-	}
-	return vals[SrchAttr]
-}
-
-func parseFacetAttr(vals url.Values) []string {
-	if !vals.Has(Facets) {
-		vals[Facets] = GetQueryStringSlice(FacetAttr, vals)
-	}
-	return vals[Facets]
 }
