@@ -4,18 +4,18 @@ import (
 	"net/url"
 )
 
-type Cfg struct {
+type SrchCfg struct {
 	FullText string   `query:"fullText,omitempty" json:"fullText,omitempty"`
 	DataDir  string   `query:"dataDir,omitempty" json:"dataDir,omitempty"`
 	DataFile []string `query:"dataFile,omitempty" json:"dataFile,omitempty"`
 	UID      string   `query:"uid,omitempty" json:"uid,omitempty"`
 }
 
-func NewCfg() *Cfg {
-	return &Cfg{}
+func NewCfg() *SrchCfg {
+	return &SrchCfg{}
 }
 
-func (s *Cfg) Parse(q string) error {
+func (s *SrchCfg) Parse(q string) error {
 	vals, err := url.ParseQuery(q)
 	if err != nil {
 		return err
@@ -23,7 +23,7 @@ func (s *Cfg) Parse(q string) error {
 	return s.Set(vals)
 }
 
-func (s *Cfg) Set(v url.Values) error {
+func (s *SrchCfg) Set(v url.Values) error {
 	for _, key := range paramsCfg {
 		switch key {
 		case DataDir:
@@ -40,16 +40,16 @@ func (s *Cfg) Set(v url.Values) error {
 	return nil
 }
 
-func (p Cfg) IsFullText() bool {
+func (p SrchCfg) IsFullText() bool {
 	return p.FullText != ""
 }
 
-func (p Cfg) HasData() bool {
+func (p SrchCfg) HasData() bool {
 	return len(p.DataFile) > 0 ||
 		p.DataDir != ""
 }
 
-func (p Cfg) GetDataFiles() []string {
+func (p SrchCfg) GetDataFiles() []string {
 	var data []string
 	switch {
 	case p.DataDir != "":
