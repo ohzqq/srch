@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"net/url"
 	"os"
 
 	"github.com/RoaringBitmap/roaring"
@@ -17,7 +16,7 @@ import (
 func init() {
 	log.SetFlags(log.Lshortfile)
 	viper.SetDefault("workers", 1)
-	viper.SetDefault(HitsPerPage, 25)
+	viper.SetDefault(param.HitsPerPage, 25)
 }
 
 // Idx is a structure for facets and data.
@@ -60,7 +59,7 @@ func New(settings string) (*Idx, error) {
 
 func newIndex() *Idx {
 	return &Idx{
-		fields: make(map[string]*Field),
+		fields: make(map[string]*txt.Field),
 		Params: param.New(),
 	}
 }
@@ -88,28 +87,11 @@ func (idx *Idx) GetData() error {
 	var data []map[string]any
 	var err error
 
-	if idx.Params.HasData() {
-		files := idx.Params.GetDataFiles()
-		err = GetData(&data, files...)
-		if err != nil {
-			return err
-		}
-		idx.SetData(data)
-		return nil
-	}
-
-	switch {
-	case idx.Params.Has(DataFile):
-		data, err = FileSrc(idx.GetSlice(DataFile)...)
-		idx.Settings.Del(DataFile)
-	case idx.Has(DataDir):
-		data, err = DirSrc(idx.Params.Get(DataDir))
-		idx.Settings.Del(DataDir)
-	}
+	files := idx.Params.GetDataFiles()
+	err = GetData(&data, files...)
 	if err != nil {
 		return err
 	}
-
 	idx.SetData(data)
 	return nil
 }
@@ -118,21 +100,6 @@ func (idx *Idx) SetData(data []map[string]any) *Idx {
 	idx.Data = data
 	//return idx.Index(data)
 	return idx
-}
-
-func GetDataFromQuery(q *url.Values) ([]map[string]any, error) {
-	var data []map[string]any
-	var err error
-	switch {
-	case q.Has(DataFile):
-		qu := *q
-		data, err = FileSrc(qu[DataFile]...)
-		q.Del(DataFile)
-	case q.Has(DataDir):
-		data, err = DirSrc(q.Get(DataDir))
-		q.Del(DataDir)
-	}
-	return data, err
 }
 
 // String satisfies the fuzzy.Source interface.
