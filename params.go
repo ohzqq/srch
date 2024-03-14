@@ -29,16 +29,18 @@ const (
 	SortBy               = `sortBy`
 	Order                = `order`
 
-	// Settings
+	// Cfg
 	ParamFullText = `fullText`
-	SrchAttr      = `searchableAttributes`
-	FacetAttr     = `attributesForFaceting`
-	SortAttr      = `sortableAttributes`
 	DataDir       = `dataDir`
 	DataFile      = `dataFile`
 	IndexPath     = `indexPath`
-	DefaultField  = `title`
-	UID           = `uid`
+
+	// Index Settings
+	SrchAttr     = `searchableAttributes`
+	FacetAttr    = `attributesForFaceting`
+	SortAttr     = `sortableAttributes`
+	DefaultField = `title`
+	UID          = `uid`
 
 	TextAnalyzer    = "text"
 	KeywordAnalyzer = "keyword"
@@ -48,11 +50,7 @@ var paramsSettings = []string{
 	SrchAttr,
 	FacetAttr,
 	SortAttr,
-	DataDir,
-	DataFile,
-	IndexPath,
 	DefaultField,
-	ParamFullText,
 	UID,
 }
 
@@ -70,6 +68,13 @@ var paramsSearch = []string{
 	NbPages,
 	SortBy,
 	Order,
+}
+
+var paramsCfg = []string{
+	DataDir,
+	DataFile,
+	IndexPath,
+	ParamFullText,
 }
 
 type Params struct {
