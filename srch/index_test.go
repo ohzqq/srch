@@ -7,7 +7,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/ohzqq/srch/blv"
 	"github.com/ohzqq/srch/param"
 	"github.com/ohzqq/srch/txt"
 )
@@ -43,7 +42,7 @@ var testQueryNewIndex = []string{
 var testQuerySettings = []string{
 	"",
 	"searchableAttributes=",
-	"searchableAttributes=title&fullText=../testadata/poot.bleve",
+	"searchableAttributes=title&fullText=../testdata/poot.bleve",
 	"searchableAttributes=title&dataDir=../testdata/data-dir",
 	"attributesForFaceting=tags,authors,series,narrators",
 	"attributesForFaceting=tags,authors,series,narrators&dataFile=../testdata/data-dir/audiobooks.json",
@@ -96,16 +95,6 @@ func TestNewIndexWithParams(t *testing.T) {
 			t.Error(err)
 		}
 	}
-}
-
-func TestOpenBlvIndex(t *testing.T) {
-	cfgStr := `searchableAttributes=title&fullText=../testadata/poot.bleve&uid=id`
-	params, err := param.Parse(cfgStr)
-	if err != nil {
-		t.Error(err)
-	}
-
-	blev := blv.Open(params.Cfg)
 }
 
 func intErr(got, want int, msg ...any) error {
