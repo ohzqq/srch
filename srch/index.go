@@ -123,7 +123,7 @@ func (idx *Index) GetData() ([]map[string]any, error) {
 	var err error
 
 	files := idx.Params.GetDataFiles()
-	err = GetData(&data, files...)
+	err = data.GetData(&data, files...)
 	if err != nil {
 		return data, err
 	}
