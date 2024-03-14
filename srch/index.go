@@ -19,6 +19,15 @@ func init() {
 	viper.SetDefault(param.HitsPerPage, 25)
 }
 
+type Indexer interface {
+	Index(uid string, data ...map[string]any) error
+	Searcher
+}
+
+type Searcher interface {
+	Search(query string) (*roaring.Bitmap, error)
+}
+
 // Idx is a structure for facets and data.
 type Idx struct {
 	fields map[string]*txt.Field
@@ -47,6 +56,10 @@ func New(settings string) (*Idx, error) {
 
 	for _, attr := range idx.Params.SrchAttr {
 		idx.fields[attr] = txt.NewField(attr)
+	}
+
+	if idx.Params.SrchCfg.BlvPath != "" {
+		idx.isBleve = false
 	}
 
 	err = idx.GetData()

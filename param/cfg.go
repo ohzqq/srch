@@ -5,7 +5,7 @@ import (
 )
 
 type SrchCfg struct {
-	FullText string   `query:"fullText,omitempty" json:"fullText,omitempty"`
+	BlvPath  string   `query:"fullText,omitempty" json:"fullText,omitempty"`
 	DataDir  string   `query:"dataDir,omitempty" json:"dataDir,omitempty"`
 	DataFile []string `query:"dataFile,omitempty" json:"dataFile,omitempty"`
 	UID      string   `query:"uid,omitempty" json:"uid,omitempty"`
@@ -31,7 +31,7 @@ func (s *SrchCfg) Set(v url.Values) error {
 		case DataFile:
 			s.DataFile = GetQueryStringSlice(key, v)
 		case FullText:
-			s.FullText = v.Get(key)
+			s.BlvPath = v.Get(key)
 		case UID:
 			s.UID = v.Get(key)
 		}
@@ -41,7 +41,7 @@ func (s *SrchCfg) Set(v url.Values) error {
 }
 
 func (p SrchCfg) IsFullText() bool {
-	return p.FullText != ""
+	return p.BlvPath != ""
 }
 
 func (p SrchCfg) HasData() bool {
