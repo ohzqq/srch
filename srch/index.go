@@ -7,6 +7,7 @@ import (
 
 	"github.com/RoaringBitmap/roaring"
 	"github.com/ohzqq/srch/blv"
+	"github.com/ohzqq/srch/data"
 	"github.com/ohzqq/srch/mem"
 	"github.com/ohzqq/srch/param"
 	"github.com/ohzqq/srch/txt"
@@ -119,15 +120,15 @@ func ItemsByBitmap(data []map[string]any, bits *roaring.Bitmap) []map[string]any
 }
 
 func (idx *Index) GetData() ([]map[string]any, error) {
-	var data []map[string]any
+	var d []map[string]any
 	var err error
 
 	files := idx.Params.GetDataFiles()
-	err = data.GetData(&data, files...)
+	err = data.Get(&d, files...)
 	if err != nil {
-		return data, err
+		return d, err
 	}
-	return data, nil
+	return d, nil
 }
 
 func exist(path string) bool {
