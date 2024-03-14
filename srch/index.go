@@ -82,13 +82,7 @@ func New(settings string) (*Idx, error) {
 }
 
 func (idx *Idx) Search(query string) ([]map[string]any, error) {
-	var (
-		data []map[string]any
-		//res  = idx.Bitmap()
-		//err error
-	)
-
-	return data, nil
+	return idx.idx.Search(query)
 }
 
 //func (idx Idx) Bitmap() *roaring.Bitmap {
