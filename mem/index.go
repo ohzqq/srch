@@ -2,6 +2,7 @@ package mem
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"strings"
 
@@ -28,25 +29,24 @@ func New(cfg *param.SrchCfg) *Index {
 func Open(cfg *param.SrchCfg) (*Index, error) {
 	idx := New(cfg)
 
-	//data, err := idx.GetData()
-	//if err != nil {
-	//return nil, fmt.Errorf("data parsing error: %w\n", err)
-	//}
+	data, err := idx.GetData()
+	if err != nil {
+		return idx, fmt.Errorf("data parsing error: %w\n", err)
+	}
 
-	//idx.Batch(data)
+	err = idx.Batch(data)
+	if err != nil {
+		return idx, err
+	}
 
 	return idx, nil
 }
 
 func (idx *Index) Search(query string) ([]map[string]any, error) {
-	if idx.Len() == 0 {
-		return idx.Data, nil
-	}
 	if query == "" {
 		return idx.Data, nil
 	}
-	matches := fuzzy.FindFromNoSort(query, idx)
-	//matches := fuzzy.FindNoSort(query, idx.data)
+	matches := fuzzy.FindNoSort(query, idx.data)
 	res := make([]map[string]any, matches.Len())
 	for i, m := range matches {
 		res[i] = idx.Data[m.Index]
@@ -114,7 +114,7 @@ func (idx *Index) GetData() ([]map[string]any, error) {
 }
 
 func (idx *Index) Len() int {
-	return len(idx.Data)
+	return len(idx.data)
 }
 
 func (idx *Index) String(i int) string {

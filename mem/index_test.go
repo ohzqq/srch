@@ -24,20 +24,16 @@ func TestNewIndex(t *testing.T) {
 			t.Error(err)
 		}
 
-		idx, err := Open(params.SrchCfg)
-		if err != nil {
-			t.Error(err)
-		}
+		idx := New(params.SrchCfg)
 
 		data, err := idx.GetData()
 		if err != nil {
 			t.Fatal(err)
-			break
 		}
 
 		err = idx.Batch(data)
 		if err != nil {
-			t.Error(err)
+			t.Fatal(err)
 		}
 
 		total := idx.Len()
@@ -70,15 +66,15 @@ func TestSearchMem(t *testing.T) {
 			t.Error(err)
 		}
 
-		data, err := idx.GetData()
-		if err != nil {
-			t.Fatal(err)
-		}
+		//data, err := idx.GetData()
+		//if err != nil {
+		//t.Fatal(err)
+		//}
 
-		err = idx.Batch(data)
-		if err != nil {
-			t.Fatal(err)
-		}
+		//err = idx.Batch(data)
+		//if err != nil {
+		//t.Fatal(err)
+		//}
 
 		res, err := idx.Search("fish")
 		if err != nil {
