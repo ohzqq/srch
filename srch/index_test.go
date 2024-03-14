@@ -62,10 +62,12 @@ func TestNewIndex(t *testing.T) {
 		}
 		var num int
 		if !idx.Params.HasData() {
+			println("no data")
 			data := loadData(t)
 			num = len(data)
+		} else {
 			//idx.Index(data)
-			//num = idx.Len()
+			num = idx.Len()
 		}
 		err = totalBooksErr(num, q)
 		if err != nil {
@@ -85,8 +87,9 @@ func TestNewIndexWithParams(t *testing.T) {
 		if !idx.Params.HasData() {
 			data := loadData(t)
 			num = len(data)
+		} else {
 			//idx.Index(data)
-			//num = idx.Len()
+			num = idx.Len()
 		}
 		err = totalBooksErr(num, q)
 		if err != nil {
