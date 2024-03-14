@@ -1,17 +1,21 @@
 package txt
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"slices"
 
+	"github.com/RoaringBitmap/roaring"
 	"github.com/sahilm/fuzzy"
 	"github.com/samber/lo"
+	"github.com/spf13/cast"
 )
 
 type Token struct {
 	Value string `json:"value"`
 	Label string `json:"label"`
+	bits  *roaring.Bitmap
 	fuzzy.Match
 }
 
@@ -27,7 +31,51 @@ func NewToken(label, val string) *Token {
 	return &Token{
 		Value: val,
 		Label: label,
+		bits:  roaring.New(),
 	}
+}
+
+func (kw *Token) Bitmap() *roaring.Bitmap {
+	return kw.bits
+}
+
+func (kw *Token) SetValue(txt string) *Token {
+	kw.Value = txt
+	return kw
+}
+
+func (kw *Token) Items() []int {
+	i := kw.bits.ToArray()
+	return cast.ToIntSlice(i)
+}
+
+func (kw *Token) Count() int {
+	return int(kw.bits.GetCardinality())
+}
+
+func (kw *Token) Len() int {
+	return int(kw.bits.GetCardinality())
+}
+
+func (kw *Token) Contains(id int) bool {
+	return kw.bits.ContainsInt(id)
+}
+
+func (kw *Token) Add(ids ...int) {
+	for _, id := range ids {
+		if !kw.Contains(id) {
+			kw.bits.AddInt(id)
+		}
+	}
+}
+
+func (kw *Token) MarshalJSON() ([]byte, error) {
+	item := map[string]any{
+		"count": kw.Len(),
+		"value": kw.Label,
+		"hits":  kw.Items(),
+	}
+	return json.Marshal(item)
 }
 
 func (toks Tokens) Find(q string) (Tokens, error) {
@@ -155,6 +203,19 @@ func SortByAlphaFunc(a *Token, b *Token) int {
 	case a.Value > b.Value:
 		return 1
 	case a.Value == b.Value:
+		return 0
+	default:
+		return -1
+	}
+}
+
+func SortByCountFunc(a *Token, b *Token) int {
+	aC := a.Count()
+	bC := b.Count()
+	switch {
+	case aC > bC:
+		return 1
+	case aC == bC:
 		return 0
 	default:
 		return -1
