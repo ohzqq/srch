@@ -10,7 +10,6 @@ import (
 	"github.com/ohzqq/srch/blv"
 	"github.com/ohzqq/srch/param"
 	"github.com/ohzqq/srch/txt"
-	"github.com/spf13/cast"
 	"github.com/spf13/viper"
 )
 
@@ -136,24 +135,6 @@ func (idx *Idx) SetData(data []map[string]any) *Idx {
 	idx.Data = data
 	//return idx.Index(data)
 	return idx
-}
-
-// String satisfies the fuzzy.Source interface.
-func (idx *Idx) String(i int) string {
-	attr := idx.Params.SrchAttr
-	var str string
-	for _, a := range attr {
-		if v, ok := idx.Data[i][a]; ok {
-			str += cast.ToString(v)
-			str += " "
-		}
-	}
-	return str
-}
-
-// Len satisfies the fuzzy.Source interface.
-func (idx *Idx) Len() int {
-	return len(idx.Data)
 }
 
 func exist(path string) bool {

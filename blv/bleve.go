@@ -30,7 +30,6 @@ func Open(cfg *param.SrchCfg) *Index {
 		SrchCfg: cfg,
 		count:   int(c),
 	}
-	fmt.Printf("%+v\n", idx)
 	return idx
 }
 
