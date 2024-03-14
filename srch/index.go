@@ -29,8 +29,8 @@ type Searcher interface {
 	Search(query string) ([]map[string]any, error)
 }
 
-// Idx is a structure for facets and data.
-type Idx struct {
+// Index is a structure for facets and data.
+type Index struct {
 	fields map[string]*txt.Field
 	Data   []map[string]any
 	res    *roaring.Bitmap
@@ -45,16 +45,16 @@ var NoDataErr = errors.New("no data")
 
 type SearchFunc func(string) []map[string]any
 
-type Opt func(*Idx) error
+type Opt func(*Index) error
 
-func newIndex() *Idx {
-	return &Idx{
+func newIndex() *Index {
+	return &Index{
 		fields: make(map[string]*txt.Field),
 		Params: param.New(),
 	}
 }
 
-func New(settings string) (*Idx, error) {
+func New(settings string) (*Index, error) {
 	idx := newIndex()
 	var err error
 	idx.Params, err = param.Parse(settings)
@@ -80,7 +80,7 @@ func New(settings string) (*Idx, error) {
 	return idx, nil
 }
 
-func (idx *Idx) Search(query string) ([]map[string]any, error) {
+func (idx *Index) Search(query string) ([]map[string]any, error) {
 	return idx.idx.Search(query)
 }
 
@@ -114,24 +114,24 @@ func ItemsByBitmap(data []map[string]any, bits *roaring.Bitmap) []map[string]any
 	return res
 }
 
-func (idx *Idx) GetData() error {
-	if !idx.Params.HasData() {
-		return NoDataErr
+func (idx *Index) GetData() ([]map[string]any, error) {
+	var data []map[string]any
+
+	if !idx.HasData() {
+		return data, NoDataErr
 	}
 
-	var data []map[string]any
 	var err error
 
-	files := idx.Params.GetDataFiles()
+	files := idx.GetDataFiles()
 	err = GetData(&data, files...)
 	if err != nil {
-		return err
+		return data, err
 	}
-	idx.SetData(data)
-	return nil
+	return data, nil
 }
 
-func (idx *Idx) SetData(data []map[string]any) *Idx {
+func (idx *Index) SetData(data []map[string]any) *Index {
 	idx.Data = data
 	//return idx.Index(data)
 	return idx

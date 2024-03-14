@@ -1,7 +1,9 @@
 package mem
 
 import (
-	"fmt"
+	"bufio"
+	"encoding/json"
+	"os"
 	"testing"
 
 	"github.com/ohzqq/srch/param"
@@ -26,11 +28,7 @@ func TestNewIndex(t *testing.T) {
 
 		idx := New(params.SrchCfg)
 
-		data, err := idx.GetData()
-		if err != nil {
-			t.Fatal(err)
-		}
-
+		data := loadData(t)
 		err = idx.Batch(data)
 		if err != nil {
 			t.Fatal(err)
@@ -59,22 +57,13 @@ func TestSearchMem(t *testing.T) {
 			t.Error(err)
 		}
 
-		fmt.Printf("test %s fields %+v\n", q, params.SrchCfg.SrchAttr)
+		idx := Open(params.SrchCfg)
 
-		idx, err := Open(params.SrchCfg)
+		data := loadData(t)
+		err = idx.Batch(data)
 		if err != nil {
-			t.Error(err)
+			t.Fatal(err)
 		}
-
-		//data, err := idx.GetData()
-		//if err != nil {
-		//t.Fatal(err)
-		//}
-
-		//err = idx.Batch(data)
-		//if err != nil {
-		//t.Fatal(err)
-		//}
 
 		res, err := idx.Search("fish")
 		if err != nil {
@@ -93,4 +82,26 @@ func TestSearchMem(t *testing.T) {
 			}
 		}
 	}
+}
+
+func loadData(t *testing.T) []map[string]any {
+	d, err := os.Open("../testdata/nddata/ndbooks.ndjson")
+	if err != nil {
+		t.Error(err)
+	}
+	defer d.Close()
+
+	var books []map[string]any
+
+	scanner := bufio.NewScanner(d)
+	for scanner.Scan() {
+		b := make(map[string]any)
+		err = json.Unmarshal(scanner.Bytes(), &b)
+		if err != nil {
+			t.Error(err)
+		}
+		books = append(books, b)
+	}
+
+	return books
 }

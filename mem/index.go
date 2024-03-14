@@ -2,7 +2,6 @@ package mem
 
 import (
 	"errors"
-	"fmt"
 	"os"
 	"strings"
 
@@ -26,20 +25,9 @@ func New(cfg *param.SrchCfg) *Index {
 	}
 }
 
-func Open(cfg *param.SrchCfg) (*Index, error) {
+func Open(cfg *param.SrchCfg) *Index {
 	idx := New(cfg)
-
-	data, err := idx.GetData()
-	if err != nil {
-		return idx, fmt.Errorf("data parsing error: %w\n", err)
-	}
-
-	err = idx.Batch(data)
-	if err != nil {
-		return idx, err
-	}
-
-	return idx, nil
+	return idx
 }
 
 func (idx *Index) Search(query string) ([]map[string]any, error) {
@@ -58,16 +46,8 @@ func (idx *Index) Index(_ string, data map[string]any) error {
 	idx.Data = append(idx.Data, data)
 
 	var val []string
-	for _, f := range idx.SrchAttr {
-		if f == "*" {
-			for _, v := range data {
-				val = append(val, cast.ToString(v))
-			}
-		} else {
-			if v, ok := data[f]; ok {
-				val = append(val, cast.ToString(v))
-			}
-		}
+	for _, v := range data {
+		val = append(val, cast.ToString(v))
 	}
 	idx.data = append(idx.data, strings.Join(val, " "))
 	return nil
@@ -83,34 +63,6 @@ func (idx *Index) Batch(data []map[string]any) error {
 		idx.Index("", d)
 	}
 	return nil
-}
-
-func getSrchValue(data map[string]any, fields ...string) string {
-
-	var val []string
-	for _, f := range fields {
-		if v, ok := data[f]; ok {
-			val = append(val, cast.ToString(v))
-		}
-	}
-	return strings.Join(val, " ")
-}
-
-func (idx *Index) GetData() ([]map[string]any, error) {
-	var data []map[string]any
-
-	if !idx.HasData() {
-		return data, NoDataErr
-	}
-
-	var err error
-
-	files := idx.GetDataFiles()
-	err = GetData(&data, files...)
-	if err != nil {
-		return data, err
-	}
-	return data, nil
 }
 
 func (idx *Index) Len() int {
