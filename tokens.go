@@ -1,15 +1,22 @@
-package txt
+package srch
+
+import (
+	"github.com/ohzqq/srch/txt"
+	"github.com/spf13/cast"
+)
 
 type Tokens struct {
 	tokens   map[string]*Token
 	Tokens   []string
 	analyzer Analyzer
+	ana      *txt.Analyzer
 }
 
 func NewTokens() *Tokens {
 	tokens := &Tokens{
 		tokens:   make(map[string]*Token),
 		analyzer: Simple{},
+		ana:      txt.Keywords(),
 	}
 	return tokens
 }
@@ -43,7 +50,12 @@ func (t *Tokens) Add(val any, ids []int) {
 }
 
 func (t *Tokens) Tokenize(val any) []*Token {
-	return t.analyzer.Tokenize(val)
+	tokens, _ := t.ana.Tokenize(cast.ToString(val))
+	toks := make([]*Token, len(tokens))
+	for i, t := range tokens {
+		toks[i] = newTok(t)
+	}
+	return toks
 }
 
 func (t *Tokens) FindByLabel(label string) *Token {
@@ -52,7 +64,7 @@ func (t *Tokens) FindByLabel(label string) *Token {
 			return token
 		}
 	}
-	return NewToken(label)
+	return NewToken(label, label)
 }
 
 func (t *Tokens) Count() int {

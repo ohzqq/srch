@@ -12,6 +12,7 @@ import (
 
 	"github.com/RoaringBitmap/roaring"
 	"github.com/ohzqq/srch/blv"
+	"github.com/ohzqq/srch/param"
 	"github.com/spf13/cast"
 	"github.com/spf13/viper"
 )
@@ -32,6 +33,7 @@ type Idx struct {
 	idx     Indexer
 
 	*Params `json:"params"`
+	params  *param.Params
 }
 
 var NoDataErr = errors.New("no data")
@@ -40,15 +42,42 @@ type SearchFunc func(string) []map[string]any
 
 type Opt func(*Idx) error
 
-func New(settings any) (*Idx, error) {
+func NewIdx(settings string) (*Idx, error) {
 	idx := newIndex()
+	var err error
+	idx.params, err = param.Parse(settings)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, attr := range idx.params.SrchAttr {
+		idx.fields[attr] = NewField(attr)
+	}
+
+	err = idx.GetData()
+	if err != nil && !errors.Is(err, NoDataErr) {
+		return nil, fmt.Errorf("data parsing error: %w\n", err)
+	}
+
+	return idx, nil
+}
+
+func New(settings string) (*Idx, error) {
+	idx := newIndex()
+
+	var err error
+	idx.params, err = param.Parse(cast.ToString(settings))
+	if err != nil {
+		return nil, err
+	}
+
 	idx.Params = ParseParams(settings)
 	idx.fields = idx.Params.Fields()
 
 	//data := idx.Params.GetData()
 	//println(data)
 
-	err := idx.GetData()
+	err = idx.GetData()
 	if err != nil && !errors.Is(err, NoDataErr) {
 		return nil, fmt.Errorf("data parsing error: %w\n", err)
 	}
@@ -69,6 +98,8 @@ func New(settings any) (*Idx, error) {
 func newIndex() *Idx {
 	return &Idx{
 		fields: make(map[string]*Field),
+		Params: NewParams(),
+		params: param.New(),
 	}
 }
 
@@ -80,7 +111,7 @@ func (idx *Idx) Index(src []map[string]any) *Idx {
 	}
 
 	for id, d := range idx.Data {
-		for _, attr := range idx.SrchAttr() {
+		for _, attr := range idx.params.SrchAttr {
 			if val, ok := d[attr]; ok {
 				idx.fields[attr].Add(val, []int{id})
 			}
@@ -105,8 +136,8 @@ func (idx *Idx) Search(params string) *Response {
 
 	query := idx.Query()
 	if query != "" {
-		if idx.Params.IsFullText() {
-			idx.idx = blv.Open(idx.Params.GetFullText())
+		if idx.params.IsFullText() {
+			idx.idx = blv.Open(idx.params.FullText)
 			bits, err := idx.idx.Search(query)
 			if err != nil {
 				log.Fatal(err)
@@ -131,13 +162,13 @@ func (idx *Idx) Search(params string) *Response {
 }
 
 func (idx *Idx) Response() *Response {
-	return NewResponse(idx.GetResults(), idx.GetParams())
+	return NewResponse(idx.GetResults(), idx.GetParams().Encode())
 }
 
 func (idx *Idx) Sort() {
 	sort := idx.Params.Get(SortBy)
 	var sortType string
-	for _, sb := range idx.SortAttr() {
+	for _, sb := range idx.params.SortAttr {
 		if t, found := strings.CutPrefix(sb, sort+":"); found {
 			sortType = t
 		}
@@ -211,11 +242,23 @@ func (idx *Idx) FilterID(ids ...int) *Response {
 }
 
 func (idx *Idx) GetData() error {
-	if !idx.Params.HasData() {
+	if !idx.HasData() {
 		return NoDataErr
 	}
+
 	var data []map[string]any
 	var err error
+
+	if idx.params.HasData() {
+		files := idx.params.GetDataFiles()
+		err = GetData(&data, files...)
+		if err != nil {
+			return err
+		}
+		idx.SetData(data)
+		return nil
+	}
+
 	switch {
 	case idx.Params.Has(DataFile):
 		data, err = FileSrc(idx.GetSlice(DataFile)...)
@@ -230,6 +273,11 @@ func (idx *Idx) GetData() error {
 
 	idx.SetData(data)
 	return nil
+}
+
+func (idx *Idx) HasData() bool {
+	return idx.Params.HasData() ||
+		idx.params.HasData()
 }
 
 func (idx *Idx) SetData(data []map[string]any) *Idx {

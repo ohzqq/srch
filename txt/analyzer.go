@@ -1,37 +1,106 @@
 package txt
 
 import (
-	"strings"
+	"slices"
 
-	"github.com/spf13/cast"
+	"github.com/ohzqq/srch/txt/sep"
 )
 
-type Analyzer interface {
-	Tokenize(any) []*Token
+type Analyzer struct {
+	stopWords   []string
+	sep         sep.Func
+	normalizers []Normalizer
 }
 
-type Simple struct{}
-
-func (s Simple) Tokenize(str any) []*Token {
-	return []*Token{NewToken(cast.ToString(str))}
-}
-
-func normalizeText(token string) string {
-	fields := lowerCase(strings.Split(token, " "))
-	for t, term := range fields {
-		if len(term) == 1 {
-			fields[t] = term
-		} else {
-			fields[t] = stripNonAlphaNumeric(term)
-		}
+func New(opts ...Option) *Analyzer {
+	ana := &Analyzer{
+		sep: sep.Whitespace,
 	}
-	return strings.Join(fields, " ")
+
+	for _, opt := range opts {
+		opt(ana)
+	}
+
+	return ana
 }
 
-func lowerCase(tokens []string) []string {
-	lower := make([]string, len(tokens))
-	for i, str := range tokens {
-		lower[i] = strings.ToLower(str)
+func Keywords() *Analyzer {
+	return New(ToLower).Keywords()
+}
+
+func NewNormalizer(opts ...Option) *Analyzer {
+	ana := New(
+		ToLower,
+		WithoutPunct,
+	)
+	for _, opt := range opts {
+		opt(ana)
 	}
-	return lower
+	return ana
+}
+
+func (ana *Analyzer) WithNormalizer(normies ...Normalizer) *Analyzer {
+	ana.normalizers = normies
+	return ana
+}
+
+func (ana *Analyzer) AddNormalizer(normies ...Normalizer) *Analyzer {
+	ana.normalizers = append(ana.normalizers, normies...)
+	return ana
+}
+
+func (ana *Analyzer) Tokenize(text string) (Tokens, error) {
+	var (
+		toks   Tokens
+		tokens []string
+	)
+
+	if text == "" {
+		return toks, EmptyStrErr
+	}
+
+	tokens = Split(text, ana.sep)
+
+	if len(tokens) == 0 {
+		return toks, FieldsFuncErr
+	}
+
+	if len(ana.normalizers) > 0 {
+		toks = Normalize(tokens, ana.normalizers)
+	}
+
+	toks = toks.Without(ana.Stopwords())
+
+	return toks, nil
+}
+
+func (ana *Analyzer) WithSep(sep sep.Func) *Analyzer {
+	ana.sep = sep
+	return ana
+}
+
+func (ana *Analyzer) Keywords() *Analyzer {
+	ana.sep = nil
+	return ana
+}
+
+func (ana *Analyzer) WithoutStopWords() bool {
+	return len(ana.stopWords) > 0
+}
+
+func (ana *Analyzer) SetStopWords(words []string) *Analyzer {
+	ana.stopWords = words
+	return ana
+}
+
+func (ana *Analyzer) Stopwords() Tokens {
+	if !ana.WithoutStopWords() {
+		return Tokens{}
+	}
+	toks := Normalize(ana.stopWords, ana.normalizers)
+	return toks
+}
+
+func (ana *Analyzer) IsStopWord(token string) bool {
+	return slices.Contains(ana.stopWords, token)
 }

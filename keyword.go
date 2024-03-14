@@ -1,4 +1,4 @@
-package txt
+package srch
 
 import (
 	"github.com/spf13/cast"
@@ -21,7 +21,7 @@ func (kw keyword) Tokenize(str any) []*Token {
 }
 
 func (kw keyword) Search(text string) []*Token {
-	return []*Token{NewToken(normalizeText(text))}
+	return []*Token{NewToken(text, normalizeText(text))}
 }
 
 func KeywordTokenizer(val any) []*Token {
@@ -34,7 +34,7 @@ func KeywordTokenizer(val any) []*Token {
 	}
 	items := make([]*Token, len(tokens))
 	for i, token := range tokens {
-		items[i] = NewToken(token)
+		items[i] = NewToken(token, token)
 		items[i].Value = normalizeText(token)
 	}
 	return items

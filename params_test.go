@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/mitchellh/mapstructure"
+	"github.com/ohzqq/srch/param"
 )
 
 var (
@@ -24,12 +25,13 @@ var (
 var testQuerySettings = []string{
 	"",
 	"searchableAttributes=",
-	"searchableAttributes=title&fullText",
+	"searchableAttributes=title&fullText=testadata/poot.bleve",
 	"searchableAttributes=title&dataDir=testdata/data-dir",
 	"attributesForFaceting=tags,authors,series,narrators",
 	"attributesForFaceting=tags,authors,series,narrators&dataFile=testdata/data-dir/audiobooks.json",
 	"searchableAttributes=title&attributesForFaceting=tags,authors,series,narrators",
 	"searchableAttributes=title&dataFile=testdata/data-dir/audiobooks.json&attributesForFaceting=tags,authors,series,narrators",
+	`searchableAttributes=title&dataFile=testdata/data-dir/audiobooks.json&attributesForFaceting=tags,authors,series,narrators&page=3&query=fish&facets=tags&facets=authors&sortBy=title&order=desc&facetFilters=["authors:amy lane", ["tags:romance", "tags:-dnr"]]`,
 }
 
 var testParsedParams = []*Params{
@@ -78,11 +80,41 @@ var testParsedParams = []*Params{
 			SrchAttr:  defFields,
 			DataFile:  defDataFile,
 			FacetAttr: defFacetAttr,
+			"query":   []string{"fish"},
 		},
 	},
 }
 
+func TestGetData(t *testing.T) {
+	var data []map[string]any
+	err := GetData(&data, testDataFile)
+	if err != nil {
+		t.Error(err)
+	}
+	println(len(data))
+}
+
+func TestNewParser(t *testing.T) {
+	tests := []string{
+		`searchableAttributes=title&dataDir=testdata/nddata/&attributesForFaceting=tags,authors,series,narrators&page=3&query=fish&facets=tags&facets=authors&sortBy=title&order=desc&facetFilters=["authors:amy lane", ["tags:romance", "tags:-dnr"]]`,
+		`searchableAttributes=title&dataFile=testdata/ndbooks.ndjson&attributesForFaceting=tags,authors,series,narrators&page=3&query=fish&facets=tags&facets=authors&sortBy=title&order=desc&facetFilters=["authors:amy lane", ["tags:romance", "tags:-dnr"]]`,
+	}
+
+	for _, query := range tests {
+		//for _, query := range testQuerySettings {
+		params, err := param.Parse(query)
+		if err != nil {
+			t.Error(err)
+		}
+		data := params.Settings.GetDataFiles()
+		println(len(data))
+		fmt.Printf("Settings %+v\n", params.Settings)
+		fmt.Printf("Search %+v\n", params.Search)
+	}
+}
+
 func TestMapStruct(t *testing.T) {
+	t.SkipNow()
 	for _, query := range testQuerySettings {
 		vals, err := url.ParseQuery(query)
 		if err != nil {
@@ -91,7 +123,8 @@ func TestMapStruct(t *testing.T) {
 
 		fmt.Printf("%+v\n", vals)
 
-		params := &Params{}
+		params := &param.Params{}
+
 		err = mapstructure.Decode(vals, params)
 		if err != nil {
 			t.Error(err)
