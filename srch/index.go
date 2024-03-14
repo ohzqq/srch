@@ -8,7 +8,7 @@ import (
 	"github.com/RoaringBitmap/roaring"
 	"github.com/ohzqq/srch/blv"
 	"github.com/ohzqq/srch/data"
-	"github.com/ohzqq/srch/mem"
+	"github.com/ohzqq/srch/fuzz"
 	"github.com/ohzqq/srch/param"
 	"github.com/ohzqq/srch/txt"
 	"github.com/spf13/viper"
@@ -32,10 +32,9 @@ type Searcher interface {
 
 // Index is a structure for facets and data.
 type Index struct {
-	fields map[string]*txt.Field
-	Data   []map[string]any
-	res    *roaring.Bitmap
-	//idx     *FullText
+	fields  map[string]*txt.Field
+	Data    []map[string]any
+	res     *roaring.Bitmap
 	isBleve bool
 	idx     Indexer
 
@@ -52,7 +51,7 @@ func newIndex() *Index {
 	return &Index{
 		fields: make(map[string]*txt.Field),
 		Params: param.New(),
-		idx:    mem.New(),
+		idx:    fuzz.New(param.NewSettings()),
 	}
 }
 

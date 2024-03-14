@@ -14,18 +14,19 @@ type Index struct {
 	Data []map[string]any
 	data []string
 
-	*param.SrchCfg
+	*param.IndexSettings
 }
 
 var NoDataErr = errors.New("no data")
 
-func New() *Index {
-	return &Index{}
+func New(cfg *param.IndexSettings) *Index {
+	return &Index{
+		IndexSettings: cfg,
+	}
 }
 
-func Open(cfg *param.SrchCfg) *Index {
-	idx := New()
-	idx.SrchCfg = cfg
+func Open(cfg *param.IndexSettings) *Index {
+	idx := New(cfg)
 	return idx
 }
 
@@ -45,8 +46,16 @@ func (idx *Index) Index(_ string, data map[string]any) error {
 	idx.Data = append(idx.Data, data)
 
 	var val []string
-	for _, v := range data {
-		val = append(val, cast.ToString(v))
+	for _, f := range idx.SrchAttr {
+		if f != "*" {
+			if v, ok := data[f]; ok {
+				val = append(val, cast.ToString(v))
+			}
+		} else {
+			for _, v := range data {
+				val = append(val, cast.ToString(v))
+			}
+		}
 	}
 	idx.data = append(idx.data, strings.Join(val, " "))
 	return nil
