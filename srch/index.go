@@ -68,7 +68,7 @@ func New(settings string) (*Idx, error) {
 	}
 
 	if idx.Params.SrchCfg.BlvPath != "" {
-		idx.isBleve = false
+		idx.isBleve = true
 		idx.idx = blv.Open(idx.Params.SrchCfg)
 		return idx, nil
 	}
