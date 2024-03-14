@@ -9,10 +9,13 @@ type SrchCfg struct {
 	DataDir  string   `query:"dataDir,omitempty" json:"dataDir,omitempty"`
 	DataFile []string `query:"dataFile,omitempty" json:"dataFile,omitempty"`
 	UID      string   `query:"uid,omitempty" json:"uid,omitempty"`
+	*IndexSettings
 }
 
 func NewCfg() *SrchCfg {
-	return &SrchCfg{}
+	return &SrchCfg{
+		IndexSettings: NewSettings(),
+	}
 }
 
 func (s *SrchCfg) Parse(q string) error {
@@ -37,6 +40,7 @@ func (s *SrchCfg) Set(v url.Values) error {
 		}
 		v.Del(key)
 	}
+	s.IndexSettings.Set(v)
 	return nil
 }
 
