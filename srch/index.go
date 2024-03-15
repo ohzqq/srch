@@ -85,7 +85,10 @@ func (idx *Index) Search(query string) (*Results, error) {
 	if err != nil {
 		return nil, err
 	}
-	res := NewResults(r, idx.Params)
+	res, err := NewResults(r, idx.Params)
+	if err != nil {
+		return nil, err
+	}
 	return res, nil
 }
 

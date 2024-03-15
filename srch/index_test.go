@@ -48,7 +48,7 @@ var testQuerySettings = []string{
 	"facets=tags,authors,series,narrators&dataFile=../testdata/data-dir/audiobooks.json",
 	"searchableAttributes=title&facets=tags,authors,series,narrators",
 	"searchableAttributes=title&dataFile=../testdata/data-dir/audiobooks.json&facets=tags,authors,series,narrators",
-	`searchableAttributes=title&dataFile=../testdata/data-dir/audiobooks.json&facets=tags,authors,series,narrators&page=3&query=fish&facets=tags&facets=authors&sortBy=title&order=desc&facetFilters=["authors:amy lane", ["tags:romance", "tags:-dnr"]]`,
+	`searchableAttributes=title&dataFile=../testdata/data-dir/audiobooks.json&facets=tags,authors,series,narrators&page=3&query=fish&sortBy=title&order=desc&facetFilters=["authors:amy lane", ["tags:romance", "tags:-dnr"]]`,
 }
 
 var titleField = txt.NewField(param.DefaultField)

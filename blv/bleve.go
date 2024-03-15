@@ -21,22 +21,16 @@ func Open(cfg *param.SrchCfg) *Index {
 	}
 	defer blv.Close()
 
-	c, err := blv.DocCount()
-	if err != nil {
-		c = 0
-	}
-
 	idx := &Index{
 		SrchCfg: cfg,
-		count:   int(c),
 	}
+	idx.count = idx.Count()
 	return idx
 }
 
 func New(cfg *param.SrchCfg) (*Index, error) {
-	idx := Open(cfg)
-
-	blv, err := bleve.New(idx.BlvPath, bleve.NewIndexMapping())
+	idx := &Index{SrchCfg: cfg}
+	blv, err := bleve.New(cfg.BlvPath, bleve.NewIndexMapping())
 	if err != nil {
 		return idx, err
 	}
@@ -152,6 +146,7 @@ func (idx *Index) Batch(data []map[string]any) error {
 		s += batchSize
 		e += batchSize
 	}
+	idx.count = idx.Count()
 
 	return nil
 }
@@ -160,6 +155,21 @@ func (idx *Index) Bitmap() ([]map[string]any, error) {
 	q := bleve.NewMatchAllQuery()
 	req := bleve.NewSearchRequest(q)
 	return idx.search(req)
+}
+
+func (idx *Index) Count() int {
+	blv, err := bleve.Open(idx.BlvPath)
+	if err != nil {
+		return 0
+	}
+	defer blv.Close()
+
+	c, err := blv.DocCount()
+	if err != nil {
+		return 0
+	}
+
+	return int(c)
 }
 
 func (idx *Index) Len() int {
