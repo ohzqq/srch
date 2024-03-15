@@ -19,10 +19,15 @@ type Facets struct {
 	bits    *roaring.Bitmap
 }
 
-func New(param *param.FacetSettings) *Facets {
-	return &Facets{
+func New(data []map[string]any, param *param.FacetSettings) *Facets {
+	facets := &Facets{
 		params: param,
+		Facets: NewFields(param.Facets),
+		data:   data,
+		bits:   roaring.New(),
 	}
+	facets.Calculate()
+	return facets
 }
 
 func Parse(params string) (*Facets, error) {
@@ -63,8 +68,8 @@ func NewFacets(fields []string) *Facets {
 
 func (f *Facets) Calculate() *Facets {
 	var uid string
-	if f.vals.Has("uid") {
-		uid = f.vals.Get("uid")
+	if f.params.UID != "" {
+		uid = f.params.UID
 	}
 
 	for id, d := range f.data {

@@ -11,7 +11,7 @@ import (
 	"github.com/spf13/cast"
 )
 
-const testDataFile = `../testdata/nddata/ndbooks.json`
+const testDataFile = `../testdata/data-dir/audiobooks.json`
 const testDataDir = `../testdata/nddata`
 const numBooks = 7252
 const testQueryString = `attributesForFaceting=tags&attributesForFaceting=authors&attributesForFaceting=narrators&attributesForFaceting=series&data=../testdata/nddata/ndbooks.ndjson&uid=url`
@@ -55,10 +55,23 @@ func TestNewFacets(t *testing.T) {
 		t.Error(err)
 	}
 
-	facets := New(p.FacetSettings)
+	data, err := loadData()
+	if err != nil {
+		t.Error(err)
+	}
+
+	facets := New(data, p.FacetSettings)
+	if len(facets.data) != 7253 {
+		t.Errorf("got %d, wanted %d\n", len(facets.data), 7253)
+	}
+
 	if len(facets.params.Facets) != 4 {
 		t.Errorf("not enough facets %#v\n", facets.params)
 	}
+	if len(facets.Facets) != 4 {
+		t.Errorf("not enough facets %#v\n", facets.params)
+	}
+
 }
 
 func TestNewFacetsFromQueryString(t *testing.T) {
