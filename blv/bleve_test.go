@@ -13,7 +13,7 @@ import (
 
 const blevePath = `../testdata/poot.bleve`
 const testDataFile = `../testdata/nddata/ndbooks.ndjson`
-const cfgStr = `searchableAttributes=*&fullText=../testdata/poot.bleve&uid=id`
+const cfgStr = `searchableAttributes=title,tags,authors,narrators,series&fullText=../testdata/poot.bleve&uid=id`
 
 func TestNewBleveIndex(t *testing.T) {
 	//t.SkipNow()
@@ -121,10 +121,11 @@ func loadData(t *testing.T) []map[string]any {
 		if err != nil {
 			t.Error(err)
 		}
-		books = append(books, map[string]any{
-			"title": b["title"],
-			//"id":    b["id"],
-		})
+		books = append(books, b)
+		//books = append(books, map[string]any{
+		//"title": b["title"],
+		//"id":    b["id"],
+		//})
 	}
 
 	return books

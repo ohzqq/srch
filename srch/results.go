@@ -5,7 +5,6 @@ import (
 
 	"github.com/ohzqq/srch/facet"
 	"github.com/ohzqq/srch/param"
-	"golang.org/x/exp/maps"
 )
 
 type Results struct {
@@ -23,8 +22,11 @@ func NewResults(hits []map[string]any, params *param.Params) (*Results, error) {
 	if len(hits) == 0 {
 		return res, nil
 	}
+	println(len(hits))
 
-	fmt.Printf("facets %#v\n", maps.Keys(hits[0]))
+	fmt.Printf("facets %#v\n", params.Facets)
+	fmt.Printf("hits %#v\n", hits[0])
+	//fmt.Printf("facets %#v\n", maps.Keys(hits[0]))
 
 	if len(params.Facets) > 0 {
 		facets, err := facet.New(hits, params.FacetSettings)

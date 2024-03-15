@@ -59,7 +59,7 @@ func TestBleveFacets(t *testing.T) {
 		if !idx.isBleve {
 			t.Errorf("not bleve")
 		}
-		query := ""
+		query := "fish"
 		if i == 1 {
 			query = "fish"
 		}

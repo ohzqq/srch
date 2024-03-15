@@ -66,6 +66,7 @@ func (idx *Index) search(req *bleve.SearchRequest) ([]map[string]any, error) {
 	}
 	defer blv.Close()
 
+	req.Fields = []string{"*"}
 	res, err := blv.Search(req)
 	if err != nil {
 		return nil, err
@@ -76,10 +77,6 @@ func (idx *Index) search(req *bleve.SearchRequest) ([]map[string]any, error) {
 		data[i] = hit.Fields
 	}
 
-	//bits := roaring.New()
-	//for _, hit := range res.Hits {
-	//bits.Add(cast.ToUint32(hit.ID))
-	//}
 	return data, nil
 }
 
@@ -131,6 +128,7 @@ func (idx *Index) Batch(data []map[string]any) error {
 			}
 
 			doc := data[c]
+			fmt.Printf("%#v\n", doc)
 
 			id := cast.ToString(c)
 			if it, ok := doc[idx.UID]; ok {
