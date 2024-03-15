@@ -51,7 +51,6 @@ func newIndex() *Index {
 	return &Index{
 		fields: make(map[string]*txt.Field),
 		Params: param.New(),
-		idx:    fuzz.New(param.NewSettings()),
 	}
 }
 
@@ -78,7 +77,9 @@ func New(settings string) (*Index, error) {
 		if err != nil {
 			return nil, NoDataErr
 		}
+		idx.idx = fuzz.Open(idx.Params.IndexSettings)
 		idx.idx.Batch(idx.Data)
+		return idx, nil
 	}
 
 	return idx, nil
