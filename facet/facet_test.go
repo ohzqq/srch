@@ -2,7 +2,6 @@ package facet
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/url"
 	"os"
 	"testing"
@@ -14,11 +13,11 @@ import (
 const testDataFile = `../testdata/data-dir/audiobooks.json`
 const testDataDir = `../testdata/nddata`
 const numBooks = 7252
-const testQueryString = `attributesForFaceting=tags&attributesForFaceting=authors&attributesForFaceting=narrators&attributesForFaceting=series&data=../testdata/nddata/ndbooks.ndjson&uid=url`
+const testQueryString = `facets=tags&facets=authors&facets=narrators&facets=series&data=../testdata/nddata/ndbooks.ndjson&uid=url`
 
 var queryStrTests = []string{
-	`attributesForFaceting=tags&attributesForFaceting=authors&attributesForFaceting=narrators&attributesForFaceting=series&data=../testdata/nddata/ndbooks.ndjson&uid=id&facetFilters=["tags:dnr", "tags:abo"]`,
-	`attributesForFaceting=tags&attributesForFaceting=authors&attributesForFaceting=narrators&attributesForFaceting=series&data=../testdata/nddata/ndbooks.ndjson&facetFilters=["tags:dnr", "tags:abo"]`,
+	`facets=tags&facets=authors&facets=narrators&facets=series&data=../testdata/nddata/ndbooks.ndjson&uid=id&facetFilters=["tags:dnr", "tags:abo"]`,
+	`facets=tags&facets=authors&facets=narrators&facets=series&data=../testdata/nddata/ndbooks.ndjson&facetFilters=["tags:dnr", "tags:abo"]`,
 }
 
 var defFieldsStr = `tags,authors,narrators,series`
@@ -26,8 +25,8 @@ var defFieldsSingle = []string{"tags,authors,narrators,series"}
 var defFieldsSlice = []string{"tags", "authors", "narrators", "series"}
 
 var testQueryVals = url.Values{
-	"attributesForFaceting": defFieldsSingle,
-	"data":                  []string{"../testdata/nddata/ndbooks.ndjson"},
+	"facets": defFieldsSingle,
+	"data":   []string{"../testdata/nddata/ndbooks.ndjson"},
 }
 
 var facetCount = map[string]int{
@@ -84,19 +83,6 @@ func TestNewFacets(t *testing.T) {
 			t.Errorf("attr %s not found\n", facet.Attribute)
 		}
 	}
-}
-
-func testFacetCfg(facets *Facets) error {
-	if attrs := facets.Attrs(); len(attrs) != 4 {
-		return fmt.Errorf("got %d attributes, expected %d\n", len(attrs), 4)
-	}
-
-	facets.Calculate()
-	if len(facets.Facets) != 4 {
-		return fmt.Errorf("got %d attributes, expected %d\n", len(facets.Facets), 4)
-	}
-
-	return nil
 }
 
 func dataToMap() (map[string]map[string]any, error) {

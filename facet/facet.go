@@ -1,21 +1,17 @@
 package facet
 
 import (
-	"encoding/json"
-	"io"
-
 	"github.com/RoaringBitmap/roaring"
 	"github.com/ohzqq/srch/param"
 	"github.com/spf13/cast"
 )
 
 type Facets struct {
-	params  *param.FacetSettings
-	*Params `json:"params"`
-	Facets  []*Field         `json:"facets"`
-	data    []map[string]any `json:"hits"`
-	ids     []string
-	bits    *roaring.Bitmap
+	params *param.FacetSettings
+	Facets []*Field         `json:"facets"`
+	data   []map[string]any `json:"hits"`
+	ids    []string
+	bits   *roaring.Bitmap
 }
 
 func New(data []map[string]any, param *param.FacetSettings) (*Facets, error) {
@@ -118,47 +114,8 @@ func (f Facets) Len() int {
 	return int(f.bits.GetCardinality())
 }
 
-func (f Facets) EncodeQuery() string {
-	return f.vals.Encode()
-}
-
 func (f *Facets) Bitmap() *roaring.Bitmap {
 	return f.bits
-}
-
-func (f *Facets) Encode(w io.Writer) error {
-	enc := json.NewEncoder(w)
-	for _, d := range f.data {
-		err := enc.Encode(d)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (f *Facets) MarshalJSON() ([]byte, error) {
-	enc := f.resultMeta()
-	enc["hits"] = f.data
-	if len(f.data) < 1 {
-		enc["hits"] = []any{}
-	}
-
-	return json.Marshal(enc)
-}
-
-func (f *Facets) resultMeta() map[string]any {
-	enc := make(map[string]any)
-
-	facets := make(map[string]*Field)
-	for _, facet := range f.Facets {
-		facets[facet.Attribute] = facet
-	}
-	enc["facets"] = facets
-
-	f.vals.Set("nbHits", cast.ToString(f.Len()))
-	enc["params"] = f.EncodeQuery()
-	return enc
 }
 
 func ItemsByBitmap(data []map[string]any, bits *roaring.Bitmap) []map[string]any {
