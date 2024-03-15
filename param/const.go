@@ -52,13 +52,17 @@ var paramsSearch = []string{
 	AttributesToRetrieve,
 	Page,
 	HitsPerPage,
-	SortFacetsBy,
 	Query,
-	Facets,
-	Filters,
-	FacetFilters,
 	NbHits,
 	NbPages,
 	SortBy,
 	Order,
+}
+
+var paramsFacets = []string{
+	SortFacetsBy,
+	Facets,
+	Filters,
+	FacetFilters,
+	UID,
 }

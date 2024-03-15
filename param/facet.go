@@ -3,7 +3,6 @@ package param
 import "net/url"
 
 type FacetSettings struct {
-	FacetAttr    []string `query:"attributesForFaceting,omitempty" json:"attributesForFaceting,omitempty"`
 	UID          string   `query:"uid,omitempty" json:"uid,omitempty"`
 	Facets       []string `query:"facets,omitempty" json:"facets,omitempty"`
 	Filters      string   `query:"filters,omitempty" json:"filters,omitempty"`
@@ -16,7 +15,7 @@ func NewFacetSettings() *FacetSettings {
 }
 
 func (facet *FacetSettings) Set(v url.Values) error {
-	for _, key := range paramsSearch {
+	for _, key := range paramsFacets {
 		switch key {
 		case SortFacetsBy:
 			facet.SortFacetsBy = v.Get(key)

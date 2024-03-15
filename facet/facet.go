@@ -6,15 +6,23 @@ import (
 	"log"
 
 	"github.com/RoaringBitmap/roaring"
+	"github.com/ohzqq/srch/param"
 	"github.com/spf13/cast"
 )
 
 type Facets struct {
+	params  *param.FacetSettings
 	*Params `json:"params"`
 	Facets  []*Field         `json:"facets"`
 	data    []map[string]any `json:"hits"`
 	ids     []string
 	bits    *roaring.Bitmap
+}
+
+func New(param *param.FacetSettings) *Facets {
+	return &Facets{
+		params: param,
+	}
 }
 
 func Parse(params string) (*Facets, error) {

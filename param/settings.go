@@ -62,8 +62,8 @@ func parseSrchAttr(vals url.Values) []string {
 }
 
 func parseFacetAttr(vals url.Values) []string {
-	if !vals.Has(Facets) {
-		vals[Facets] = GetQueryStringSlice(FacetAttr, vals)
+	if !vals.Has(FacetAttr) {
+		vals[FacetAttr] = GetQueryStringSlice(FacetAttr, vals)
 	}
 	return vals[Facets]
 }
