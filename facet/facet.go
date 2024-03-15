@@ -17,7 +17,7 @@ type Facets struct {
 	bits    *roaring.Bitmap
 }
 
-func New(params string) (*Facets, error) {
+func Parse(params string) (*Facets, error) {
 	var err error
 
 	p, err := ParseParams(params)

@@ -3,7 +3,6 @@ package facet
 import (
 	"encoding/json"
 	"net/url"
-	"os"
 	"testing"
 )
 
@@ -50,7 +49,7 @@ type filterVal struct {
 
 func TestFilterStrings(t *testing.T) {
 	for _, f := range filterStrs {
-		facets, err := New(f.query)
+		facets, err := Parse(f.query)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -63,7 +62,7 @@ func TestFilterStrings(t *testing.T) {
 
 func TestFilterVals(t *testing.T) {
 	for _, f := range testSearchFilterStrings() {
-		facets, err := New(f.vals.Encode())
+		facets, err := Parse(f.vals.Encode())
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -75,7 +74,7 @@ func TestFilterVals(t *testing.T) {
 		//}
 		//println(facets.Len())
 
-		facets, err = New(f.vals.Encode())
+		facets, err = Parse(f.vals.Encode())
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -83,16 +82,16 @@ func TestFilterVals(t *testing.T) {
 			t.Errorf("got %d results, wanted %d\nfilters: %v\n", num, f.want, f.vals.Get("facetFilters"))
 		}
 
-		enc, err := json.Marshal(facets)
+		_, err = json.Marshal(facets)
 		if err != nil {
 			t.Error(err)
 		}
-		println(string(enc))
+		//println(string(enc))
 
-		err = facets.Encode(os.Stdout)
-		if err != nil {
-			t.Error(err)
-		}
+		//err = facets.Encode(os.Stdout)
+		//if err != nil {
+		//t.Error(err)
+		//}
 	}
 }
 

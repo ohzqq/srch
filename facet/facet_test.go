@@ -37,7 +37,7 @@ var facetCount = map[string]int{
 }
 
 func TestNewFacetsFromQueryString(t *testing.T) {
-	facets, err := New(testQueryString)
+	facets, err := Parse(testQueryString)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -56,7 +56,7 @@ func TestNewFacetsFromQueryString(t *testing.T) {
 }
 
 func TestNewFacetsFromQuery(t *testing.T) {
-	facets, err := New(testQueryVals.Encode())
+	facets, err := Parse(testQueryVals.Encode())
 	if err != nil {
 		t.Fatal(err)
 	}
