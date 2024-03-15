@@ -60,7 +60,10 @@ func TestNewFacets(t *testing.T) {
 		t.Error(err)
 	}
 
-	facets := New(data, p.FacetSettings)
+	facets, err := New(data, p.FacetSettings)
+	if err != nil {
+		t.Error(err)
+	}
 	if len(facets.data) != 7253 {
 		t.Errorf("got %d, wanted %d\n", len(facets.data), 7253)
 	}

@@ -4,36 +4,38 @@ import (
 	"encoding/json"
 	"net/url"
 	"testing"
+
+	"github.com/ohzqq/srch/param"
 )
 
 var filterStrs = []filterStr{
 	filterStr{
-		want:  2241,
-		query: `data=../testdata/nddata/ndbooks.ndjson&attributesForFaceting=tags&facetFilters=["tags:dnr"]`,
+		want:  2240,
+		query: `data=../testdata/nddata/ndbooks.ndjson&facets=tags&facetFilters=["tags:dnr"]`,
 	},
 	filterStr{
 		want:  384,
-		query: `data=../testdata/nddata/ndbooks.ndjson&attributesForFaceting=tags&facetFilters=["tags:dnr", "tags:abo"]`,
+		query: `data=../testdata/nddata/ndbooks.ndjson&facets=tags&facetFilters=["tags:dnr", "tags:abo"]`,
 	},
 	filterStr{
-		want:  32,
-		query: `data=../testdata/nddata/ndbooks.ndjson&attributesForFaceting=tags&facetFilters=["tags:-dnr", "tags:abo"]`,
+		want:  33,
+		query: `data=../testdata/nddata/ndbooks.ndjson&facets=tags&facetFilters=["tags:-dnr", "tags:abo"]`,
 	},
 	filterStr{
-		want:  32,
-		query: `data=../testdata/nddata/ndbooks.ndjson&attributesForFaceting=tags&facetFilters=["tags:abo", "tags:-dnr"]`,
+		want:  33,
+		query: `data=../testdata/nddata/ndbooks.ndjson&afacets=tags&facetFilters=["tags:abo", "tags:-dnr"]`,
 	},
 	filterStr{
 		want:  2273,
-		query: `data=../testdata/nddata/ndbooks.ndjson&attributesForFaceting=tags&facetFilters=[["tags:dnr", "tags:abo"]]`,
+		query: `data=../testdata/nddata/ndbooks.ndjson&facets=tags&facetFilters=[["tags:dnr", "tags:abo"]]`,
 	},
 	filterStr{
-		want:  5395,
-		query: `data=../testdata/nddata/ndbooks.ndjson&attributesForFaceting=tags&facetFilters=[["tags:-dnr", "tags:abo"]]`,
+		want:  5397,
+		query: `data=../testdata/nddata/ndbooks.ndjson&facets=tags&facetFilters=[["tags:-dnr", "tags:abo"]]`,
 	},
 	filterStr{
-		want:  5395,
-		query: `data=../testdata/nddata/ndbooks.ndjson&attributesForFaceting=tags&facetFilters=[[ "tags:abo", "tags:-dnr"]]`,
+		want:  5397,
+		query: `data=../testdata/nddata/ndbooks.ndjson&facets=tags&facetFilters=[[ "tags:abo", "tags:-dnr"]]`,
 	},
 }
 
@@ -48,12 +50,22 @@ type filterVal struct {
 }
 
 func TestFilterStrings(t *testing.T) {
-	t.SkipNow()
 	for _, f := range filterStrs {
-		facets, err := Parse(f.query)
+		p, err := param.Parse(f.query)
 		if err != nil {
-			t.Fatal(err)
+			t.Error(err)
 		}
+
+		data, err := loadData()
+		if err != nil {
+			t.Error(err)
+		}
+
+		facets, err := New(data, p.FacetSettings)
+		if err != nil {
+			t.Error(err)
+		}
+
 		if num := facets.Len(); num != f.want {
 			t.Errorf("query %s:\ngot %d results, wanted %d\n", f.query, num, f.want)
 		}

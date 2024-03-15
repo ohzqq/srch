@@ -19,7 +19,7 @@ type Facets struct {
 	bits    *roaring.Bitmap
 }
 
-func New(data []map[string]any, param *param.FacetSettings) *Facets {
+func New(data []map[string]any, param *param.FacetSettings) (*Facets, error) {
 	facets := &Facets{
 		params: param,
 		Facets: NewFields(param.Facets),
@@ -27,7 +27,18 @@ func New(data []map[string]any, param *param.FacetSettings) *Facets {
 		bits:   roaring.New(),
 	}
 	facets.Calculate()
-	return facets
+
+	if len(facets.params.FacetFilters) > 0 {
+		filters := facets.params.FacetFilters
+		facets.params.FacetFilters = []any{}
+		filtered, err := facets.Filter(filters)
+		if err != nil {
+			return nil, err
+		}
+		return filtered.Calculate(), nil
+	}
+
+	return facets, nil
 }
 
 func Parse(params string) (*Facets, error) {
@@ -48,13 +59,13 @@ func Parse(params string) (*Facets, error) {
 
 	facets.Calculate()
 
-	if facets.vals.Has("facetFilters") {
-		filtered, err := facets.Filter(facets.Filters())
-		if err != nil {
-			return nil, err
-		}
-		return filtered.Calculate(), nil
-	}
+	//if facets.vals.Has("facetFilters") {
+	//  filtered, err := facets.Filter(facets.Filters())
+	//  if err != nil {
+	//    return nil, err
+	//  }
+	//  return filtered.Calculate(), nil
+	//}
 
 	return facets, nil
 }
@@ -95,13 +106,16 @@ func (f *Facets) Filter(filters []any) (*Facets, error) {
 		return nil, err
 	}
 
-	facets := NewFacets(f.Attrs())
-	facets.Params = f.Params
-
 	f.bits.And(filtered)
 
+	var data []map[string]any
 	if f.bits.GetCardinality() > 0 {
-		facets.data = f.getHits()
+		data = f.getHits()
+	}
+
+	facets, err := New(data, f.params)
+	if err != nil {
+		return nil, err
 	}
 
 	return facets, nil
@@ -109,8 +123,8 @@ func (f *Facets) Filter(filters []any) (*Facets, error) {
 
 func (f Facets) getHits() []map[string]any {
 	var uid string
-	if f.vals.Has("uid") {
-		uid = f.vals.Get("uid")
+	if f.params.UID != "" {
+		uid = f.params.UID
 	}
 	var hits []map[string]any
 	for idx, d := range f.data {
