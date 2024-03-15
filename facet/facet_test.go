@@ -56,7 +56,7 @@ func TestNewFacetsFromQueryString(t *testing.T) {
 }
 
 func TestNewFacetsFromQuery(t *testing.T) {
-	facets, err := New(testQueryVals)
+	facets, err := New(testQueryVals.Encode())
 	if err != nil {
 		t.Fatal(err)
 	}

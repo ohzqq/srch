@@ -63,7 +63,7 @@ func TestFilterStrings(t *testing.T) {
 
 func TestFilterVals(t *testing.T) {
 	for _, f := range testSearchFilterStrings() {
-		facets, err := New(f.vals)
+		facets, err := New(f.vals.Encode())
 		if err != nil {
 			t.Fatal(err)
 		}
