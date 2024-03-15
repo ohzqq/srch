@@ -31,10 +31,10 @@ var testQueryVals = url.Values{
 }
 
 var facetCount = map[string]int{
-	"tags":      218,
-	"authors":   1612,
-	"series":    1740,
-	"narrators": 1428,
+	"tags":      222,
+	"authors":   1618,
+	"series":    1745,
+	"narrators": 1430,
 }
 
 func TestParseFacetSettings(t *testing.T) {
@@ -72,6 +72,15 @@ func TestNewFacets(t *testing.T) {
 		t.Errorf("not enough facets %#v\n", facets.params)
 	}
 
+	for _, facet := range facets.Facets {
+		if num, ok := facetCount[facet.Attribute]; ok {
+			if num != facet.Len() {
+				t.Errorf("%v got %d, expected %d \n", facet.Attribute, facet.Len(), num)
+			}
+		} else {
+			t.Errorf("attr %s not found\n", facet.Attribute)
+		}
+	}
 }
 
 func TestNewFacetsFromQueryString(t *testing.T) {
