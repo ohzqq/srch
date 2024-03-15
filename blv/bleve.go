@@ -24,7 +24,11 @@ func Open(cfg *param.SrchCfg) *Index {
 	idx := &Index{
 		SrchCfg: cfg,
 	}
-	//idx.count = idx.Count()
+	c, err := blv.DocCount()
+	if err != nil {
+		c = 0
+	}
+	idx.count = int(c)
 	return idx
 }
 
@@ -66,8 +70,6 @@ func (idx *Index) search(req *bleve.SearchRequest) ([]map[string]any, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	println(res.Total)
 
 	data := make([]map[string]any, res.Hits.Len())
 	for i, hit := range res.Hits {
@@ -146,7 +148,11 @@ func (idx *Index) Batch(data []map[string]any) error {
 		s += batchSize
 		e += batchSize
 	}
-	//idx.count = idx.Count()
+	dc, err := blv.DocCount()
+	if err != nil {
+		dc = 0
+	}
+	idx.count = int(dc)
 
 	return nil
 }
@@ -173,5 +179,5 @@ func (idx *Index) Count() int {
 }
 
 func (idx *Index) Len() int {
-	return idx.Count()
+	return idx.count
 }
