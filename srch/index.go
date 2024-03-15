@@ -10,7 +10,7 @@ import (
 	"github.com/ohzqq/srch/data"
 	"github.com/ohzqq/srch/fuzz"
 	"github.com/ohzqq/srch/param"
-	"github.com/ohzqq/srch/txt"
+	"github.com/samber/lo"
 	"github.com/spf13/viper"
 )
 
@@ -33,11 +33,10 @@ type Searcher interface {
 
 // Index is a structure for facets and data.
 type Index struct {
-	fields  map[string]*txt.Field
 	Data    []map[string]any
 	res     *roaring.Bitmap
 	isBleve bool
-	idx     Indexer
+	Indexer
 
 	Params *param.Params
 }
@@ -50,7 +49,6 @@ type Opt func(*Index) error
 
 func newIndex() *Index {
 	return &Index{
-		fields: make(map[string]*txt.Field),
 		Params: param.New(),
 	}
 }
@@ -63,13 +61,9 @@ func New(settings string) (*Index, error) {
 		return nil, err
 	}
 
-	for _, attr := range idx.Params.SrchAttr {
-		idx.fields[attr] = txt.NewField(attr)
-	}
-
 	if idx.Params.SrchCfg.BlvPath != "" {
 		idx.isBleve = true
-		idx.idx = blv.Open(idx.Params.SrchCfg)
+		idx.Indexer = blv.Open(idx.Params.SrchCfg)
 		return idx, nil
 	}
 
@@ -78,17 +72,17 @@ func New(settings string) (*Index, error) {
 		if err != nil {
 			return nil, NoDataErr
 		}
-		idx.idx = fuzz.Open(idx.Params.IndexSettings)
-		idx.idx.Batch(idx.Data)
+		idx.Indexer = fuzz.Open(idx.Params.IndexSettings)
+		idx.Batch(idx.SrchFields())
 		return idx, nil
 	}
 
 	return idx, nil
 }
 
-func (idx *Index) Search(query string) ([]map[string]any, error) {
-	return idx.idx.Search(query)
-}
+//func (idx *Index) Search(query string) ([]map[string]any, error) {
+//  return idx.Search(query)
+//}
 
 //func (idx Idx) Bitmap() *roaring.Bitmap {
 //  bits := roaring.New()
@@ -112,7 +106,22 @@ func (idx *Index) Search(query string) ([]map[string]any, error) {
 //}
 
 func (idx *Index) NbHits() int {
-	return idx.idx.Len()
+	return idx.Indexer.Len()
+}
+
+func (idx *Index) SrchFields() []map[string]any {
+	if len(idx.Params.SrchAttr) == 0 {
+		return idx.Data
+	}
+	if idx.Params.SrchAttr[0] == "*" {
+		return idx.Data
+	}
+
+	data := make([]map[string]any, len(idx.Data))
+	for i, d := range data {
+		data[i] = lo.PickByKeys(d, idx.Params.SrchAttr)
+	}
+	return data
 }
 
 func ItemsByBitmap(data []map[string]any, bits *roaring.Bitmap) []map[string]any {
