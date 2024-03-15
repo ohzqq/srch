@@ -6,6 +6,8 @@ import (
 	"net/url"
 	"os"
 	"strings"
+
+	"github.com/ohzqq/srch/param"
 )
 
 type Params struct {
@@ -29,11 +31,27 @@ func ParseParams(params any) (*Params, error) {
 	return p, nil
 }
 
+//func ParseAttr(attr ...string) []string {
+//  var ats []string
+//  for _, at := range attrs {
+//    b, a, f := strings.Cut(at, ",")
+//    if f {
+//      ats = append(ats, b)
+//    } else {
+//      ats = append(ats, at)
+//    }
+//    if a != "" {
+//      ats = append(ats, splitAttr(a))
+//    }
+//  }
+//  return ats
+//}
+
 func (p Params) Attrs() []string {
-	if p.vals.Has("attributesForFaceting") {
-		attrs := p.vals["attributesForFaceting"]
+	if p.vals.Has(param.Facets) {
+		attrs := p.vals[param.Facets]
 		if len(attrs) == 1 {
-			return strings.Split(p.vals.Get("attributesForFaceting"), ",")
+			return strings.Split(p.vals.Get(param.Facets), ",")
 		}
 		return attrs
 	}

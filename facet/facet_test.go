@@ -49,7 +49,7 @@ func TestParseFacetSettings(t *testing.T) {
 }
 
 func TestNewFacets(t *testing.T) {
-	test := `facets=tags&facets=authors&facets=narrators&facets=series`
+	test := `facets=tags,authors&facets=narrators&facets=series`
 	p, err := param.Parse(test)
 	if err != nil {
 		t.Error(err)
