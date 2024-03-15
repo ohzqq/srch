@@ -10,31 +10,31 @@ import (
 var filterStrs = []filterStr{
 	filterStr{
 		want:  2241,
-		query: `data=testdata/ndbooks.json&attributesForFaceting=tags&facetFilters=["tags:dnr"]`,
+		query: `data=../testdata/nddata/ndbooks.ndjson&attributesForFaceting=tags&facetFilters=["tags:dnr"]`,
 	},
 	filterStr{
 		want:  384,
-		query: `data=testdata/ndbooks.json&attributesForFaceting=tags&facetFilters=["tags:dnr", "tags:abo"]`,
+		query: `data=../testdata/nddata/ndbooks.ndjson&attributesForFaceting=tags&facetFilters=["tags:dnr", "tags:abo"]`,
 	},
 	filterStr{
 		want:  32,
-		query: `data=testdata/ndbooks.json&attributesForFaceting=tags&facetFilters=["tags:-dnr", "tags:abo"]`,
+		query: `data=../testdata/nddata/ndbooks.ndjson&attributesForFaceting=tags&facetFilters=["tags:-dnr", "tags:abo"]`,
 	},
 	filterStr{
 		want:  32,
-		query: `data=testdata/ndbooks.json&attributesForFaceting=tags&facetFilters=["tags:abo", "tags:-dnr"]`,
+		query: `data=../testdata/nddata/ndbooks.ndjson&attributesForFaceting=tags&facetFilters=["tags:abo", "tags:-dnr"]`,
 	},
 	filterStr{
 		want:  2273,
-		query: `data=testdata/ndbooks.json&attributesForFaceting=tags&facetFilters=[["tags:dnr", "tags:abo"]]`,
+		query: `data=../testdata/nddata/ndbooks.ndjson&attributesForFaceting=tags&facetFilters=[["tags:dnr", "tags:abo"]]`,
 	},
 	filterStr{
 		want:  5395,
-		query: `data=testdata/ndbooks.json&attributesForFaceting=tags&facetFilters=[["tags:-dnr", "tags:abo"]]`,
+		query: `data=../testdata/nddata/ndbooks.ndjson&attributesForFaceting=tags&facetFilters=[["tags:-dnr", "tags:abo"]]`,
 	},
 	filterStr{
 		want:  5395,
-		query: `data=testdata/ndbooks.json&attributesForFaceting=tags&facetFilters=[[ "tags:abo", "tags:-dnr"]]`,
+		query: `data=../testdata/nddata/ndbooks.ndjson&attributesForFaceting=tags&facetFilters=[[ "tags:abo", "tags:-dnr"]]`,
 	},
 }
 
@@ -103,7 +103,7 @@ func testSearchFilterStrings() []filterVal {
 	queries = append(queries, filterVal{
 		want: 58,
 		vals: url.Values{
-			"data":                  []string{"testdata/ndbooks.json"},
+			"data":                  []string{"../testdata/nddata/ndbooks.ndjson"},
 			"attributesForFaceting": []string{"tags", "authors"},
 			"facetFilters": []string{
 				`["authors:amy lane"]`,
@@ -114,7 +114,7 @@ func testSearchFilterStrings() []filterVal {
 	queries = append(queries, filterVal{
 		want: 26,
 		vals: url.Values{
-			"data":                  []string{"testdata/ndbooks.json"},
+			"data":                  []string{"../testdata/nddata/ndbooks.ndjson"},
 			"attributesForFaceting": []string{"tags", "authors"},
 			"facetFilters": []string{
 				`["authors:amy lane", ["tags:romance"]]`,
@@ -126,7 +126,7 @@ func testSearchFilterStrings() []filterVal {
 		want: 41,
 		vals: url.Values{
 			//"uid": []string{"id"},
-			"data":                  []string{"testdata/ndbooks.json"},
+			"data":                  []string{"../testdata/nddata/ndbooks.ndjson"},
 			"attributesForFaceting": []string{"tags", "authors"},
 			"facetFilters": []string{
 				`["authors:amy lane", ["tags:romance", "tags:-dnr"]]`,
@@ -137,7 +137,7 @@ func testSearchFilterStrings() []filterVal {
 	queries = append(queries, filterVal{
 		want: 0,
 		vals: url.Values{
-			"data":                  []string{"testdata/ndbooks.json"},
+			"data":                  []string{"../testdata/nddata/ndbooks.ndjson"},
 			"attributesForFaceting": []string{"tags", "authors"},
 			"facetFilters": []string{
 				`["tags:abo", "tags:dnr", "tags:horror"]`,

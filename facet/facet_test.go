@@ -10,14 +10,14 @@ import (
 	"github.com/spf13/cast"
 )
 
-const testDataFile = `testdata/data-dir/ndbooks.json`
-const testDataDir = `testdata/data-dir`
+const testDataFile = `../testdata/nddata/ndbooks.json`
+const testDataDir = `../testdata/nddata`
 const numBooks = 7252
-const testQueryString = `attributesForFaceting=tags&attributesForFaceting=authors&attributesForFaceting=narrators&attributesForFaceting=series&data=testdata/ndbooks.json&uid=url`
+const testQueryString = `attributesForFaceting=tags&attributesForFaceting=authors&attributesForFaceting=narrators&attributesForFaceting=series&data=../testdata/nddata/ndbooks.ndjson&uid=url`
 
 var queryStrTests = []string{
-	`attributesForFaceting=tags&attributesForFaceting=authors&attributesForFaceting=narrators&attributesForFaceting=series&data=testdata/ndbooks.json&uid=id&facetFilters=["tags:dnr", "tags:abo"]`,
-	`attributesForFaceting=tags&attributesForFaceting=authors&attributesForFaceting=narrators&attributesForFaceting=series&data=testdata/ndbooks.json&facetFilters=["tags:dnr", "tags:abo"]`,
+	`attributesForFaceting=tags&attributesForFaceting=authors&attributesForFaceting=narrators&attributesForFaceting=series&data=../testdata/nddata/ndbooks.ndjson&uid=id&facetFilters=["tags:dnr", "tags:abo"]`,
+	`attributesForFaceting=tags&attributesForFaceting=authors&attributesForFaceting=narrators&attributesForFaceting=series&data=../testdata/nddata/ndbooks.ndjson&facetFilters=["tags:dnr", "tags:abo"]`,
 }
 
 var defFieldsStr = `tags,authors,narrators,series`
@@ -26,7 +26,7 @@ var defFieldsSlice = []string{"tags", "authors", "narrators", "series"}
 
 var testQueryVals = url.Values{
 	"attributesForFaceting": defFieldsSingle,
-	"data":                  []string{"testdata/ndbooks.json"},
+	"data":                  []string{"../testdata/nddata/ndbooks.ndjson"},
 }
 
 var facetCount = map[string]int{
