@@ -128,7 +128,6 @@ func (idx *Index) Batch(data []map[string]any) error {
 			}
 
 			doc := data[c]
-			fmt.Printf("%#v\n", doc)
 
 			id := cast.ToString(c)
 			if it, ok := doc[idx.UID]; ok {

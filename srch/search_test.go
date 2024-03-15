@@ -8,14 +8,14 @@ import (
 var bleveSearchTests = []string{
 	`searchableAttributes=title&fullText=../testdata/poot.bleve&uid=id`,
 	`searchableAttributes=title&fullText=../testdata/poot.bleve&uid=id`,
-	`searchableAttributes=title&fullText=../testdata/poot.bleve&uid=id&facets=tags,authors,narrators,series`,
+	`searchableAttributes=*&fullText=../testdata/poot.bleve&uid=id&facets=tags,authors,narrators,series`,
 }
 
-var facetCount = map[string]int{
-	"tags":      222,
-	"authors":   1618,
-	"series":    1745,
-	"narrators": 1430,
+var blvfacetCount = map[string]int{
+	"tags":      218,
+	"authors":   1612,
+	"series":    1740,
+	"narrators": 1428,
 }
 
 func TestBleveSearchAll(t *testing.T) {
@@ -59,7 +59,7 @@ func TestBleveFacets(t *testing.T) {
 		if !idx.isBleve {
 			t.Errorf("not bleve")
 		}
-		query := "fish"
+		query := ""
 		if i == 1 {
 			query = "fish"
 		}
@@ -79,7 +79,7 @@ func TestBleveFacets(t *testing.T) {
 		//}
 
 		for _, facet := range res.Facets.Facets {
-			if num, ok := facetCount[facet.Attribute]; ok {
+			if num, ok := blvfacetCount[facet.Attribute]; ok {
 				if num != facet.Len() {
 					t.Errorf("%v got %d, expected %d \n", facet.Attribute, facet.Len(), num)
 				}
