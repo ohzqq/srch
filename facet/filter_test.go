@@ -1,7 +1,6 @@
 package facet
 
 import (
-	"encoding/json"
 	"net/url"
 	"testing"
 
@@ -71,42 +70,6 @@ func TestFilterStrings(t *testing.T) {
 		}
 	}
 
-}
-
-func TestFilterVals(t *testing.T) {
-	t.SkipNow()
-	for _, f := range testSearchFilterStrings() {
-		facets, err := Parse(f.vals.Encode())
-		if err != nil {
-			t.Fatal(err)
-		}
-		if num := facets.Len(); num != f.want {
-			t.Errorf("got %d results, wanted %d\nfilters: %v\n", num, f.want, f.vals.Get("facetFilters"))
-		}
-		//if len(facets.Hits) > 0 {
-		//  fmt.Printf("%v: %+v\n", f.vals.Encode(), facets.Hits[0]["title"])
-		//}
-		//println(facets.Len())
-
-		facets, err = Parse(f.vals.Encode())
-		if err != nil {
-			t.Fatal(err)
-		}
-		if num := facets.Len(); num != f.want {
-			t.Errorf("got %d results, wanted %d\nfilters: %v\n", num, f.want, f.vals.Get("facetFilters"))
-		}
-
-		_, err = json.Marshal(facets)
-		if err != nil {
-			t.Error(err)
-		}
-		//println(string(enc))
-
-		//err = facets.Encode(os.Stdout)
-		//if err != nil {
-		//t.Error(err)
-		//}
-	}
 }
 
 func testSearchFilterStrings() []filterVal {

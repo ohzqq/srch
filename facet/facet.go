@@ -3,7 +3,6 @@ package facet
 import (
 	"encoding/json"
 	"io"
-	"log"
 
 	"github.com/RoaringBitmap/roaring"
 	"github.com/ohzqq/srch/param"
@@ -37,35 +36,6 @@ func New(data []map[string]any, param *param.FacetSettings) (*Facets, error) {
 		}
 		return filtered.Calculate(), nil
 	}
-
-	return facets, nil
-}
-
-func Parse(params string) (*Facets, error) {
-	var err error
-
-	p, err := ParseParams(params)
-	if err != nil {
-		return nil, err
-	}
-
-	facets := NewFacets(p.Attrs())
-	facets.Params = p
-
-	facets.data, err = facets.Data()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	facets.Calculate()
-
-	//if facets.vals.Has("facetFilters") {
-	//  filtered, err := facets.Filter(facets.Filters())
-	//  if err != nil {
-	//    return nil, err
-	//  }
-	//  return filtered.Calculate(), nil
-	//}
 
 	return facets, nil
 }

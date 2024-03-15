@@ -86,49 +86,6 @@ func TestNewFacets(t *testing.T) {
 	}
 }
 
-func TestNewFacetsFromQueryString(t *testing.T) {
-	t.SkipNow()
-	facets, err := Parse(testQueryString)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	err = testFacetCfg(facets)
-	if err != nil {
-		t.Error(err)
-	}
-
-	if len(facets.data) != numBooks {
-		t.Errorf("got %d items, expected %d\n", len(facets.data), 7174)
-	}
-	//if len(facets.Hits) > 0 {
-	//  fmt.Printf("%+v\n", facets.Hits[0]["title"])
-	//}
-}
-
-func TestNewFacetsFromQuery(t *testing.T) {
-	t.SkipNow()
-	facets, err := Parse(testQueryVals.Encode())
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	err = testFacetCfg(facets)
-	if err != nil {
-		t.Error(err)
-	}
-
-	for _, facet := range facets.Facets {
-		if num, ok := facetCount[facet.Attribute]; ok {
-			if num != facet.Len() {
-				t.Errorf("%v got %d, expected %d \n", facet.Attribute, facet.Len(), num)
-			}
-		} else {
-			t.Errorf("attr %s not found\n", facet.Attribute)
-		}
-	}
-}
-
 func testFacetCfg(facets *Facets) error {
 	if attrs := facets.Attrs(); len(attrs) != 4 {
 		return fmt.Errorf("got %d attributes, expected %d\n", len(attrs), 4)
