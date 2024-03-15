@@ -33,12 +33,12 @@ type Searcher interface {
 
 // Index is a structure for facets and data.
 type Index struct {
+	Indexer
+
 	Data    []map[string]any
 	res     *roaring.Bitmap
 	isBleve bool
-	Indexer
-
-	Params *param.Params
+	Params  *param.Params
 }
 
 var NoDataErr = errors.New("no data")
@@ -73,37 +73,25 @@ func New(settings string) (*Index, error) {
 			return nil, NoDataErr
 		}
 		idx.Indexer = fuzz.Open(idx.Params.IndexSettings)
-		idx.Batch(idx.SrchFields())
+		idx.Batch(idx.Data)
 		return idx, nil
 	}
 
 	return idx, nil
 }
 
-//func (idx *Index) Search(query string) ([]map[string]any, error) {
-//  return idx.Search(query)
-//}
+func (idx *Index) Search(query string) (*Results, error) {
+	r, err := idx.Indexer.Search(query)
+	if err != nil {
+		return nil, err
+	}
+	res := NewResults(r, idx.Params)
+	return res, nil
+}
 
-//func (idx Idx) Bitmap() *roaring.Bitmap {
-//  bits := roaring.New()
-
-//  if idx.isBleve {
-//    b, err := idx.idx.Search("")
-//    if b != nil {
-//      return bits
-//    }
-//    return b
-//  }
-
-//  if uid := idx.Params.SrchCfg.UID; uid != "" {
-//    for _, d := range idx.Data {
-//      bits.AddInt(cast.ToInt(d[uid]))
-//    }
-//  } else {
-//    bits.AddRange(0, uint64(len(idx.Data)))
-//  }
-//  return bits
-//}
+func (idx *Index) Batch(data []map[string]any) error {
+	return idx.Indexer.Batch(idx.SrchFields())
+}
 
 func (idx *Index) NbHits() int {
 	return idx.Indexer.Len()
@@ -117,9 +105,15 @@ func (idx *Index) SrchFields() []map[string]any {
 		return idx.Data
 	}
 
+	fields := idx.Params.SrchAttr
+
+	if idx.isBleve {
+		fields = append(fields, idx.Params.Facets...)
+	}
+
 	data := make([]map[string]any, len(idx.Data))
 	for i, d := range data {
-		data[i] = lo.PickByKeys(d, idx.Params.SrchAttr)
+		data[i] = lo.PickByKeys(d, fields)
 	}
 	return data
 }

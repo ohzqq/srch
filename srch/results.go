@@ -8,4 +8,12 @@ import (
 type Results struct {
 	Facets *facet.Facets
 	Params *param.Params
+	hits   []map[string]any
+}
+
+func NewResults(hits []map[string]any, params *param.Params) *Results {
+	return &Results{
+		hits:   hits,
+		Params: params,
+	}
 }
