@@ -22,7 +22,7 @@ var filterStrs = []filterStr{
 	},
 	filterStr{
 		want:  33,
-		query: `data=../testdata/nddata/ndbooks.ndjson&afacets=tags&facetFilters=["tags:abo", "tags:-dnr"]`,
+		query: `data=../testdata/nddata/ndbooks.ndjson&facets=tags&facetFilters=["tags:abo", "tags:-dnr"]`,
 	},
 	filterStr{
 		want:  2273,

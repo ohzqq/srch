@@ -1,7 +1,6 @@
 package param
 
 import (
-	"encoding/json"
 	"net/url"
 
 	"github.com/spf13/viper"
@@ -55,13 +54,4 @@ func (s *Search) Set(v url.Values) error {
 	}
 	s.FacetSettings.Set(v)
 	return nil
-}
-
-func unmarshalFilter(dec string) ([]any, error) {
-	var f []any
-	err := json.Unmarshal([]byte(dec), &f)
-	if err != nil {
-		return nil, err
-	}
-	return f, nil
 }

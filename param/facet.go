@@ -1,6 +1,9 @@
 package param
 
-import "net/url"
+import (
+	"encoding/json"
+	"net/url"
+)
 
 type FacetSettings struct {
 	UID          string   `query:"uid,omitempty" json:"uid,omitempty"`
@@ -36,4 +39,13 @@ func (facet *FacetSettings) Set(v url.Values) error {
 		v.Del(key)
 	}
 	return nil
+}
+
+func unmarshalFilter(dec string) ([]any, error) {
+	var f []any
+	err := json.Unmarshal([]byte(dec), &f)
+	if err != nil {
+		return nil, err
+	}
+	return f, nil
 }

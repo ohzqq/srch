@@ -19,12 +19,9 @@ type Facets struct {
 }
 
 func New(data []map[string]any, param *param.FacetSettings) (*Facets, error) {
-	facets := &Facets{
-		params: param,
-		Facets: NewFields(param.Facets),
-		data:   data,
-		bits:   roaring.New(),
-	}
+	facets := NewFacets(param.Facets)
+	facets.params = param
+	facets.data = data
 	facets.Calculate()
 
 	if len(facets.params.FacetFilters) > 0 {
