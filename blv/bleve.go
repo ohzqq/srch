@@ -24,7 +24,7 @@ func Open(cfg *param.SrchCfg) *Index {
 	idx := &Index{
 		SrchCfg: cfg,
 	}
-	idx.count = idx.Count()
+	//idx.count = idx.Count()
 	return idx
 }
 
@@ -146,7 +146,7 @@ func (idx *Index) Batch(data []map[string]any) error {
 		s += batchSize
 		e += batchSize
 	}
-	idx.count = idx.Count()
+	//idx.count = idx.Count()
 
 	return nil
 }
@@ -173,5 +173,5 @@ func (idx *Index) Count() int {
 }
 
 func (idx *Index) Len() int {
-	return idx.count
+	return idx.Count()
 }
