@@ -7,7 +7,7 @@ import (
 
 var bleveSearchTests = []string{
 	`searchableAttributes=title&fullText=../testdata/poot.bleve&uid=id`,
-	`searchableAttributes=title&fullText=../testdata/poot.bleve&uid=id`,
+	`searchableAttributes=title&fullText=../testdata/poot.bleve&uid=id&facets=tags,authors,narrators,series`,
 	`searchableAttributes=*&fullText=../testdata/poot.bleve&uid=id&facets=tags,authors,narrators,series`,
 }
 
@@ -39,12 +39,24 @@ func TestBleveSearchAll(t *testing.T) {
 		got := len(res.hits)
 		want := 7252
 		if query == "fish" {
-			want = 8
+			want = 10
 			//want = len(res)
 		}
 		err = searchErr(got, want, query)
 		if err != nil {
 			t.Error(err)
+		}
+
+		if res.Facets != nil {
+			for _, facet := range res.Facets.Facets {
+				if num, ok := blvfacetCount[facet.Attribute]; ok {
+					if num != facet.Len() {
+						t.Errorf("%v got %d, expected %d \n", facet.Attribute, facet.Len(), num)
+					}
+				} else {
+					t.Errorf("attr %s not found\n", facet.Attribute)
+				}
+			}
 		}
 	}
 }
