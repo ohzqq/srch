@@ -66,7 +66,7 @@ func TestNewIndex(t *testing.T) {
 			num = len(data)
 		} else {
 			//idx.Index(data)
-			num = 0
+			num = idx.NbHits()
 		}
 		err = totalBooksErr(num, q)
 		if err != nil {
@@ -88,7 +88,8 @@ func TestNewIndexWithParams(t *testing.T) {
 			num = len(data)
 		} else {
 			//idx.Index(data)
-			num = 0
+			//num = 0
+			num = idx.NbHits()
 		}
 		err = totalBooksErr(num, q)
 		if err != nil {

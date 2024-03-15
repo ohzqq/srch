@@ -23,6 +23,7 @@ func init() {
 type Indexer interface {
 	Index(uid string, data map[string]any) error
 	Batch(data []map[string]any) error
+	Len() int
 	Searcher
 }
 
@@ -109,6 +110,10 @@ func (idx *Index) Search(query string) ([]map[string]any, error) {
 //  }
 //  return bits
 //}
+
+func (idx *Index) NbHits() int {
+	return idx.idx.Len()
+}
 
 func ItemsByBitmap(data []map[string]any, bits *roaring.Bitmap) []map[string]any {
 	var res []map[string]any
