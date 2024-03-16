@@ -19,10 +19,10 @@ var blvfacetCount = map[string]int{
 }
 
 var fishfacetCount = map[string]int{
-	"tags":      13,
-	"authors":   7,
-	"series":    7,
-	"narrators": 7,
+	"tags":      39,
+	"authors":   29,
+	"series":    22,
+	"narrators": 26,
 }
 
 func TestBleveSearchAll(t *testing.T) {
@@ -43,10 +43,10 @@ func TestBleveSearchAll(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-		got := len(res.hits)
+		got := len(res.nbHits)
 		want := 7252
 		if query == "&query=fish" {
-			want = 10
+			want = 37
 			//want = len(res)
 		}
 		err = searchErr(got, want, query)

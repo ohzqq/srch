@@ -1,6 +1,8 @@
 package srch
 
 import (
+	"fmt"
+
 	"github.com/ohzqq/srch/facet"
 	"github.com/ohzqq/srch/param"
 )
@@ -8,12 +10,12 @@ import (
 type Results struct {
 	Facets *facet.Facets
 	Params *param.Params
-	hits   []map[string]any
+	nbHits []map[string]any
 }
 
 func NewResults(hits []map[string]any, params *param.Params) (*Results, error) {
 	res := &Results{
-		hits:   hits,
+		nbHits: hits,
 		Params: params,
 	}
 
@@ -33,7 +35,28 @@ func NewResults(hits []map[string]any, params *param.Params) (*Results, error) {
 }
 
 func (res *Results) NbHits() int {
-	return len(res.hits)
+	return len(res.nbHits)
+}
+
+func (res *Results) Hits() []map[string]any {
+	if !res.Params.Has(param.HitsPerPage) {
+		return res.nbHits
+	}
+	nbHits := res.NbHits()
+	hpp := res.Params.HitsPerPage
+	if nbHits < hpp {
+		return res.nbHits
+	}
+	fmt.Printf("hpp %d\n", hpp)
+	nbPages := nbHits/hpp + nbHits%hpp
+	fmt.Printf("nbPages %d\n", nbPages)
+	page := 0
+	if res.Params.Has(param.Page) {
+		page = res.Params.Page - 1
+	}
+	fmt.Printf("page %d\n", page)
+
+	return res.nbHits
 }
 
 //func (r *Results) StringMap() map[string]any {

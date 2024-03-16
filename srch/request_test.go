@@ -145,10 +145,13 @@ func TestNewRequest(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		err = searchErr(res.NbHits(), 10, res.Params.Query)
+		err = searchErr(res.NbHits(), 37, res.Params.Query)
 		if err != nil {
 			t.Error(err)
 		}
+
+		hits := res.Hits()
+		println(len(hits))
 	}
 	//for i, test := range testQuerySettings {
 	//  req, err := param.Parse(test)

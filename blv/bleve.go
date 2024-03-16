@@ -54,7 +54,8 @@ func (idx *Index) Search(query string) ([]map[string]any, error) {
 	}
 
 	q := bleve.NewTermQuery(query)
-	req = bleve.NewSearchRequest(q)
+	req = bleve.NewSearchRequestOptions(q, idx.count, 0, true)
+	//req = bleve.NewSearchRequest(q)
 
 	return idx.search(req)
 }
