@@ -61,7 +61,7 @@ func New(settings string) (*Index, error) {
 		return nil, err
 	}
 
-	if idx.Params.SrchCfg.BlvPath != "" {
+	if idx.Has(param.BlvPath) {
 		idx.isBleve = true
 		idx.Indexer = blv.Open(idx.Params.SrchCfg)
 		return idx, nil
@@ -95,12 +95,14 @@ func (idx *Index) Search(params string) (*Results, error) {
 		return nil, err
 	}
 
-	r, err := idx.Indexer.Search(p.Query)
+	q := p.Query
+	r, err := idx.Indexer.Search(q)
 	if err != nil {
 		return nil, err
 	}
 
 	p = idx.Params
+	p.Query = q
 	res, err := NewResults(r, p)
 	if err != nil {
 		return nil, err
@@ -134,7 +136,14 @@ func (idx *Index) FilterDataBySrchAttr() []map[string]any {
 		fields = append(fields, idx.Params.Facets...)
 	}
 
-	data := make([]map[string]any, len(idx.Data))
+	return FilterDataByAttr(idx.Data, fields)
+}
+
+func FilterDataByAttr(hits []map[string]any, fields []string) []map[string]any {
+	if len(fields) < 1 {
+		return hits
+	}
+	data := make([]map[string]any, len(hits))
 	for i, d := range data {
 		data[i] = lo.PickByKeys(d, fields)
 	}

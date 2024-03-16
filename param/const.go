@@ -23,6 +23,7 @@ const (
 
 	// Cfg
 	FullText     = `fullText`
+	BlvPath      = `fullText`
 	DataDir      = `dataDir`
 	DataFile     = `dataFile`
 	DefaultField = `title`
@@ -44,6 +45,7 @@ var paramsCfg = []string{
 	DataFile,
 	DefaultField,
 	FullText,
+	BlvPath,
 	UID,
 }
 

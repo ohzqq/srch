@@ -21,7 +21,7 @@ func NewResults(hits []map[string]any, params *param.Params) (*Results, error) {
 		return res, nil
 	}
 
-	if len(params.Facets) > 0 {
+	if params.Has(param.Facets) {
 		facets, err := facet.New(hits, params.FacetSettings)
 		if err != nil {
 			return nil, err

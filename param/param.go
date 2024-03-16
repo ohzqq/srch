@@ -34,7 +34,6 @@ func Parse(params string) (*Params, error) {
 	if err != nil {
 		return nil, err
 	}
-	p.params = vals
 
 	//err = p.SrchCfg.Set(vals)
 	//if err != nil {
@@ -53,12 +52,11 @@ func Parse(params string) (*Params, error) {
 		return nil, err
 	}
 
-	p.Other = vals
-
 	return p, nil
 }
 
 func (s *Params) Set(v url.Values) error {
+	s.params = v
 	for _, key := range paramsSettings {
 		switch key {
 		case SrchAttr:
@@ -168,6 +166,89 @@ func (s *Params) Has(key string) bool {
 	default:
 		return false
 	}
+}
+
+func (s *Params) Values() url.Values {
+	vals := make(url.Values)
+	for _, key := range paramsSettings {
+		if !s.Has(key) {
+			continue
+		}
+		switch key {
+		case SrchAttr:
+			vals[key] = s.SrchAttr
+		case FacetAttr:
+			vals[key] = s.FacetAttr
+		case SortAttr:
+			vals[key] = s.SortAttr
+		case DefaultField:
+			vals.Set(key, s.DefaultField)
+		case UID:
+			vals.Set(key, s.IndexSettings.UID)
+		}
+	}
+	for _, key := range paramsCfg {
+		if !s.Has(key) {
+			continue
+		}
+		switch key {
+		case DataDir:
+			vals.Set(key, s.DataDir)
+		case DataFile:
+			vals[key] = s.DataFile
+		case FullText:
+			vals.Set(key, s.BlvPath)
+		case UID:
+			vals.Set(key, s.SrchCfg.UID)
+		}
+	}
+	for _, key := range paramsFacets {
+		if !s.Has(key) {
+			continue
+		}
+		switch key {
+		case SortFacetsBy:
+			vals.Set(key, s.SortFacetsBy)
+		case Facets:
+			vals[key] = s.Facets
+		case Filters:
+			vals.Set(key, s.Filters)
+		case FacetFilters:
+			for _, f := range s.FacetFilters {
+				vals.Add(key, cast.ToString(f))
+			}
+		}
+	}
+	for _, key := range paramsSearch {
+		if !s.Has(key) {
+			continue
+		}
+		switch key {
+		case Hits:
+			vals.Set(key, cast.ToString(s.Hits))
+		case AttributesToRetrieve:
+			vals[key] = s.AttributesToRetrieve
+		case Page:
+			vals.Set(key, cast.ToString(s.Page))
+		case HitsPerPage:
+			vals.Set(key, cast.ToString(s.HitsPerPage))
+		case Query:
+			vals.Set(key, s.Query)
+		case SortBy:
+			vals.Set(key, s.SortBy)
+		case Order:
+			vals.Set(key, s.Order)
+		}
+	}
+	return vals
+}
+
+func (p *Params) Encode() string {
+	return p.Values().Encode()
+}
+
+func (p *Params) String() string {
+	return p.Values().Encode()
 }
 
 // ParseQueryString parses an encoded filter string.
