@@ -48,7 +48,7 @@ func Parse(params string) (*Params, error) {
 	//if err != nil {
 	//return nil, err
 	//}
-	err = p.Set()
+	err = p.Set(vals)
 	if err != nil {
 		return nil, err
 	}
@@ -58,8 +58,7 @@ func Parse(params string) (*Params, error) {
 	return p, nil
 }
 
-func (s *Params) Set() error {
-	v := s.params
+func (s *Params) Set(v url.Values) error {
 	for _, key := range paramsSettings {
 		switch key {
 		case SrchAttr:
@@ -126,10 +125,49 @@ func (s *Params) Set() error {
 	return nil
 }
 
-func (p *Params) Has(key string) bool {
-	return p.IndexSettings.Has(key) ||
-		p.SrchCfg.Has(key) ||
-		p.Search.Has(key)
+func (s *Params) Has(key string) bool {
+	switch key {
+	case Hits:
+		return s.Hits != 0
+	case AttributesToRetrieve:
+		return len(s.AttributesToRetrieve) != 0
+	case Page:
+		return s.Page != 0
+	case HitsPerPage:
+		return s.HitsPerPage != 0
+	case Query:
+		return s.Query != ""
+	case SortBy:
+		return s.SortBy != ""
+	case Order:
+		return s.Order != ""
+	case DataDir:
+		return s.DataDir != ""
+	case DataFile:
+		return len(s.DataFile) > 0
+	case FullText:
+		return s.BlvPath != ""
+	case UID:
+		return s.IndexSettings.UID != "" || s.SrchCfg.UID != ""
+	case SortFacetsBy:
+		return s.SortFacetsBy != ""
+	case Facets:
+		return len(s.Facets) > 0
+	case Filters:
+		return s.Filters != ""
+	case FacetFilters:
+		return len(s.FacetFilters) > 0
+	case SrchAttr:
+		return len(s.SrchAttr) > 0
+	case FacetAttr:
+		return len(s.FacetAttr) > 0
+	case SortAttr:
+		return len(s.SortAttr) > 0
+	case DefaultField:
+		return s.DefaultField != ""
+	default:
+		return false
+	}
 }
 
 // ParseQueryString parses an encoded filter string.
