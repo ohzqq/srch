@@ -131,6 +131,25 @@ var reqTests = []map[string]bool{
 }
 
 func TestNewRequest(t *testing.T) {
+	for i := 1; i < 3; i++ {
+		req := NewRequest().
+			//FullText(`../testdata/poot.bleve`).
+			UID("id").
+			Query("fish").
+			Page(i).
+			HitsPerPage(5)
+		println(req.String())
+
+		res, err := idx.Search(req.String())
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		err = searchErr(res.NbHits(), 10, res.Params.Query)
+		if err != nil {
+			t.Error(err)
+		}
+	}
 	//for i, test := range testQuerySettings {
 	//  req, err := param.Parse(test)
 	//  if err != nil {

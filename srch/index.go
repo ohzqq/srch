@@ -77,7 +77,7 @@ func New(settings string) (*Index, error) {
 		return idx, nil
 	}
 
-	return idx, nil
+	return idx, NoDataErr
 }
 
 func (idx *Index) Search(params string) (*Results, error) {
@@ -88,6 +88,7 @@ func (idx *Index) Search(params string) (*Results, error) {
 		if err != nil {
 			return nil, err
 		}
+		return idx.Search(params)
 	}
 
 	p, err := param.Parse(params)
