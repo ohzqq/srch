@@ -1,6 +1,7 @@
 package srch
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/ohzqq/srch/param"
@@ -131,13 +132,13 @@ var reqTests = []map[string]bool{
 }
 
 func TestNewRequest(t *testing.T) {
-	for i := 1; i < 3; i++ {
+	for i := 0; i < 3; i++ {
 		req := NewRequest().
 			FullText(`../testdata/poot.bleve`).
 			UID("id").
 			Query("fish").
-			Page(i).
-			HitsPerPage(5)
+			Page(i)
+			//HitsPerPage(5)
 		println(req.String())
 
 		res, err := idx.Search(req.String())
@@ -151,7 +152,13 @@ func TestNewRequest(t *testing.T) {
 		}
 
 		hits := res.Hits()
-		println(len(hits))
+		//fmt.Printf("%#v\n", res.nbHits[0]["title"])
+		if len(hits) > 0 {
+			fmt.Printf("%#v\n", hits[0]["title"])
+		}
+
+		r := res.StringMap()
+		fmt.Printf("res %#v\n", r)
 	}
 	//for i, test := range testQuerySettings {
 	//  req, err := param.Parse(test)

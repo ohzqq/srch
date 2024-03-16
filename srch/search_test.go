@@ -43,7 +43,7 @@ func TestBleveSearchAll(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-		got := len(res.nbHits)
+		got := len(res.hits)
 		want := 7252
 		if query == "&query=fish" {
 			want = 37
