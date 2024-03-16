@@ -37,7 +37,6 @@ func (res *Results) NbHits() int {
 }
 
 func (r *Results) StringMap() map[string]any {
-
 	m := map[string]any{
 		"processingTimeMS": 1,
 		"params":           r.Params,
