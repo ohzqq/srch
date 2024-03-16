@@ -36,26 +36,26 @@ func (res *Results) NbHits() int {
 	return len(res.hits)
 }
 
-func (r *Results) StringMap() map[string]any {
-	m := map[string]any{
-		"processingTimeMS": 1,
-		"params":           r.Params,
-		param.Query:        r.Params.Query,
-		param.Facets:       r.Params.Facets,
-	}
+//func (r *Results) StringMap() map[string]any {
+//  m := map[string]any{
+//    "processingTimeMS": 1,
+//    "params":           r.Params,
+//    param.Query:        r.Params.Query,
+//    param.Facets:       r.Params.Facets,
+//  }
 
-	page := r.Page()
-	hpp := r.HitsPerPage()
-	nbh := r.NbHits()
-	m[HitsPerPage] = hpp
-	m[NbHits] = nbh
-	m[Page] = page
+//  page := r.Page()
+//  hpp := r.HitsPerPage()
+//  nbh := r.NbHits()
+//  m[HitsPerPage] = hpp
+//  m[NbHits] = nbh
+//  m[Page] = page
 
-	if nbh > 0 {
-		m["nbPages"] = nbh/hpp + 1
-	}
+//  if nbh > 0 {
+//    m["nbPages"] = nbh/hpp + 1
+//  }
 
-	m[Hits] = r.VisibleHits(page, nbh, hpp)
+//  m[Hits] = r.VisibleHits(page, nbh, hpp)
 
-	return m
-}
+//  return m
+//}

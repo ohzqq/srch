@@ -55,3 +55,23 @@ func (s *Search) Set(v url.Values) error {
 	s.FacetSettings.Set(v)
 	return nil
 }
+
+func (s *Search) Has(key string) bool {
+	switch key {
+	case Hits:
+		return s.Hits != 0
+	case AttributesToRetrieve:
+		return len(s.AttributesToRetrieve) != 0
+	case Page:
+		return s.Page != 0
+	case HitsPerPage:
+		return s.HitsPerPage != 0
+	case Query:
+		return s.Query != ""
+	case SortBy:
+		return s.SortBy != ""
+	case Order:
+		return s.Order != ""
+	}
+	return s.FacetSettings.Has(key)
+}

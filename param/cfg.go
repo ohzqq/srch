@@ -40,6 +40,20 @@ func (s *SrchCfg) Set(v url.Values) error {
 	return nil
 }
 
+func (s *SrchCfg) Has(key string) bool {
+	switch key {
+	case DataDir:
+		return s.DataDir != ""
+	case DataFile:
+		return len(s.DataFile) > 0
+	case FullText:
+		return s.BlvPath != ""
+	case UID:
+		return s.UID != ""
+	}
+	return false
+}
+
 func (p SrchCfg) IsFullText() bool {
 	return p.BlvPath != ""
 }

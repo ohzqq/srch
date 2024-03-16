@@ -31,6 +31,22 @@ func (s *IndexSettings) Parse(q string) error {
 	return s.Set(vals)
 }
 
+func (s *IndexSettings) Has(key string) bool {
+	switch key {
+	case SrchAttr:
+		return len(s.SrchAttr) > 0
+	case FacetAttr:
+		return len(s.FacetAttr) > 0
+	case SortAttr:
+		return len(s.SortAttr) > 0
+	case DefaultField:
+		return s.DefaultField != ""
+	case UID:
+		return s.UID != ""
+	}
+	return false
+}
+
 func (s *IndexSettings) Set(v url.Values) error {
 	for _, key := range paramsSettings {
 		switch key {

@@ -41,6 +41,20 @@ func (facet *FacetSettings) Set(v url.Values) error {
 	return nil
 }
 
+func (s *FacetSettings) Has(key string) bool {
+	switch key {
+	case SortFacetsBy:
+		return s.SortFacetsBy != ""
+	case Facets:
+		return len(s.Facets) > 0
+	case Filters:
+		return s.Filters != ""
+	case FacetFilters:
+		return len(s.FacetFilters) > 0
+	}
+	return false
+}
+
 func unmarshalFilter(dec string) ([]any, error) {
 	var f []any
 	err := json.Unmarshal([]byte(dec), &f)

@@ -51,6 +51,12 @@ func Parse(params string) (*Params, error) {
 	return p, nil
 }
 
+func (p *Params) Has(key string) bool {
+	return p.IndexSettings.Has(key) ||
+		p.SrchCfg.Has(key) ||
+		p.Search.Has(key)
+}
+
 // ParseQueryString parses an encoded filter string.
 func ParseQueryString(val string) (url.Values, error) {
 	q, err := url.ParseQuery(val)
