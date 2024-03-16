@@ -132,7 +132,7 @@ var reqTests = []map[string]bool{
 
 func TestNewRequest(t *testing.T) {
 	for i, test := range testQuerySettings {
-		req, err := NewRequest(test)
+		req, err := param.Parse(test)
 		if err != nil {
 			t.Error(err)
 		}

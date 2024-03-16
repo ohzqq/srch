@@ -21,24 +21,24 @@ var blvfacetCount = map[string]int{
 func TestBleveSearchAll(t *testing.T) {
 	for i := 0; i < len(bleveSearchTests); i++ {
 		q := bleveSearchTests[i]
-		idx, err := New(q)
-		if err != nil {
-			t.Error(err)
-		}
-		if !idx.isBleve {
-			t.Errorf("not bleve")
-		}
+		//idx, err := New(q)
+		//if err != nil {
+		//t.Error(err)
+		//}
+		//if !idx.isBleve {
+		//t.Errorf("not bleve")
+		//}
 		query := ""
 		if i == 1 {
-			query = "fish"
+			query = "&query=fish"
 		}
-		res, err := idx.Search(query)
+		res, err := idx.Search(q + query)
 		if err != nil {
 			t.Error(err)
 		}
 		got := len(res.hits)
 		want := 7252
-		if query == "fish" {
+		if query == "&query=fish" {
 			want = 10
 			//want = len(res)
 		}

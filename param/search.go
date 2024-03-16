@@ -24,12 +24,12 @@ func NewSearch() *Search {
 	}
 }
 
-func (s *Search) Parse(q string) error {
-	vals, err := url.ParseQuery(q)
+func (s *Search) Parse(q string) (*Search, error) {
+	params, err := Parse(q)
 	if err != nil {
-		return err
+		return s, err
 	}
-	return s.Set(vals)
+	return params.Search, nil
 }
 
 func (s *Search) Set(v url.Values) error {

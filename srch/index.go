@@ -80,12 +80,28 @@ func New(settings string) (*Index, error) {
 	return idx, nil
 }
 
-func (idx *Index) Search(query string) (*Results, error) {
-	r, err := idx.Indexer.Search(query)
+func (idx *Index) Search(params string) (*Results, error) {
+	var err error
+
+	if idx.Indexer == nil {
+		idx, err = New(params)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	p, err := param.Parse(params)
 	if err != nil {
 		return nil, err
 	}
-	res, err := NewResults(r, idx.Params)
+
+	r, err := idx.Indexer.Search(p.Query)
+	if err != nil {
+		return nil, err
+	}
+
+	p = idx.Params
+	res, err := NewResults(r, p)
 	if err != nil {
 		return nil, err
 	}
@@ -93,14 +109,18 @@ func (idx *Index) Search(query string) (*Results, error) {
 }
 
 func (idx *Index) Batch(data []map[string]any) error {
-	return idx.Indexer.Batch(idx.SrchFields())
+	return idx.Indexer.Batch(idx.FilterDataBySrchAttr())
 }
 
-func (idx *Index) NbHits() int {
+func (idx *Index) Len() int {
 	return idx.Indexer.Len()
 }
 
-func (idx *Index) SrchFields() []map[string]any {
+func (idx *Index) Has(key string) bool {
+	return idx.Params.Has(key)
+}
+
+func (idx *Index) FilterDataBySrchAttr() []map[string]any {
 	if len(idx.Params.SrchAttr) == 0 {
 		return idx.Data
 	}
