@@ -2,6 +2,7 @@ package srch
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -58,7 +59,11 @@ func TestNewIndex(t *testing.T) {
 		q := testQuerySettings[i]
 		idx, err := New(q)
 		if err != nil {
-			t.Error(err)
+			if errors.Is(err, NoDataErr) {
+				t.Log(err)
+			} else {
+				t.Error(err)
+			}
 		}
 		var num int
 		if !idx.Params.HasData() {
@@ -80,7 +85,11 @@ func TestNewIndexWithParams(t *testing.T) {
 		q := testQuerySettings[i]
 		idx, err := New(q)
 		if err != nil {
-			t.Error(err)
+			if errors.Is(err, NoDataErr) {
+				t.Log(err)
+			} else {
+				t.Error(err)
+			}
 		}
 		var num int
 		if !idx.Params.HasData() {

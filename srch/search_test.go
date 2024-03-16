@@ -18,6 +18,13 @@ var blvfacetCount = map[string]int{
 	"narrators": 1428,
 }
 
+var fishfacetCount = map[string]int{
+	"tags":      13,
+	"authors":   7,
+	"series":    7,
+	"narrators": 7,
+}
+
 func TestBleveSearchAll(t *testing.T) {
 	for i := 0; i < len(bleveSearchTests); i++ {
 		q := bleveSearchTests[i]
@@ -49,12 +56,22 @@ func TestBleveSearchAll(t *testing.T) {
 
 		if res.Facets != nil {
 			for _, facet := range res.Facets.Facets {
-				if num, ok := blvfacetCount[facet.Attribute]; ok {
-					if num != facet.Len() {
-						t.Errorf("%v got %d, expected %d \n", facet.Attribute, facet.Len(), num)
+				if query == "&query=fish" {
+					if num, ok := fishfacetCount[facet.Attribute]; ok {
+						if num != facet.Len() {
+							t.Errorf("%v got %d, expected %d \n", facet.Attribute, facet.Len(), num)
+						}
+					} else {
+						t.Errorf("attr %s not found\n", facet.Attribute)
 					}
 				} else {
-					t.Errorf("attr %s not found\n", facet.Attribute)
+					if num, ok := blvfacetCount[facet.Attribute]; ok {
+						if num != facet.Len() {
+							t.Errorf("%v got %d, expected %d \n", facet.Attribute, facet.Len(), num)
+						}
+					} else {
+						t.Errorf("attr %s not found\n", facet.Attribute)
+					}
 				}
 			}
 		}
