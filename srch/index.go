@@ -102,7 +102,6 @@ func (idx *Index) Search(params string) (*Results, error) {
 	}
 
 	q := p.Query
-	println(q)
 	r, err := idx.Indexer.Search(q)
 	if err != nil {
 		return nil, err
@@ -151,8 +150,9 @@ func FilterDataByAttr(hits []map[string]any, fields []string) []map[string]any {
 		return hits
 	}
 	data := make([]map[string]any, len(hits))
-	for i, d := range data {
+	for i, d := range hits {
 		data[i] = lo.PickByKeys(d, fields)
+		//fmt.Printf("srch attr %+v\n", data)
 	}
 	return data
 }

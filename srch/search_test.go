@@ -27,7 +27,7 @@ var fishfacetCount = map[string]int{
 
 func TestFuzzySearch(t *testing.T) {
 	req := NewRequest().
-		DataFile(testDataFile).
+		DataFile("../testdata/nddata/ndbooks.ndjson").
 		SrchAttr("title").
 		Query("fish")
 
