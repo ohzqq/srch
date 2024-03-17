@@ -1,7 +1,6 @@
 package srch
 
 import (
-	"fmt"
 	"slices"
 	"testing"
 
@@ -29,21 +28,17 @@ func TestFacets(t *testing.T) {
 			i := 0
 			for _, r := range rel {
 				f, ok := r[facet.Attribute]
-				fmt.Printf("d %#v\n %s %T\n", r, facet.Attribute, f)
 				if ok {
 					vals := cast.ToStringSlice(f)
-					break
 					if slices.Contains(vals, tok.Label) != true {
 						t.Errorf("hit %T does not contain val %s", f, tok.Label)
 					}
 				}
 				i++
 			}
-			break
 			if i != len(rel) {
 				t.Errorf("got %d hits with val, expected %d\n", i, len(rel))
 			}
 		}
 	}
-	println(res.NbHits())
 }

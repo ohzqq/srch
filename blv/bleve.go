@@ -15,7 +15,6 @@ type Index struct {
 }
 
 func Open(cfg *param.SrchCfg) *Index {
-	println(cfg.BlvPath)
 	blv, err := bleve.Open(cfg.BlvPath)
 	if err != nil {
 		log.Fatal(err)

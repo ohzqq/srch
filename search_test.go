@@ -39,8 +39,6 @@ func TestFuzzySearch(t *testing.T) {
 	if res.NbHits() != 56 {
 		t.Fatal()
 	}
-
-	println(res.NbHits())
 }
 
 func TestBleveSearchAll(t *testing.T) {
@@ -107,16 +105,6 @@ func TestBleveFacets(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-		//got := len(res.hits)
-		//want := 7252
-		//if query == "fish" {
-		//want = 8
-		//want = len(res)
-		//}
-		//err = searchErr(got, want, query)
-		//if err != nil {
-		//t.Error(err)
-		//}
 
 		for _, facet := range res.Facets {
 			if num, ok := blvfacetCount[facet.Attribute]; ok {

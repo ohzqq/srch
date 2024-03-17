@@ -23,7 +23,7 @@ var testFields = []string{
 func TestNewRequest(t *testing.T) {
 	for i := 0; i < 3; i++ {
 		req := NewRequest().
-			FullText(`../testdata/poot.bleve`).
+			FullText(`testdata/poot.bleve`).
 			UID("id").
 			Query("fish").
 			Page(i)
