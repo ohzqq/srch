@@ -139,7 +139,6 @@ func TestNewRequest(t *testing.T) {
 			Query("fish").
 			Page(i)
 			//HitsPerPage(5)
-		println(req.String())
 
 		res, err := idx.Search(req.String())
 		if err != nil {
@@ -154,23 +153,19 @@ func TestNewRequest(t *testing.T) {
 		hits := res.Hits()
 		//fmt.Printf("%#v\n", res.nbHits[0]["title"])
 		if len(hits) > 0 {
-			fmt.Printf("%#v\n", hits[0]["title"])
+			title := hits[0]["title"].(string)
+			switch i {
+			case 0:
+				want := "Fish on a Bicycle"
+				if title != want {
+					fmt.Printf("got %s, wanted %s\n", title, want)
+				}
+			case 1:
+				want := "Hide and Seek"
+				if title != want {
+					fmt.Printf("got %s, wanted %s\n", title, want)
+				}
+			}
 		}
-
-		r := res.StringMap()
-		fmt.Printf("res %#v\n", r)
 	}
-	//for i, test := range testQuerySettings {
-	//  req, err := param.Parse(test)
-	//  if err != nil {
-	//    t.Error(err)
-	//  }
-	//  w := reqTests[i]
-	//  for k, ok := range w {
-	//    if ok != req.Has(k) {
-	//      t.Errorf("%s:\n %s: got %v, expected %v\n", test, k, req.Has(k), ok)
-	//    }
-	//  }
-	//}
-
 }
