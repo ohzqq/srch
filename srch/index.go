@@ -4,6 +4,7 @@ import (
 	"errors"
 	"log"
 	"os"
+	"slices"
 
 	"github.com/RoaringBitmap/roaring"
 	"github.com/ohzqq/srch/blv"
@@ -11,6 +12,7 @@ import (
 	"github.com/ohzqq/srch/fuzz"
 	"github.com/ohzqq/srch/param"
 	"github.com/samber/lo"
+	"github.com/spf13/cast"
 	"github.com/spf13/viper"
 )
 
@@ -100,6 +102,7 @@ func (idx *Index) Search(params string) (*Results, error) {
 	}
 
 	q := p.Query
+	println(q)
 	r, err := idx.Indexer.Search(q)
 	if err != nil {
 		return nil, err
@@ -154,13 +157,41 @@ func FilterDataByAttr(hits []map[string]any, fields []string) []map[string]any {
 	return data
 }
 
-func ItemsByBitmap(data []map[string]any, bits *roaring.Bitmap) []map[string]any {
-	var res []map[string]any
-	bits.Iterate(func(x uint32) bool {
-		res = append(res, data[int(x)])
-		return true
-	})
-	return res
+func FilterDataByID(hits []map[string]any, uids []any, uid string) []map[string]any {
+	ids := cast.ToStringSlice(uids)
+
+	//for i, hit := range hits {
+	//  idx := cast.ToString(i)
+	//  for sl, id := range ids {
+	//    if uid == "" {
+	//      if id == idx {
+	//        f[sl] = hit
+	//      }
+	//    } else {
+	//      if hi, ok := hit[uid]; ok {
+	//        if id == cast.ToString(hi) {
+	//          f[sl] = hit
+	//        }
+	//      }
+	//    }
+	//  }
+	//}
+
+	fn := func(hit map[string]any, idx int) bool {
+		if uid == "" {
+			return slices.Contains(ids, cast.ToString(idx))
+		}
+		for _, id := range ids {
+			if hi, ok := hit[uid]; ok {
+				return cast.ToString(hi) == id
+			}
+		}
+		return false
+	}
+
+	f := lo.Filter(hits, fn)
+
+	return f
 }
 
 func (idx *Index) GetData() ([]map[string]any, error) {

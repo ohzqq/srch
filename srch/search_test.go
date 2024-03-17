@@ -25,6 +25,21 @@ var fishfacetCount = map[string]int{
 	"narrators": 26,
 }
 
+func TestFuzzySearch(t *testing.T) {
+	req := NewRequest().
+		DataFile(testDataFile).
+		SrchAttr("title").
+		Query("fish")
+
+	println(req.String())
+	res, err := idx.Search(req.String())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	println(res.NbHits())
+}
+
 func TestBleveSearchAll(t *testing.T) {
 	for i := 0; i < len(bleveSearchTests); i++ {
 		q := bleveSearchTests[i]
