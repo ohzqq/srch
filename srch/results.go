@@ -8,7 +8,7 @@ import (
 )
 
 type Results struct {
-	Facets *facet.Facets
+	Facets []*facet.Field
 	Params *param.Params
 	hits   []map[string]any
 }
@@ -28,7 +28,7 @@ func NewResults(hits []map[string]any, params *param.Params) (*Results, error) {
 		if err != nil {
 			return nil, err
 		}
-		res.Facets = facets
+		res.Facets = facets.Fields
 	}
 
 	return res, nil

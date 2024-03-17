@@ -8,7 +8,7 @@ import (
 
 type Facets struct {
 	params *param.FacetSettings
-	Facets []*Field         `json:"facets"`
+	Fields []*Field         `json:"facets"`
 	data   []map[string]any `json:"hits"`
 	ids    []string
 	bits   *roaring.Bitmap
@@ -36,7 +36,7 @@ func New(data []map[string]any, param *param.FacetSettings) (*Facets, error) {
 func NewFacets(fields []string) *Facets {
 	return &Facets{
 		bits:   roaring.New(),
-		Facets: NewFields(fields),
+		Fields: NewFields(fields),
 	}
 }
 
@@ -51,7 +51,7 @@ func (f *Facets) Calculate() *Facets {
 			id = cast.ToInt(i)
 		}
 		f.bits.AddInt(id)
-		for _, facet := range f.Facets {
+		for _, facet := range f.Fields {
 			if val, ok := d[facet.Attribute]; ok {
 				facet.Add(
 					val,
@@ -64,7 +64,7 @@ func (f *Facets) Calculate() *Facets {
 }
 
 func (f *Facets) Filter(filters []any) (*Facets, error) {
-	filtered, err := Filter(f.bits, f.Facets, filters)
+	filtered, err := Filter(f.bits, f.Fields, filters)
 	if err != nil {
 		return nil, err
 	}
@@ -102,7 +102,7 @@ func (f Facets) getHits() []map[string]any {
 }
 
 func (f Facets) GetFacet(attr string) *Field {
-	for _, facet := range f.Facets {
+	for _, facet := range f.Fields {
 		if facet.Attribute == attr {
 			return facet
 		}
