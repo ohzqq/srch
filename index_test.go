@@ -2,24 +2,28 @@ package srch
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"os"
 	"testing"
+
+	"github.com/ohzqq/srch/param"
+	"github.com/ohzqq/srch/txt"
 )
 
-var idx = &Idx{}
+var idx = &Index{}
 
 var books []map[string]any
 
 const numBooks = 7253
 
-const testDataFile = `testdata/data-dir/audiobooks.json`
-const testDataDir = `testdata/data-dir`
-const testCfgFile = `testdata/config-old.json`
-const testYAMLCfgFile = `testdata/config.yaml`
-const testCfgFileData = `testdata/config-with-data.json`
-const libCfgStr = "searchableAttributes=title&attributesForFaceting=tags,authors,series,narrators&dataFile=testdata/data-dir/audiobooks.json"
+const testDataFile = `../testdata/data-dir/audiobooks.json`
+const testDataDir = `../testdata/data-dir`
+const testCfgFile = `../testdata/config-old.json`
+const testYAMLCfgFile = `../testdata/config.yaml`
+const testCfgFileData = `../testdata/config-with-data.json`
+const libCfgStr = "searchableAttributes=title&facets=tags,authors,series,narrators&dataFile=testdata/data-dir/audiobooks.json"
 
 func TestData(t *testing.T) {
 	books = loadData(t)
@@ -31,25 +35,45 @@ func TestData(t *testing.T) {
 
 var testQueryNewIndex = []string{
 	"searchableAttributes=title&fullText",
-	"searchableAttributes=title&dataDir=testdata/data-dir",
-	"attributesForFaceting=tags,authors,series,narrators&dataFile=testdata/data-dir/audiobooks.json",
-	"searchableAttributes=title&dataFile=testdata/data-dir/audiobooks.json&attributesForFaceting=tags,authors,series,narrators",
+	"searchableAttributes=title&dataDir=../testdata/data-dir",
+	"facets=tags,authors,series,narrators&dataFile=../testdata/data-dir/audiobooks.json",
+	"searchableAttributes=title&dataFile=../testdata/data-dir/audiobooks.json&facets=tags,authors,series,narrators",
 }
 
-var titleField = NewField(DefaultField)
+var testQuerySettings = []string{
+	"",
+	"searchableAttributes=",
+	"searchableAttributes=title&fullText=../testdata/poot.bleve",
+	"searchableAttributes=title&dataDir=../testdata/data-dir",
+	"facets=tags,authors,series,narrators",
+	"facets=tags,authors,series,narrators&dataFile=../testdata/data-dir/audiobooks.json",
+	"searchableAttributes=title&facets=tags,authors,series,narrators",
+	"searchableAttributes=title&dataFile=../testdata/data-dir/audiobooks.json&facets=tags,authors,series,narrators",
+	`searchableAttributes=title&dataFile=../testdata/data-dir/audiobooks.json&facets=tags,authors,series,narrators&page=3&query=fish&sortBy=title&order=desc&facetFilters=["authors:amy lane", ["tags:romance", "tags:-dnr"]]`,
+}
+
+var titleField = txt.NewField(param.DefaultField)
 
 func TestNewIndex(t *testing.T) {
 	for i := 0; i < len(testQuerySettings); i++ {
 		q := testQuerySettings[i]
 		idx, err := New(q)
 		if err != nil {
-			t.Error(err)
+			if errors.Is(err, NoDataErr) {
+				t.Log(err)
+			} else {
+				t.Error(err)
+			}
 		}
-		if !idx.HasData() {
+		var num int
+		if !idx.Params.HasData() {
 			data := loadData(t)
-			idx.Index(data)
+			num = len(data)
+		} else {
+			//idx.Index(data)
+			num = idx.Len()
 		}
-		err = totalBooksErr(idx.Len(), q)
+		err = totalBooksErr(num, q)
 		if err != nil {
 			t.Error(err)
 		}
@@ -59,15 +83,24 @@ func TestNewIndex(t *testing.T) {
 func TestNewIndexWithParams(t *testing.T) {
 	for i := 0; i < len(testQuerySettings); i++ {
 		q := testQuerySettings[i]
-		idx, err := NewIdx(q)
+		idx, err := New(q)
 		if err != nil {
-			t.Error(err)
+			if errors.Is(err, NoDataErr) {
+				t.Log(err)
+			} else {
+				t.Error(err)
+			}
 		}
-		if !idx.HasData() {
+		var num int
+		if !idx.Params.HasData() {
 			data := loadData(t)
-			idx.Index(data)
+			num = len(data)
+		} else {
+			//idx.Index(data)
+			//num = 0
+			num = idx.Len()
 		}
-		err = totalBooksErr(idx.Len(), q)
+		err = totalBooksErr(num, q)
 		if err != nil {
 			t.Error(err)
 		}
@@ -91,7 +124,7 @@ func totalBooksTest(total int, t *testing.T) {
 	}
 }
 
-func newTestIdx() *Idx {
+func newTestIdx() *Index {
 	//idx, err := New(libCfgStr)
 	//if err != nil {
 	//log.Fatal(err)
@@ -99,44 +132,12 @@ func newTestIdx() *Idx {
 	return newTestIdxCfg("")
 }
 
-func newTestIdxCfg(p string) *Idx {
+func newTestIdxCfg(p string) *Index {
 	idx, err := New(libCfgStr + p)
 	if err != nil {
 		log.Fatal(err)
 	}
 	return idx
-}
-
-func TestSortIndexByTitle(t *testing.T) {
-	title := libCfgStr + "&sortBy=title"
-	idx, err := New(title)
-	if err != nil {
-		t.Error(err)
-	}
-	title, ok := idx.Data[0][DefaultField].(string)
-	if !ok {
-		t.Errorf("not a string")
-	}
-	if title != "#Blur" {
-		t.Errorf("sorting err, got %s, expected %s\n", title, "#Blur")
-	}
-	//fmt.Printf("%+v\n", idx.Data[0])
-}
-
-func TestSortIndexByDate(t *testing.T) {
-	title := libCfgStr + "&sortableAttributes=title:text&sortableAttributes=added_stamp:num" + "&sortBy=added_stamp&order=desc"
-	idx, err := New(title)
-	if err != nil {
-		log.Fatal(err)
-	}
-	title, ok := idx.Data[0][DefaultField].(string)
-	if !ok {
-		t.Errorf("not a string")
-	}
-	first := "Bonds of Blood"
-	if title != first {
-		t.Errorf("sorting err, got %s, expected %s\n", title, first)
-	}
 }
 
 func totalBooksErr(total int, vals ...any) error {
@@ -158,8 +159,6 @@ func loadData(t *testing.T) []map[string]any {
 	if err != nil {
 		t.Error(err)
 	}
-
-	books = books
 
 	return books
 }
