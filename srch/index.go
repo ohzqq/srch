@@ -37,17 +37,13 @@ type Searcher interface {
 type Index struct {
 	Indexer
 
-	Data    []map[string]any
-	res     *roaring.Bitmap
-	isBleve bool
-	Params  *param.Params
+	Data   []map[string]any
+	res    *roaring.Bitmap
+	isMem  bool
+	Params *param.Params
 }
 
 var NoDataErr = errors.New("no data")
-
-type SearchFunc func(string) []map[string]any
-
-type Opt func(*Index) error
 
 func newIndex() *Index {
 	return &Index{
@@ -64,7 +60,7 @@ func New(settings string) (*Index, error) {
 	}
 
 	if idx.Has(param.BlvPath) {
-		idx.isBleve = true
+		idx.isMem = true
 		idx.Indexer = blv.Open(idx.Params.SrchCfg)
 		return idx, nil
 	}
@@ -72,7 +68,7 @@ func New(settings string) (*Index, error) {
 	if idx.Params.HasData() {
 		idx.Data, err = idx.GetData()
 		if err != nil {
-			return nil, NoDataErr
+			return nil, err
 		}
 		idx.Indexer = fuzz.Open(idx.Params.IndexSettings)
 		idx.Batch(idx.Data)
@@ -88,10 +84,10 @@ func (idx *Index) Search(params string) (*Results, error) {
 	if idx.Indexer == nil {
 		idx, err = New(params)
 		if err != nil {
-			if errors.Is(err, NoDataErr) {
-				return NewResults([]map[string]any{}, idx.Params)
+			if !errors.Is(err, NoDataErr) {
+				return &Results{}, err
 			}
-			return nil, err
+			return NewResults([]map[string]any{}, &param.Params{})
 		}
 		return idx.Search(params)
 	}
@@ -117,7 +113,8 @@ func (idx *Index) Search(params string) (*Results, error) {
 }
 
 func (idx *Index) Batch(data []map[string]any) error {
-	return idx.Indexer.Batch(idx.FilterDataBySrchAttr())
+	return idx.Indexer.Batch(data)
+	//return idx.Indexer.Batch(idx.FilterDataBySrchAttr())
 }
 
 func (idx *Index) Len() int {
@@ -138,7 +135,7 @@ func (idx *Index) FilterDataBySrchAttr() []map[string]any {
 
 	fields := idx.Params.SrchAttr
 
-	if idx.isBleve {
+	if idx.isMem {
 		fields = append(fields, idx.Params.Facets...)
 	}
 
@@ -152,30 +149,12 @@ func FilterDataByAttr(hits []map[string]any, fields []string) []map[string]any {
 	data := make([]map[string]any, len(hits))
 	for i, d := range hits {
 		data[i] = lo.PickByKeys(d, fields)
-		//fmt.Printf("srch attr %+v\n", data)
 	}
 	return data
 }
 
 func FilterDataByID(hits []map[string]any, uids []any, uid string) []map[string]any {
 	ids := cast.ToStringSlice(uids)
-
-	//for i, hit := range hits {
-	//  idx := cast.ToString(i)
-	//  for sl, id := range ids {
-	//    if uid == "" {
-	//      if id == idx {
-	//        f[sl] = hit
-	//      }
-	//    } else {
-	//      if hi, ok := hit[uid]; ok {
-	//        if id == cast.ToString(hi) {
-	//          f[sl] = hit
-	//        }
-	//      }
-	//    }
-	//  }
-	//}
 
 	fn := func(hit map[string]any, idx int) bool {
 		if uid == "" {

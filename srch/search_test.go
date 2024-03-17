@@ -93,7 +93,7 @@ func TestBleveFacets(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-		if !idx.isBleve {
+		if !idx.isMem {
 			t.Errorf("not bleve")
 		}
 		query := ""
