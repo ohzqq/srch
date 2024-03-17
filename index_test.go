@@ -18,11 +18,11 @@ var books []map[string]any
 
 const numBooks = 7253
 
-const testDataFile = `../testdata/data-dir/audiobooks.json`
-const testDataDir = `../testdata/data-dir`
-const testCfgFile = `../testdata/config-old.json`
-const testYAMLCfgFile = `../testdata/config.yaml`
-const testCfgFileData = `../testdata/config-with-data.json`
+const testDataFile = `testdata/data-dir/audiobooks.json`
+const testDataDir = `testdata/data-dir`
+const testCfgFile = `testdata/config-old.json`
+const testYAMLCfgFile = `testdata/config.yaml`
+const testCfgFileData = `testdata/config-with-data.json`
 const libCfgStr = "searchableAttributes=title&facets=tags,authors,series,narrators&dataFile=testdata/data-dir/audiobooks.json"
 
 func TestData(t *testing.T) {
@@ -33,23 +33,16 @@ func TestData(t *testing.T) {
 	}
 }
 
-var testQueryNewIndex = []string{
-	"searchableAttributes=title&fullText",
-	"searchableAttributes=title&dataDir=../testdata/data-dir",
-	"facets=tags,authors,series,narrators&dataFile=../testdata/data-dir/audiobooks.json",
-	"searchableAttributes=title&dataFile=../testdata/data-dir/audiobooks.json&facets=tags,authors,series,narrators",
-}
-
 var testQuerySettings = []string{
 	"",
 	"searchableAttributes=",
-	"searchableAttributes=title&fullText=../testdata/poot.bleve",
-	"searchableAttributes=title&dataDir=../testdata/data-dir",
+	"searchableAttributes=title&fullText=testdata/poot.bleve",
+	"searchableAttributes=title&dataDir=testdata/data-dir",
 	"facets=tags,authors,series,narrators",
-	"facets=tags,authors,series,narrators&dataFile=../testdata/data-dir/audiobooks.json",
+	"facets=tags,authors,series,narrators&dataFile=testdata/data-dir/audiobooks.json",
 	"searchableAttributes=title&facets=tags,authors,series,narrators",
-	"searchableAttributes=title&dataFile=../testdata/data-dir/audiobooks.json&facets=tags,authors,series,narrators",
-	`searchableAttributes=title&dataFile=../testdata/data-dir/audiobooks.json&facets=tags,authors,series,narrators&page=3&query=fish&sortBy=title&order=desc&facetFilters=["authors:amy lane", ["tags:romance", "tags:-dnr"]]`,
+	"searchableAttributes=title&dataFile=testdata/data-dir/audiobooks.json&facets=tags,authors,series,narrators",
+	`searchableAttributes=title&dataFile=testdata/data-dir/audiobooks.json&facets=tags,authors,series,narrators&page=3&query=fish&sortBy=title&order=desc&facetFilters=["authors:amy lane", ["tags:romance", "tags:-dnr"]]`,
 }
 
 var titleField = txt.NewField(param.DefaultField)

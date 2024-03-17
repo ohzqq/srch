@@ -34,19 +34,6 @@ func Parse(params string) (*Params, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	//err = p.SrchCfg.Set(vals)
-	//if err != nil {
-	//return nil, err
-	//}
-	//err = p.IndexSettings.Set(vals)
-	//if err != nil {
-	//return nil, err
-	//}
-	//err = p.Search.Set(vals)
-	//if err != nil {
-	//return nil, err
-	//}
 	err = p.Set(vals)
 	if err != nil {
 		return nil, err

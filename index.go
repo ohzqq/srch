@@ -4,6 +4,7 @@ import (
 	"errors"
 	"log"
 	"os"
+	"path/filepath"
 	"slices"
 
 	"github.com/RoaringBitmap/roaring"
@@ -60,7 +61,12 @@ func New(settings string) (*Index, error) {
 	}
 
 	if idx.Has(param.BlvPath) {
+		abs, err := filepath.Abs(idx.Params.BlvPath)
+		if err != nil {
+			return nil, err
+		}
 		idx.isMem = true
+		idx.Params.BlvPath = abs
 		idx.Indexer = blv.Open(idx.Params.SrchCfg)
 		return idx, nil
 	}
