@@ -7,9 +7,6 @@ import (
 	"log"
 	"os"
 	"testing"
-
-	"github.com/ohzqq/srch/param"
-	"github.com/ohzqq/srch/txt"
 )
 
 var idx = &Index{}
@@ -44,8 +41,6 @@ var testQuerySettings = []string{
 	"searchableAttributes=title&dataFile=testdata/data-dir/audiobooks.json&facets=tags,authors,series,narrators",
 	`searchableAttributes=title&dataFile=testdata/data-dir/audiobooks.json&facets=tags,authors,series,narrators&page=3&query=fish&sortBy=title&order=desc&facetFilters=["authors:amy lane", ["tags:romance", "tags:-dnr"]]`,
 }
-
-var titleField = txt.NewField(param.DefaultField)
 
 func TestNewIndex(t *testing.T) {
 	for i := 0; i < len(testQuerySettings); i++ {
