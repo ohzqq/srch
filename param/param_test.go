@@ -26,7 +26,7 @@ var paramTests = []paramTest{
 				Query:                "",
 				SortBy:               "",
 				Order:                "",
-				FacetSettings:        &FacetSettings{FacetAttr: []string{""}, UID: "", Facets: []string{""}, Filters: "", FacetFilters: []any{""}, SortFacetsBy: ""},
+				FacetSettings:        &FacetSettings{UID: "", Facets: []string{""}, Filters: "", FacetFilters: []any{""}, SortFacetsBy: ""},
 			},
 			SrchCfg: &SrchCfg{BlvPath: "", DataDir: "", DataFile: []string{""}, UID: ""},
 		},
@@ -44,7 +44,7 @@ var paramTests = []paramTest{
 				Query:                "",
 				SortBy:               "",
 				Order:                "",
-				FacetSettings:        &FacetSettings{FacetAttr: []string{""}, UID: "", Facets: []string{""}, Filters: "", FacetFilters: []any{""}, SortFacetsBy: ""},
+				FacetSettings:        &FacetSettings{UID: "", Facets: []string{""}, Filters: "", FacetFilters: []any{""}, SortFacetsBy: ""},
 			},
 			SrchCfg: &SrchCfg{BlvPath: "", DataDir: "", DataFile: []string{""}, UID: ""},
 		},
@@ -62,7 +62,7 @@ var paramTests = []paramTest{
 				Query:                "",
 				SortBy:               "",
 				Order:                "",
-				FacetSettings:        &FacetSettings{FacetAttr: []string{""}, UID: "", Facets: []string{""}, Filters: "", FacetFilters: []any{""}, SortFacetsBy: ""},
+				FacetSettings:        &FacetSettings{UID: "", Facets: []string{""}, Filters: "", FacetFilters: []any{""}, SortFacetsBy: ""},
 			},
 			SrchCfg: &SrchCfg{BlvPath: "../testdata/poot.bleve", DataDir: "", DataFile: []string{""}, UID: ""},
 		},
@@ -80,7 +80,7 @@ var paramTests = []paramTest{
 				Query:                "",
 				SortBy:               "",
 				Order:                "",
-				FacetSettings:        &FacetSettings{FacetAttr: []string{""}, UID: "", Facets: []string{""}, Filters: "", FacetFilters: []any{""}, SortFacetsBy: ""},
+				FacetSettings:        &FacetSettings{UID: "", Facets: []string{""}, Filters: "", FacetFilters: []any{""}, SortFacetsBy: ""},
 			},
 			SrchCfg: &SrchCfg{BlvPath: "", DataDir: "../testdata/data-dir", DataFile: []string{""}, UID: ""},
 		},
@@ -98,7 +98,7 @@ var paramTests = []paramTest{
 				Query:                "",
 				SortBy:               "",
 				Order:                "",
-				FacetSettings:        &FacetSettings{FacetAttr: []string{""}, UID: "", Facets: []string{""}, Filters: "", FacetFilters: []any{""}, SortFacetsBy: ""},
+				FacetSettings:        &FacetSettings{UID: "", Facets: []string{""}, Filters: "", FacetFilters: []any{""}, SortFacetsBy: ""},
 			},
 			SrchCfg: &SrchCfg{BlvPath: "", DataDir: "", DataFile: []string{""}, UID: ""},
 		},
@@ -116,7 +116,7 @@ var paramTests = []paramTest{
 				Query:                "",
 				SortBy:               "",
 				Order:                "",
-				FacetSettings:        &FacetSettings{FacetAttr: []string{""}, UID: "", Facets: []string{""}, Filters: "", FacetFilters: []any{""}, SortFacetsBy: ""},
+				FacetSettings:        &FacetSettings{UID: "", Facets: []string{""}, Filters: "", FacetFilters: []any{""}, SortFacetsBy: ""},
 			},
 			SrchCfg: &SrchCfg{BlvPath: "", DataDir: "", DataFile: []string{"../testdata/data-dir/audiobooks.json"}, UID: ""},
 		},
@@ -134,7 +134,7 @@ var paramTests = []paramTest{
 				Query:                "",
 				SortBy:               "",
 				Order:                "",
-				FacetSettings:        &FacetSettings{FacetAttr: []string(nil), UID: "", Facets: []string{""}, Filters: "", FacetFilters: []any{""}, SortFacetsBy: ""},
+				FacetSettings:        &FacetSettings{UID: "", Facets: []string{""}, Filters: "", FacetFilters: []any{""}, SortFacetsBy: ""},
 			},
 			SrchCfg: &SrchCfg{BlvPath: "", DataDir: "", DataFile: []string{""}, UID: ""},
 		},
@@ -152,7 +152,7 @@ var paramTests = []paramTest{
 				Query:                "",
 				SortBy:               "",
 				Order:                "",
-				FacetSettings:        &FacetSettings{FacetAttr: []string{""}, UID: "", Facets: []string{""}, Filters: "", FacetFilters: []any{""}, SortFacetsBy: ""},
+				FacetSettings:        &FacetSettings{UID: "", Facets: []string{""}, Filters: "", FacetFilters: []any{""}, SortFacetsBy: ""},
 			},
 			SrchCfg: &SrchCfg{BlvPath: "", DataDir: "", DataFile: []string{"../testdata/data-dir/audiobooks.json"}, UID: ""},
 		},
@@ -170,7 +170,7 @@ var paramTests = []paramTest{
 				Query:                "fish",
 				SortBy:               "title",
 				Order:                "desc",
-				FacetSettings:        &FacetSettings{FacetAttr: []string{""}, UID: "", Facets: []string{""}, Filters: "", FacetFilters: []any{""}, SortFacetsBy: ""},
+				FacetSettings:        &FacetSettings{UID: "", Facets: []string{""}, Filters: "", FacetFilters: []any{""}, SortFacetsBy: ""},
 			},
 			SrchCfg: &SrchCfg{BlvPath: "", DataDir: "", DataFile: []string{"../testdata/data-dir/audiobooks.json"}, UID: ""},
 		},
@@ -189,13 +189,23 @@ var testQuerySettings = []string{
 	`searchableAttributes=title&dataFile=../testdata/data-dir/audiobooks.json&attributesForFaceting=tags,authors,series,narrators&page=3&query=fish&facets=tags&facets=authors&sortBy=title&order=desc&facetFilters=["authors:amy lane", ["tags:romance", "tags:-dnr"]]`,
 }
 
+func TestNewRequest(t *testing.T) {
+	for _, test := range testQuerySettings {
+		req, err := NewClient(test)
+		if err != nil {
+			t.Error(err)
+		}
+		fmt.Printf("%#v\n", req)
+	}
+}
+
 func TestNewParams(t *testing.T) {
 	for i, test := range paramTests {
 		p, err := Parse(test.query)
 		if err != nil {
 			t.Error(err)
 		}
-		println(test.query)
+		//println(test.query)
 		if i > 1 {
 			attr := p.SrchAttr[0]
 			if sa := test.want.SrchAttr[0]; sa != attr {

@@ -42,6 +42,12 @@ func Parse(params string) (*Params, error) {
 	return p, nil
 }
 
+func (p *Params) IsFile() bool {
+	return p.Has(DataDir) ||
+		p.Has(DataFile) ||
+		p.Has(BlvPath)
+}
+
 func (s *Params) Set(v url.Values) error {
 	s.params = v
 	for _, key := range paramsSettings {
