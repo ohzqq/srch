@@ -14,18 +14,18 @@ type Index struct {
 	Data []map[string]any
 	data []string
 
-	*param.IndexSettings
+	*param.Params
 }
 
 var NoDataErr = errors.New("no data")
 
-func New(cfg *param.IndexSettings) *Index {
+func New(cfg *param.Params) *Index {
 	return &Index{
-		IndexSettings: cfg,
+		Params: cfg,
 	}
 }
 
-func Open(cfg *param.IndexSettings) *Index {
+func Open(cfg *param.Params) *Index {
 	idx := New(cfg)
 	return idx
 }
@@ -57,15 +57,11 @@ func (idx *Index) Index(_ string, data map[string]any) error {
 			}
 		}
 	}
-	//println(strings.Join(val, " "))
 	idx.data = append(idx.data, strings.Join(val, " "))
 	return nil
 }
 
 func (idx *Index) Batch(data []map[string]any) error {
-
-	//fmt.Printf("%#v data\n", data)
-
 	if len(data) < 1 {
 		return NoDataErr
 	}
@@ -82,7 +78,6 @@ func (idx *Index) Len() int {
 
 func (idx *Index) String(i int) string {
 	if i < idx.Len() {
-		println(idx.data[i])
 		return idx.data[i]
 	}
 	return ""

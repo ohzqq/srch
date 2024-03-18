@@ -104,9 +104,7 @@ func (r *Request) DataDir(val string) *Request {
 }
 
 func (r *Request) UID(val string) *Request {
-	r.Params.IndexSettings.UID = val
-	r.Params.SrchCfg.UID = val
-	r.Params.Search.UID = val
+	r.Params.UID = val
 	return r
 }
 

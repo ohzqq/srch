@@ -24,7 +24,7 @@ func TestFacets(t *testing.T) {
 	for _, facet := range res.Facets {
 		for _, tok := range facet.Keywords() {
 			ids := lo.ToAnySlice(tok.Items())
-			rel := FilterDataByID(res.hits, ids, res.Params.Search.UID)
+			rel := FilterDataByID(res.hits, ids, res.Params.UID)
 			i := 0
 			for _, r := range rel {
 				if facet.Attribute != "tags" {

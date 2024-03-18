@@ -7,14 +7,14 @@ import (
 )
 
 type Facets struct {
-	params *param.FacetSettings
+	params *param.Params
 	Fields []*Field         `json:"facets"`
 	data   []map[string]any `json:"hits"`
 	ids    []string
 	bits   *roaring.Bitmap
 }
 
-func New(data []map[string]any, param *param.FacetSettings) (*Facets, error) {
+func New(data []map[string]any, param *param.Params) (*Facets, error) {
 	facets := NewFacets(param.Facets)
 	facets.params = param
 	facets.data = data

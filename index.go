@@ -67,7 +67,7 @@ func New(settings string) (*Index, error) {
 		}
 		idx.isMem = true
 		idx.Params.BlvPath = abs
-		idx.Indexer = blv.Open(idx.Params.SrchCfg)
+		idx.Indexer = blv.Open(idx.Params)
 		return idx, nil
 	}
 
@@ -76,7 +76,7 @@ func New(settings string) (*Index, error) {
 		if err != nil {
 			return nil, err
 		}
-		idx.Indexer = fuzz.Open(idx.Params.IndexSettings)
+		idx.Indexer = fuzz.Open(idx.Params)
 		idx.Batch(idx.Data)
 		return idx, nil
 	}
