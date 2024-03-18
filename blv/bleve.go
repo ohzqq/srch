@@ -3,20 +3,18 @@ package blv
 import (
 	"fmt"
 	"log"
-	"net/http"
 
 	"github.com/blevesearch/bleve/v2"
-	"github.com/ohzqq/srch/data"
 	"github.com/ohzqq/srch/param"
 	"github.com/spf13/cast"
 )
 
 type Index struct {
-	*param.SrchCfg
+	*param.Params
 	count int
 }
 
-func Open(cfg *param.SrchCfg) *Index {
+func Open(cfg *param.Params) *Index {
 	blv, err := bleve.Open(cfg.BlvPath)
 	if err != nil {
 		log.Fatal(err)
@@ -24,7 +22,7 @@ func Open(cfg *param.SrchCfg) *Index {
 	defer blv.Close()
 
 	idx := &Index{
-		SrchCfg: cfg,
+		Params: cfg,
 	}
 	c, err := blv.DocCount()
 	if err != nil {
@@ -34,8 +32,8 @@ func Open(cfg *param.SrchCfg) *Index {
 	return idx
 }
 
-func New(cfg *param.SrchCfg) (*Index, error) {
-	idx := &Index{SrchCfg: cfg}
+func New(cfg *param.Params) (*Index, error) {
+	idx := &Index{Params: cfg}
 	blv, err := bleve.New(cfg.BlvPath, bleve.NewIndexMapping())
 	if err != nil {
 		return idx, err
@@ -79,25 +77,6 @@ func (idx *Index) search(req *bleve.SearchRequest) ([]map[string]any, error) {
 	}
 
 	return data, nil
-}
-
-func (idx *Index) RoundTrip(req *http.Request) (*http.Response, error) {
-	//params, err := param.Parse(req.URL.RawQuery)
-	//if err != nil {
-	//return nil, err
-	//}
-	//d, err := idx.Search(params.Query)
-	//if err != nil {
-	//return nil, err
-	//}
-	header := make(http.Header)
-	header.Set("content-type", data.NdJSON)
-
-	res := &http.Response{
-		Request: req,
-		Header:  header,
-	}
-	return res, nil
 }
 
 func (idx *Index) Index(uid string, data map[string]any) error {
