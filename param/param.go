@@ -33,10 +33,10 @@ type Params struct {
 	Order                string   `query:"order,omitempty" json:"order,omitempty"`
 
 	// Cfg
-	BlvPath  string   `query:"fullText,omitempty" json:"fullText,omitempty"`
-	DataDir  string   `query:"dataDir,omitempty" json:"dataDir,omitempty"`
-	DataFile []string `query:"dataFile,omitempty" json:"dataFile,omitempty"`
-	UID      string   `query:"uid,omitempty" json:"uid,omitempty"`
+	BlvPath  string `query:"fullText,omitempty" json:"fullText,omitempty"`
+	DataDir  string `query:"dataDir,omitempty" json:"dataDir,omitempty"`
+	DataFile string `query:"dataFile,omitempty" json:"dataFile,omitempty"`
+	UID      string `query:"uid,omitempty" json:"uid,omitempty"`
 
 	// Facets
 	Facets       []string `query:"facets,omitempty" json:"facets,omitempty"`
@@ -57,11 +57,16 @@ func New() *Params {
 func Parse(params string) (*Params, error) {
 	p := New()
 
-	vals, err := url.ParseQuery(params)
+	if !strings.HasPrefix(params, "?") {
+		params = "?" + params
+	}
+
+	vals, err := url.Parse(params)
 	if err != nil {
 		return nil, err
 	}
-	err = p.Set(vals)
+
+	err = p.Set(vals.Query())
 	if err != nil {
 		return nil, err
 	}
@@ -94,7 +99,7 @@ func (s *Params) Set(v url.Values) error {
 		case DataDir:
 			s.DataDir = v.Get(key)
 		case DataFile:
-			s.DataFile = GetQueryStringSlice(key, v)
+			s.DataFile = v.Get(key)
 		case FullText:
 			s.BlvPath = v.Get(key)
 		case UID:
@@ -160,7 +165,7 @@ func (s *Params) Has(key string) bool {
 	case DataDir:
 		return s.DataDir != ""
 	case DataFile:
-		return len(s.DataFile) > 0
+		return s.DataFile != ""
 	case FullText:
 		return s.BlvPath != ""
 	case UID:
@@ -211,7 +216,7 @@ func (s *Params) Values() url.Values {
 		case DataDir:
 			vals.Set(key, s.DataDir)
 		case DataFile:
-			vals[key] = s.DataFile
+			vals.Set(key, s.DataFile)
 		case FullText:
 			vals.Set(key, s.BlvPath)
 		case UID:
@@ -264,17 +269,16 @@ func (p Params) IsFullText() bool {
 }
 
 func (p Params) HasData() bool {
-	return len(p.DataFile) > 0 ||
-		p.DataDir != ""
+	return p.Has(DataDir) || p.Has(DataFile)
 }
 
 func (p Params) GetDataFiles() []string {
 	var data []string
 	switch {
-	case p.DataDir != "":
+	case p.Has(DataDir):
 		data = append(data, p.DataDir)
-	case len(p.DataFile) > 0:
-		data = append(data, p.DataFile...)
+	case p.Has(DataFile):
+		data = append(data, p.DataFile)
 	}
 	return data
 }
