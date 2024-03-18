@@ -1,6 +1,8 @@
 package param
 
 import (
+	"encoding/json"
+	"mime"
 	"net/url"
 	"strings"
 
@@ -8,22 +10,47 @@ import (
 	"github.com/spf13/cast"
 )
 
+func init() {
+	mime.AddExtensionType(".ndjson", "application/x-ndjson")
+}
+
 type Params struct {
 	// Settings
-	*IndexSettings `mapstructure:",squash"`
-	*Search        `mapstructure:",squash"`
-	*SrchCfg
-	params url.Values
-	Other  url.Values `mapstructure:"params,omitempty"`
+
+	// Index Settings
+	SrchAttr     []string `query:"searchableAttributes,omitempty" json:"searchableAttributes,omitempty"`
+	FacetAttr    []string `query:"attributesForFaceting,omitempty" json:"attributesForFaceting,omitempty"`
+	SortAttr     []string `query:"sortableAttributes,omitempty" json:"sortableAttributes,omitempty"`
+	DefaultField string   `query:"defaultField,omitempty" json:"defaultField,omitempty"`
+
+	// Search
+	Hits                 int      `query:"hits,omitempty" json:"hits,omitempty"`
+	AttributesToRetrieve []string `query:"attributesToRetrieve,omitempty" json:"attributesToRetrieve,omitempty"`
+	Page                 int      `query:"page,omitempty" json:"page,omitempty"`
+	HitsPerPage          int      `query:"hitsPerPage,omitempty" json:"hitsPerPage,omitempty"`
+	Query                string   `query:"query,omitempty" json:"query,omitempty"`
+	SortBy               string   `query:"sortBy,omitempty" json:"sortBy,omitempty"`
+	Order                string   `query:"order,omitempty" json:"order,omitempty"`
+
+	// Cfg
+	BlvPath  string   `query:"fullText,omitempty" json:"fullText,omitempty"`
+	DataDir  string   `query:"dataDir,omitempty" json:"dataDir,omitempty"`
+	DataFile []string `query:"dataFile,omitempty" json:"dataFile,omitempty"`
+	UID      string   `query:"uid,omitempty" json:"uid,omitempty"`
+
+	// Facets
+	Facets       []string `query:"facets,omitempty" json:"facets,omitempty"`
+	Filters      string   `query:"filters,omitempty" json:"filters,omitempty"`
+	FacetFilters []any    `query:"facetFilters,omitempty" json:"facetFilters,omitempty"`
+	SortFacetsBy string   `query:"sortFacetsBy,omitempty" json:"sortFacetsBy,omitempty"`
+	params       url.Values
+	Other        url.Values `mapstructure:"params,omitempty"`
 }
 
 func New() *Params {
 	return &Params{
-		IndexSettings: NewSettings(),
-		Search:        NewSearch(),
-		SrchCfg:       NewCfg(),
-		Other:         make(url.Values),
-		params:        make(url.Values),
+		Other:  make(url.Values),
+		params: make(url.Values),
 	}
 }
 
@@ -60,8 +87,6 @@ func (s *Params) Set(v url.Values) error {
 			s.SortAttr = GetQueryStringSlice(key, v)
 		case DefaultField:
 			s.DefaultField = v.Get(key)
-		case UID:
-			s.IndexSettings.UID = v.Get(key)
 		}
 	}
 	for _, key := range paramsCfg {
@@ -73,7 +98,7 @@ func (s *Params) Set(v url.Values) error {
 		case FullText:
 			s.BlvPath = v.Get(key)
 		case UID:
-			s.SrchCfg.UID = v.Get(key)
+			s.UID = v.Get(key)
 		}
 	}
 	for _, key := range paramsFacets {
@@ -139,7 +164,7 @@ func (s *Params) Has(key string) bool {
 	case FullText:
 		return s.BlvPath != ""
 	case UID:
-		return s.IndexSettings.UID != "" || s.SrchCfg.UID != ""
+		return s.UID != ""
 	case SortFacetsBy:
 		return s.SortFacetsBy != ""
 	case Facets:
@@ -176,8 +201,6 @@ func (s *Params) Values() url.Values {
 			vals[key] = s.SortAttr
 		case DefaultField:
 			vals.Set(key, s.DefaultField)
-		case UID:
-			vals.Set(key, s.IndexSettings.UID)
 		}
 	}
 	for _, key := range paramsCfg {
@@ -192,7 +215,7 @@ func (s *Params) Values() url.Values {
 		case FullText:
 			vals.Set(key, s.BlvPath)
 		case UID:
-			vals.Set(key, s.SrchCfg.UID)
+			vals.Set(key, s.UID)
 		}
 	}
 	for _, key := range paramsFacets {
@@ -236,6 +259,26 @@ func (s *Params) Values() url.Values {
 	return vals
 }
 
+func (p Params) IsFullText() bool {
+	return p.BlvPath != ""
+}
+
+func (p Params) HasData() bool {
+	return len(p.DataFile) > 0 ||
+		p.DataDir != ""
+}
+
+func (p Params) GetDataFiles() []string {
+	var data []string
+	switch {
+	case p.DataDir != "":
+		data = append(data, p.DataDir)
+	case len(p.DataFile) > 0:
+		data = append(data, p.DataFile...)
+	}
+	return data
+}
+
 func (p *Params) Encode() string {
 	return p.Values().Encode()
 }
@@ -277,4 +320,31 @@ func GetQueryStringSlice(key string, q url.Values) []string {
 		}
 	}
 	return vals
+}
+
+func unmarshalFilter(dec string) ([]any, error) {
+	var f []any
+	err := json.Unmarshal([]byte(dec), &f)
+	if err != nil {
+		return nil, err
+	}
+	return f, nil
+}
+
+func parseSrchAttr(vals url.Values) []string {
+	if !vals.Has(SrchAttr) {
+		return []string{"*"}
+	}
+	v := GetQueryStringSlice(SrchAttr, vals)
+	if len(v) > 0 {
+		return v
+	}
+	return []string{"*"}
+}
+
+func parseFacetAttr(vals url.Values) []string {
+	if !vals.Has(FacetAttr) {
+		vals[FacetAttr] = GetQueryStringSlice(FacetAttr, vals)
+	}
+	return vals[Facets]
 }
