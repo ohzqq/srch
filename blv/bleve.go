@@ -3,8 +3,10 @@ package blv
 import (
 	"fmt"
 	"log"
+	"net/http"
 
 	"github.com/blevesearch/bleve/v2"
+	"github.com/ohzqq/srch/data"
 	"github.com/ohzqq/srch/param"
 	"github.com/spf13/cast"
 )
@@ -77,6 +79,25 @@ func (idx *Index) search(req *bleve.SearchRequest) ([]map[string]any, error) {
 	}
 
 	return data, nil
+}
+
+func (idx *Index) RoundTrip(req *http.Request) (*http.Response, error) {
+	//params, err := param.Parse(req.URL.RawQuery)
+	//if err != nil {
+	//return nil, err
+	//}
+	//d, err := idx.Search(params.Query)
+	//if err != nil {
+	//return nil, err
+	//}
+	header := make(http.Header)
+	header.Set("content-type", data.NdJSON)
+
+	res := &http.Response{
+		Request: req,
+		Header:  header,
+	}
+	return res, nil
 }
 
 func (idx *Index) Index(uid string, data map[string]any) error {

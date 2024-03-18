@@ -6,10 +6,16 @@ import (
 	"io"
 	"io/fs"
 	"mime"
+	"net/http"
 	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
+)
+
+const (
+	NdJSON = `application/x-ndjson`
+	JSON   = `application/json`
 )
 
 func Get(data *[]map[string]any, paths ...string) error {
@@ -45,6 +51,12 @@ func Get(data *[]map[string]any, paths ...string) error {
 		}
 	}
 	return nil
+}
+
+func FileRequest(path string) http.RoundTripper {
+	t := &http.Transport{}
+	t.RegisterProtocol("file", http.NewFileTransport(http.Dir(path)))
+	return t
 }
 
 func GetFSData(data *[]map[string]any, paths ...string) error {
