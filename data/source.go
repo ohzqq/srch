@@ -69,18 +69,18 @@ func NewClient(params string) (*http.Client, error) {
 
 	var path string
 	switch {
-	case p.Has(DataDir):
+	case p.Has(param.DataDir):
 		path = p.SrchCfg.DataDir
-	case p.Has(DataFile):
+	case p.Has(param.DataFile):
 		path = p.SrchCfg.DataFile[0]
-	case p.Has(BlvPath):
+	case p.Has(param.BlvPath):
 		path = p.SrchCfg.BlvPath
 	}
 
 	req := &http.Client{}
 
 	if path != "" {
-		req.Transport = data.FileTransport(path)
+		req.Transport = FileTransport(path)
 	}
 
 	return req, nil
