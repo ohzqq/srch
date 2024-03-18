@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"mime"
 	"net/url"
+	"regexp"
 	"strings"
 
 	"github.com/samber/lo"
@@ -44,8 +45,16 @@ type Params struct {
 	FacetFilters []any    `query:"facetFilters,omitempty" json:"facetFilters,omitempty"`
 	SortFacetsBy string   `query:"sortFacetsBy,omitempty" json:"sortFacetsBy,omitempty"`
 	params       url.Values
+	URL          *url.URL
 	Other        url.Values `mapstructure:"params,omitempty"`
 }
+
+var (
+	blvPath  = regexp.MustCompile(`/?(blv)/(.*)`)
+	filePath = regexp.MustCompile(`/?(file)/(.*)`)
+	dirPath  = regexp.MustCompile(`/?(dir)/(.*)`)
+	paths    = []*regexp.Regexp{blvPath, filePath, dirPath}
+)
 
 func New() *Params {
 	return &Params{
@@ -61,17 +70,31 @@ func Parse(params string) (*Params, error) {
 		params = "?" + params
 	}
 
-	vals, err := url.Parse(params)
+	u, err := url.Parse(params)
 	if err != nil {
 		return nil, err
 	}
+	p.URL = u
 
-	err = p.Set(vals.Query())
+	err = p.Set(u.Query())
 	if err != nil {
 		return nil, err
 	}
 
 	return p, nil
+}
+
+func parsePath(path string) (string, string) {
+	var p string
+	var pre string
+	for _, reg := range paths {
+		matches := reg.FindStringSubmatch(path)
+		if len(matches) > 1 {
+			pre = matches[1]
+			p = matches[2]
+		}
+	}
+	return pre, p
 }
 
 func (p *Params) IsFile() bool {

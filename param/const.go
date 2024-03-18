@@ -29,8 +29,10 @@ const (
 	DefaultField = `title`
 	UID          = `uid`
 
-	TextAnalyzer    = "text"
-	KeywordAnalyzer = "keyword"
+	// file paths
+	Blv  = "blv"
+	Dir  = "dir"
+	File = "file"
 )
 
 var paramsSettings = []string{
@@ -46,7 +48,6 @@ var paramsCfg = []string{
 	DefaultField,
 	FullText,
 	BlvPath,
-	UID,
 }
 
 var paramsSearch = []string{
@@ -66,5 +67,4 @@ var paramsFacets = []string{
 	Facets,
 	Filters,
 	FacetFilters,
-	UID,
 }

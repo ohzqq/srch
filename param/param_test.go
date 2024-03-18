@@ -268,6 +268,79 @@ func TestNewParams(t *testing.T) {
 	}
 }
 
+type pathMatch struct {
+	prefix string
+	path   string
+}
+
+var pathMatches = map[string]pathMatch{
+	``: pathMatch{
+		prefix: "",
+		path:   "",
+	},
+	`/`: pathMatch{
+		prefix: "",
+		path:   "",
+	},
+	`/blv`: pathMatch{
+		prefix: "blv",
+		path:   "",
+	},
+	`blv`: pathMatch{
+		prefix: "blv",
+		path:   "",
+	},
+	`/blv/../testdata/poot.bleve`: pathMatch{
+		prefix: "blv",
+		path:   "../testdata/poot.bleve",
+	},
+	`blv/../testdata/poot.bleve`: pathMatch{
+		prefix: "blv",
+		path:   "../testdata/poot.bleve",
+	},
+	`/dir`: pathMatch{
+		prefix: "dir",
+		path:   "",
+	},
+	`dir`: pathMatch{
+		prefix: "dir",
+		path:   "",
+	},
+	`/dir/../testdata/nddata`: pathMatch{
+		prefix: "dir",
+		path:   "../testdata/nddata",
+	},
+	`dir/../testdata/nddata`: pathMatch{
+		prefix: "dir",
+		path:   "../testdata/nddata",
+	},
+	`/file`: pathMatch{
+		prefix: "file",
+		path:   "",
+	},
+	`file`: pathMatch{
+		prefix: "file",
+		path:   "",
+	},
+	`/file/../testdata/nddata/ndbooks.ndjson`: pathMatch{
+		prefix: "file",
+		path:   "../testdata/nddata/ndbooks.ndjson",
+	},
+	`file/../testdata/nddata/ndbooks.ndjson`: pathMatch{
+		prefix: "file",
+		path:   "../testdata/nddata/ndbooks.ndjson",
+	},
+}
+
+func TestPaths(t *testing.T) {
+	for path, want := range pathMatches {
+		pre, loc := parsePath(path)
+		if loc != "" && (want.prefix != pre || loc != want.path) {
+			t.Errorf("pre %s, path %s: wnat %#v", pre, loc, want)
+		}
+	}
+}
+
 func printTests() {
 	for _, test := range testQuerySettings {
 		p, err := Parse(test)
