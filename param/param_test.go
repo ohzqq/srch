@@ -39,7 +39,7 @@ var paramTests = []paramTest{
 		},
 	},
 	paramTest{
-		query: `searchableAttributes=`,
+		query: `?searchableAttributes=`,
 		want: &Params{
 			Other:                url.Values{},
 			SrchAttr:             []string{"*"},
@@ -64,7 +64,7 @@ var paramTests = []paramTest{
 		},
 	},
 	paramTest{
-		query: `searchableAttributes=title&fullText=../testdata/poot.bleve`,
+		query: `?searchableAttributes=title&fullText=../testdata/poot.bleve`,
 		want: &Params{
 			Other:                url.Values{},
 			SrchAttr:             []string{"title"},
@@ -89,7 +89,7 @@ var paramTests = []paramTest{
 		},
 	},
 	paramTest{
-		query: `searchableAttributes=title&dataDir=../testdata/data-dir`,
+		query: `?searchableAttributes=title&dataDir=../testdata/data-dir`,
 		want: &Params{
 			Other:                url.Values{},
 			SrchAttr:             []string{"title"},
@@ -114,7 +114,7 @@ var paramTests = []paramTest{
 		},
 	},
 	paramTest{
-		query: `attributesForFaceting=tags,authors,series,narrators`,
+		query: `?attributesForFaceting=tags,authors,series,narrators`,
 		want: &Params{
 			Other:                url.Values{},
 			SrchAttr:             []string{"*"},
@@ -139,7 +139,7 @@ var paramTests = []paramTest{
 		},
 	},
 	paramTest{
-		query: `attributesForFaceting=tags,authors,series,narrators&dataFile=../testdata/data-dir/audiobooks.json`,
+		query: `?attributesForFaceting=tags,authors,series,narrators&dataFile=../testdata/data-dir/audiobooks.json`,
 		want: &Params{
 			Other:                url.Values{},
 			SrchAttr:             []string{"*"},
@@ -164,7 +164,7 @@ var paramTests = []paramTest{
 		},
 	},
 	paramTest{
-		query: `searchableAttributes=title&attributesForFaceting=tags,authors,series,narrators`,
+		query: `?searchableAttributes=title&attributesForFaceting=tags,authors,series,narrators`,
 		want: &Params{
 			Other:                url.Values{},
 			SrchAttr:             []string{"title"},
@@ -189,7 +189,7 @@ var paramTests = []paramTest{
 		},
 	},
 	paramTest{
-		query: `searchableAttributes=title&dataFile=../testdata/data-dir/audiobooks.json&attributesForFaceting=tags,authors,series,narrators`,
+		query: `?searchableAttributes=title&dataFile=../testdata/data-dir/audiobooks.json&attributesForFaceting=tags,authors,series,narrators`,
 		want: &Params{
 			Other:                url.Values{},
 			SrchAttr:             []string{"title"},
@@ -214,7 +214,7 @@ var paramTests = []paramTest{
 		},
 	},
 	paramTest{
-		query: `searchableAttributes=title&dataFile=../testdata/data-dir/audiobooks.json&attributesForFaceting=tags,authors,series,narrators&page=3&query=fish&facets=tags&facets=authors&sortBy=title&order=desc&facetFilters=["authors:amy lane", ["tags:romance", "tags:-dnr"]]`,
+		query: `?searchableAttributes=title&dataFile=../testdata/data-dir/audiobooks.json&attributesForFaceting=tags,authors,series,narrators&page=3&query=fish&facets=tags&facets=authors&sortBy=title&order=desc&facetFilters=["authors:amy lane", ["tags:romance", "tags:-dnr"]]`,
 		want: &Params{
 			Other:                url.Values{},
 			SrchAttr:             []string{"title"},
@@ -241,15 +241,10 @@ var paramTests = []paramTest{
 }
 
 var testQuerySettings = []string{
-	"",
-	"searchableAttributes=",
-	"searchableAttributes=title&fullText=../testdata/poot.bleve",
-	"searchableAttributes=title&dataDir=../testdata/data-dir",
-	"attributesForFaceting=tags,authors,series,narrators",
-	"attributesForFaceting=tags,authors,series,narrators&dataFile=../testdata/data-dir/audiobooks.json",
-	"searchableAttributes=title&attributesForFaceting=tags,authors,series,narrators",
-	"searchableAttributes=title&dataFile=../testdata/data-dir/audiobooks.json&attributesForFaceting=tags,authors,series,narrators",
-	`searchableAttributes=title&dataFile=../testdata/data-dir/audiobooks.json&attributesForFaceting=tags,authors,series,narrators&page=3&query=fish&facets=tags&facets=authors&sortBy=title&order=desc&facetFilters=["authors:amy lane", ["tags:romance", "tags:-dnr"]]`,
+	"blv/../testdata/poot.bleve?searchableAttributes=title&facets=tags,authors,series,narrators",
+	"/dir/home/mxb/code/srch/testdata/data-dir?searchableAttributes=title&facets=tags,authors,series,narrators",
+	"file/home/mxb/code/srch/testdata/data-dir/audiobooks.json?searchableAttributes=title&facets=tags,authors,series,narrators",
+	`/file/home/mxb/code/srch/testdata/data-dir/audiobooks.json?searchableAttributes=title&page=3&query=fish&facets=tags&facets=authors&sortBy=title&order=desc&facetFilters=["authors:amy lane", ["tags:romance", "tags:-dnr"]]`,
 }
 
 func TestNewParams(t *testing.T) {
@@ -262,8 +257,20 @@ func TestNewParams(t *testing.T) {
 		if i > 1 {
 			attr := p.SrchAttr[0]
 			if sa := test.want.SrchAttr[0]; sa != attr {
-				t.Errorf("got %#v, exptect %#v\n", sa, attr)
+				t.Errorf("%d: test query %s\ngot %#v, exptect %#v\n", i, test.query, attr, sa)
 			}
+		}
+	}
+}
+
+func TestNewQueryURLs(t *testing.T) {
+	for _, u := range testQuerySettings {
+		p, err := Parse(u)
+		if err != nil {
+			t.Error(err)
+		}
+		if !p.IsFile() {
+			t.Errorf("url %s has no data file", u)
 		}
 	}
 }
@@ -292,11 +299,11 @@ var pathMatches = map[string]pathMatch{
 	},
 	`/blv/../testdata/poot.bleve`: pathMatch{
 		prefix: "blv",
-		path:   "../testdata/poot.bleve",
+		path:   "/home/mxb/code/srch/testdata/poot.bleve",
 	},
 	`blv/../testdata/poot.bleve`: pathMatch{
 		prefix: "blv",
-		path:   "../testdata/poot.bleve",
+		path:   "/home/mxb/code/srch/testdata/poot.bleve",
 	},
 	`/dir`: pathMatch{
 		prefix: "dir",
@@ -308,11 +315,11 @@ var pathMatches = map[string]pathMatch{
 	},
 	`/dir/../testdata/nddata`: pathMatch{
 		prefix: "dir",
-		path:   "../testdata/nddata",
+		path:   "/home/mxb/code/srch/testdata/nddata",
 	},
 	`dir/../testdata/nddata`: pathMatch{
 		prefix: "dir",
-		path:   "../testdata/nddata",
+		path:   "/home/mxb/code/srch/testdata/nddata",
 	},
 	`/file`: pathMatch{
 		prefix: "file",
@@ -324,11 +331,11 @@ var pathMatches = map[string]pathMatch{
 	},
 	`/file/../testdata/nddata/ndbooks.ndjson`: pathMatch{
 		prefix: "file",
-		path:   "../testdata/nddata/ndbooks.ndjson",
+		path:   "/home/mxb/code/srch/testdata/nddata/ndbooks.ndjson",
 	},
 	`file/../testdata/nddata/ndbooks.ndjson`: pathMatch{
 		prefix: "file",
-		path:   "../testdata/nddata/ndbooks.ndjson",
+		path:   "/home/mxb/code/srch/testdata/nddata/ndbooks.ndjson",
 	},
 }
 

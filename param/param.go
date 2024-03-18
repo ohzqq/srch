@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"mime"
 	"net/url"
+	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -66,15 +67,17 @@ func New() *Params {
 func Parse(params string) (*Params, error) {
 	p := New()
 
-	if !strings.HasPrefix(params, "?") {
-		params = "?" + params
-	}
+	//if !strings.HasPrefix(params, "?") {
+	//  params = "?" + params
+	//}
 
 	u, err := url.Parse(params)
 	if err != nil {
 		return nil, err
 	}
 	p.URL = u
+
+	p.parsePath()
 
 	err = p.Set(u.Query())
 	if err != nil {
@@ -84,17 +87,35 @@ func Parse(params string) (*Params, error) {
 	return p, nil
 }
 
+func (p *Params) parsePath() *Params {
+	pre, path := parsePath(p.URL.Path)
+	if path != "" {
+		switch pre {
+		case Blv:
+			p.BlvPath = path
+		case Dir:
+			p.DataDir = path
+		case File:
+			p.DataFile = path
+		}
+	}
+	return p
+}
+
 func parsePath(path string) (string, string) {
-	var p string
-	var pre string
 	for _, reg := range paths {
 		matches := reg.FindStringSubmatch(path)
 		if len(matches) > 1 {
-			pre = matches[1]
-			p = matches[2]
+			pre := matches[1]
+			loc := matches[2]
+			loc, err := filepath.Abs(loc)
+			if err != nil {
+				loc = ""
+			}
+			return pre, loc
 		}
 	}
-	return pre, p
+	return "", ""
 }
 
 func (p *Params) IsFile() bool {
@@ -120,11 +141,17 @@ func (s *Params) Set(v url.Values) error {
 	for _, key := range paramsCfg {
 		switch key {
 		case DataDir:
-			s.DataDir = v.Get(key)
+			if v.Has(key) {
+				s.DataDir = v.Get(key)
+			}
 		case DataFile:
-			s.DataFile = v.Get(key)
+			if v.Has(key) {
+				s.DataFile = v.Get(key)
+			}
 		case FullText:
-			s.BlvPath = v.Get(key)
+			if v.Has(key) {
+				s.BlvPath = v.Get(key)
+			}
 		case UID:
 			s.UID = v.Get(key)
 		}
