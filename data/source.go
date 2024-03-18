@@ -6,13 +6,10 @@ import (
 	"io"
 	"io/fs"
 	"mime"
-	"net/http"
 	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
-
-	"github.com/ohzqq/srch/param"
 )
 
 const (
@@ -53,37 +50,6 @@ func Get(data *[]map[string]any, paths ...string) error {
 		}
 	}
 	return nil
-}
-
-func FileTransport(path string) http.RoundTripper {
-	t := &http.Transport{}
-	t.RegisterProtocol("file", http.NewFileTransport(http.Dir(path)))
-	return t
-}
-
-func NewClient(params string) (*http.Client, error) {
-	p, err := param.Parse(params)
-	if err != nil {
-		return nil, err
-	}
-
-	var path string
-	switch {
-	case p.Has(param.DataDir):
-		path = p.SrchCfg.DataDir
-	case p.Has(param.DataFile):
-		path = p.SrchCfg.DataFile[0]
-	case p.Has(param.BlvPath):
-		path = p.SrchCfg.BlvPath
-	}
-
-	req := &http.Client{}
-
-	if path != "" {
-		req.Transport = FileTransport(path)
-	}
-
-	return req, nil
 }
 
 func GetFSData(data *[]map[string]any, paths ...string) error {

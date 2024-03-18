@@ -189,16 +189,6 @@ var testQuerySettings = []string{
 	`searchableAttributes=title&dataFile=../testdata/data-dir/audiobooks.json&attributesForFaceting=tags,authors,series,narrators&page=3&query=fish&facets=tags&facets=authors&sortBy=title&order=desc&facetFilters=["authors:amy lane", ["tags:romance", "tags:-dnr"]]`,
 }
 
-func TestNewRequest(t *testing.T) {
-	for _, test := range testQuerySettings {
-		req, err := NewClient(test)
-		if err != nil {
-			t.Error(err)
-		}
-		fmt.Printf("%#v\n", req)
-	}
-}
-
 func TestNewParams(t *testing.T) {
 	for i, test := range paramTests {
 		p, err := Parse(test.query)
