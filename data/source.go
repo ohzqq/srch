@@ -3,6 +3,7 @@ package data
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"io"
 	"io/fs"
 	"mime"
@@ -12,10 +13,101 @@ import (
 	"strings"
 )
 
+func init() {
+	mime.AddExtensionType(".ndjson", "application/x-ndjson")
+	mime.AddExtensionType(".bleve", "application/bleve")
+}
+
 const (
 	NdJSON = `application/x-ndjson`
 	JSON   = `application/json`
 )
+
+type Data struct {
+	Path  string
+	Route string
+	Files []*File
+}
+
+type File struct {
+	Path        string
+	ContentType string
+}
+
+func New(r, path string) *Data {
+	d := &Data{
+		Route: r,
+		Path:  path,
+	}
+
+	switch route := d.Route; route {
+	case "dir":
+		js, _ := filepath.Glob(filepath.Join(d.Path, "*.json"))
+		d.AddFile(js...)
+
+		nd, _ := filepath.Glob(filepath.Join(d.Path, "*.ndjson"))
+		d.AddFile(nd...)
+	default:
+		d.AddFile(d.Path)
+	}
+
+	return d
+}
+
+func (d *Data) AddFile(paths ...string) {
+	for _, path := range paths {
+		file, err := NewFile(path)
+		if err != nil {
+			return
+		}
+		d.Files = append(d.Files, file)
+	}
+}
+
+func (d *Data) Decode() ([]map[string]any, error) {
+	var data []map[string]any
+
+	for _, file := range d.Files {
+		f, err := os.Open(file.Path)
+		if err != nil {
+			return data, err
+		}
+		defer f.Close()
+
+		switch file.ContentType {
+		case NdJSON:
+			err := DecodeNDJSON(f, &data)
+			if err != nil {
+				return nil, err
+			}
+		case JSON:
+			err := DecodeJSON(f, &data)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	return data, nil
+}
+
+func NewFile(path string) (*File, error) {
+	file := &File{
+		Path: path,
+	}
+
+	ext := filepath.Ext(file.Path)
+	if ext == "" {
+		return file, errors.New("file has no extension")
+	}
+
+	file.ContentType = mime.TypeByExtension(ext)
+	if b, _, ok := strings.Cut(file.ContentType, ";"); ok {
+		file.ContentType = b
+	}
+
+	return file, nil
+}
 
 func Get(data *[]map[string]any, paths ...string) error {
 	wfn := func(path string, info fs.DirEntry, err error) error {

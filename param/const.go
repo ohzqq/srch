@@ -26,6 +26,7 @@ const (
 	BlvPath      = `fullText`
 	DataDir      = `dataDir`
 	DataFile     = `dataFile`
+	Format       = `format`
 	DefaultField = `title`
 	UID          = `uid`
 
@@ -33,6 +34,10 @@ const (
 	Blv  = "blv"
 	Dir  = "dir"
 	File = "file"
+
+	// content-type
+	NdJSON = `application/x-ndjson`
+	JSON   = `application/json`
 )
 
 var paramsSettings = []string{
@@ -40,14 +45,15 @@ var paramsSettings = []string{
 	FacetAttr,
 	SortAttr,
 	UID,
+	DefaultField,
 }
 
-var paramsCfg = []string{
+var paramsData = []string{
 	DataDir,
 	DataFile,
-	DefaultField,
 	FullText,
 	BlvPath,
+	Format,
 }
 
 var paramsSearch = []string{
@@ -60,9 +66,6 @@ var paramsSearch = []string{
 	NbPages,
 	SortBy,
 	Order,
-}
-
-var paramsFacets = []string{
 	SortFacetsBy,
 	Facets,
 	Filters,

@@ -18,11 +18,13 @@ var testQuerySettings = []string{
 }
 
 func TestNewClient(t *testing.T) {
-	for _, test := range testQuerySettings {
-		req, err := NewClient(test)
-		if err != nil {
-			t.Error(err)
-		}
-		fmt.Printf("%#v\n", req)
+	tp := `../testdata/data-dir`
+
+	data := New("dir", tp)
+	d, err := data.Decode()
+	if err != nil {
+		t.Error(err)
 	}
+
+	fmt.Printf("data %#v\n", len(d))
 }

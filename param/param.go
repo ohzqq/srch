@@ -17,13 +17,15 @@ func init() {
 }
 
 type Params struct {
-	// Settings
+	URL   *url.URL
+	Other url.Values
 
 	// Index Settings
 	SrchAttr     []string `query:"searchableAttributes,omitempty" json:"searchableAttributes,omitempty"`
 	FacetAttr    []string `query:"attributesForFaceting,omitempty" json:"attributesForFaceting,omitempty"`
 	SortAttr     []string `query:"sortableAttributes,omitempty" json:"sortableAttributes,omitempty"`
 	DefaultField string   `query:"defaultField,omitempty" json:"defaultField,omitempty"`
+	UID          string   `query:"uid,omitempty" json:"uid,omitempty"`
 
 	// Search
 	Hits                 int      `query:"hits,omitempty" json:"hits,omitempty"`
@@ -33,43 +35,36 @@ type Params struct {
 	Query                string   `query:"query,omitempty" json:"query,omitempty"`
 	SortBy               string   `query:"sortBy,omitempty" json:"sortBy,omitempty"`
 	Order                string   `query:"order,omitempty" json:"order,omitempty"`
-
-	// Cfg
-	BlvPath  string `query:"fullText,omitempty" json:"fullText,omitempty"`
-	DataDir  string `query:"dataDir,omitempty" json:"dataDir,omitempty"`
-	DataFile string `query:"dataFile,omitempty" json:"dataFile,omitempty"`
-	UID      string `query:"uid,omitempty" json:"uid,omitempty"`
-
 	// Facets
 	Facets       []string `query:"facets,omitempty" json:"facets,omitempty"`
 	Filters      string   `query:"filters,omitempty" json:"filters,omitempty"`
 	FacetFilters []any    `query:"facetFilters,omitempty" json:"facetFilters,omitempty"`
 	SortFacetsBy string   `query:"sortFacetsBy,omitempty" json:"sortFacetsBy,omitempty"`
-	params       url.Values
-	URL          *url.URL
-	Other        url.Values `mapstructure:"params,omitempty"`
+
+	// Data
+	Format   string
+	Path     string
+	Route    string
+	BlvPath  string `query:"fullText,omitempty" json:"fullText,omitempty"`
+	DataDir  string `query:"dataDir,omitempty" json:"dataDir,omitempty"`
+	DataFile string `query:"dataFile,omitempty" json:"dataFile,omitempty"`
 }
 
 var (
 	blvPath  = regexp.MustCompile(`/?(blv)/(.*)`)
 	filePath = regexp.MustCompile(`/?(file)/(.*)`)
 	dirPath  = regexp.MustCompile(`/?(dir)/(.*)`)
-	paths    = []*regexp.Regexp{blvPath, filePath, dirPath}
+	routes   = []*regexp.Regexp{blvPath, filePath, dirPath}
 )
 
 func New() *Params {
 	return &Params{
-		Other:  make(url.Values),
-		params: make(url.Values),
+		Other: make(url.Values),
 	}
 }
 
 func Parse(params string) (*Params, error) {
 	p := New()
-
-	//if !strings.HasPrefix(params, "?") {
-	//  params = "?" + params
-	//}
 
 	u, err := url.Parse(params)
 	if err != nil {
@@ -77,7 +72,7 @@ func Parse(params string) (*Params, error) {
 	}
 	p.URL = u
 
-	p.parsePath()
+	p.parseRoute()
 
 	err = p.Set(u.Query())
 	if err != nil {
@@ -87,23 +82,61 @@ func Parse(params string) (*Params, error) {
 	return p, nil
 }
 
-func (p *Params) parsePath() *Params {
-	pre, path := parsePath(p.URL.Path)
-	if path != "" {
-		switch pre {
+func (p Params) Search() url.Values {
+	vals := make(url.Values)
+	for _, key := range paramsSearch {
+		q := p.URL.Query()
+		if q.Has(key) {
+			vals[key] = q[key]
+		}
+	}
+	return vals
+}
+
+func (p Params) Index() url.Values {
+	vals := make(url.Values)
+	for _, key := range paramsSettings {
+		q := p.URL.Query()
+		if q.Has(key) {
+			vals[key] = q[key]
+		}
+	}
+	return vals
+}
+
+func (p Params) HasData() bool {
+	return p.Has(DataDir) || p.Has(DataFile)
+}
+
+func (p Params) GetDataFiles() []string {
+	var data []string
+	switch {
+	case p.Has(DataDir):
+		data = append(data, p.DataDir)
+	case p.Has(DataFile):
+		data = append(data, p.DataFile)
+	}
+	return data
+}
+
+func (p *Params) parseRoute() *Params {
+	p.Route, p.Path = parseRoute(p.URL.Path)
+
+	if p.Path != "" {
+		switch p.Route {
 		case Blv:
-			p.BlvPath = path
+			p.BlvPath = p.Path
 		case Dir:
-			p.DataDir = path
+			p.DataDir = p.Path
 		case File:
-			p.DataFile = path
+			p.DataFile = p.Path
 		}
 	}
 	return p
 }
 
-func parsePath(path string) (string, string) {
-	for _, reg := range paths {
+func parseRoute(path string) (string, string) {
+	for _, reg := range routes {
 		matches := reg.FindStringSubmatch(path)
 		if len(matches) > 1 {
 			pre := matches[1]
@@ -125,7 +158,6 @@ func (p *Params) IsFile() bool {
 }
 
 func (s *Params) Set(v url.Values) error {
-	s.params = v
 	for _, key := range paramsSettings {
 		switch key {
 		case SrchAttr:
@@ -136,9 +168,11 @@ func (s *Params) Set(v url.Values) error {
 			s.SortAttr = GetQueryStringSlice(key, v)
 		case DefaultField:
 			s.DefaultField = v.Get(key)
+		case UID:
+			s.UID = v.Get(key)
 		}
 	}
-	for _, key := range paramsCfg {
+	for _, key := range paramsData {
 		switch key {
 		case DataDir:
 			if v.Has(key) {
@@ -152,11 +186,13 @@ func (s *Params) Set(v url.Values) error {
 			if v.Has(key) {
 				s.BlvPath = v.Get(key)
 			}
-		case UID:
-			s.UID = v.Get(key)
+		case Format:
+			if v.Has(key) {
+				s.Format = v.Get(key)
+			}
 		}
 	}
-	for _, key := range paramsFacets {
+	for _, key := range paramsSearch {
 		switch key {
 		case SortFacetsBy:
 			s.SortFacetsBy = v.Get(key)
@@ -173,10 +209,6 @@ func (s *Params) Set(v url.Values) error {
 				}
 				s.FacetFilters = f
 			}
-		}
-	}
-	for _, key := range paramsSearch {
-		switch key {
 		case Hits:
 			s.Hits = GetQueryInt(key, v)
 		case AttributesToRetrieve:
@@ -218,6 +250,8 @@ func (s *Params) Has(key string) bool {
 		return s.DataFile != ""
 	case FullText:
 		return s.BlvPath != ""
+	case Format:
+		return s.Format != ""
 	case UID:
 		return s.UID != ""
 	case SortFacetsBy:
@@ -256,9 +290,11 @@ func (s *Params) Values() url.Values {
 			vals[key] = s.SortAttr
 		case DefaultField:
 			vals.Set(key, s.DefaultField)
+		case UID:
+			vals.Set(key, s.UID)
 		}
 	}
-	for _, key := range paramsCfg {
+	for _, key := range paramsData {
 		if !s.Has(key) {
 			continue
 		}
@@ -269,11 +305,11 @@ func (s *Params) Values() url.Values {
 			vals.Set(key, s.DataFile)
 		case FullText:
 			vals.Set(key, s.BlvPath)
-		case UID:
-			vals.Set(key, s.UID)
+		case Format:
+			vals.Set(key, s.Format)
 		}
 	}
-	for _, key := range paramsFacets {
+	for _, key := range paramsSearch {
 		if !s.Has(key) {
 			continue
 		}
@@ -288,13 +324,6 @@ func (s *Params) Values() url.Values {
 			for _, f := range s.FacetFilters {
 				vals.Add(key, cast.ToString(f))
 			}
-		}
-	}
-	for _, key := range paramsSearch {
-		if !s.Has(key) {
-			continue
-		}
-		switch key {
 		case Hits:
 			vals.Set(key, cast.ToString(s.Hits))
 		case AttributesToRetrieve:
@@ -316,21 +345,6 @@ func (s *Params) Values() url.Values {
 
 func (p Params) IsFullText() bool {
 	return p.BlvPath != ""
-}
-
-func (p Params) HasData() bool {
-	return p.Has(DataDir) || p.Has(DataFile)
-}
-
-func (p Params) GetDataFiles() []string {
-	var data []string
-	switch {
-	case p.Has(DataDir):
-		data = append(data, p.DataDir)
-	case p.Has(DataFile):
-		data = append(data, p.DataFile)
-	}
-	return data
 }
 
 func (p *Params) Encode() string {

@@ -276,8 +276,9 @@ func TestNewQueryURLs(t *testing.T) {
 }
 
 type pathMatch struct {
-	prefix string
-	path   string
+	prefix      string
+	path        string
+	contentType string
 }
 
 var pathMatches = map[string]pathMatch{
@@ -330,18 +331,28 @@ var pathMatches = map[string]pathMatch{
 		path:   "",
 	},
 	`/file/../testdata/nddata/ndbooks.ndjson`: pathMatch{
-		prefix: "file",
-		path:   "/home/mxb/code/srch/testdata/nddata/ndbooks.ndjson",
+		prefix:      "file",
+		path:        "/home/mxb/code/srch/testdata/nddata/ndbooks.ndjson",
+		contentType: NdJSON,
 	},
-	`file/../testdata/nddata/ndbooks.ndjson`: pathMatch{
+	`file/../testdata/nddata/ndbooks`: pathMatch{
 		prefix: "file",
-		path:   "/home/mxb/code/srch/testdata/nddata/ndbooks.ndjson",
+		path:   "/home/mxb/code/srch/testdata/nddata/ndbooks",
+	},
+	`file/../testdata/data-dir/audiobooks.json`: pathMatch{
+		prefix:      "file",
+		path:        "/home/mxb/code/srch/testdata/data-dir/audiobooks.json",
+		contentType: JSON,
 	},
 }
 
 func TestPaths(t *testing.T) {
 	for path, want := range pathMatches {
-		pre, loc := parsePath(path)
+		params, err := Parse(path)
+		if err != nil {
+			t.Error(err)
+		}
+		pre, loc := params.Route, params.Path
 		if loc != "" && (want.prefix != pre || loc != want.path) {
 			t.Errorf("pre %s, path %s: wnat %#v", pre, loc, want)
 		}
