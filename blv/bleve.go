@@ -15,28 +15,23 @@ type Index struct {
 	count int
 }
 
-func Open(cfg *param.Params) *Index {
-	println(cfg.Path)
-	blv, err := bleve.Open(cfg.Path)
+func Open(params *param.Params) *Index {
+	blv, err := bleve.Open(params.Path)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer blv.Close()
 
 	idx := &Index{
-		Params: cfg,
+		Params: params,
 	}
-	c, err := blv.DocCount()
-	if err != nil {
-		c = 0
-	}
-	idx.count = int(c)
+	idx.SetCount(blv)
 	return idx
 }
 
-func New(cfg *param.Params) (*Index, error) {
-	idx := &Index{Params: cfg}
-	blv, err := bleve.New(cfg.Path, bleve.NewIndexMapping())
+func New(params *param.Params) (*Index, error) {
+	idx := &Index{Params: params}
+	blv, err := bleve.New(params.Path, bleve.NewIndexMapping())
 	if err != nil {
 		return idx, err
 	}
@@ -147,30 +142,24 @@ func (idx *Index) Batch(data []map[string]any) error {
 		s += batchSize
 		e += batchSize
 	}
-	dc, err := blv.DocCount()
-	if err != nil {
-		dc = 0
-	}
-	idx.count = int(dc)
+	idx.SetCount(blv)
 
 	return nil
 }
 
-func (idx *Index) Count() int {
-	blv, err := bleve.Open(idx.Path)
-	if err != nil {
-		return 0
-	}
-	defer blv.Close()
-
-	c, err := blv.DocCount()
-	if err != nil {
-		return 0
-	}
-
-	return int(c)
+func (idx *Index) SetCount(blv bleve.Index) *Index {
+	idx.count = getDocCount(blv)
+	return idx
 }
 
 func (idx *Index) Len() int {
 	return idx.count
+}
+
+func getDocCount(blv bleve.Index) int {
+	c, err := blv.DocCount()
+	if err != nil {
+		return 0
+	}
+	return int(c)
 }
