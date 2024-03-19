@@ -5,9 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
-	"io/fs"
 	"mime"
-	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -107,69 +105,6 @@ func NewFile(path string) (*File, error) {
 	}
 
 	return file, nil
-}
-
-func Get(data *[]map[string]any, paths ...string) error {
-	wfn := func(path string, info fs.DirEntry, err error) error {
-		f, err := os.Open(path)
-		if err != nil {
-			return err
-		}
-		defer f.Close()
-
-		name := info.Name()
-		ct := mime.TypeByExtension(filepath.Ext(name))
-		if b, _, ok := strings.Cut(ct, ";"); ok {
-			ct = b
-		}
-
-		switch ct {
-		case "application/x-ndjson":
-			return DecodeNDJSON(f, data)
-		case "application/json":
-			return DecodeJSON(f, data)
-		}
-		return nil
-	}
-	for _, p := range paths {
-		u, err := url.Parse(p)
-		if err != nil {
-			break
-		}
-		if s := u.Scheme; s == "" || s == "file" {
-			p := strings.TrimPrefix(p, "file://")
-			return filepath.WalkDir(p, wfn)
-		}
-	}
-	return nil
-}
-
-func GetFSData(data *[]map[string]any, paths ...string) error {
-	wfn := func(path string, info fs.DirEntry, err error) error {
-		f, err := os.Open(path)
-		if err != nil {
-			return err
-		}
-		defer f.Close()
-
-		name := info.Name()
-		ct := mime.TypeByExtension(filepath.Ext(name))
-		if b, _, ok := strings.Cut(ct, ";"); ok {
-			ct = b
-		}
-
-		switch ct {
-		case "application/x-ndjson":
-			return DecodeNDJSON(f, data)
-		case "application/json":
-			return DecodeJSON(f, data)
-		}
-		return nil
-	}
-	for _, p := range paths {
-		return filepath.WalkDir(p, wfn)
-	}
-	return nil
 }
 
 func DecodeData(r io.Reader, ct string, data *[]map[string]any) error {
