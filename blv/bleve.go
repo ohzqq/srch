@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/blevesearch/bleve/v2"
+	"github.com/blevesearch/bleve/v2/search/query"
 	"github.com/ohzqq/srch/param"
 	"github.com/spf13/cast"
 )
@@ -44,23 +45,24 @@ func New(cfg *param.Params) (*Index, error) {
 	return idx, nil
 }
 
-func (idx *Index) Search(query string) ([]map[string]any, error) {
+func (idx *Index) Search(kw string) ([]map[string]any, error) {
+	var q query.Query
+	q = bleve.NewMatchAllQuery()
 
-	var req *bleve.SearchRequest
-
-	if query == "" {
-		q := bleve.NewMatchAllQuery()
-		req = bleve.NewSearchRequestOptions(q, idx.count, 0, true)
-		return idx.search(req)
+	if kw != "" {
+		q = bleve.NewTermQuery(kw)
 	}
 
-	q := bleve.NewTermQuery(query)
-	req = bleve.NewSearchRequestOptions(q, idx.count, 0, true)
-	return idx.search(req)
+	req := blvReq(q, idx.count)
+	return search(idx.Path, req)
 }
 
-func (idx *Index) search(req *bleve.SearchRequest) ([]map[string]any, error) {
-	blv, err := bleve.Open(idx.Path)
+func blvReq(q query.Query, count int) *bleve.SearchRequest {
+	return bleve.NewSearchRequestOptions(q, count, 0, true)
+}
+
+func search(path string, req *bleve.SearchRequest) ([]map[string]any, error) {
+	blv, err := bleve.Open(path)
 	if err != nil {
 		return nil, err
 	}
@@ -91,7 +93,7 @@ func (idx *Index) Index(uid string, data map[string]any) error {
 }
 
 func (idx *Index) Batch(data []map[string]any) error {
-	blv, err := bleve.Open(idx.BlvPath)
+	blv, err := bleve.Open(idx.Path)
 	if err != nil {
 		return err
 	}
@@ -152,12 +154,6 @@ func (idx *Index) Batch(data []map[string]any) error {
 	idx.count = int(dc)
 
 	return nil
-}
-
-func (idx *Index) Bitmap() ([]map[string]any, error) {
-	q := bleve.NewMatchAllQuery()
-	req := bleve.NewSearchRequest(q)
-	return idx.search(req)
 }
 
 func (idx *Index) Count() int {
