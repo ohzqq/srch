@@ -53,7 +53,7 @@ func (r *Request) Facets(attr ...string) *Request {
 	return r
 }
 
-func (r *Request) DataFile(attr ...string) *Request {
+func (r *Request) DataFile(attr string) *Request {
 	r.Params.DataFile = attr
 	return r
 }

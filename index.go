@@ -37,8 +37,9 @@ type Searcher interface {
 // Index is a structure for facets and data.
 type Index struct {
 	Indexer
+	*data.Data
 
-	Data   []map[string]any
+	data   []map[string]any
 	res    *roaring.Bitmap
 	isMem  bool
 	Params *param.Params
@@ -72,12 +73,12 @@ func New(settings string) (*Index, error) {
 	}
 
 	if idx.Params.HasData() {
-		idx.Data, err = idx.GetData()
+		err = idx.GetData()
 		if err != nil {
 			return nil, err
 		}
 		idx.Indexer = fuzz.Open(idx.Params)
-		idx.Batch(idx.Data)
+		idx.Batch(idx.data)
 		return idx, nil
 	}
 
@@ -133,10 +134,10 @@ func (idx *Index) Has(key string) bool {
 
 func (idx *Index) FilterDataBySrchAttr() []map[string]any {
 	if len(idx.Params.SrchAttr) == 0 {
-		return idx.Data
+		return idx.data
 	}
 	if idx.Params.SrchAttr[0] == "*" {
-		return idx.Data
+		return idx.data
 	}
 
 	fields := idx.Params.SrchAttr
@@ -145,7 +146,7 @@ func (idx *Index) FilterDataBySrchAttr() []map[string]any {
 		fields = append(fields, idx.Params.Facets...)
 	}
 
-	return FilterDataByAttr(idx.Data, fields)
+	return FilterDataByAttr(idx.data, fields)
 }
 
 func FilterDataByAttr(hits []map[string]any, fields []string) []map[string]any {
@@ -179,16 +180,21 @@ func FilterDataByID(hits []map[string]any, uids []any, uid string) []map[string]
 	return f
 }
 
-func (idx *Index) GetData() ([]map[string]any, error) {
-	var d []map[string]any
-	var err error
+func (idx *Index) GetData() error {
+	idx.Data = data.New(idx.Params.Route, idx.Params.Path)
 
-	files := idx.Params.GetDataFiles()
-	err = data.Get(&d, files...)
+	var err error
+	idx.data, err = idx.Data.Decode()
 	if err != nil {
-		return d, err
+		return err
 	}
-	return d, nil
+
+	//files := idx.Params.GetDataFiles()
+	//err = data.Get(&d, files...)
+	//if err != nil {
+	//return d, err
+	//}
+	return nil
 }
 
 func exist(path string) bool {
