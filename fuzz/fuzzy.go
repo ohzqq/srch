@@ -1,8 +1,6 @@
 package fuzz
 
 import (
-	"errors"
-	"os"
 	"strings"
 
 	"github.com/ohzqq/srch/param"
@@ -16,8 +14,6 @@ type Index struct {
 
 	*param.Params
 }
-
-var NoDataErr = errors.New("no data")
 
 func New(cfg *param.Params) *Index {
 	return &Index{
@@ -63,7 +59,7 @@ func (idx *Index) Index(_ string, data map[string]any) error {
 
 func (idx *Index) Batch(data []map[string]any) error {
 	if len(data) < 1 {
-		return NoDataErr
+		return nil
 	}
 
 	for _, d := range data {
@@ -81,11 +77,4 @@ func (idx *Index) String(i int) string {
 		return idx.data[i]
 	}
 	return ""
-}
-
-func exist(path string) bool {
-	if _, err := os.Stat(path); errors.Is(err, os.ErrNotExist) {
-		return false
-	}
-	return true
 }

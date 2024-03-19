@@ -61,7 +61,6 @@ func New(settings string) (*Index, error) {
 	}
 
 	idx.Data = data.New(idx.Params.Route, idx.Params.Path)
-	println(idx.Data.Route)
 
 	switch idx.Data.Route {
 	case param.Blv:
