@@ -80,16 +80,16 @@ func New(settings string) (*Index, error) {
 	return idx, NoDataErr
 }
 
-func (idx *Index) Search(params string) (*Results, error) {
+func (idx *Index) Search(params string) (*Response, error) {
 	var err error
 
 	if idx.Indexer == nil {
 		idx, err = New(params)
 		if err != nil {
 			if !errors.Is(err, NoDataErr) {
-				return &Results{}, err
+				return &Response{}, err
 			}
-			return NewResults([]map[string]any{}, &param.Params{})
+			return NewResponse([]map[string]any{}, &param.Params{})
 		}
 		return idx.Search(params)
 	}
@@ -107,7 +107,7 @@ func (idx *Index) Search(params string) (*Results, error) {
 
 	p = idx.Params
 	p.Query = q
-	res, err := NewResults(r, p)
+	res, err := NewResponse(r, p)
 	if err != nil {
 		return nil, err
 	}

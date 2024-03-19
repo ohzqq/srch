@@ -7,14 +7,14 @@ import (
 	"github.com/spf13/viper"
 )
 
-type Results struct {
+type Response struct {
 	Facets []*facet.Field
 	Params *param.Params
 	hits   []map[string]any
 }
 
-func NewResults(hits []map[string]any, params *param.Params) (*Results, error) {
-	res := &Results{
+func NewResponse(hits []map[string]any, params *param.Params) (*Response, error) {
+	res := &Response{
 		hits:   hits,
 		Params: params,
 	}
@@ -35,11 +35,11 @@ func NewResults(hits []map[string]any, params *param.Params) (*Results, error) {
 	return res, nil
 }
 
-func (res *Results) NbHits() int {
+func (res *Response) NbHits() int {
 	return len(res.hits)
 }
 
-func (res *Results) NbPages() int {
+func (res *Response) NbPages() int {
 	hpp := 1
 	if res.Params.Has(param.HitsPerPage) {
 		hpp = res.Params.HitsPerPage
@@ -53,25 +53,25 @@ func (res *Results) NbPages() int {
 	return nb
 }
 
-func (res *Results) HitsPerPage() int {
+func (res *Response) HitsPerPage() int {
 	if res.Params.Has(param.HitsPerPage) {
 		return res.Params.HitsPerPage
 	}
 	return viper.GetInt("hitsPerPage")
 }
 
-func (res *Results) Page() int {
+func (res *Response) Page() int {
 	if !res.Params.Has(param.Page) {
 		return 0
 	}
 	return res.Params.Page
 }
 
-func (res *Results) page() int {
+func (res *Response) page() int {
 	return res.Page() - 1
 }
 
-func (res *Results) Hits() []map[string]any {
+func (res *Response) Hits() []map[string]any {
 	nbHits := res.NbHits()
 	hpp := res.HitsPerPage()
 
@@ -88,7 +88,7 @@ func (res *Results) Hits() []map[string]any {
 	return lo.Subset(res.hits, page*hpp, uint(hpp))
 }
 
-func (r *Results) StringMap() map[string]any {
+func (r *Response) StringMap() map[string]any {
 	m := map[string]any{
 		"processingTimeMS": 1,
 		"params":           r.Params.Encode(),
