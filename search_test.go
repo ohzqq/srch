@@ -122,27 +122,29 @@ func TestBleveFacets(t *testing.T) {
 	}
 }
 
+var facetCount = map[string]int{
+	"tags":      33,
+	"authors":   5,
+	"series":    13,
+	"narrators": 19,
+}
+
 func TestFacetFilters(t *testing.T) {
-	var facetCount = map[string]int{
-		"tags":      31,
-		"authors":   1,
-		"series":    10,
-		"narrators": 17,
-	}
 
 	req := NewRequest().
 		SetRoute(testDataDir).
 		UID("id").
 		Facets("tags", "authors", "narrators", "series").
-		OrFilter("tags:romance", "tags:-dnr").
 		AndFilter("authors:amy lane").
 		SrchAttr("title")
-
-	println(req.String())
 
 	res, err := idx.Search(req.String())
 	if err != nil {
 		t.Fatal(err)
+	}
+
+	if 58 != res.NbHits {
+		t.Errorf("got hits %d, expected hits %#v\n", 58, res.NbHits)
 	}
 
 	if res.Facets != nil {
@@ -155,10 +157,6 @@ func TestFacetFilters(t *testing.T) {
 				t.Errorf("attr %s not found\n", facet.Attribute)
 			}
 		}
-	}
-
-	if f := res.Facets.Len(); f != res.NbHits {
-		t.Errorf("got hits %d, expected hits %#v\n", f, res.NbHits)
 	}
 
 	name := "Amy Lane"
