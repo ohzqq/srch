@@ -2,7 +2,11 @@ package srch
 
 import (
 	"fmt"
+	"slices"
 	"testing"
+
+	"github.com/samber/lo"
+	"github.com/spf13/cast"
 )
 
 var bleveSearchTests = []string{
@@ -115,6 +119,108 @@ func TestBleveFacets(t *testing.T) {
 				t.Errorf("attr %s not found\n", facet.Attribute)
 			}
 		}
+	}
+}
+
+func TestFacetFilters(t *testing.T) {
+	req := NewRequest().
+		SetRoute(testDataDir).
+		UID("id").
+		Facets("tags", "authors", "narrators", "series").
+		FacetFilters(filterParam).
+		SrchAttr("title")
+
+	println(req.String())
+
+	res, err := idx.Search(req.String())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	fmt.Printf("%#v\n", res)
+}
+
+func TestFacets(t *testing.T) {
+	req := NewRequest().
+		SetRoute(testDataDir).
+		UID("id").
+		SrchAttr("title").
+		Facets("tags", "authors", "narrators", "series").
+		Query("fish")
+
+	res, err := idx.Search(req.String())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for _, facet := range res.Facets {
+		for _, tok := range facet.Keywords() {
+			ids := lo.ToAnySlice(tok.Items())
+			rel := FilterDataByID(res.results, ids, res.Params.UID)
+			i := 0
+			for _, r := range rel {
+				if facet.Attribute != "tags" {
+					continue
+				}
+				f, ok := r[facet.Attribute]
+				if ok {
+					vals := cast.ToStringSlice(f)
+					if slices.Contains(vals, tok.Label) != true {
+						t.Errorf("hit %v does not contain val %s", f, tok.Label)
+					}
+				}
+				i++
+			}
+			//if i != len(rel) {
+			//  t.Errorf("got %d hits with val, expected %d\n", i, len(rel))
+			//}
+		}
+	}
+}
+
+func TestNewRequest(t *testing.T) {
+	for i := 0; i < 3; i++ {
+		req := NewRequest().
+			SetRoute(testBlvPath).
+			UID("id").
+			Query("fish").
+			Facets("tags").
+			Page(i)
+			//HitsPerPage(5)
+
+		res, err := idx.Search(req.String())
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		err = searchErr(res.NbHits, 37, res.Params.Query)
+		if err != nil {
+			t.Error(err)
+		}
+
+		hits := res.Hits
+		//fmt.Printf("%#v\n", res.nbHits[0]["title"])
+		if len(hits) > 0 {
+			title := hits[0]["title"].(string)
+			switch i {
+			case 0:
+				want := "Fish on a Bicycle"
+				if title != want {
+					fmt.Printf("got %s, wanted %s\n", title, want)
+				}
+			case 1:
+				want := "Hide and Seek"
+				if title != want {
+					fmt.Printf("got %s, wanted %s\n", title, want)
+				}
+			}
+		}
+
+		//d, err := json.Marshal(res)
+		//if err != nil {
+		//t.Error(err)
+		//}
+		//println(string(d))
 	}
 }
 

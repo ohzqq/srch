@@ -2,6 +2,7 @@ package srch
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"os"
 	"slices"
@@ -96,13 +97,13 @@ func (idx *Index) Search(params string) (*Response, error) {
 
 	p, err := param.Parse(params)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("search failed to parse %s: err %w\n", params, err)
 	}
 
 	q := p.Query
 	r, err := idx.Indexer.Search(q)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("search '%s' failed: %w\n", q, err)
 	}
 
 	p = idx.Params
