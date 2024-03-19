@@ -2,6 +2,7 @@ package srch
 
 import (
 	"fmt"
+	"net/http"
 
 	"github.com/ohzqq/srch/facet"
 	"github.com/ohzqq/srch/param"
@@ -49,6 +50,13 @@ func NewResponse(hits []map[string]any, params *param.Params) (*Response, error)
 	res.Hits = res.visibleHits()
 
 	return res, nil
+}
+
+func (res *Response) Header() http.Header {
+	h := make(http.Header)
+	h.Set(header.ContentType, param.NdJSON)
+
+	return h
 }
 
 func (res *Response) calculatePagination() *Response {

@@ -42,6 +42,7 @@ require (
 	github.com/couchbase/moss v0.2.0 // indirect
 	github.com/dgryski/go-metro v0.0.0-20180109044635-280f6062b5bc // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
+	github.com/go-http-utils/headers v0.0.0-20181008091004-fed159eddc2a // indirect
 	github.com/golang/geo v0.0.0-20210211234256-740aa86cb551 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/golang/snappy v0.0.1 // indirect
