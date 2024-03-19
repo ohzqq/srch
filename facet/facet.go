@@ -10,8 +10,8 @@ import (
 
 type Facets struct {
 	params *param.Params
-	Fields []*Field         `json:"facets"`
-	data   []map[string]any `json:"hits"`
+	Fields []*Field         `json:"facetFields"`
+	data   []map[string]any `json:"-"`
 	ids    []string
 	bits   *roaring.Bitmap
 }
@@ -118,6 +118,17 @@ func (f Facets) Len() int {
 
 func (f *Facets) Bitmap() *roaring.Bitmap {
 	return f.bits
+}
+
+func (f *Facets) Items() []string {
+	var ids []string
+
+	f.bits.Iterate(func(x uint32) bool {
+		ids = append(ids, cast.ToString(x))
+		return true
+	})
+
+	return ids
 }
 
 func (f *Facets) MarshalJSON() ([]byte, error) {

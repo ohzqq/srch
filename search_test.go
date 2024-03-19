@@ -69,8 +69,8 @@ func TestBleveSearchAll(t *testing.T) {
 			t.Error(err)
 		}
 
-		if res.Facets != nil {
-			for _, facet := range res.Facets {
+		if res.FacetFields != nil {
+			for _, facet := range res.FacetFields {
 				if query == "&query=fish" {
 					if num, ok := fishfacetCount[facet.Attribute]; ok {
 						if num != facet.Len() {
@@ -110,7 +110,7 @@ func TestBleveFacets(t *testing.T) {
 			t.Error(err)
 		}
 
-		for _, facet := range res.Facets {
+		for _, facet := range res.FacetFields {
 			if num, ok := blvfacetCount[facet.Attribute]; ok {
 				if num != facet.Len() {
 					t.Errorf("%v got %d, expected %d \n", facet.Attribute, facet.Len(), num)
@@ -123,6 +123,13 @@ func TestBleveFacets(t *testing.T) {
 }
 
 func TestFacetFilters(t *testing.T) {
+	var facetCount = map[string]int{
+		"tags":      31,
+		"authors":   1,
+		"series":    10,
+		"narrators": 17,
+	}
+
 	req := NewRequest().
 		SetRoute(testDataDir).
 		UID("id").
@@ -135,10 +142,36 @@ func TestFacetFilters(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	fmt.Printf("%#v\n", res.NbHits)
+	if res.Facets != nil {
+		for _, facet := range res.FacetFields {
+			if num, ok := facetCount[facet.Attribute]; ok {
+				if num != facet.Len() {
+					t.Errorf("%v got %d, expected %d \n", facet.Attribute, facet.Len(), num)
+				}
+			} else {
+				t.Errorf("attr %s not found\n", facet.Attribute)
+			}
+		}
+	}
+
+	if f := res.Facets.Len(); f != res.NbHits {
+		t.Errorf("got hits %d, expected hits %#v\n", f, res.NbHits)
+	}
+
+	name := "Amy Lane"
+	for _, hit := range res.Hits {
+		if m, ok := hit["authors"]; ok {
+			auth := cast.ToStringSlice(m)
+			if !slices.Contains(auth, name) {
+				t.Errorf("got authors %v, should include %s\n", auth, name)
+			}
+		}
+	}
+
 }
 
 func TestFacets(t *testing.T) {
+
 	req := NewRequest().
 		SetRoute(testDataDir).
 		UID("id").
@@ -151,7 +184,7 @@ func TestFacets(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	for _, facet := range res.Facets {
+	for _, facet := range res.FacetFields {
 		for _, tok := range facet.Keywords() {
 			ids := lo.ToAnySlice(tok.Items())
 			rel := FilterDataByID(res.results, ids, res.Params.UID)

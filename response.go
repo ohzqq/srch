@@ -6,6 +6,7 @@ import (
 	"github.com/ohzqq/srch/facet"
 	"github.com/ohzqq/srch/param"
 	"github.com/samber/lo"
+	"github.com/spf13/cast"
 	"github.com/spf13/viper"
 )
 
@@ -14,12 +15,12 @@ type Response struct {
 
 	results []map[string]any
 
-	RawQuery string           `json:"params"`
-	Facets   []*facet.Field   `json:"facetFields"`
-	FacetMap map[string]int   `json:"facets"`
-	Hits     []map[string]any `json:"hits"`
-	NbHits   int              `json:"nbHits"`
-	NbPages  int              `json:"nbPages"`
+	RawQuery    string           `json:"params"`
+	FacetFields []*facet.Field   `json:"facetFields"`
+	Facets      *facet.Facets    `json:"facets"`
+	Hits        []map[string]any `json:"hits"`
+	NbHits      int              `json:"nbHits"`
+	NbPages     int              `json:"nbPages"`
 }
 
 func NewResponse(hits []map[string]any, params *param.Params) (*Response, error) {
@@ -27,28 +28,24 @@ func NewResponse(hits []map[string]any, params *param.Params) (*Response, error)
 		results:  hits,
 		Params:   params,
 		RawQuery: params.Encode(),
-		FacetMap: make(map[string]int),
 	}
 
 	if len(hits) == 0 {
 		return res, nil
 	}
 
-	res.NbHits = res.nbHits()
-
 	if params.Has(param.Facets) {
 		facets, err := facet.New(hits, params)
 		if err != nil {
 			return nil, fmt.Errorf("response failed to calculate facets: %w\n", err)
 		}
-		res.Facets = facets.Fields
-		for _, f := range facets.Fields {
-			res.FacetMap[f.Attribute] = f.Len()
-		}
+		res.FacetFields = facets.Fields
+		res.Facets = facets
+		res.results = res.FilterResults()
 	}
 
+	res.NbHits = res.nbHits()
 	res.calculatePagination()
-
 	res.Hits = res.visibleHits()
 
 	return res, nil
@@ -102,21 +99,19 @@ func (res *Response) visibleHits() []map[string]any {
 	return lo.Subset(res.results, res.Page*res.HitsPerPage, uint(res.HitsPerPage))
 }
 
-func (r *Response) StringMap() map[string]any {
-	m := map[string]any{
-		"processingTimeMS": 1,
-		"params":           r.Params.Encode(),
-		param.Query:        r.Params.Query,
-		param.Facets:       r.Facets,
+func (res *Response) FilterResults() []map[string]any {
+	if res.Facets == nil {
+		return res.results
 	}
 
-	page := r.page()
-	hpp := r.hitsPerPage()
-	nbh := r.nbHits()
-	m[param.HitsPerPage] = hpp
-	m[param.NbHits] = nbh
-	m[param.Page] = page
-	m[param.NbPages] = r.nbPages()
-
-	return m
+	var hits []map[string]any
+	for idx, d := range res.results {
+		if i, ok := d[res.UID]; ok {
+			idx = cast.ToInt(i)
+		}
+		if res.Facets.Bitmap().ContainsInt(idx) {
+			hits = append(hits, d)
+		}
+	}
+	return hits
 }
