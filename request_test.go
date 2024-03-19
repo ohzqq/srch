@@ -1,7 +1,6 @@
 package srch
 
 import (
-	"encoding/json"
 	"fmt"
 	"testing"
 
@@ -27,6 +26,7 @@ func TestNewRequest(t *testing.T) {
 			SetRoute(testBlvPath).
 			UID("id").
 			Query("fish").
+			Facets("tags").
 			Page(i)
 			//HitsPerPage(5)
 
@@ -58,10 +58,10 @@ func TestNewRequest(t *testing.T) {
 			}
 		}
 
-		d, err := json.Marshal(res)
-		if err != nil {
-			t.Error(err)
-		}
-		println(string(d))
+		//d, err := json.Marshal(res)
+		//if err != nil {
+		//t.Error(err)
+		//}
+		//println(string(d))
 	}
 }

@@ -1,6 +1,8 @@
 package facet
 
 import (
+	"encoding/json"
+
 	"github.com/RoaringBitmap/roaring"
 	"github.com/ohzqq/srch/param"
 	"github.com/spf13/cast"
@@ -116,6 +118,14 @@ func (f Facets) Len() int {
 
 func (f *Facets) Bitmap() *roaring.Bitmap {
 	return f.bits
+}
+
+func (f *Facets) MarshalJSON() ([]byte, error) {
+	m := make(map[string]int)
+	for _, fi := range f.Fields {
+		m[fi.Attribute] = f.Len()
+	}
+	return json.Marshal(m)
 }
 
 func ItemsByBitmap(data []map[string]any, bits *roaring.Bitmap) []map[string]any {

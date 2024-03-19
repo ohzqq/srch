@@ -13,7 +13,8 @@ type Response struct {
 	results []map[string]any
 
 	RawQuery string           `json:"params"`
-	Facets   []*facet.Field   `json:"facets"`
+	Facets   []*facet.Field   `json:"facetFields"`
+	FacetMap map[string]int   `json:"facets"`
 	Hits     []map[string]any `json:"hits"`
 	NbHits   int              `json:"nbHits"`
 	NbPages  int              `json:"nbPages"`
@@ -24,6 +25,7 @@ func NewResponse(hits []map[string]any, params *param.Params) (*Response, error)
 		results:  hits,
 		Params:   params,
 		RawQuery: params.Encode(),
+		FacetMap: make(map[string]int),
 	}
 
 	if len(hits) == 0 {
@@ -38,11 +40,14 @@ func NewResponse(hits []map[string]any, params *param.Params) (*Response, error)
 			return nil, err
 		}
 		res.Facets = facets.Fields
+		for _, f := range facets.Fields {
+			res.FacetMap[f.Attribute] = f.Len()
+		}
 	}
 
 	res.calculatePagination()
 
-	//res.Hits = res.visibleHits()
+	res.Hits = res.visibleHits()
 
 	return res, nil
 }

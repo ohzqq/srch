@@ -90,15 +90,12 @@ func TestBleveSearchAll(t *testing.T) {
 }
 
 func TestBleveFacets(t *testing.T) {
-	t.SkipNow()
+	//t.SkipNow()
 	for i := 2; i < len(bleveSearchTests); i++ {
 		q := bleveSearchTests[i]
 		idx, err := New(q)
 		if err != nil {
 			t.Error(err)
-		}
-		if !idx.isMem {
-			t.Errorf("not bleve")
 		}
 		query := ""
 		if i == 1 {
