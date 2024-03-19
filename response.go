@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/go-http-utils/headers"
 	"github.com/ohzqq/srch/facet"
 	"github.com/ohzqq/srch/param"
 	"github.com/samber/lo"
@@ -54,7 +55,7 @@ func NewResponse(hits []map[string]any, params *param.Params) (*Response, error)
 
 func (res *Response) Header() http.Header {
 	h := make(http.Header)
-	h.Set(header.ContentType, param.NdJSON)
+	h.Set(headers.ContentType, param.NdJSON)
 
 	return h
 }
