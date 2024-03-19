@@ -269,8 +269,9 @@ func (s *Params) Values() url.Values {
 		case Filters:
 			vals.Set(key, s.Filters)
 		case FacetFilters:
-			for _, f := range s.FacetFilters {
-				vals.Add(key, cast.ToString(f))
+			d, err := json.Marshal(s.FacetFilters)
+			if err == nil {
+				vals.Set(key, string(d))
 			}
 		case Hits:
 			vals.Set(key, cast.ToString(s.Hits))
