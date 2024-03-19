@@ -1,6 +1,8 @@
 package srch
 
 import (
+	"fmt"
+
 	"github.com/ohzqq/srch/facet"
 	"github.com/ohzqq/srch/param"
 	"github.com/samber/lo"
@@ -37,7 +39,7 @@ func NewResponse(hits []map[string]any, params *param.Params) (*Response, error)
 	if params.Has(param.Facets) {
 		facets, err := facet.New(hits, params)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("response failed to calculate facets: %w\n", err)
 		}
 		res.Facets = facets.Fields
 		for _, f := range facets.Fields {

@@ -2,6 +2,7 @@ package param
 
 import (
 	"encoding/json"
+	"fmt"
 	"mime"
 	"net/url"
 	"path/filepath"
@@ -66,7 +67,7 @@ func Parse(params string) (*Params, error) {
 
 	u, err := url.Parse(params)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("param url parsing err: %w\n", err)
 	}
 	p.URL = u
 
@@ -74,7 +75,7 @@ func Parse(params string) (*Params, error) {
 
 	err = p.Set(u.Query())
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error setting params %w\n", err)
 	}
 
 	return p, nil
@@ -164,7 +165,7 @@ func (s *Params) Set(v url.Values) error {
 				fil := v.Get(key)
 				f, err := unmarshalFilter(fil)
 				if err != nil {
-					return err
+					return fmt.Errorf("failed to unmarshal filters %v\nerr: %w\n", fil, err)
 				}
 				s.FacetFilters = f
 			}

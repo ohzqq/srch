@@ -58,7 +58,7 @@ func New(settings string) (*Index, error) {
 	var err error
 	idx.Params, err = param.Parse(settings)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("new index param parsing err: %w\n", err)
 	}
 
 	idx.Data = data.New(idx.Params.Route, idx.Params.Path)
@@ -88,7 +88,7 @@ func (idx *Index) Search(params string) (*Response, error) {
 		idx, err = New(params)
 		if err != nil {
 			if !errors.Is(err, NoDataErr) {
-				return &Response{}, err
+				return &Response{}, fmt.Errorf("search err: %w\n", err)
 			}
 			return NewResponse([]map[string]any{}, &param.Params{})
 		}
@@ -110,7 +110,7 @@ func (idx *Index) Search(params string) (*Response, error) {
 	p.Query = q
 	res, err := NewResponse(r, p)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("response failed with err: %w", err)
 	}
 	return res, nil
 }

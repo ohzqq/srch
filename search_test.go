@@ -127,17 +127,15 @@ func TestFacetFilters(t *testing.T) {
 		SetRoute(testDataDir).
 		UID("id").
 		Facets("tags", "authors", "narrators", "series").
-		FacetFilters(filterParam).
+		FacetFilters(`["authors:amy lane", ["tags:romance", "tags:-dnr"]]`).
 		SrchAttr("title")
-
-	println(req.String())
 
 	res, err := idx.Search(req.String())
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	fmt.Printf("%#v\n", res)
+	fmt.Printf("%#v\n", res.NbHits)
 }
 
 func TestFacets(t *testing.T) {
