@@ -6,9 +6,9 @@ import (
 )
 
 var bleveSearchTests = []string{
-	`searchableAttributes=title&fullText=testdata/poot.bleve&uid=id`,
-	`searchableAttributes=title&fullText=testdata/poot.bleve&uid=id&facets=tags,authors,narrators,series`,
-	`searchableAttributes=*&fullText=testdata/poot.bleve&uid=id&facets=tags,authors,narrators,series`,
+	`blv/testdata/poot.bleve?searchableAttributes=title&uid=id`,
+	`blv/testdata/poot.bleve?searchableAttributes=title&uid=id&facets=tags,authors,narrators,series`,
+	`blv/testdata/poot.bleve?searchableAttributes=*&uid=id&facets=tags,authors,narrators,series`,
 }
 
 var blvfacetCount = map[string]int{
@@ -27,7 +27,7 @@ var fishfacetCount = map[string]int{
 
 func TestFuzzySearch(t *testing.T) {
 	req := NewRequest().
-		DataFile("testdata/nddata/ndbooks.ndjson").
+		SetRoute("file/testdata/nddata/ndbooks.ndjson").
 		SrchAttr("title").
 		Query("fish")
 
@@ -37,6 +37,7 @@ func TestFuzzySearch(t *testing.T) {
 	}
 
 	if res.NbHits() != 56 {
+		fmt.Printf("route %s, path %s\n", req.Route, req.Path)
 		t.Fatal()
 	}
 }

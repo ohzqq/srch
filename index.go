@@ -4,7 +4,6 @@ import (
 	"errors"
 	"log"
 	"os"
-	"path/filepath"
 	"slices"
 
 	"github.com/RoaringBitmap/roaring"
@@ -61,18 +60,15 @@ func New(settings string) (*Index, error) {
 		return nil, err
 	}
 
-	if idx.Has(param.BlvPath) {
-		abs, err := filepath.Abs(idx.Params.BlvPath)
-		if err != nil {
-			return nil, err
-		}
+	idx.Data = data.New(idx.Params.Route, idx.Params.Path)
+	println(idx.Data.Route)
+
+	switch idx.Data.Route {
+	case param.Blv:
 		idx.isMem = true
-		idx.Params.BlvPath = abs
 		idx.Indexer = blv.Open(idx.Params)
 		return idx, nil
-	}
-
-	if idx.Params.HasData() {
+	case param.Dir, param.File:
 		err = idx.GetData()
 		if err != nil {
 			return nil, err
@@ -90,6 +86,7 @@ func (idx *Index) Search(params string) (*Results, error) {
 
 	if idx.Indexer == nil {
 		idx, err = New(params)
+		println(idx.Len())
 		if err != nil {
 			if !errors.Is(err, NoDataErr) {
 				return &Results{}, err
@@ -181,7 +178,6 @@ func FilterDataByID(hits []map[string]any, uids []any, uid string) []map[string]
 }
 
 func (idx *Index) GetData() error {
-	idx.Data = data.New(idx.Params.Route, idx.Params.Path)
 
 	var err error
 	idx.data, err = idx.Data.Decode()

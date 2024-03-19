@@ -59,6 +59,7 @@ var (
 
 func New() *Params {
 	return &Params{
+		URL:   &url.URL{},
 		Other: make(url.Values),
 	}
 }
@@ -72,7 +73,7 @@ func Parse(params string) (*Params, error) {
 	}
 	p.URL = u
 
-	p.parseRoute()
+	p.ParseRoute(p.URL.Path)
 
 	err = p.Set(u.Query())
 	if err != nil {
@@ -119,19 +120,13 @@ func (p Params) GetDataFiles() []string {
 	return data
 }
 
+func (p *Params) ParseRoute(route string) *Params {
+	p.Route, p.Path = parseRoute(route)
+	return p
+}
+
 func (p *Params) parseRoute() *Params {
 	p.Route, p.Path = parseRoute(p.URL.Path)
-
-	if p.Path != "" {
-		switch p.Route {
-		case Blv:
-			p.BlvPath = p.Path
-		case Dir:
-			p.DataDir = p.Path
-		case File:
-			p.DataFile = p.Path
-		}
-	}
 	return p
 }
 
@@ -352,7 +347,8 @@ func (p *Params) Encode() string {
 }
 
 func (p *Params) String() string {
-	return p.Values().Encode()
+	p.URL.RawQuery = p.Encode()
+	return p.URL.String()
 }
 
 // ParseQueryString parses an encoded filter string.

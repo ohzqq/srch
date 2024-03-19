@@ -33,6 +33,12 @@ func (r *Request) SetValues(vals url.Values) (*Request, error) {
 	return r, err
 }
 
+func (p *Request) SetRoute(path string) *Request {
+	p.URL.Path = path
+	p.ParseRoute(p.URL.Path)
+	return p
+}
+
 func (r *Request) SrchAttr(attr ...string) *Request {
 	r.Params.SrchAttr = attr
 	return r

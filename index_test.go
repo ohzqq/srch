@@ -5,7 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"net/url"
 	"os"
+	"strings"
 	"testing"
 )
 
@@ -15,12 +17,12 @@ var books []map[string]any
 
 const numBooks = 7253
 
-const testDataFile = `testdata/data-dir/audiobooks.json`
-const testDataDir = `testdata/data-dir`
-const testCfgFile = `testdata/config-old.json`
-const testYAMLCfgFile = `testdata/config.yaml`
-const testCfgFileData = `testdata/config-with-data.json`
-const libCfgStr = "searchableAttributes=title&facets=tags,authors,series,narrators&dataFile=testdata/data-dir/audiobooks.json"
+const testDataFile = `file/testdata/data-dir/audiobooks.json`
+const testDataNdFile = `file/testdata/nddata/ndbooks.ndjson`
+const testDataDir = `dir/testdata/data-dir`
+const testBlvPath = `blv/testdata/poot.bleve`
+
+var libCfgStr = mkURL(testDataNdFile, "searchableAttributes=title&facets=tags,authors,series,narrators")
 
 func TestData(t *testing.T) {
 	books = loadData(t)
@@ -33,18 +35,22 @@ func TestData(t *testing.T) {
 var testQuerySettings = []string{
 	"",
 	"searchableAttributes=",
-	"searchableAttributes=title&fullText=testdata/poot.bleve",
-	"searchableAttributes=title&dataDir=testdata/data-dir",
-	"facets=tags,authors,series,narrators",
-	"facets=tags,authors,series,narrators&dataFile=testdata/data-dir/audiobooks.json",
-	"searchableAttributes=title&facets=tags,authors,series,narrators",
-	"searchableAttributes=title&dataFile=testdata/data-dir/audiobooks.json&facets=tags,authors,series,narrators",
-	`searchableAttributes=title&dataFile=testdata/data-dir/audiobooks.json&facets=tags,authors,series,narrators&page=3&query=fish&sortBy=title&order=desc&facetFilters=["authors:amy lane", ["tags:romance", "tags:-dnr"]]`,
+	mkURL(testBlvPath, "searchableAttributes=title"),
+	mkURL(testDataDir, "searchableAttributes=title"),
+	mkURL("", "facets=tags,authors,series,narrators"),
+	mkURL(testDataFile, "facets=tags,authors,series,narrators"),
+	mkURL(testDataDir, "searchableAttributes=title"),
+	mkURL(testDataDir, "searchableAttributes=title"),
+	mkURL("", "searchableAttributes=title&facets=tags,authors,series,narrators"),
+	mkURL(testDataFile, "searchableAttributes=title&facets=tags,authors,series,narrators"),
+	mkURL("", "searchableAttributes=title&facets=tags,authors,series,narrators"),
+	mkURL(testDataNdFile, `searchableAttributes=title&facets=tags,authors,series,narrators&page=3&query=fish&sortBy=title&order=desc&facetFilters=["authors:amy lane", ["tags:romance", "tags:-dnr"]]`),
 }
 
 func TestNewIndex(t *testing.T) {
 	for i := 0; i < len(testQuerySettings); i++ {
 		q := testQuerySettings[i]
+		println(q)
 		idx, err := New(q)
 		if err != nil {
 			if errors.Is(err, NoDataErr) {
@@ -128,6 +134,14 @@ func newTestIdxCfg(p string) *Index {
 	return idx
 }
 
+func mkURL(path, rq string) string {
+	u := &url.URL{
+		Path:     path,
+		RawQuery: rq,
+	}
+	return u.String()
+}
+
 func totalBooksErr(total int, vals ...any) error {
 	if total != numBooks {
 		err := fmt.Errorf("got %d, expected %d\n", total, numBooks)
@@ -137,7 +151,7 @@ func totalBooksErr(total int, vals ...any) error {
 }
 
 func loadData(t *testing.T) []map[string]any {
-	d, err := os.ReadFile(testDataFile)
+	d, err := os.ReadFile(strings.TrimPrefix(testDataFile, "file/"))
 	if err != nil {
 		t.Error(err)
 	}
