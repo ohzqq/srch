@@ -115,15 +115,6 @@ func (idx *Index) Search(params string) (*Response, error) {
 	return res, nil
 }
 
-func (idx *Index) Batch(data []map[string]any) error {
-	return idx.Indexer.Batch(data)
-	//return idx.Indexer.Batch(idx.FilterDataBySrchAttr())
-}
-
-func (idx *Index) Len() int {
-	return idx.Indexer.Len()
-}
-
 func (idx *Index) Has(key string) bool {
 	return idx.Params.Has(key)
 }
@@ -183,12 +174,6 @@ func (idx *Index) GetData() error {
 	if err != nil {
 		return err
 	}
-
-	//files := idx.Params.GetDataFiles()
-	//err = data.Get(&d, files...)
-	//if err != nil {
-	//return d, err
-	//}
 	return nil
 }
 
