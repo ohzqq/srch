@@ -17,8 +17,8 @@ func init() {
 }
 
 type Params struct {
-	URL   *url.URL
-	Other url.Values
+	URL   *url.URL   `json:"-"`
+	Other url.Values `json:"-"`
 
 	// Index Settings
 	SrchAttr     []string `query:"searchableAttributes,omitempty" json:"searchableAttributes,omitempty"`
@@ -42,12 +42,9 @@ type Params struct {
 	SortFacetsBy string   `query:"sortFacetsBy,omitempty" json:"sortFacetsBy,omitempty"`
 
 	// Data
-	Format   string
-	Path     string
-	Route    string
-	BlvPath  string `query:"fullText,omitempty" json:"fullText,omitempty"`
-	DataDir  string `query:"dataDir,omitempty" json:"dataDir,omitempty"`
-	DataFile string `query:"dataFile,omitempty" json:"dataFile,omitempty"`
+	Format string `json:"-"`
+	Path   string `json:"-"`
+	Route  string `json:"-"`
 }
 
 var (
@@ -105,21 +102,6 @@ func (p Params) Index() url.Values {
 	return vals
 }
 
-func (p Params) HasData() bool {
-	return p.Has(DataDir) || p.Has(DataFile)
-}
-
-func (p Params) GetDataFiles() []string {
-	var data []string
-	switch {
-	case p.Has(DataDir):
-		data = append(data, p.DataDir)
-	case p.Has(DataFile):
-		data = append(data, p.DataFile)
-	}
-	return data
-}
-
 func (p *Params) ParseRoute(route string) *Params {
 	p.Route, p.Path = parseRoute(route)
 	return p
@@ -146,12 +128,6 @@ func parseRoute(path string) (string, string) {
 	return "", ""
 }
 
-func (p *Params) IsFile() bool {
-	return p.Has(DataDir) ||
-		p.Has(DataFile) ||
-		p.Has(BlvPath)
-}
-
 func (s *Params) Set(v url.Values) error {
 	for _, key := range paramsSettings {
 		switch key {
@@ -169,18 +145,6 @@ func (s *Params) Set(v url.Values) error {
 	}
 	for _, key := range paramsData {
 		switch key {
-		case DataDir:
-			if v.Has(key) {
-				s.DataDir = v.Get(key)
-			}
-		case DataFile:
-			if v.Has(key) {
-				s.DataFile = v.Get(key)
-			}
-		case FullText:
-			if v.Has(key) {
-				s.BlvPath = v.Get(key)
-			}
 		case Format:
 			if v.Has(key) {
 				s.Format = v.Get(key)
@@ -239,12 +203,6 @@ func (s *Params) Has(key string) bool {
 		return s.SortBy != ""
 	case Order:
 		return s.Order != ""
-	case DataDir:
-		return s.DataDir != ""
-	case DataFile:
-		return s.DataFile != ""
-	case FullText:
-		return s.BlvPath != ""
 	case Format:
 		return s.Format != ""
 	case UID:
@@ -294,12 +252,6 @@ func (s *Params) Values() url.Values {
 			continue
 		}
 		switch key {
-		case DataDir:
-			vals.Set(key, s.DataDir)
-		case DataFile:
-			vals.Set(key, s.DataFile)
-		case FullText:
-			vals.Set(key, s.BlvPath)
 		case Format:
 			vals.Set(key, s.Format)
 		}
@@ -336,10 +288,6 @@ func (s *Params) Values() url.Values {
 		}
 	}
 	return vals
-}
-
-func (p Params) IsFullText() bool {
-	return p.BlvPath != ""
 }
 
 func (p *Params) Encode() string {

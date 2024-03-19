@@ -9,19 +9,28 @@ import (
 
 type Response struct {
 	*param.Params
-	Facets []*facet.Field   `json:"facets"`
-	hits   []map[string]any `json:"hits"`
+
+	results []map[string]any
+
+	RawQuery string           `json:"params"`
+	Facets   []*facet.Field   `json:"facets"`
+	Hits     []map[string]any `json:"hits"`
+	NbHits   int              `json:"nbHits"`
+	NbPages  int              `json:"nbPages"`
 }
 
 func NewResponse(hits []map[string]any, params *param.Params) (*Response, error) {
 	res := &Response{
-		hits:   hits,
-		Params: params,
+		results:  hits,
+		Params:   params,
+		RawQuery: params.Encode(),
 	}
 
 	if len(hits) == 0 {
 		return res, nil
 	}
+
+	res.NbHits = res.nbHits()
 
 	if params.Has(param.Facets) {
 		facets, err := facet.New(hits, params)
@@ -31,18 +40,29 @@ func NewResponse(hits []map[string]any, params *param.Params) (*Response, error)
 		res.Facets = facets.Fields
 	}
 
+	res.calculatePagination()
+
+	//res.Hits = res.visibleHits()
+
 	return res, nil
 }
 
+func (res *Response) calculatePagination() *Response {
+	res.HitsPerPage = res.hitsPerPage()
+	res.Page = res.page()
+	res.NbPages = res.nbPages()
+	return res
+}
+
 func (res *Response) nbHits() int {
-	return len(res.hits)
+	return len(res.results)
 }
 
 func (res *Response) nbPages() int {
-	hpp := res.hitsPerPage()
+	hpp := res.HitsPerPage
 
-	nb := res.nbHits() / hpp
-	if r := res.nbHits() % hpp; r > 0 {
+	nb := res.NbHits / hpp
+	if r := res.NbHits % hpp; r > 0 {
 		nb++
 	}
 
@@ -63,21 +83,16 @@ func (res *Response) page() int {
 	return res.Params.Page
 }
 
-func (res *Response) Hits() []map[string]any {
-	nbHits := res.nbHits()
-	hpp := res.hitsPerPage()
-
-	if nbHits < hpp {
-		return res.hits
+func (res *Response) visibleHits() []map[string]any {
+	if res.NbHits < res.HitsPerPage {
+		return res.results
 	}
 
-	page := res.page()
-
-	if nb := res.nbPages(); page >= nb {
+	if nb := res.NbPages; res.Page >= nb {
 		return []map[string]any{}
 	}
 
-	return lo.Subset(res.hits, page*hpp, uint(hpp))
+	return lo.Subset(res.results, res.Page*res.HitsPerPage, uint(res.HitsPerPage))
 }
 
 func (r *Response) StringMap() map[string]any {
@@ -95,8 +110,6 @@ func (r *Response) StringMap() map[string]any {
 	m[param.NbHits] = nbh
 	m[param.Page] = page
 	m[param.NbPages] = r.nbPages()
-
-	m[param.Hits] = r.Hits()
 
 	return m
 }

@@ -1,6 +1,7 @@
 package srch
 
 import (
+	"encoding/json"
 	"fmt"
 	"testing"
 
@@ -34,12 +35,12 @@ func TestNewRequest(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		err = searchErr(res.nbHits(), 37, res.Params.Query)
+		err = searchErr(res.NbHits, 37, res.Params.Query)
 		if err != nil {
 			t.Error(err)
 		}
 
-		hits := res.Hits()
+		hits := res.Hits
 		//fmt.Printf("%#v\n", res.nbHits[0]["title"])
 		if len(hits) > 0 {
 			title := hits[0]["title"].(string)
@@ -56,5 +57,11 @@ func TestNewRequest(t *testing.T) {
 				}
 			}
 		}
+
+		d, err := json.Marshal(res)
+		if err != nil {
+			t.Error(err)
+		}
+		println(string(d))
 	}
 }

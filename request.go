@@ -59,11 +59,6 @@ func (r *Request) Facets(attr ...string) *Request {
 	return r
 }
 
-func (r *Request) DataFile(attr string) *Request {
-	r.Params.DataFile = attr
-	return r
-}
-
 func (r *Request) FacetFilters(attr ...any) *Request {
 	r.Params.FacetFilters = attr
 	return r
@@ -96,16 +91,6 @@ func (r *Request) Order(val string) *Request {
 
 func (r *Request) DefaultField(val string) *Request {
 	r.Params.DefaultField = val
-	return r
-}
-
-func (r *Request) FullText(val string) *Request {
-	r.Params.BlvPath = val
-	return r
-}
-
-func (r *Request) DataDir(val string) *Request {
-	r.Params.DataDir = val
 	return r
 }
 
