@@ -1,21 +1,22 @@
 package srch
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
 	"net/url"
-	"os"
 	"strings"
 	"testing"
+
+	"github.com/ohzqq/srch/data"
+	"github.com/ohzqq/srch/param"
 )
 
 var idx = &Index{}
 
 var books []map[string]any
 
-const numBooks = 7253
+const numBooks = 7252
 
 const (
 	testDataFile = `file/testdata/nddata/ndbooks.ndjson`
@@ -173,13 +174,9 @@ func totalBooksErr(total int, vals ...any) error {
 }
 
 func loadData(t *testing.T) []map[string]any {
-	d, err := os.ReadFile(strings.TrimPrefix(testDataFile, "file/"))
-	if err != nil {
-		t.Error(err)
-	}
+	d := data.New(param.File, `testdata/nddata/ndbooks.ndjson`)
 
-	var books []map[string]any
-	err = json.Unmarshal(d, &books)
+	books, err := d.Decode()
 	if err != nil {
 		t.Error(err)
 	}

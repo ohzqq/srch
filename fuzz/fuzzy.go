@@ -1,6 +1,7 @@
 package fuzz
 
 import (
+	"errors"
 	"strings"
 
 	"github.com/ohzqq/srch/param"
@@ -59,7 +60,7 @@ func (idx *Index) Index(_ string, data map[string]any) error {
 
 func (idx *Index) Batch(data []map[string]any) error {
 	if len(data) < 1 {
-		return nil
+		return errors.New("no fuzzy data to index")
 	}
 
 	for _, d := range data {

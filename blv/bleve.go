@@ -49,7 +49,25 @@ func (idx *Index) Search(kw string) ([]map[string]any, error) {
 	}
 
 	req := blvReq(q, idx.count)
-	return search(idx.Path, req)
+
+	blv, err := bleve.Open(idx.Path)
+	if err != nil {
+		return nil, err
+	}
+	defer blv.Close()
+
+	req.Fields = idx.SrchAttr
+	res, err := blv.Search(req)
+	if err != nil {
+		return nil, err
+	}
+
+	data := make([]map[string]any, res.Hits.Len())
+	for i, hit := range res.Hits {
+		data[i] = hit.Fields
+	}
+
+	return data, nil
 }
 
 func blvReq(q query.Query, count int) *bleve.SearchRequest {
