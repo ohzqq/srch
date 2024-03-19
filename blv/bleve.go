@@ -57,6 +57,9 @@ func (idx *Index) Search(kw string) ([]map[string]any, error) {
 	defer blv.Close()
 
 	req.Fields = idx.SrchAttr
+	if idx.Has(param.Facets) {
+		req.Fields = append(req.Fields, idx.Facets...)
+	}
 	res, err := blv.Search(req)
 	if err != nil {
 		return nil, err

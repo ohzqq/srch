@@ -6,7 +6,7 @@ import (
 )
 
 var bleveSearchTests = []string{
-	blvRoute(srchAttrParam, uidParam),
+	blvRoute(uidParam),
 	blvRoute(srchAttrParam, uidParam, facetParamSlice),
 	blvRoute("searchableAttributes=*", uidParam, facetParamStr),
 }
@@ -49,8 +49,8 @@ func TestBleveSearchAll(t *testing.T) {
 		if i == 1 {
 			query = "&query=fish"
 		}
-		println(q)
-		res, err := idx.Search(q + query)
+		sq := q + query
+		res, err := idx.Search(sq)
 		if err != nil {
 			t.Error(err)
 		}
@@ -70,7 +70,7 @@ func TestBleveSearchAll(t *testing.T) {
 				if query == "&query=fish" {
 					if num, ok := fishfacetCount[facet.Attribute]; ok {
 						if num != facet.Len() {
-							t.Errorf("%v got %d, expected %d \n", facet.Attribute, facet.Len(), num)
+							t.Errorf("q %s\n%v got %d, expected %d \n", sq, facet.Attribute, facet.Len(), num)
 						}
 					} else {
 						t.Errorf("attr %s not found\n", facet.Attribute)
