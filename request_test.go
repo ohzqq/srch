@@ -34,7 +34,7 @@ func TestNewRequest(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		err = searchErr(res.NbHits(), 37, res.Params.Query)
+		err = searchErr(res.nbHits(), 37, res.Params.Query)
 		if err != nil {
 			t.Error(err)
 		}

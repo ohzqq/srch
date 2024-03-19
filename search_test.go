@@ -36,7 +36,7 @@ func TestFuzzySearch(t *testing.T) {
 		t.Log(err)
 	}
 
-	if res.NbHits() != 56 {
+	if res.nbHits() != 56 {
 		fmt.Printf("route %s, path %s\n", req.Route, req.Path)
 		t.Fatal()
 	}

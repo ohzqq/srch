@@ -8,9 +8,9 @@ import (
 )
 
 type Response struct {
-	Facets []*facet.Field
-	Params *param.Params
-	hits   []map[string]any
+	*param.Params
+	Facets []*facet.Field   `json:"facets"`
+	hits   []map[string]any `json:"hits"`
 }
 
 func NewResponse(hits []map[string]any, params *param.Params) (*Response, error) {
@@ -24,7 +24,6 @@ func NewResponse(hits []map[string]any, params *param.Params) (*Response, error)
 	}
 
 	if params.Has(param.Facets) {
-		//h := FilterDataByAttr(hits, params.Facets)
 		facets, err := facet.New(hits, params)
 		if err != nil {
 			return nil, err
@@ -35,53 +34,46 @@ func NewResponse(hits []map[string]any, params *param.Params) (*Response, error)
 	return res, nil
 }
 
-func (res *Response) NbHits() int {
+func (res *Response) nbHits() int {
 	return len(res.hits)
 }
 
-func (res *Response) NbPages() int {
-	hpp := 1
-	if res.Params.Has(param.HitsPerPage) {
-		hpp = res.Params.HitsPerPage
-	}
+func (res *Response) nbPages() int {
+	hpp := res.hitsPerPage()
 
-	nb := res.NbHits() / hpp
-	if r := res.NbHits() % hpp; r > 0 {
+	nb := res.nbHits() / hpp
+	if r := res.nbHits() % hpp; r > 0 {
 		nb++
 	}
 
 	return nb
 }
 
-func (res *Response) HitsPerPage() int {
+func (res *Response) hitsPerPage() int {
 	if res.Params.Has(param.HitsPerPage) {
 		return res.Params.HitsPerPage
 	}
 	return viper.GetInt("hitsPerPage")
 }
 
-func (res *Response) Page() int {
+func (res *Response) page() int {
 	if !res.Params.Has(param.Page) {
 		return 0
 	}
 	return res.Params.Page
 }
 
-func (res *Response) page() int {
-	return res.Page() - 1
-}
-
 func (res *Response) Hits() []map[string]any {
-	nbHits := res.NbHits()
-	hpp := res.HitsPerPage()
+	nbHits := res.nbHits()
+	hpp := res.hitsPerPage()
 
 	if nbHits < hpp {
 		return res.hits
 	}
 
-	page := res.Page()
+	page := res.page()
 
-	if nb := res.NbPages(); page >= nb {
+	if nb := res.nbPages(); page >= nb {
 		return []map[string]any{}
 	}
 
@@ -96,13 +88,13 @@ func (r *Response) StringMap() map[string]any {
 		param.Facets:       r.Facets,
 	}
 
-	page := r.Page()
-	hpp := r.HitsPerPage()
-	nbh := r.NbHits()
+	page := r.page()
+	hpp := r.hitsPerPage()
+	nbh := r.nbHits()
 	m[param.HitsPerPage] = hpp
 	m[param.NbHits] = nbh
 	m[param.Page] = page
-	m[param.NbPages] = r.NbPages()
+	m[param.NbPages] = r.nbPages()
 
 	m[param.Hits] = r.Hits()
 
