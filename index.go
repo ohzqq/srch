@@ -86,7 +86,6 @@ func (idx *Index) Search(params string) (*Results, error) {
 
 	if idx.Indexer == nil {
 		idx, err = New(params)
-		println(idx.Len())
 		if err != nil {
 			if !errors.Is(err, NoDataErr) {
 				return &Results{}, err

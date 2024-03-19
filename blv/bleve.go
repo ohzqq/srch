@@ -15,6 +15,7 @@ type Index struct {
 }
 
 func Open(cfg *param.Params) *Index {
+	println(cfg.Path)
 	blv, err := bleve.Open(cfg.Path)
 	if err != nil {
 		log.Fatal(err)
@@ -34,7 +35,7 @@ func Open(cfg *param.Params) *Index {
 
 func New(cfg *param.Params) (*Index, error) {
 	idx := &Index{Params: cfg}
-	blv, err := bleve.New(cfg.BlvPath, bleve.NewIndexMapping())
+	blv, err := bleve.New(cfg.Path, bleve.NewIndexMapping())
 	if err != nil {
 		return idx, err
 	}
@@ -59,7 +60,7 @@ func (idx *Index) Search(query string) ([]map[string]any, error) {
 }
 
 func (idx *Index) search(req *bleve.SearchRequest) ([]map[string]any, error) {
-	blv, err := bleve.Open(idx.BlvPath)
+	blv, err := bleve.Open(idx.Path)
 	if err != nil {
 		return nil, err
 	}
@@ -80,7 +81,7 @@ func (idx *Index) search(req *bleve.SearchRequest) ([]map[string]any, error) {
 }
 
 func (idx *Index) Index(uid string, data map[string]any) error {
-	blv, err := bleve.Open(idx.BlvPath)
+	blv, err := bleve.Open(idx.Path)
 	if err != nil {
 		return err
 	}
@@ -160,7 +161,7 @@ func (idx *Index) Bitmap() ([]map[string]any, error) {
 }
 
 func (idx *Index) Count() int {
-	blv, err := bleve.Open(idx.BlvPath)
+	blv, err := bleve.Open(idx.Path)
 	if err != nil {
 		return 0
 	}

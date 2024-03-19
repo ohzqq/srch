@@ -6,9 +6,9 @@ import (
 )
 
 var bleveSearchTests = []string{
-	`blv/testdata/poot.bleve?searchableAttributes=title&uid=id`,
-	`blv/testdata/poot.bleve?searchableAttributes=title&uid=id&facets=tags,authors,narrators,series`,
-	`blv/testdata/poot.bleve?searchableAttributes=*&uid=id&facets=tags,authors,narrators,series`,
+	blvRoute(srchAttrParam, uidParam),
+	blvRoute(srchAttrParam, uidParam, facetParamSlice),
+	blvRoute("searchableAttributes=*", uidParam, facetParamStr),
 }
 
 var blvfacetCount = map[string]int{
@@ -27,7 +27,7 @@ var fishfacetCount = map[string]int{
 
 func TestFuzzySearch(t *testing.T) {
 	req := NewRequest().
-		SetRoute("file/testdata/nddata/ndbooks.ndjson").
+		SetRoute(testDataFile).
 		SrchAttr("title").
 		Query("fish")
 
@@ -49,6 +49,7 @@ func TestBleveSearchAll(t *testing.T) {
 		if i == 1 {
 			query = "&query=fish"
 		}
+		println(q)
 		res, err := idx.Search(q + query)
 		if err != nil {
 			t.Error(err)

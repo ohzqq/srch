@@ -10,7 +10,7 @@ import (
 
 func TestFacets(t *testing.T) {
 	req := NewRequest().
-		DataDir("testdata/nddata").
+		DataDir(testDataDir).
 		UID("id").
 		SrchAttr("title").
 		Facets("tags", "authors", "narrators", "series").

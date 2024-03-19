@@ -17,12 +17,23 @@ var books []map[string]any
 
 const numBooks = 7253
 
-const testDataFile = `file/testdata/data-dir/audiobooks.json`
-const testDataNdFile = `file/testdata/nddata/ndbooks.ndjson`
-const testDataDir = `dir/testdata/data-dir`
-const testBlvPath = `blv/testdata/poot.bleve`
+const (
+	testDataFile = `file/testdata/nddata/ndbooks.ndjson`
+	testDataDir  = `dir/testdata/data-dir`
+	testBlvPath  = `blv/testdata/poot.bleve`
+)
 
-var libCfgStr = mkURL(testDataNdFile, "searchableAttributes=title&facets=tags,authors,series,narrators")
+const (
+	facetParamStr   = `facets=tags,authors,series,narrators`
+	facetParamSlice = `facets=tags&facets=authors&facets=series&facets=narrators`
+	srchAttrParam   = "searchableAttributes=title"
+	queryParam      = `query=fish`
+	sortParam       = `sortBy=title&order=desc`
+	filterParam     = `facetFilters=["authors:amy lane", ["tags:romance", "tags:-dnr"]]`
+	uidParam        = `uid=id`
+)
+
+var libCfgStr = mkURL(testDataFile, "searchableAttributes=title&facets=tags,authors,series,narrators")
 
 func TestData(t *testing.T) {
 	books = loadData(t)
@@ -35,22 +46,21 @@ func TestData(t *testing.T) {
 var testQuerySettings = []string{
 	"",
 	"searchableAttributes=",
-	mkURL(testBlvPath, "searchableAttributes=title"),
-	mkURL(testDataDir, "searchableAttributes=title"),
-	mkURL("", "facets=tags,authors,series,narrators"),
-	mkURL(testDataFile, "facets=tags,authors,series,narrators"),
-	mkURL(testDataDir, "searchableAttributes=title"),
-	mkURL(testDataDir, "searchableAttributes=title"),
-	mkURL("", "searchableAttributes=title&facets=tags,authors,series,narrators"),
-	mkURL(testDataFile, "searchableAttributes=title&facets=tags,authors,series,narrators"),
-	mkURL("", "searchableAttributes=title&facets=tags,authors,series,narrators"),
-	mkURL(testDataNdFile, `searchableAttributes=title&facets=tags,authors,series,narrators&page=3&query=fish&sortBy=title&order=desc&facetFilters=["authors:amy lane", ["tags:romance", "tags:-dnr"]]`),
+	blvRoute(srchAttrParam),
+	dirRoute(srchAttrParam),
+	mkURL("", facetParamSlice),
+	fileRoute(facetParamStr),
+	dirRoute(testDataDir, srchAttrParam),
+	dirRoute(testDataDir, srchAttrParam),
+	mkURL("", srchAttrParam, facetParamSlice),
+	fileRoute(srchAttrParam, facetParamStr),
+	mkURL("", srchAttrParam, facetParamStr),
+	fileRoute(testDataFile, srchAttrParam, facetParamSlice, `&page=3`, queryParam, sortParam, filterParam),
 }
 
 func TestNewIndex(t *testing.T) {
 	for i := 0; i < len(testQuerySettings); i++ {
 		q := testQuerySettings[i]
-		println(q)
 		idx, err := New(q)
 		if err != nil {
 			if errors.Is(err, NoDataErr) {
@@ -134,12 +144,24 @@ func newTestIdxCfg(p string) *Index {
 	return idx
 }
 
-func mkURL(path, rq string) string {
+func mkURL(path string, rq ...string) string {
 	u := &url.URL{
 		Path:     path,
-		RawQuery: rq,
+		RawQuery: strings.Join(rq, "&"),
 	}
 	return u.String()
+}
+
+func blvRoute(params ...string) string {
+	return mkURL(testBlvPath, params...)
+}
+
+func dirRoute(params ...string) string {
+	return mkURL(testDataDir, params...)
+}
+
+func fileRoute(params ...string) string {
+	return mkURL(testDataFile, params...)
 }
 
 func totalBooksErr(total int, vals ...any) error {
