@@ -23,8 +23,6 @@ If a config file has a "data" field no other argument or flag is required.
 
 Without the "data" field, data must be specified through a flag or positional
 argument.
-
-By default, results are printed to stdout as json.
 	`,
 	Run: func(cmd *cobra.Command, args []string) {
 		log.SetFlags(log.Lshortfile)
@@ -101,7 +99,7 @@ func init() {
 	//rootCmd.MarkFlagsOneRequired("index", "dir", "json")
 	//rootCmd.MarkFlagsMutuallyExclusive("blv", "dir", "json")
 	rootCmd.MarkPersistentFlagDirname("dir")
-	rootCmd.MarkPersistentFlagFilename("json", ".json")
+	rootCmd.MarkPersistentFlagFilename("json", ".json", ".ndjson")
 
 	rootCmd.PersistentFlags().
 		Bool(
@@ -121,7 +119,7 @@ func init() {
 		IntP(
 			"workers",
 			"w",
-			1,
+			4,
 			"number of workers for computing facets",
 		)
 	viper.BindPFlag(

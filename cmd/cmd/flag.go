@@ -64,8 +64,8 @@ func defineFlags() {
 		defineFlag(long, short, usage)
 	}
 
-	defineFlag("and", "a", "conjuctive facets, format attribute:value")
-	defineFlag("or", "o", "disconjuctive facets, format attribute:value")
+	defineFlag("and", "a", "conjunctive facets, format attribute:value")
+	defineFlag("or", "o", "disjunctive facets, format attribute:value")
 }
 
 func defineFlag(long, short, usage string) {
