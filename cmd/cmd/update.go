@@ -17,6 +17,14 @@ var updateCmd = &cobra.Command{
 	Long:  ``,
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
+		r := cmd.InOrStdin()
+		var in []byte
+		_, err := r.Read(in)
+		if err != nil {
+			log.Fatal(err)
+		}
+		println(string(in))
+
 		path := args[0]
 
 		req := srch.GetViperParams()
