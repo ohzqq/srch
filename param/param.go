@@ -104,16 +104,16 @@ func (p Params) Index() url.Values {
 }
 
 func (p *Params) ParseRoute(route string) *Params {
-	p.Route, p.Path = parseRoute(route)
+	p.Route, p.Path = ParseRoute(route)
 	return p
 }
 
 func (p *Params) parseRoute() *Params {
-	p.Route, p.Path = parseRoute(p.URL.Path)
+	p.Route, p.Path = ParseRoute(p.URL.Path)
 	return p
 }
 
-func parseRoute(path string) (string, string) {
+func ParseRoute(path string) (string, string) {
 	for _, reg := range routes {
 		matches := reg.FindStringSubmatch(path)
 		if len(matches) > 1 {

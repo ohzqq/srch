@@ -97,7 +97,6 @@ func defineFlags() {
 		var usage string
 		switch key {
 		case param.File:
-			long = "json"
 			short = "j"
 			usage = "json or ndjson file to index"
 		case param.Dir:

@@ -18,7 +18,7 @@ type Index struct {
 func Open(params *param.Params) *Index {
 	blv, err := bleve.Open(params.Path)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("%v at %s\n", err, params.Path)
 	}
 	defer blv.Close()
 
