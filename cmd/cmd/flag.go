@@ -49,6 +49,13 @@ var allFlags = []flag{
 	UI,
 }
 
+//func getData(cmd *cobra.Command, route, path string) ([]map[string]any, error) {
+//  docs, err := data.New(route, path).Decode()
+//  if err != nil {
+//    return nil, err
+//  }
+//}
+
 func defineFlags() {
 	for _, key := range param.SettingParams {
 		long := flect.Dasherize(key)
