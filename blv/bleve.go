@@ -105,6 +105,8 @@ func (idx *Index) Index(uid string, data map[string]any) error {
 	}
 	defer blv.Close()
 
+	fmt.Printf("indexing %v\n", uid)
+
 	return blv.Index(uid, data)
 }
 

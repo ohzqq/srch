@@ -1,7 +1,6 @@
 package srch
 
 import (
-	"fmt"
 	"net/url"
 	"path/filepath"
 	"strings"
@@ -136,7 +135,7 @@ func (r *Request) HitsPerPage(p int) *Request {
 
 func GetViperParams() *Request {
 	vals := viper.AllSettings()
-	fmt.Printf("%#v \n", vals)
+	//fmt.Printf("%#v \n", vals)
 
 	params := make(url.Values)
 	for key, val := range cast.ToStringMapStringSlice(vals) {
