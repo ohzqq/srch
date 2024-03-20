@@ -105,7 +105,7 @@ func init() {
 
 	rootCmd.PersistentFlags().
 		Bool(
-			UI.Long(),
+			"ui",
 			false,
 			"select results in a tui",
 		)
@@ -119,13 +119,13 @@ func init() {
 
 	rootCmd.PersistentFlags().
 		IntP(
-			Workers.Long(),
-			Workers.Short(),
+			"workers",
+			"w",
 			1,
 			"number of workers for computing facets",
 		)
 	viper.BindPFlag(
-		Workers.Long(),
+		"workers",
 		rootCmd.Flags().Lookup("workers"),
 	)
 

@@ -6,56 +6,6 @@ import (
 	"github.com/spf13/viper"
 )
 
-type flag int
-
-//go:generate stringer -type flag -linecomment
-const (
-	And     flag = iota // and
-	Blv                 // browse
-	Dir                 // dir
-	Facets              // facet
-	Index               // index
-	JSON                // json
-	Or                  // or
-	Params              // params
-	Query               // query
-	Refine              // refine
-	Search              // search
-	Workers             // workers
-	UI                  // ui
-)
-
-func (f flag) Short() string {
-	return string(f.String()[0])
-}
-
-func (f flag) Long() string {
-	return f.String()
-}
-
-var allFlags = []flag{
-	And,
-	Blv,
-	Dir,
-	Facets,
-	Index,
-	JSON,
-	Or,
-	Params,
-	Query,
-	Refine,
-	Search,
-	Workers,
-	UI,
-}
-
-//func getData(cmd *cobra.Command, route, path string) ([]map[string]any, error) {
-//  docs, err := data.New(route, path).Decode()
-//  if err != nil {
-//    return nil, err
-//  }
-//}
-
 func defineFlags() {
 	for _, key := range param.SettingParams {
 		long := flect.Dasherize(key)
