@@ -7,7 +7,7 @@ import (
 	"log"
 	"net/url"
 
-	"github.com/ohzqq/srch"
+	"github.com/ohzqq/srch/param"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
@@ -46,20 +46,20 @@ func (f flag) Param() string {
 	case O:
 	case B:
 	case D:
-		return srch.DataDir
+		return param.DataDir
 	case F:
-		return srch.FacetAttr
+		return param.FacetAttr
 	case I:
-		return srch.DataFile
+		return param.DataFile
 	case J:
 	case P:
 	case Q:
-		return srch.Query
+		return param.Query
 	case R:
 	case S:
-		return srch.SrchAttr
+		return param.SrchAttr
 	case T:
-		return srch.ParamFullText
+		return param.FullText
 	case W:
 	case U:
 	}
