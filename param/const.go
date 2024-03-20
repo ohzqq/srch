@@ -62,3 +62,9 @@ var SearchParams = []string{
 	FacetFilters,
 	Route,
 }
+
+var Routes = []string{
+	Blv,
+	Dir,
+	File,
+}

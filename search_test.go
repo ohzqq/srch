@@ -285,6 +285,9 @@ func TestFlags(t *testing.T) {
 	}
 	for _, key := range param.SearchParams {
 		switch key {
+		case param.Route:
+			val := viper.GetString(key)
+			req.SetRoute(val)
 		case param.SortFacetsBy:
 			val := viper.GetString(key)
 			req.SortFacetsBy(val)

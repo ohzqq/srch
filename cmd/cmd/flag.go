@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/url"
+	"path/filepath"
 
 	"github.com/ohzqq/srch/param"
 	"github.com/spf13/pflag"
@@ -63,6 +64,9 @@ func GetViperRequest() *srch.Request {
 	}
 	for _, key := range param.SearchParams {
 		switch key {
+		case param.Route:
+			val := viper.GetString(key)
+			req.SetRoute(val)
 		case param.SortFacetsBy:
 			val := viper.GetString(key)
 			req.SortFacetsBy(val)
@@ -96,6 +100,20 @@ func GetViperRequest() *srch.Request {
 		case param.Order:
 			val := viper.GetString(key)
 			req.Order(val)
+		}
+	}
+
+	for _, key := range param.Routes {
+		switch key {
+		case param.Blv:
+			val := viper.GetString(key)
+			req.SetRoute(filepath.Join(key, val))
+		case param.Dir:
+			val := viper.GetString(key)
+			req.SetRoute(filepath.Join(key, val))
+		case param.File:
+			val := viper.GetStringSlice(key)
+			req.SetRoute(filepath.Join(key, val))
 		}
 	}
 	return req
