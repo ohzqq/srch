@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 
 	"github.com/ohzqq/srch/param"
+	"github.com/spf13/cast"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
@@ -39,6 +40,11 @@ func NewFlags(fl *pflag.FlagSet) *flags {
 	return &flags{
 		flags: fl,
 	}
+}
+
+func FlagReq() (*srch.Request, error) {
+	settings := viper.AllSettings()
+	vals := url.Values(cast.ToStringMapStringSliceE(settings))
 }
 
 func GetViperRequest() *srch.Request {
@@ -118,9 +124,6 @@ func GetViperRequest() *srch.Request {
 		}
 	}
 	return req
-}
-
-func FlagsToRequest(flags *pflag.FlagSet) string {
 }
 
 func (f flag) Short() string {

@@ -2,9 +2,12 @@ package srch
 
 import (
 	"net/url"
+	"path/filepath"
+	"strings"
 
 	"github.com/ohzqq/srch/param"
 	"github.com/samber/lo"
+	"github.com/spf13/cast"
 	"github.com/spf13/viper"
 )
 
@@ -31,9 +34,9 @@ func (r *Request) Parse(params string) (*Request, error) {
 	return ParseRequest(params)
 }
 
-func (r *Request) SetValues(vals url.Values) (*Request, error) {
-	err := r.Params.Set(vals)
-	return r, err
+func (r *Request) SetValues(vals url.Values) *Request {
+	r.Params.Set(vals)
+	return r
 }
 
 func (p *Request) SetRoute(path string) *Request {
@@ -128,6 +131,34 @@ func (r *Request) Page(p int) *Request {
 func (r *Request) HitsPerPage(p int) *Request {
 	r.Params.HitsPerPage = p
 	return r
+}
+
+func GetViperParams() *Request {
+	vals := viper.AllSettings()
+	params := make(url.Values)
+	for key, val := range cast.ToStringMapStringSlice(vals) {
+		for _, k := range param.SettingParams {
+			if key == strings.ToLower(k) {
+				params[k] = val
+			}
+		}
+		for _, k := range param.SearchParams {
+			if key == strings.ToLower(k) {
+				params[k] = val
+			}
+		}
+	}
+
+	req := NewRequest().SetValues(params)
+
+	for _, key := range param.Routes {
+		if viper.IsSet(key) {
+			val := viper.GetString(key)
+			req.SetRoute(filepath.Join(key, val))
+		}
+	}
+
+	return req
 }
 
 func init() {

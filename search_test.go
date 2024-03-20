@@ -5,6 +5,7 @@ import (
 	"slices"
 	"testing"
 
+	"github.com/ohzqq/srch/param"
 	"github.com/samber/lo"
 	"github.com/spf13/cast"
 	"github.com/spf13/viper"
@@ -258,14 +259,19 @@ func TestNewRequest(t *testing.T) {
 }
 
 func TestFlags(t *testing.T) {
+	viper.Set(param.Blv, "testdata/poot.bleve")
 
-	req := NewRequest()
+	req := GetViperParams()
 
-	req.SetRoute(testDataFile)
+	res, err := idx.Search(req.String())
+	if err != nil {
+		t.Fatal(err)
+	}
 
-	vals := viper.AllSettings()
-
-	fmt.Printf("flags %#v\n", vals)
+	err = searchErr(res.NbHits, numBooks, res.Params.Query)
+	if err != nil {
+		t.Error(err)
+	}
 }
 
 func searchErr(got int, want int, q string) error {
