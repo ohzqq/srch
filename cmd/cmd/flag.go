@@ -1,8 +1,14 @@
 package cmd
 
 import (
+	"net/url"
+	"path/filepath"
+	"strings"
+
 	"github.com/gobuffalo/flect"
+	"github.com/ohzqq/srch"
 	"github.com/ohzqq/srch/param"
+	"github.com/spf13/cast"
 	"github.com/spf13/viper"
 )
 
@@ -39,11 +45,9 @@ func (f flag) Param() string {
 	case Or:
 	case Blv:
 	case Dir:
-		return param.DataDir
 	case Facets:
 		return param.FacetAttr
 	case Index:
-		return param.DataFile
 	case JSON:
 	case Params:
 	case Query:
@@ -75,133 +79,117 @@ var allFlags = []flag{
 
 func defineFlags() {
 	for _, key := range param.SettingParams {
-		long := flect.New(key).Dasherize()
-		short := key[0]
+		long := flect.Dasherize(key)
+		short := string(key[0])
+		var usage string
 		switch key {
 		case param.UID:
-		case param.Format:
+			usage = `uid for documents in collection, default: id`
+		case param.SrchAttr:
+			short = "t"
+			usage = `list of fields to search, use the special label '*' to search all fields, default: all`
 		default:
-			rootCmd.PersistentFlags().
-				StringSliceP(
-					long,
-					short,
-					[]string{},
-					"list of data files to index",
-				)
+			continue
 		}
+		defineFlag(long, short, usage)
 	}
+
 	for _, key := range param.SearchParams {
+		long := flect.Dasherize(key)
+		short := string(key[0])
+		var usage string
 		switch key {
+		case param.Facets:
+			usage = `list of facets, format is attribute[:sort][:order], eg 'tags:count:desc'`
+		case param.RtrvAttr:
+			short = ""
+			usage = `list of fields to retrieve for display, default: all`
+		case param.Page:
+			usage = `page number for paginated results, default: 0`
+		case param.HitsPerPage:
+			short = "l"
+			usage = `number of hits to return, default: all`
+		case param.SortBy:
+			usage = `field to sort results by, default: uid:desc`
+		default:
+			continue
 		}
+		defineFlag(long, short, usage)
 	}
+
 	for _, key := range param.Routes {
+		long := flect.Dasherize(key)
+		short := string(key[0])
+		var usage string
 		switch key {
+		case param.File:
+			long = "json"
+			short = "j"
+			usage = "json or ndjson file to index"
+		case param.Dir:
+			usage = "directory of data files"
+		case param.Blv:
+			usage = "path to bleve index"
 		}
+		defineFlag(long, short, usage)
 	}
+
+	defineFlag("and", "a", "conjuctive facets, format attribute:value")
+	defineFlag("or", "o", "disconjuctive facets, format attribute:value")
+}
+
+func defineFlag(long, short, usage string) {
+	if short != "" {
+		rootCmd.PersistentFlags().
+			StringSliceP(
+				long,
+				short,
+				[]string{},
+				usage,
+			)
+	} else {
+		rootCmd.PersistentFlags().
+			StringSlice(
+				long,
+				[]string{},
+				usage,
+			)
+	}
+	viper.BindPFlag(
+		long,
+		rootCmd.PersistentFlags().Lookup(long),
+	)
 }
 
 func init() {
-	rootCmd.PersistentFlags().
-		StringSliceP(
-			Index.Long(),
-			Index.Short(),
-			[]string{},
-			"list of data files to index",
-		)
-	rootCmd.PersistentFlags().
-		StringP(
-			Dir.Long(),
-			Dir.Short(),
-			"",
-			"directory of data files",
-		)
-	rootCmd.PersistentFlags().
-		StringP(
-			JSON.Long(),
-			JSON.Short(),
-			"",
-			"json formatted input",
-		)
+}
 
-	//rootCmd.MarkFlagsOneRequired("index", "dir", "json")
-	rootCmd.MarkFlagsMutuallyExclusive("index", "dir", "json")
-	rootCmd.MarkPersistentFlagDirname("dir")
-	rootCmd.MarkPersistentFlagFilename("index", ".json")
+func GetViperParams() *srch.Request {
+	vals := viper.AllSettings()
+	params := make(url.Values)
+	for key, val := range cast.ToStringMapStringSlice(vals) {
+		for _, k := range param.SettingParams {
+			if key == strings.ToLower(k) {
+				params[k] = val
+			}
+		}
+		for _, k := range param.SearchParams {
+			if key == strings.ToLower(k) {
+				params[k] = val
+			}
+		}
+	}
 
-	rootCmd.PersistentFlags().
-		Bool(
-			UI.Long(),
-			false,
-			"select results in a tui",
-		)
-	rootCmd.PersistentFlags().
-		BoolP(
-			Blv.Long(),
-			Blv.Short(),
-			false,
-			"browse results in a tui",
-		)
+	req := srch.NewRequest().SetValues(params)
 
-	rootCmd.PersistentFlags().
-		StringSliceP(
-			Facets.Long(),
-			Facets.Short(),
-			[]string{},
-			"facet filters",
-		)
-	rootCmd.PersistentFlags().
-		StringSliceP(
-			Search.Long(),
-			Search.Short(),
-			[]string{},
-			"text fields",
-		)
-	rootCmd.PersistentFlags().
-		StringP(
-			Params.Long(),
-			Params.Short(),
-			"",
-			"encoded query/filter string (eg. color=red&color=pink&category=post",
-		)
-	rootCmd.PersistentFlags().
-		StringP(
-			Query.Long(),
-			Query.Short(),
-			"",
-			"search index",
-		)
-	rootCmd.PersistentFlags().
-		StringSliceP(
-			Or.Long(),
-			Or.Short(),
-			[]string{},
-			"disjunctive facets",
-		)
-	rootCmd.PersistentFlags().
-		StringSliceP(
-			And.Long(),
-			And.Short(),
-			[]string{},
-			"conjunctive facets",
-		)
+	for _, key := range param.Routes {
+		if viper.IsSet(key) {
+			println("route is set")
+			val := viper.GetString(key)
+			println(filepath.Join(key, val))
+			req.SetRoute(filepath.Join(key, val))
+		}
+	}
 
-	rootCmd.PersistentFlags().
-		Bool(
-			"pretty",
-			false,
-			"pretty print json output",
-		)
-
-	rootCmd.PersistentFlags().
-		IntP(
-			Workers.Long(),
-			Workers.Short(),
-			1,
-			"number of workers for computing facets",
-		)
-	viper.BindPFlag(
-		Workers.Long(),
-		rootCmd.Flags().Lookup("workers"),
-	)
-
+	return req
 }

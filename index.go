@@ -14,13 +14,10 @@ import (
 	"github.com/ohzqq/srch/param"
 	"github.com/samber/lo"
 	"github.com/spf13/cast"
-	"github.com/spf13/viper"
 )
 
 func init() {
 	log.SetFlags(log.Lshortfile)
-	viper.SetDefault("workers", 1)
-	viper.SetDefault(param.HitsPerPage, 25)
 }
 
 type Indexer interface {

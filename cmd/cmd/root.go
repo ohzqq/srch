@@ -1,20 +1,21 @@
 package cmd
 
 import (
+	"encoding/json"
 	"log"
 	"os"
 
 	"github.com/ohzqq/srch"
-	"github.com/ohzqq/srch/ui"
+	"github.com/ohzqq/srch/param"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "srch -f file... | -d dir | -i string [flags]",
+	Use:   "srch -j json... | -d dir | -b string [flags]",
 	Short: "search collections",
-	Long: `facet aggregates data on specified fields, with option filters. 
+	Long: `srch searches a collection.
 
 The command accepts stdin, flags, and positional arguments.
 
@@ -28,56 +29,44 @@ By default, results are printed to stdout as json.
 	Run: func(cmd *cobra.Command, args []string) {
 		log.SetFlags(log.Lshortfile)
 
-		var (
-			err  error
-			data []map[string]any
-			res  *srch.Response
-		)
+		//b, err := cmd.Flags().GetStringSlice("blv")
+		//if err != nil {
+		//log.Fatal(err)
+		//}
+		//fmt.Printf("viper %#v\n", b)
 
-		vals := FlagsToParams(cmd.Flags())
-		idx, err := srch.New(vals)
+		req := srch.GetViperParams()
+		println(req.String())
+		idx, err := srch.New(req.String())
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		switch {
-		case cmd.Flags().Changed(J.Long()):
-			j, err := cmd.Flags().GetString(J.Long())
-			if err != nil {
-				log.Fatal(err)
-			}
-			data, err = srch.StringSrc(j)
-			if err != nil {
-				log.Fatal(err)
-			}
-			idx = idx.Index(data)
-		default:
-			//in := cmd.InOrStdin()
-			//data, err = srch.ReaderSrc(in)
-			//if err != nil {
-			//log.Fatal(err)
-			//}
+		req.Query("fish")
+
+		res, err := idx.Search(req.String())
+		if err != nil {
+			log.Fatal(err)
 		}
 
-		res = idx.Search(vals.Encode())
-
-		if cmd.Flags().Changed(B.Long()) {
-			tui := ui.New(res.Idx)
-			res, err = tui.Run()
-			if err != nil {
-				log.Fatal(err)
-			}
-		} else {
-			if res != nil {
-				idx = res.Idx
-			}
+		d, err := json.Marshal(res)
+		if err != nil {
+			log.Fatal(err)
 		}
 
-		if p, err := cmd.Flags().GetBool("pretty"); err == nil && p {
-			res.PrettyPrint()
-		} else {
-			res.Print()
-		}
+		println(string(d))
+		//var (
+		//  err  error
+		//  data []map[string]any
+		//  res  *srch.Response
+		//)
+
+		//if p, err := cmd.Flags().GetBool("pretty"); err == nil && p {
+		//  res.PrettyPrint()
+		//} else {
+		//  res.Print()
+		//}
+
 	},
 }
 
@@ -91,9 +80,76 @@ func Execute() {
 }
 
 func init() {
+	for _, key := range param.SettingParams {
+		switch key {
+		case param.SrchAttr:
+			viper.SetDefault(key, []string{"title"})
+		case param.FacetAttr:
+			viper.SetDefault(key, []string{"tags"})
+		case param.SortAttr:
+			viper.SetDefault(key, []string{"title:desc"})
+		case param.UID:
+			viper.SetDefault(key, "id")
+		}
+	}
+
+	for _, key := range param.SearchParams {
+		switch key {
+		case param.SortFacetsBy:
+			viper.SetDefault(key, "tags:count:desc")
+		case param.Facets:
+			viper.SetDefault(key, []string{"tags"})
+		case param.RtrvAttr:
+			viper.SetDefault(key, "*")
+		case param.Page:
+			viper.SetDefault(key, 0)
+		case param.HitsPerPage:
+			viper.SetDefault(key, -1)
+		case param.SortBy:
+			viper.SetDefault(key, "title")
+		case param.Order:
+			viper.SetDefault(key, "desc")
+		}
+	}
+
 	cobra.OnInitialize(initConfig)
+
+	defineFlags()
+
+	//rootCmd.MarkFlagsOneRequired("index", "dir", "json")
+	//rootCmd.MarkFlagsMutuallyExclusive("blv", "dir", "json")
+	rootCmd.MarkPersistentFlagDirname("dir")
+	rootCmd.MarkPersistentFlagFilename("json", ".json")
+
+	rootCmd.PersistentFlags().
+		Bool(
+			UI.Long(),
+			false,
+			"select results in a tui",
+		)
+
+	rootCmd.PersistentFlags().
+		Bool(
+			"pretty",
+			false,
+			"pretty print json output",
+		)
+
+	rootCmd.PersistentFlags().
+		IntP(
+			Workers.Long(),
+			Workers.Short(),
+			1,
+			"number of workers for computing facets",
+		)
+	viper.BindPFlag(
+		Workers.Long(),
+		rootCmd.Flags().Lookup("workers"),
+	)
+
 }
 
 func initConfig() {
 	viper.AutomaticEnv()
+
 }

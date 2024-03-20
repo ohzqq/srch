@@ -152,9 +152,9 @@ func GetViperParams() *Request {
 	req := NewRequest().SetValues(params)
 
 	for _, key := range param.Routes {
-		if viper.IsSet(key) {
-			val := viper.GetString(key)
-			req.SetRoute(filepath.Join(key, val))
+		if viper.IsSet(strings.ToLower(key)) {
+			val := viper.GetStringSlice(key)
+			req.SetRoute(filepath.Join(key, val[0]))
 		}
 	}
 
@@ -162,38 +162,4 @@ func GetViperParams() *Request {
 }
 
 func init() {
-	for _, key := range param.SettingParams {
-		switch key {
-		case param.SrchAttr:
-			viper.SetDefault(key, []string{"title"})
-		case param.FacetAttr:
-			viper.SetDefault(key, []string{"tags"})
-		case param.SortAttr:
-			viper.SetDefault(key, []string{"title:desc"})
-		case param.DefaultField:
-			viper.SetDefault(key, "title")
-		case param.UID:
-			viper.SetDefault(key, "id")
-		}
-	}
-
-	for _, key := range param.SearchParams {
-		switch key {
-		case param.SortFacetsBy:
-			viper.SetDefault(key, "tags:count:desc")
-		case param.Facets:
-			viper.SetDefault(key, []string{"tags"})
-		case param.RtrvAttr:
-			viper.SetDefault(key, "*")
-		case param.Page:
-			viper.SetDefault(key, 0)
-		case param.HitsPerPage:
-			viper.SetDefault(key, -1)
-		case param.SortBy:
-			viper.SetDefault(key, "title")
-		case param.Order:
-			viper.SetDefault(key, "desc")
-		}
-	}
-
 }
