@@ -1,3 +1,5 @@
+//go:build exclude
+
 package ui
 
 const testData = `../testdata/data-dir/audiobooks.json`

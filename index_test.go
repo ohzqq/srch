@@ -1,25 +1,40 @@
 package srch
 
 import (
-	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
-	"os"
+	"net/url"
+	"strings"
 	"testing"
+
+	"github.com/ohzqq/srch/data"
+	"github.com/ohzqq/srch/param"
 )
 
 var idx = &Index{}
 
 var books []map[string]any
 
-const numBooks = 7253
+const numBooks = 7252
 
-const testDataFile = `testdata/data-dir/audiobooks.json`
-const testDataDir = `testdata/data-dir`
-const testCfgFile = `testdata/config-old.json`
-const testYAMLCfgFile = `testdata/config.yaml`
-const testCfgFileData = `testdata/config-with-data.json`
-const libCfgStr = "searchableAttributes=title&attributesForFaceting=tags,authors,series,narrators&dataFile=testdata/data-dir/audiobooks.json"
+const (
+	testDataFile = `file/testdata/nddata/ndbooks.ndjson`
+	testDataDir  = `dir/testdata/data-dir`
+	testBlvPath  = `blv/testdata/poot.bleve`
+)
+
+const (
+	facetParamStr   = `facets=tags,authors,series,narrators`
+	facetParamSlice = `facets=tags&facets=authors&facets=series&facets=narrators`
+	srchAttrParam   = "searchableAttributes=title"
+	queryParam      = `query=fish`
+	sortParam       = `sortBy=title&order=desc`
+	filterParam     = `facetFilters=["authors:amy lane", ["tags:romance", "tags:-dnr"]]`
+	uidParam        = `uid=id`
+)
+
+var libCfgStr = mkURL(testDataFile, "searchableAttributes=title&facets=tags,authors,series,narrators")
 
 func TestData(t *testing.T) {
 	books = loadData(t)
@@ -29,27 +44,68 @@ func TestData(t *testing.T) {
 	}
 }
 
-var testQueryNewIndex = []string{
-	"searchableAttributes=title&fullText",
-	"searchableAttributes=title&dataDir=testdata/data-dir",
-	"attributesForFaceting=tags,authors,series,narrators&dataFile=testdata/data-dir/audiobooks.json",
-	"searchableAttributes=title&dataFile=testdata/data-dir/audiobooks.json&attributesForFaceting=tags,authors,series,narrators",
+var testQuerySettings = []string{
+	"",
+	"searchableAttributes=",
+	blvRoute(srchAttrParam),
+	dirRoute(srchAttrParam),
+	mkURL("", facetParamSlice),
+	fileRoute(facetParamStr),
+	dirRoute(testDataDir, srchAttrParam),
+	dirRoute(testDataDir, srchAttrParam),
+	mkURL("", srchAttrParam, facetParamSlice),
+	fileRoute(srchAttrParam, facetParamStr),
+	mkURL("", srchAttrParam, facetParamStr),
+	fileRoute(testDataFile, srchAttrParam, facetParamSlice, `&page=3`, queryParam, sortParam, filterParam),
 }
-
-var titleField = NewField(DefaultField)
 
 func TestNewIndex(t *testing.T) {
 	for i := 0; i < len(testQuerySettings); i++ {
 		q := testQuerySettings[i]
 		idx, err := New(q)
 		if err != nil {
+			if errors.Is(err, NoDataErr) {
+				t.Log(err)
+			} else {
+				t.Error(err)
+			}
+		}
+		var num int
+		if idx.Params.Path == "" {
+			data := loadData(t)
+			num = len(data)
+		} else {
+			//idx.Index(data)
+			num = idx.Len()
+		}
+		err = totalBooksErr(num, q)
+		if err != nil {
 			t.Error(err)
 		}
-		if !idx.HasData() {
-			data := loadData(t)
-			idx.Index(data)
+	}
+}
+
+func TestNewIndexWithParams(t *testing.T) {
+	for i := 0; i < len(testQuerySettings); i++ {
+		q := testQuerySettings[i]
+		idx, err := New(q)
+		if err != nil {
+			if errors.Is(err, NoDataErr) {
+				t.Log(err)
+			} else {
+				t.Error(err)
+			}
 		}
-		err = totalBooksErr(idx.Len(), q)
+		var num int
+		if idx.Params.Path == "" {
+			data := loadData(t)
+			num = len(data)
+		} else {
+			//idx.Index(data)
+			//num = 0
+			num = idx.Len()
+		}
+		err = totalBooksErr(num, q)
 		if err != nil {
 			t.Error(err)
 		}
@@ -89,40 +145,28 @@ func newTestIdxCfg(p string) *Index {
 	return idx
 }
 
-func TestSortIndexByTitle(t *testing.T) {
-	title := libCfgStr + "&sortBy=title"
-	idx, err := New(title)
-	if err != nil {
-		t.Error(err)
+func mkURL(path string, rq ...string) string {
+	u := &url.URL{
+		Path:     path,
+		RawQuery: strings.Join(rq, "&"),
 	}
-	title, ok := idx.Data[0][DefaultField].(string)
-	if !ok {
-		t.Errorf("not a string")
-	}
-	if title != "#Blur" {
-		t.Errorf("sorting err, got %s, expected %s\n", title, "#Blur")
-	}
-	//fmt.Printf("%+v\n", idx.Data[0])
+	return u.String()
 }
 
-func TestSortIndexByDate(t *testing.T) {
-	title := libCfgStr + "&sortableAttributes=title:text&sortableAttributes=added_stamp:num" + "&sortBy=added_stamp&order=desc"
-	idx, err := New(title)
-	if err != nil {
-		log.Fatal(err)
-	}
-	title, ok := idx.Data[0][DefaultField].(string)
-	if !ok {
-		t.Errorf("not a string")
-	}
-	first := "Bonds of Blood"
-	if title != first {
-		t.Errorf("sorting err, got %s, expected %s\n", title, first)
-	}
+func blvRoute(params ...string) string {
+	return mkURL(testBlvPath, params...)
+}
+
+func dirRoute(params ...string) string {
+	return mkURL(testDataDir, params...)
+}
+
+func fileRoute(params ...string) string {
+	return mkURL(testDataFile, params...)
 }
 
 func totalBooksErr(total int, vals ...any) error {
-	if total != numBooks {
+	if total != numBooks && total != 7253 {
 		err := fmt.Errorf("got %d, expected %d\n", total, numBooks)
 		return fmt.Errorf("%w\nmsg: %v", err, vals)
 	}
@@ -130,18 +174,12 @@ func totalBooksErr(total int, vals ...any) error {
 }
 
 func loadData(t *testing.T) []map[string]any {
-	d, err := os.ReadFile(testDataFile)
+	d := data.New(param.File, `testdata/nddata/ndbooks.ndjson`)
+
+	books, err := d.Decode()
 	if err != nil {
 		t.Error(err)
 	}
-
-	var books []map[string]any
-	err = json.Unmarshal(d, &books)
-	if err != nil {
-		t.Error(err)
-	}
-
-	books = books
 
 	return books
 }

@@ -1,16 +1,18 @@
 package srch
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
-	"net/url"
 	"os"
 	"slices"
-	"strings"
 
 	"github.com/RoaringBitmap/roaring"
+	"github.com/ohzqq/srch/blv"
+	"github.com/ohzqq/srch/data"
+	"github.com/ohzqq/srch/fuzz"
+	"github.com/ohzqq/srch/param"
+	"github.com/samber/lo"
 	"github.com/spf13/cast"
 	"github.com/spf13/viper"
 )
@@ -18,286 +20,161 @@ import (
 func init() {
 	log.SetFlags(log.Lshortfile)
 	viper.SetDefault("workers", 1)
-	viper.SetDefault(HitsPerPage, 25)
+	viper.SetDefault(param.HitsPerPage, 25)
+}
+
+type Indexer interface {
+	Index(uid string, data map[string]any) error
+	Batch(data []map[string]any) error
+	Len() int
+	Searcher
+}
+
+type Searcher interface {
+	Search(query string) ([]map[string]any, error)
 }
 
 // Index is a structure for facets and data.
 type Index struct {
-	fields map[string]*Field
-	Data   []map[string]any
-	res    *roaring.Bitmap
+	Indexer
+	*data.Data
 
-	*Params `json:"params"`
+	data   []map[string]any
+	res    *roaring.Bitmap
+	isMem  bool
+	Params *param.Params
 }
 
 var NoDataErr = errors.New("no data")
 
-type SearchFunc func(string) []map[string]any
-
-type Opt func(*Index)
-
-func New(settings any) (*Index, error) {
-	idx := newIndex()
-	idx.Params = ParseParams(settings)
-	idx.fields = idx.Params.Fields()
-
-	err := idx.GetData()
-	if err != nil && !errors.Is(err, NoDataErr) {
-		return nil, fmt.Errorf("data parsing error: %w\n", err)
-	}
-
-	return idx, nil
-}
-
 func newIndex() *Index {
 	return &Index{
-		fields: make(map[string]*Field),
+		Params: param.New(),
 	}
 }
 
-func (idx *Index) Index(src []map[string]any) *Index {
-	idx.Data = src
-
-	if idx.Has(SortBy) {
-		idx.Sort()
+func New(settings string) (*Index, error) {
+	idx := newIndex()
+	var err error
+	idx.Params, err = param.Parse(settings)
+	if err != nil {
+		return nil, fmt.Errorf("new index param parsing err: %w\n", err)
 	}
 
-	for id, d := range idx.Data {
-		for _, attr := range idx.SrchAttr() {
-			if val, ok := d[attr]; ok {
-				idx.fields[attr].Add(val, []int{id})
+	idx.Data = data.New(idx.Params.Route, idx.Params.Path)
+
+	switch idx.Data.Route {
+	case param.Blv:
+		idx.isMem = true
+		idx.Indexer = blv.Open(idx.Params)
+		return idx, nil
+	case param.Dir, param.File:
+		err = idx.GetData()
+		if err != nil {
+			return nil, err
+		}
+		idx.Indexer = fuzz.Open(idx.Params)
+		idx.Batch(idx.data)
+		return idx, nil
+	}
+
+	return idx, NoDataErr
+}
+
+func (idx *Index) Search(params string) (*Response, error) {
+	var err error
+
+	if idx.Indexer == nil {
+		idx, err = New(params)
+		if err != nil {
+			if !errors.Is(err, NoDataErr) {
+				return &Response{}, fmt.Errorf("search err: %w\n", err)
+			}
+			return NewResponse([]map[string]any{}, &param.Params{})
+		}
+		return idx.Search(params)
+	}
+
+	p, err := param.Parse(params)
+	if err != nil {
+		return nil, fmt.Errorf("search failed to parse %s: err %w\n", params, err)
+	}
+
+	q := p.Query
+	r, err := idx.Indexer.Search(q)
+	if err != nil {
+		return nil, fmt.Errorf("search '%s' failed: %w\n", q, err)
+	}
+
+	p = idx.Params
+	p.Query = q
+	res, err := NewResponse(r, p)
+	if err != nil {
+		return nil, fmt.Errorf("response failed with err: %w", err)
+	}
+	return res, nil
+}
+
+func (idx *Index) Has(key string) bool {
+	return idx.Params.Has(key)
+}
+
+func (idx *Index) FilterDataBySrchAttr() []map[string]any {
+	if len(idx.Params.SrchAttr) == 0 {
+		return idx.data
+	}
+	if idx.Params.SrchAttr[0] == "*" {
+		return idx.data
+	}
+
+	fields := idx.Params.SrchAttr
+
+	if idx.isMem {
+		fields = append(fields, idx.Params.Facets...)
+	}
+
+	return FilterDataByAttr(idx.data, fields)
+}
+
+func FilterDataByAttr(hits []map[string]any, fields []string) []map[string]any {
+	if len(fields) < 1 {
+		return hits
+	}
+	data := make([]map[string]any, len(hits))
+	for i, d := range hits {
+		data[i] = lo.PickByKeys(d, fields)
+	}
+	return data
+}
+
+func FilterDataByID(hits []map[string]any, uids []any, uid string) []map[string]any {
+	ids := cast.ToStringSlice(uids)
+
+	fn := func(hit map[string]any, idx int) bool {
+		if uid == "" {
+			return slices.Contains(ids, cast.ToString(idx))
+		}
+		for _, id := range ids {
+			if hi, ok := hit[uid]; ok {
+				return cast.ToString(hi) == id
 			}
 		}
-	}
-
-	return idx
-}
-
-func (idx *Index) Get(params string) *Response {
-	return idx.Search(params)
-}
-
-func (idx *Index) Post(params any) *Response {
-	p := ParseSearchParamsJSON(params)
-	return idx.Search(p)
-}
-
-func (idx *Index) Search(params string) *Response {
-	idx.res = idx.Bitmap()
-	idx.SetSearch(params)
-
-	query := idx.Query()
-	if query != "" {
-		switch idx.GetAnalyzer() {
-		case TextAnalyzer:
-			idx.res.And(idx.FullText(query))
-		case KeywordAnalyzer:
-			idx.res.And(idx.FuzzySearch(query))
-		}
-	}
-
-	res := idx.Response()
-
-	if !idx.Params.HasFilters() {
-		return res
-	}
-
-	filters := idx.Params.Get(FacetFilters)
-	return res.Filter(filters)
-}
-
-func (idx *Index) Sort() {
-	sort := idx.Params.Get(SortBy)
-	var sortType string
-	for _, sb := range idx.SortAttr() {
-		if t, found := strings.CutPrefix(sb, sort+":"); found {
-			sortType = t
-		}
-	}
-	switch sortType {
-	case "text":
-		sortDataByTextField(idx.Data, sort)
-	case "num":
-		sortDataByNumField(idx.Data, sort)
-	}
-	if idx.Params.Has(Order) {
-		if idx.Params.Get(Order) == "desc" {
-			slices.Reverse(idx.Data)
-		}
-	}
-}
-
-func (idx *Index) Response() *Response {
-	return NewResponse(idx.GetResults(), idx.GetParams())
-}
-
-func (idx *Index) GetParams() url.Values {
-	return idx.Values()
-}
-
-func (idx *Index) FullText(q string) *roaring.Bitmap {
-	var bits []*roaring.Bitmap
-	for _, field := range idx.SearchableFields() {
-		bits = append(bits, field.Filter(q))
-	}
-	return roaring.ParAnd(viper.GetInt("workers"), bits...)
-}
-
-func (idx *Index) FuzzySearch(q string) *roaring.Bitmap {
-	var bits []*roaring.Bitmap
-	for _, field := range idx.SearchableFields() {
-		bits = append(bits, field.Fuzzy(q))
-	}
-	res := roaring.ParAnd(viper.GetInt("workers"), bits...)
-	return res
-}
-
-func (idx Index) Bitmap() *roaring.Bitmap {
-	bits := roaring.New()
-	bits.AddRange(0, uint64(len(idx.Data)))
-	return bits
-}
-
-func (idx Index) HasResults() bool {
-	if idx.res == nil {
 		return false
 	}
-	if idx.res.IsEmpty() {
-		return false
-	}
-	return true
-}
 
-func (idx Index) GetResults() []map[string]any {
-	if idx.HasResults() {
-		return ItemsByBitmap(idx.Data, idx.res)
-	}
-	return []map[string]any{}
-}
+	f := lo.Filter(hits, fn)
 
-func ItemsByBitmap(data []map[string]any, bits *roaring.Bitmap) []map[string]any {
-	var res []map[string]any
-	bits.Iterate(func(x uint32) bool {
-		res = append(res, data[int(x)])
-		return true
-	})
-	return res
-}
-
-func (idx *Index) FilterID(ids ...int) *Response {
-	if !idx.HasResults() {
-		idx.res = roaring.New()
-	}
-	for _, id := range ids {
-		idx.res.AddInt(id)
-	}
-	return idx.Response()
-}
-
-func (idx *Index) HasData() bool {
-	return idx.Params.Has(DataFile) ||
-		idx.Params.Has(DataDir)
+	return f
 }
 
 func (idx *Index) GetData() error {
-	if !idx.HasData() {
-		return NoDataErr
-	}
-	var data []map[string]any
+
 	var err error
-	switch {
-	case idx.Params.Has(DataFile):
-		data, err = FileSrc(idx.GetSlice(DataFile)...)
-		idx.Settings.Del(DataFile)
-	case idx.Has(DataDir):
-		data, err = DirSrc(idx.Params.Get(DataDir))
-		idx.Settings.Del(DataDir)
-	}
+	idx.data, err = idx.Data.Decode()
 	if err != nil {
 		return err
 	}
-
-	idx.SetData(data)
 	return nil
-}
-
-func (idx *Index) SetData(data []map[string]any) *Index {
-	idx.Data = data
-	return idx.Index(data)
-}
-
-func GetDataFromQuery(q *url.Values) ([]map[string]any, error) {
-	var data []map[string]any
-	var err error
-	switch {
-	case q.Has(DataFile):
-		qu := *q
-		data, err = FileSrc(qu[DataFile]...)
-		q.Del(DataFile)
-	case q.Has(DataDir):
-		data, err = DirSrc(q.Get(DataDir))
-		q.Del(DataDir)
-	}
-	return data, err
-}
-
-func (idx *Index) GetField(attr string) *Field {
-	for _, f := range idx.fields {
-		if attr == f.Attribute {
-			return f
-		}
-	}
-	return &Field{Attribute: attr}
-}
-
-func (idx *Index) SearchableFields() map[string]*Field {
-	return idx.fields
-}
-
-func (idx *Index) UnmarshalJSON(d []byte) error {
-	un := make(map[string]json.RawMessage)
-	err := json.Unmarshal(d, &un)
-	if err != nil {
-		return err
-	}
-
-	if msg, ok := un[Query]; ok {
-		var q string
-		err := json.Unmarshal(msg, &q)
-		if err != nil {
-			return err
-		}
-		idx.Params.Settings = ParseQuery(q)
-	}
-
-	if msg, ok := un[Hits]; ok {
-		var data []map[string]any
-		err := json.Unmarshal(msg, &data)
-		if err != nil {
-			return err
-		}
-		idx.Index(data)
-	}
-
-	return nil
-}
-
-// String satisfies the fuzzy.Source interface.
-func (idx *Index) String(i int) string {
-	attr := idx.SrchAttr()
-	var str string
-	for _, a := range attr {
-		if v, ok := idx.Data[i][a]; ok {
-			str += cast.ToString(v)
-			str += " "
-		}
-	}
-	return str
-}
-
-// Len satisfies the fuzzy.Source interface.
-func (idx *Index) Len() int {
-	return len(idx.Data)
 }
 
 func exist(path string) bool {

@@ -1,3 +1,5 @@
+//go:build exclude
+
 package cmd
 
 import (
@@ -62,14 +64,14 @@ By default, results are printed to stdout as json.
 		res = idx.Search(vals.Encode())
 
 		if cmd.Flags().Changed(B.Long()) {
-			tui := ui.New(res.Index)
+			tui := ui.New(res.Idx)
 			res, err = tui.Run()
 			if err != nil {
 				log.Fatal(err)
 			}
 		} else {
 			if res != nil {
-				idx = res.Index
+				idx = res.Idx
 			}
 		}
 

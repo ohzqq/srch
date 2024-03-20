@@ -1,195 +1,126 @@
 package srch
 
 import (
-	"encoding/json"
 	"fmt"
-	"log"
-	"os"
-	"slices"
+	"net/http"
 
+	"github.com/go-http-utils/headers"
+	"github.com/ohzqq/srch/facet"
+	"github.com/ohzqq/srch/param"
 	"github.com/samber/lo"
 	"github.com/spf13/cast"
+	"github.com/spf13/viper"
 )
 
 type Response struct {
-	*Index
-	facets map[string]*Field
+	*param.Params
+
+	results []map[string]any
+
+	RawQuery    string           `json:"params"`
+	FacetFields []*facet.Field   `json:"facetFields"`
+	Facets      *facet.Facets    `json:"facets"`
+	Hits        []map[string]any `json:"hits"`
+	NbHits      int              `json:"nbHits"`
+	NbPages     int              `json:"nbPages"`
 }
 
-func NewResponse(data []map[string]any, vals any) *Response {
-	idx, err := New(vals)
-	if err != nil {
-		log.Fatal(err)
-	}
-	idx.Data = data
-	idx.res = idx.Bitmap()
-
-	r := &Response{
-		Index:  idx,
-		facets: idx.Params.Facets(),
+func NewResponse(hits []map[string]any, params *param.Params) (*Response, error) {
+	res := &Response{
+		results:  hits,
+		Params:   params,
+		RawQuery: params.Encode(),
 	}
 
-	r.calculateFacets()
+	if len(hits) == 0 {
+		return res, nil
+	}
 
-	return r
-}
-
-func (idx *Response) calculateFacets() {
-	for id, d := range idx.Data {
-		for _, attr := range idx.FacetAttr() {
-			if val, ok := d[attr]; ok {
-				idx.facets[attr].Add(val, []int{id})
-			}
+	if params.Has(param.Facets) {
+		facets, err := facet.New(hits, params)
+		if err != nil {
+			return nil, fmt.Errorf("response failed to calculate facets: %w\n", err)
 		}
-	}
-}
-
-func (idx *Response) Filter(q string) *Response {
-	filters, err := unmarshalFilter(q)
-	if err != nil {
-		return idx
+		res.FacetFields = facets.Fields
+		res.Facets = facets
+		res.results = res.FilterResults()
 	}
 
-	filtered, err := Filter(idx.res, idx.facets, filters)
-	if err != nil {
-		fmt.Printf("%+v\n", filters)
-		return idx
-	}
+	res.NbHits = res.nbHits()
+	res.calculatePagination()
+	res.Hits = res.visibleHits()
 
-	idx.res.And(filtered)
-	return idx.Response()
+	return res, nil
 }
 
-func (r *Response) MarshalJSON() ([]byte, error) {
-	return json.Marshal(r.StringMap())
+func (res *Response) Header() http.Header {
+	h := make(http.Header)
+	h.Set(headers.ContentType, param.NdJSON)
+
+	return h
 }
 
-func (r *Response) NbHits() int {
-	if r.HasResults() {
-		return int(r.res.GetCardinality())
-	}
-	return int(r.Index.Bitmap().GetCardinality())
-}
-
-func (idx *Response) Response() *Response {
-	res := NewResponse(idx.GetResults(), idx.GetParams())
+func (res *Response) calculatePagination() *Response {
+	res.HitsPerPage = res.hitsPerPage()
+	res.Page = res.page()
+	res.NbPages = res.nbPages()
 	return res
 }
 
-func (r *Response) StringMap() map[string]any {
+func (res *Response) nbHits() int {
+	return len(res.results)
+}
 
-	m := map[string]any{
-		"processingTimeMS": 1,
-		"params":           r.Params,
-		Query:              r.Params.Query(),
-		ParamFacets:        r.Facets(),
+func (res *Response) nbPages() int {
+	hpp := res.HitsPerPage
+
+	nb := res.NbHits / hpp
+	if r := res.NbHits % hpp; r > 0 {
+		nb++
 	}
 
-	page := r.Page()
-	hpp := r.HitsPerPage()
-	nbh := r.NbHits()
-	m[HitsPerPage] = hpp
-	m[NbHits] = nbh
-	m[Page] = page
+	return nb
+}
 
-	if nbh > 0 {
-		m["nbPages"] = nbh/hpp + 1
+func (res *Response) hitsPerPage() int {
+	if res.Params.Has(param.HitsPerPage) {
+		return res.Params.HitsPerPage
+	}
+	return viper.GetInt("hitsPerPage")
+}
+
+func (res *Response) page() int {
+	if !res.Params.Has(param.Page) {
+		return 0
+	}
+	return res.Params.Page
+}
+
+func (res *Response) visibleHits() []map[string]any {
+	if res.NbHits < res.HitsPerPage {
+		return res.results
 	}
 
-	m[Hits] = r.VisibleHits(page, nbh, hpp)
-
-	return m
-}
-
-func (idx *Response) GetFacet(attr string) *Field {
-	if f, ok := idx.facets[attr]; ok {
-		return f
+	if nb := res.NbPages; res.Page >= nb {
+		return []map[string]any{}
 	}
-	return &Field{Attribute: attr}
+
+	return lo.Subset(res.results, res.Page*res.HitsPerPage, uint(res.HitsPerPage))
 }
 
-// HasFacets returns true if facets are configured.
-func (idx *Response) HasFacets() bool {
-	return len(idx.facets) > 0
-}
-
-func (idx *Response) Facets() map[string]*Field {
-	return idx.facets
-}
-
-func (idx *Response) FacetLabels() []string {
-	facets := lo.Keys(idx.facets)
-	slices.Sort(facets)
-	return facets
-}
-
-func (r *Response) VisibleHits(page, nbh, hpp int) []map[string]any {
-	if nbh < hpp {
-		return r.Data
+func (res *Response) FilterResults() []map[string]any {
+	if res.Facets == nil {
+		return res.results
 	}
-	b := hpp * page
-	e := b + hpp
-	return lo.Slice(r.Data, b, e)
-}
 
-// JSON marshals an Index to json.
-func (idx *Response) JSON() []byte {
-	d, err := json.Marshal(idx)
-	if err != nil {
-		return []byte{}
-	}
-	return d
-}
-
-// Print writes Index json to stdout.
-func (idx *Response) Print() {
-	enc := json.NewEncoder(os.Stdout)
-	err := enc.Encode(idx)
-	if err != nil {
-		log.Fatal(err)
-	}
-}
-
-// PrettyPrint writes Index indented json to stdout.
-func (idx *Response) PrettyPrint() {
-	enc := json.NewEncoder(os.Stdout)
-	enc.SetIndent("", "  ")
-	err := enc.Encode(idx)
-	if err != nil {
-		log.Fatal(err)
-	}
-}
-
-func sortDataByTextField(data []map[string]any, field string) []map[string]any {
-	fn := func(a, b map[string]any) int {
-		x := cast.ToString(a[field])
-		y := cast.ToString(b[field])
-		switch {
-		case x > y:
-			return 1
-		case x == y:
-			return 0
-		default:
-			return -1
+	var hits []map[string]any
+	for idx, d := range res.results {
+		if i, ok := d[res.UID]; ok {
+			idx = cast.ToInt(i)
+		}
+		if res.Facets.Bitmap().ContainsInt(idx) {
+			hits = append(hits, d)
 		}
 	}
-	slices.SortFunc(data, fn)
-	return data
-}
-
-func sortDataByNumField(data []map[string]any, field string) []map[string]any {
-	fn := func(a, b map[string]any) int {
-		x := cast.ToInt(a[field])
-		y := cast.ToInt(b[field])
-		switch {
-		case x > y:
-			return 1
-		case x == y:
-			return 0
-		default:
-			return -1
-		}
-	}
-	slices.SortFunc(data, fn)
-	return data
+	return hits
 }

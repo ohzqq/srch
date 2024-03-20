@@ -1,3 +1,5 @@
+//go:build exclude
+
 package ui
 
 import (
@@ -82,11 +84,11 @@ func (m *Idx) Update(msg tea.Msg) tea.Cmd {
 				sel := m.Model.ToggledItems()
 
 				if len(sel) < 1 {
-					m.Props().SetSelections(m.Index.Response())
+					m.Props().SetSelections(m.Idx.Response())
 					return reactea.Destroy
 				}
 
-				res := m.Index.FilterID(sel...)
+				res := m.Idx.FilterID(sel...)
 				//idx, err := srch.New(m.Index.Params.Values())
 				//if err != nil {
 				//idx = m.Index

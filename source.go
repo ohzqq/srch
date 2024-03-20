@@ -4,6 +4,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"io"
+	"io/fs"
+	"mime"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -34,7 +37,7 @@ func FileSrc(files ...string) ([]map[string]any, error) {
 
 // ReaderSrc takes an io.Reader of a json stream.
 func ReaderSrc(r io.Reader) ([]map[string]any, error) {
-	return DecodeData(r)
+	return DecodeDataO(r)
 }
 
 // DirSrc parses json files from a directory.
@@ -51,16 +54,16 @@ func DirSrc(dir string) ([]map[string]any, error) {
 
 // StringSrc parses raw json formatted data.
 func ByteSrc(d []byte) ([]map[string]any, error) {
-	return DecodeData(bytes.NewBuffer(d))
+	return DecodeDataO(bytes.NewBuffer(d))
 }
 
 // StringSrc parses index data from a json formatted string.
 func StringSrc(d string) ([]map[string]any, error) {
-	return DecodeData(bytes.NewBufferString(d))
+	return DecodeDataO(bytes.NewBufferString(d))
 }
 
-// DecodeData decodes data from a io.Reader.
-func DecodeData(r io.Reader) ([]map[string]any, error) {
+// DecodeDataO decodes data from a io.Reader.
+func DecodeDataO(r io.Reader) ([]map[string]any, error) {
 	var data []map[string]any
 	err := json.NewDecoder(r).Decode(&data)
 	if err != nil {
@@ -75,5 +78,107 @@ func dataFromFile(d string) ([]map[string]any, error) {
 		return nil, err
 	}
 	defer data.Close()
-	return DecodeData(data)
+	return DecodeDataO(data)
+}
+
+func GetData(data *[]map[string]any, paths ...string) error {
+	wfn := func(path string, info fs.DirEntry, err error) error {
+		f, err := os.Open(path)
+		if err != nil {
+			return err
+		}
+		defer f.Close()
+
+		name := info.Name()
+		ct := mime.TypeByExtension(filepath.Ext(name))
+		if b, _, ok := strings.Cut(ct, ";"); ok {
+			ct = b
+		}
+
+		switch ct {
+		case "application/x-ndjson":
+			return DecodeNDJSON(f, data)
+		case "application/json":
+			return DecodeJSON(f, data)
+		}
+		return nil
+	}
+	for _, p := range paths {
+		u, err := url.Parse(p)
+		if err != nil {
+			break
+		}
+		if s := u.Scheme; s == "" || s == "file" {
+			p := strings.TrimPrefix(p, "file://")
+			return filepath.WalkDir(p, wfn)
+		}
+	}
+	return nil
+}
+
+func GetFSData(data *[]map[string]any, paths ...string) error {
+	wfn := func(path string, info fs.DirEntry, err error) error {
+		f, err := os.Open(path)
+		if err != nil {
+			return err
+		}
+		defer f.Close()
+
+		name := info.Name()
+		ct := mime.TypeByExtension(filepath.Ext(name))
+		if b, _, ok := strings.Cut(ct, ";"); ok {
+			ct = b
+		}
+
+		switch ct {
+		case "application/x-ndjson":
+			return DecodeNDJSON(f, data)
+		case "application/json":
+			return DecodeJSON(f, data)
+		}
+		return nil
+	}
+	for _, p := range paths {
+		return filepath.WalkDir(p, wfn)
+	}
+	return nil
+}
+
+func DecodeData(r io.Reader, ct string, data *[]map[string]any) error {
+	switch ct {
+	case "application/x-ndjson":
+		return DecodeNDJSON(r, data)
+	case "application/json":
+		return DecodeJSON(r, data)
+	}
+	return nil
+}
+
+// DecodeNDJSON decodes data from a io.Reader.
+func DecodeNDJSON(r io.Reader, data *[]map[string]any) error {
+	dec := json.NewDecoder(r)
+	for {
+		m := make(map[string]any)
+		if err := dec.Decode(&m); err == io.EOF {
+			break
+		} else if err != nil {
+			return err
+		}
+		*data = append(*data, m)
+	}
+	return nil
+}
+
+func DecodeJSON(r io.Reader, data *[]map[string]any) error {
+	dec := json.NewDecoder(r)
+	for {
+		m := []map[string]any{}
+		if err := dec.Decode(&m); err == io.EOF {
+			break
+		} else if err != nil {
+			return err
+		}
+		*data = append(*data, m...)
+	}
+	return nil
 }
