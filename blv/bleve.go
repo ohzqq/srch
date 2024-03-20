@@ -18,7 +18,7 @@ type Index struct {
 func Open(params *param.Params) *Index {
 	blv, err := bleve.Open(params.Path)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("%v at %s\n", err, params.Path)
 	}
 	defer blv.Close()
 
@@ -104,6 +104,8 @@ func (idx *Index) Index(uid string, data map[string]any) error {
 		return err
 	}
 	defer blv.Close()
+
+	fmt.Printf("indexing %v\n", uid)
 
 	return blv.Index(uid, data)
 }

@@ -14,13 +14,10 @@ import (
 	"github.com/ohzqq/srch/param"
 	"github.com/samber/lo"
 	"github.com/spf13/cast"
-	"github.com/spf13/viper"
 )
 
 func init() {
 	log.SetFlags(log.Lshortfile)
-	viper.SetDefault("workers", 1)
-	viper.SetDefault(param.HitsPerPage, 25)
 }
 
 type Indexer interface {
@@ -39,9 +36,8 @@ type Index struct {
 	Indexer
 	*data.Data
 
-	data   []map[string]any
+	Docs   []map[string]any
 	res    *roaring.Bitmap
-	isMem  bool
 	Params *param.Params
 }
 
@@ -65,7 +61,7 @@ func New(settings string) (*Index, error) {
 
 	switch idx.Data.Route {
 	case param.Blv:
-		idx.isMem = true
+		idx.Params.SrchAttr = []string{"*"}
 		idx.Indexer = blv.Open(idx.Params)
 		return idx, nil
 	case param.Dir, param.File:
@@ -74,7 +70,7 @@ func New(settings string) (*Index, error) {
 			return nil, err
 		}
 		idx.Indexer = fuzz.Open(idx.Params)
-		idx.Batch(idx.data)
+		idx.Batch(idx.Docs)
 		return idx, nil
 	}
 
@@ -121,19 +117,15 @@ func (idx *Index) Has(key string) bool {
 
 func (idx *Index) FilterDataBySrchAttr() []map[string]any {
 	if len(idx.Params.SrchAttr) == 0 {
-		return idx.data
+		return idx.Docs
 	}
 	if idx.Params.SrchAttr[0] == "*" {
-		return idx.data
+		return idx.Docs
 	}
 
 	fields := idx.Params.SrchAttr
 
-	if idx.isMem {
-		fields = append(fields, idx.Params.Facets...)
-	}
-
-	return FilterDataByAttr(idx.data, fields)
+	return FilterDataByAttr(idx.Docs, fields)
 }
 
 func FilterDataByAttr(hits []map[string]any, fields []string) []map[string]any {
@@ -168,9 +160,8 @@ func FilterDataByID(hits []map[string]any, uids []any, uid string) []map[string]
 }
 
 func (idx *Index) GetData() error {
-
 	var err error
-	idx.data, err = idx.Data.Decode()
+	idx.Docs, err = idx.Data.Decode()
 	if err != nil {
 		return err
 	}

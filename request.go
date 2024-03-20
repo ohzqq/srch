@@ -2,9 +2,12 @@ package srch
 
 import (
 	"net/url"
+	"path/filepath"
+	"strings"
 
 	"github.com/ohzqq/srch/param"
 	"github.com/samber/lo"
+	"github.com/spf13/cast"
 	"github.com/spf13/viper"
 )
 
@@ -31,9 +34,9 @@ func (r *Request) Parse(params string) (*Request, error) {
 	return ParseRequest(params)
 }
 
-func (r *Request) SetValues(vals url.Values) (*Request, error) {
-	err := r.Params.Set(vals)
-	return r, err
+func (r *Request) SetValues(vals url.Values) *Request {
+	r.Params.Set(vals)
+	return r
 }
 
 func (p *Request) SetRoute(path string) *Request {
@@ -130,39 +133,35 @@ func (r *Request) HitsPerPage(p int) *Request {
 	return r
 }
 
+func GetViperParams() *Request {
+	vals := viper.AllSettings()
+	//fmt.Printf("%#v \n", vals)
+
+	params := make(url.Values)
+	for key, val := range cast.ToStringMapStringSlice(vals) {
+		for _, k := range param.SettingParams {
+			if key == strings.ToLower(k) {
+				params[k] = val
+			}
+		}
+		for _, k := range param.SearchParams {
+			if key == strings.ToLower(k) {
+				params[k] = val
+			}
+		}
+	}
+
+	req := NewRequest().SetValues(params)
+
+	for _, key := range param.Routes {
+		if viper.IsSet(strings.ToLower(key)) {
+			val := viper.GetStringSlice(key)
+			req.SetRoute(filepath.Join(key, val[0]))
+		}
+	}
+
+	return req
+}
+
 func init() {
-	for _, key := range param.SettingParams {
-		switch key {
-		case param.SrchAttr:
-			viper.SetDefault(key, []string{"title"})
-		case param.FacetAttr:
-			viper.SetDefault(key, []string{"tags"})
-		case param.SortAttr:
-			viper.SetDefault(key, []string{"title:desc"})
-		case param.DefaultField:
-			viper.SetDefault(key, "title")
-		case param.UID:
-			viper.SetDefault(key, "id")
-		}
-	}
-
-	for _, key := range param.SearchParams {
-		switch key {
-		case param.SortFacetsBy:
-			viper.SetDefault(key, "tags:count:desc")
-		case param.Facets:
-			viper.SetDefault(key, []string{"tags"})
-		case param.RtrvAttr:
-			viper.SetDefault(key, "*")
-		case param.Page:
-			viper.SetDefault(key, 0)
-		case param.HitsPerPage:
-			viper.SetDefault(key, -1)
-		case param.SortBy:
-			viper.SetDefault(key, "title")
-		case param.Order:
-			viper.SetDefault(key, "desc")
-		}
-	}
-
 }
