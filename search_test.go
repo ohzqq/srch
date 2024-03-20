@@ -5,8 +5,10 @@ import (
 	"slices"
 	"testing"
 
+	"github.com/ohzqq/srch/param"
 	"github.com/samber/lo"
 	"github.com/spf13/cast"
+	"github.com/spf13/viper"
 )
 
 var bleveSearchTests = []string{
@@ -254,6 +256,13 @@ func TestNewRequest(t *testing.T) {
 		//}
 		//println(string(d))
 	}
+}
+
+func TestFlags(t *testing.T) {
+	viper.Set("facets", []string{"tags,authors,narrators,series"})
+	f := viper.GetStringSlice("facets")
+	f = param.ParseQueryStrings(f)
+	fmt.Printf("flags %#v\n", f)
 }
 
 func searchErr(got int, want int, q string) error {

@@ -1,5 +1,3 @@
-//go:build exclude
-
 package cmd
 
 import (
@@ -13,6 +11,10 @@ import (
 )
 
 type flag int
+
+type flags struct {
+	set *pflag.FlagSet
+}
 
 //go:generate stringer -type flag -linecomment
 const (
@@ -31,6 +33,15 @@ const (
 	W             // workers
 	U             // ui
 )
+
+func NewFlags(fl *pflag.FlagSet) *flags {
+	return &flags{
+		flags: fl,
+	}
+}
+
+func FlagsToRequest(flags *pflag.FlagSet) string {
+}
 
 func (f flag) Short() string {
 	return string(f.String()[0])

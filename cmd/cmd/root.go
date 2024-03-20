@@ -1,5 +1,3 @@
-//go:build exclude
-
 package cmd
 
 import (
@@ -97,5 +95,6 @@ func init() {
 }
 
 func initConfig() {
+
 	viper.AutomaticEnv()
 }

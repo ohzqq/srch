@@ -142,10 +142,6 @@ func (s *Params) Set(v url.Values) error {
 			s.DefaultField = v.Get(key)
 		case UID:
 			s.UID = v.Get(key)
-		}
-	}
-	for _, key := range paramsData {
-		switch key {
 		case Format:
 			if v.Has(key) {
 				s.Format = v.Get(key)
@@ -246,13 +242,6 @@ func (s *Params) Values() url.Values {
 			vals.Set(key, s.DefaultField)
 		case UID:
 			vals.Set(key, s.UID)
-		}
-	}
-	for _, key := range paramsData {
-		if !s.Has(key) {
-			continue
-		}
-		switch key {
 		case Format:
 			vals.Set(key, s.Format)
 		}
@@ -331,6 +320,19 @@ func GetQueryStringSlice(key string, q url.Values) []string {
 			for _, v := range strings.Split(val, ",") {
 				vals = append(vals, v)
 			}
+		}
+	}
+	return vals
+}
+
+func ParseQueryStrings(q []string) []string {
+	var vals []string
+	for _, val := range q {
+		if val == "" {
+			break
+		}
+		for _, v := range strings.Split(val, ",") {
+			vals = append(vals, v)
 		}
 	}
 	return vals

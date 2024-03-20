@@ -22,10 +22,6 @@ const (
 	SortAttr  = `sortableAttributes`
 
 	// Cfg
-	FullText     = `fullText`
-	BlvPath      = `fullText`
-	DataDir      = `dataDir`
-	DataFile     = `dataFile`
 	Format       = `format`
 	DefaultField = `title`
 	UID          = `uid`
@@ -46,13 +42,6 @@ var paramsSettings = []string{
 	SortAttr,
 	UID,
 	DefaultField,
-}
-
-var paramsData = []string{
-	DataDir,
-	DataFile,
-	FullText,
-	BlvPath,
 	Format,
 }
 
