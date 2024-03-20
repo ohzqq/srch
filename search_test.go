@@ -5,6 +5,7 @@ import (
 	"slices"
 	"testing"
 
+	"github.com/gobuffalo/flect"
 	"github.com/ohzqq/srch/param"
 	"github.com/samber/lo"
 	"github.com/spf13/cast"
@@ -271,6 +272,29 @@ func TestFlags(t *testing.T) {
 	err = searchErr(res.NbHits, numBooks, res.Params.Query)
 	if err != nil {
 		t.Error(err)
+	}
+
+	for _, key := range param.SettingParams {
+		if key == param.UID {
+			long := flect.New(key).Dasherize()
+			short := string(key[0])
+			fmt.Printf("long %s short %s\n", long, short)
+		}
+	}
+
+	for _, key := range param.SearchParams {
+		if key == param.UID {
+			long := flect.New(key).Dasherize()
+			short := string(key[0])
+			fmt.Printf("long %s short %s\n", long, short)
+		}
+	}
+	for _, key := range param.Routes {
+		if key == param.UID {
+			long := flect.New(key).Dasherize()
+			short := string(key[0])
+			fmt.Printf("long %s short %s\n", long, short)
+		}
 	}
 }
 
