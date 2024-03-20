@@ -2,10 +2,7 @@ package cmd
 
 import (
 	"log"
-	"path/filepath"
 
-	"github.com/ohzqq/srch"
-	"github.com/ohzqq/srch/param"
 	"github.com/spf13/cobra"
 )
 
@@ -18,20 +15,12 @@ var batchCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		path := args[0]
 
-		req := srch.GetViperParams()
-
-		idx, err := srch.New(req.String())
-		if err != nil {
-			println(req.String())
-			log.Fatal(err)
-		}
-
-		bi, err := srch.New(filepath.Join(param.Blv, path))
+		idx, docs, err := getIdxAndData(cmd, path)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		err = bi.Batch(idx.Docs)
+		err = idx.Batch(docs)
 		if err != nil {
 			log.Fatal(err)
 		}

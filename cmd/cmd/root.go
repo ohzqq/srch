@@ -29,16 +29,11 @@ By default, results are printed to stdout as json.
 	Run: func(cmd *cobra.Command, args []string) {
 		log.SetFlags(log.Lshortfile)
 
-		//b, err := cmd.Flags().GetStringSlice("blv")
-		//if err != nil {
-		//log.Fatal(err)
-		//}
-		//fmt.Printf("viper %#v\n", b)
-
 		req := srch.GetViperParams()
-		println(req.String())
+
 		idx, err := srch.New(req.String())
 		if err != nil {
+			println(req.String())
 			log.Fatal(err)
 		}
 
@@ -54,18 +49,6 @@ By default, results are printed to stdout as json.
 		}
 
 		println(string(d))
-		//var (
-		//  err  error
-		//  data []map[string]any
-		//  res  *srch.Response
-		//)
-
-		//if p, err := cmd.Flags().GetBool("pretty"); err == nil && p {
-		//  res.PrettyPrint()
-		//} else {
-		//  res.Print()
-		//}
-
 	},
 }
 

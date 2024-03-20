@@ -2,35 +2,69 @@ package cmd
 
 import (
 	"fmt"
+	"path/filepath"
 
+	"github.com/ohzqq/srch"
+	"github.com/ohzqq/srch/data"
+	"github.com/ohzqq/srch/param"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 // blvCmd represents the blv command
 var blvCmd = &cobra.Command{
 	Use:   "blv",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "work with blv indexes",
+	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("blv called")
 	},
 }
 
+func getIdxAndData(cmd *cobra.Command, path string) (*srch.Index, []map[string]any, error) {
+	req := srch.GetViperParams()
+	params, err := param.Parse(req.String())
+	if err != nil {
+		return nil, nil, fmt.Errorf("%s failed to parse err: %w\n", err)
+	}
+
+	docs, err := getData(cmd, params)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to get data err: %w\n", err)
+	}
+
+	idx, err := srch.New(filepath.Join(param.Blv, path))
+	return idx, docs, err
+}
+
+func getData(cmd *cobra.Command, params *param.Params) ([]map[string]any, error) {
+	var docs []map[string]any
+	var err error
+
+	var dataFile bool
+	for _, r := range param.Routes {
+		if viper.IsSet(r) {
+			dataFile = true
+		}
+	}
+
+	if dataFile {
+		d := data.New(params.Route, params.Path)
+		docs, err = d.Decode()
+		if err != nil {
+			return nil, fmt.Errorf("failed to decode at %s data err: %w\n", params.Path, err)
+		}
+	} else {
+		r := cmd.InOrStdin()
+		err = data.DecodeNDJSON(r, &docs)
+		if err != nil {
+			return nil, fmt.Errorf("failed to decode data from stdin err: %w\n", err)
+		}
+	}
+
+	return docs, nil
+}
+
 func init() {
 	rootCmd.AddCommand(blvCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// blvCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// blvCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
