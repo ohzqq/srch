@@ -106,6 +106,8 @@ func defineFlags() {
 			usage = `list of fields to retrieve for display, default: all`
 		case param.Page:
 			usage = `page number for paginated results, default: 0`
+		case param.Query:
+			usage = `query for search`
 		case param.HitsPerPage:
 			short = "l"
 			usage = `number of hits to return, default: all`

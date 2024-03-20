@@ -42,12 +42,11 @@ By default, results are printed to stdout as json.
 			log.Fatal(err)
 		}
 
-		req.Query("fish")
-
 		res, err := idx.Search(req.String())
 		if err != nil {
 			log.Fatal(err)
 		}
+		println(res.NbHits)
 
 		d, err := json.Marshal(res)
 		if err != nil {

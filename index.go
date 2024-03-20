@@ -62,6 +62,7 @@ func New(settings string) (*Index, error) {
 
 	switch idx.Data.Route {
 	case param.Blv:
+		idx.Params.SrchAttr = []string{"*"}
 		idx.isMem = true
 		idx.Indexer = blv.Open(idx.Params)
 		return idx, nil
