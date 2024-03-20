@@ -62,6 +62,7 @@ func GetViperRequest() *srch.Request {
 			req.Format(val)
 		}
 	}
+
 	for _, key := range param.SearchParams {
 		switch key {
 		case param.Route:
