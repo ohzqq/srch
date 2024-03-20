@@ -24,7 +24,7 @@ func TestNewBleveIndex(t *testing.T) {
 		t.Error(err)
 	}
 
-	_, err = New(params.SrchCfg)
+	_, err = New(params)
 	if err != nil {
 		t.Error(err)
 	}
@@ -39,7 +39,7 @@ func TestBatchIndex(t *testing.T) {
 		t.Error(err)
 	}
 
-	idx := Open(params.SrchCfg)
+	idx := Open(params)
 	err = idx.Batch(books)
 	if err != nil {
 		t.Error(err)
@@ -56,7 +56,7 @@ func TestOpenIndex(t *testing.T) {
 		t.Error(err)
 	}
 
-	idx := Open(params.SrchCfg)
+	idx := Open(params)
 	docs := idx.Len()
 	if docs != 7252 {
 		t.Errorf("got %d docs, expected %d\n", docs, 7252)
@@ -69,7 +69,7 @@ func TestBleveSearch(t *testing.T) {
 		t.Error(err)
 	}
 
-	idx := Open(params.SrchCfg)
+	idx := Open(params)
 	bits, err := idx.Search("fish")
 	if err != nil {
 		t.Error(err)

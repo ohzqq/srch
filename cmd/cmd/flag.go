@@ -1,14 +1,8 @@
 package cmd
 
 import (
-	"net/url"
-	"path/filepath"
-	"strings"
-
 	"github.com/gobuffalo/flect"
-	"github.com/ohzqq/srch"
 	"github.com/ohzqq/srch/param"
-	"github.com/spf13/cast"
 	"github.com/spf13/viper"
 )
 
@@ -37,28 +31,6 @@ func (f flag) Short() string {
 
 func (f flag) Long() string {
 	return f.String()
-}
-
-func (f flag) Param() string {
-	switch f {
-	case And:
-	case Or:
-	case Blv:
-	case Dir:
-	case Facets:
-		return param.FacetAttr
-	case Index:
-	case JSON:
-	case Params:
-	case Query:
-		return param.Query
-	case Refine:
-	case Search:
-		return param.SrchAttr
-	case Workers:
-	case UI:
-	}
-	return ""
 }
 
 var allFlags = []flag{
@@ -161,37 +133,4 @@ func defineFlag(long, short, usage string) {
 		long,
 		rootCmd.PersistentFlags().Lookup(long),
 	)
-}
-
-func init() {
-}
-
-func GetViperParams() *srch.Request {
-	vals := viper.AllSettings()
-	params := make(url.Values)
-	for key, val := range cast.ToStringMapStringSlice(vals) {
-		for _, k := range param.SettingParams {
-			if key == strings.ToLower(k) {
-				params[k] = val
-			}
-		}
-		for _, k := range param.SearchParams {
-			if key == strings.ToLower(k) {
-				params[k] = val
-			}
-		}
-	}
-
-	req := srch.NewRequest().SetValues(params)
-
-	for _, key := range param.Routes {
-		if viper.IsSet(key) {
-			println("route is set")
-			val := viper.GetString(key)
-			println(filepath.Join(key, val))
-			req.SetRoute(filepath.Join(key, val))
-		}
-	}
-
-	return req
 }

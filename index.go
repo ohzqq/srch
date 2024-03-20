@@ -38,7 +38,6 @@ type Index struct {
 
 	data   []map[string]any
 	res    *roaring.Bitmap
-	isMem  bool
 	Params *param.Params
 }
 
@@ -63,7 +62,6 @@ func New(settings string) (*Index, error) {
 	switch idx.Data.Route {
 	case param.Blv:
 		idx.Params.SrchAttr = []string{"*"}
-		idx.isMem = true
 		idx.Indexer = blv.Open(idx.Params)
 		return idx, nil
 	case param.Dir, param.File:
@@ -126,10 +124,6 @@ func (idx *Index) FilterDataBySrchAttr() []map[string]any {
 	}
 
 	fields := idx.Params.SrchAttr
-
-	if idx.isMem {
-		fields = append(fields, idx.Params.Facets...)
-	}
 
 	return FilterDataByAttr(idx.data, fields)
 }
