@@ -95,6 +95,5 @@ func init() {
 }
 
 func initConfig() {
-
 	viper.AutomaticEnv()
 }

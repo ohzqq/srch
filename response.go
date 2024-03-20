@@ -97,7 +97,8 @@ func (res *Response) page() int {
 }
 
 func (res *Response) visibleHits() []map[string]any {
-	if res.NbHits < res.HitsPerPage {
+	if res.HitsPerPage == -1 ||
+		res.NbHits < res.HitsPerPage {
 		return res.results
 	}
 

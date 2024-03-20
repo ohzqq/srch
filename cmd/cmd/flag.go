@@ -40,6 +40,67 @@ func NewFlags(fl *pflag.FlagSet) *flags {
 	}
 }
 
+func GetViperRequest() *srch.Request {
+	req := srch.NewRequest()
+	for _, key := range param.SettingParams {
+		switch key {
+		case param.SrchAttr:
+			val := viper.GetStringSlice(key)
+			req.SrchAttr(val...)
+		case param.FacetAttr:
+			val := viper.GetStringSlice(key)
+			req.SrchAttr(val...)
+		case param.SortAttr:
+			val := viper.GetStringSlice(key)
+			req.SrchAttr(val...)
+		case param.UID:
+			val := viper.GetString(key)
+			req.UID(val)
+		case param.Format:
+			val := viper.GetString(key)
+			req.Format(val)
+		}
+	}
+	for _, key := range param.SearchParams {
+		switch key {
+		case param.SortFacetsBy:
+			val := viper.GetString(key)
+			req.SortFacetsBy(val)
+		case param.Facets:
+			val := viper.GetStringSlice(key)
+			req.Facets(val...)
+		case param.Filters:
+			val := viper.GetString(key)
+			req.Filters(val)
+		case "or":
+			val := viper.GetStringSlice("or")
+			req.OrFilter(val...)
+		case "and":
+			val := viper.GetStringSlice("and")
+			req.AndFilter(val...)
+		case param.RtrvAttr:
+			val := viper.GetStringSlice(key)
+			req.RtrvAttr(val...)
+		case param.Page:
+			val := viper.GetInt(key)
+			req.Page(val)
+		case param.HitsPerPage:
+			val := viper.GetInt(key)
+			req.HitsPerPage(val)
+		case param.Query:
+			val := viper.GetString(key)
+			req.Query(val)
+		case param.SortBy:
+			val := viper.GetString(key)
+			req.SortBy(val)
+		case param.Order:
+			val := viper.GetString(key)
+			req.Order(val)
+		}
+	}
+	return req
+}
+
 func FlagsToRequest(flags *pflag.FlagSet) string {
 }
 

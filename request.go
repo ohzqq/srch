@@ -5,6 +5,7 @@ import (
 
 	"github.com/ohzqq/srch/param"
 	"github.com/samber/lo"
+	"github.com/spf13/viper"
 )
 
 type Request struct {
@@ -56,6 +57,11 @@ func (r *Request) SortAttr(attr ...string) *Request {
 	return r
 }
 
+func (r *Request) RtrvAttr(attr ...string) *Request {
+	//r.Params.RtrvAttr = attr
+	return r
+}
+
 func (r *Request) Facets(attr ...string) *Request {
 	r.Params.Facets = attr
 	return r
@@ -99,6 +105,11 @@ func (r *Request) Order(val string) *Request {
 	return r
 }
 
+func (r *Request) Format(val string) *Request {
+	r.Params.Format = val
+	return r
+}
+
 func (r *Request) DefaultField(val string) *Request {
 	r.Params.DefaultField = val
 	return r
@@ -117,4 +128,41 @@ func (r *Request) Page(p int) *Request {
 func (r *Request) HitsPerPage(p int) *Request {
 	r.Params.HitsPerPage = p
 	return r
+}
+
+func init() {
+	for _, key := range param.SettingParams {
+		switch key {
+		case param.SrchAttr:
+			viper.SetDefault(key, []string{"title"})
+		case param.FacetAttr:
+			viper.SetDefault(key, []string{"tags"})
+		case param.SortAttr:
+			viper.SetDefault(key, []string{"title:desc"})
+		case param.DefaultField:
+			viper.SetDefault(key, "title")
+		case param.UID:
+			viper.SetDefault(key, "id")
+		}
+	}
+
+	for _, key := range param.SearchParams {
+		switch key {
+		case param.SortFacetsBy:
+			viper.SetDefault(key, "tags:count:desc")
+		case param.Facets:
+			viper.SetDefault(key, []string{"tags"})
+		case param.RtrvAttr:
+			viper.SetDefault(key, "*")
+		case param.Page:
+			viper.SetDefault(key, 0)
+		case param.HitsPerPage:
+			viper.SetDefault(key, -1)
+		case param.SortBy:
+			viper.SetDefault(key, "title")
+		case param.Order:
+			viper.SetDefault(key, "desc")
+		}
+	}
+
 }

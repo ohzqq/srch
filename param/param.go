@@ -29,13 +29,13 @@ type Params struct {
 	UID          string   `query:"uid,omitempty" json:"uid,omitempty"`
 
 	// Search
-	Hits                 int      `query:"hits,omitempty" json:"hits,omitempty"`
-	AttributesToRetrieve []string `query:"attributesToRetrieve,omitempty" json:"attributesToRetrieve,omitempty"`
-	Page                 int      `query:"page,omitempty" json:"page,omitempty"`
-	HitsPerPage          int      `query:"hitsPerPage,omitempty" json:"hitsPerPage,omitempty"`
-	Query                string   `query:"query,omitempty" json:"query,omitempty"`
-	SortBy               string   `query:"sortBy,omitempty" json:"sortBy,omitempty"`
-	Order                string   `query:"order,omitempty" json:"order,omitempty"`
+	Hits        int      `query:"hits,omitempty" json:"hits,omitempty"`
+	RtrvAttr    []string `query:"attributesToRetrieve,omitempty" json:"attributesToRetrieve,omitempty"`
+	Page        int      `query:"page,omitempty" json:"page,omitempty"`
+	HitsPerPage int      `query:"hitsPerPage,omitempty" json:"hitsPerPage,omitempty"`
+	Query       string   `query:"query,omitempty" json:"query,omitempty"`
+	SortBy      string   `query:"sortBy,omitempty" json:"sortBy,omitempty"`
+	Order       string   `query:"order,omitempty" json:"order,omitempty"`
 	// Facets
 	Facets       []string `query:"facets,omitempty" json:"facets,omitempty"`
 	Filters      string   `query:"filters,omitempty" json:"filters,omitempty"`
@@ -83,7 +83,7 @@ func Parse(params string) (*Params, error) {
 
 func (p Params) Search() url.Values {
 	vals := make(url.Values)
-	for _, key := range paramsSearch {
+	for _, key := range SearchParams {
 		q := p.URL.Query()
 		if q.Has(key) {
 			vals[key] = q[key]
@@ -94,7 +94,7 @@ func (p Params) Search() url.Values {
 
 func (p Params) Index() url.Values {
 	vals := make(url.Values)
-	for _, key := range paramsSettings {
+	for _, key := range SettingParams {
 		q := p.URL.Query()
 		if q.Has(key) {
 			vals[key] = q[key]
@@ -130,7 +130,7 @@ func parseRoute(path string) (string, string) {
 }
 
 func (s *Params) Set(v url.Values) error {
-	for _, key := range paramsSettings {
+	for _, key := range SettingParams {
 		switch key {
 		case SrchAttr:
 			s.SrchAttr = parseSrchAttr(v)
@@ -148,7 +148,7 @@ func (s *Params) Set(v url.Values) error {
 			}
 		}
 	}
-	for _, key := range paramsSearch {
+	for _, key := range SearchParams {
 		switch key {
 		case SortFacetsBy:
 			s.SortFacetsBy = v.Get(key)
@@ -167,8 +167,8 @@ func (s *Params) Set(v url.Values) error {
 			}
 		case Hits:
 			s.Hits = GetQueryInt(key, v)
-		case AttributesToRetrieve:
-			s.AttributesToRetrieve = GetQueryStringSlice(key, v)
+		case RtrvAttr:
+			s.RtrvAttr = GetQueryStringSlice(key, v)
 		case Page:
 			s.Page = GetQueryInt(key, v)
 		case HitsPerPage:
@@ -188,8 +188,8 @@ func (s *Params) Has(key string) bool {
 	switch key {
 	case Hits:
 		return s.Hits != 0
-	case AttributesToRetrieve:
-		return len(s.AttributesToRetrieve) != 0
+	case RtrvAttr:
+		return len(s.RtrvAttr) != 0
 	case Page:
 		return s.Page != 0
 	case HitsPerPage:
@@ -227,7 +227,7 @@ func (s *Params) Has(key string) bool {
 
 func (s *Params) Values() url.Values {
 	vals := make(url.Values)
-	for _, key := range paramsSettings {
+	for _, key := range SettingParams {
 		if !s.Has(key) {
 			continue
 		}
@@ -246,7 +246,7 @@ func (s *Params) Values() url.Values {
 			vals.Set(key, s.Format)
 		}
 	}
-	for _, key := range paramsSearch {
+	for _, key := range SearchParams {
 		if !s.Has(key) {
 			continue
 		}
@@ -264,8 +264,8 @@ func (s *Params) Values() url.Values {
 			}
 		case Hits:
 			vals.Set(key, cast.ToString(s.Hits))
-		case AttributesToRetrieve:
-			vals[key] = s.AttributesToRetrieve
+		case RtrvAttr:
+			vals[key] = s.RtrvAttr
 		case Page:
 			vals.Set(key, cast.ToString(s.Page))
 		case HitsPerPage:
