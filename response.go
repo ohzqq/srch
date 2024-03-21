@@ -35,6 +35,7 @@ func NewResponse(hits []map[string]any, params *param.Params) (*Response, error)
 	if len(hits) == 0 {
 		return res, nil
 	}
+	println(len(hits))
 
 	if params.Has(param.Facets) {
 		facets, err := facet.New(hits, params)
@@ -44,13 +45,23 @@ func NewResponse(hits []map[string]any, params *param.Params) (*Response, error)
 		res.FacetFields = facets.Facets
 		res.Facets = facets
 		res.results = res.FilterResults()
+		fmt.Printf("after facet %d\n", res.Facets.Len())
 	}
+	println(len(res.results))
 
+	res.HitsPerPage = res.hitsPerPage()
 	res.NbHits = res.nbHits()
 	res.calculatePagination()
 	res.Hits = res.visibleHits()
 
 	return res, nil
+}
+
+func (res *Response) calculatePagination() *Response {
+	res.HitsPerPage = res.hitsPerPage()
+	res.NbPages = res.nbPages()
+	res.Page = res.page()
+	return res
 }
 
 func (res *Response) Header() http.Header {
@@ -67,13 +78,6 @@ func (res *Response) FilterByFacetValue(attr, val string) []map[string]any {
 	}
 	items := lo.ToAnySlice(f.FindByValue(val).RelatedTo)
 	return FilterDataByID(res.results, items, res.UID)
-}
-
-func (res *Response) calculatePagination() *Response {
-	res.HitsPerPage = res.hitsPerPage()
-	res.Page = res.page()
-	res.NbPages = res.nbPages()
-	return res
 }
 
 func (res *Response) nbHits() int {

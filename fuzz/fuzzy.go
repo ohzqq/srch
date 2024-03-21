@@ -17,7 +17,6 @@ type Index struct {
 }
 
 func New(cfg *param.Params) *Index {
-	println(cfg.String())
 	return &Index{
 		Params: cfg,
 	}

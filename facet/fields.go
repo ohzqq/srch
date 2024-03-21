@@ -69,12 +69,14 @@ func (f *Fields) Calculate() *Fields {
 }
 
 func (f *Fields) Filter(filters []any) (*Fields, error) {
+	fmt.Printf("%#v\n", filters)
 	filtered, err := Filter(f.bits, f.Facets, filters)
 	if err != nil {
 		return nil, err
 	}
 
 	f.bits.And(filtered)
+	println(f.bits.GetCardinality())
 
 	var data []map[string]any
 	if f.bits.GetCardinality() > 0 {

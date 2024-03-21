@@ -147,7 +147,7 @@ func TestFacetFilters(t *testing.T) {
 	}
 
 	if 58 != res.NbHits {
-		t.Errorf("got hits %d, expected hits %#v\n", 58, res.NbHits)
+		t.Errorf("got hits %d, expected hits %#v\n", res.NbHits, 58)
 	}
 
 	if res.Facets != nil {

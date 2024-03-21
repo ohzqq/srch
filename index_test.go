@@ -96,15 +96,15 @@ func TestNewIndexNoData(t *testing.T) {
 
 	req := NewRequest().
 		SrchAttr("title").
+		HitsPerPage(25).
 		Query("fish")
-	println("req string " + req.String())
 
 	res, err := idx.Search(req.String())
 	if err != nil {
 		t.Error(err)
 	}
 
-	err = searchErr(res.nbHits(), 56, req.String())
+	err = searchErr(res.NbHits, 56, req.String())
 	if err != nil {
 		t.Error(err)
 	}

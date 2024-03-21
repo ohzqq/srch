@@ -106,17 +106,11 @@ func (idx *Index) Search(params string) (*Response, error) {
 		return nil, fmt.Errorf("search '%s' failed: %w\n", q, err)
 	}
 
-	p = idx.Params
-	p.Query = q
 	res, err := NewResponse(r, p)
 	if err != nil {
 		return nil, fmt.Errorf("response failed with err: %w", err)
 	}
 	return res, nil
-}
-
-func (idx *Index) Has(key string) bool {
-	return idx.Params.Has(key)
 }
 
 func (idx *Index) FilterDataBySrchAttr() []map[string]any {
@@ -145,7 +139,6 @@ func FilterDataByAttr(hits []map[string]any, fields []string) []map[string]any {
 
 func FilterDataByID(hits []map[string]any, uids []any, uid string) []map[string]any {
 	ids := cast.ToStringSlice(uids)
-	//fmt.Printf("ids %v\n", ids)
 
 	fn := func(hit map[string]any, idx int) bool {
 		if uid == "" {
@@ -153,10 +146,7 @@ func FilterDataByID(hits []map[string]any, uids []any, uid string) []map[string]
 		}
 		var has bool
 		for _, id := range ids {
-			//println("id from facet item " + id)
 			if hi, ok := hit[uid]; ok {
-				//println("id from hit " + cast.ToString(hi))
-				//return cast.ToString(hi) == id
 				if cast.ToString(hi) == id {
 					has = true
 				}
