@@ -9,12 +9,12 @@ import (
 )
 
 type Item struct {
-	Value    string          `json:"value"`
-	Label    string          `json:"label"`
-	Count    int             `json:"count"`
-	Items    []int           `json:"items"`
-	Children *Field          `json:"-"`
-	bits     *roaring.Bitmap `json:"-"`
+	Value     string          `json:"value"`
+	Label     string          `json:"label"`
+	Count     int             `json:"count"`
+	RelatedTo []int           `json:"relatedTo"`
+	Children  *Facet          `json:"-"`
+	bits      *roaring.Bitmap `json:"-"`
 }
 
 func NewItem(label string) *Item {
@@ -27,7 +27,7 @@ func NewItem(label string) *Item {
 
 func (i *Item) MarshalJSON() ([]byte, error) {
 	i.Count = i.Len()
-	i.Items = i.GetItems()
+	i.RelatedTo = i.GetItems()
 	return json.Marshal(i)
 }
 

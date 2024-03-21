@@ -14,17 +14,18 @@ const (
 	SortByAlpha = `alpha`
 )
 
-type Field struct {
-	Attribute string `json:"attribute"`
-	Sep       string `json:"-"`
-	SortBy    string
-	Order     string
-	keywords  []*Item
-	kwIdx     map[string]int
+type Facet struct {
+	Attribute string         `json:"attribute"`
+	Items     []*Item        `json:"items"`
+	Count     int            `json:"count"`
+	Sep       string         `json:"-"`
+	SortBy    string         `json:"-"`
+	Order     string         `json:"-"`
+	kwIdx     map[string]int `json:"-"`
 }
 
-func NewField(attr string) *Field {
-	f := &Field{
+func NewFacet(attr string) *Facet {
+	f := &Facet{
 		Sep:    "/",
 		SortBy: "count",
 		Order:  "desc",
@@ -33,39 +34,42 @@ func NewField(attr string) *Field {
 	return f
 }
 
-func NewFields(attrs []string) []*Field {
-	fields := make([]*Field, len(attrs))
+func NewFacets(attrs []string) []*Facet {
+	fields := make([]*Facet, len(attrs))
 	for i, attr := range attrs {
-		fields[i] = NewField(attr)
+		fields[i] = NewFacet(attr)
 	}
 	return fields
 }
 
-func (f *Field) MarshalJSON() ([]byte, error) {
-	field := make(map[string]any)
-	field["facetValues"] = f.Keywords()
-	if f.Len() < 1 {
-		field["facetValues"] = []any{}
-	}
-	field["attribute"] = joinAttr(f)
-	field["count"] = f.Len()
-	return json.Marshal(field)
+func (f *Facet) MarshalJSON() ([]byte, error) {
+	f.Items = f.Keywords()
+	f.Count = f.Len()
+	f.Attribute = joinAttr(f)
+	//field := make(map[string]any)
+	//field["facetValues"] = f.Keywords()
+	//if f.Len() < 1 {
+	//field["facetValues"] = []any{}
+	//}
+	//field["attribute"] = joinAttr(f)
+	//field["count"] = f.Len()
+	return json.Marshal(f)
 }
 
-func (f *Field) Keywords() []*Item {
+func (f *Facet) Keywords() []*Item {
 	return f.SortTokens()
 }
 
-func (f *Field) GetValues() []string {
+func (f *Facet) GetValues() []string {
 	vals := make([]string, f.Len())
-	for i, token := range f.keywords {
+	for i, token := range f.Items {
 		vals[i] = token.Value
 	}
 	return vals
 }
 
-func (f *Field) FindByLabel(label string) *Item {
-	for _, token := range f.keywords {
+func (f *Facet) FindByLabel(label string) *Item {
+	for _, token := range f.Items {
 		if token.Label == label {
 			return token
 		}
@@ -73,8 +77,8 @@ func (f *Field) FindByLabel(label string) *Item {
 	return NewItem(label)
 }
 
-func (f *Field) FindByValue(val string) *Item {
-	for _, token := range f.keywords {
+func (f *Facet) FindByValue(val string) *Item {
+	for _, token := range f.Items {
 		if token.Value == val {
 			return token
 		}
@@ -82,46 +86,46 @@ func (f *Field) FindByValue(val string) *Item {
 	return NewItem(val)
 }
 
-func (f *Field) FindByIndex(ti ...int) []*Item {
+func (f *Facet) FindByIndex(ti ...int) []*Item {
 	var tokens []*Item
 	for _, tok := range ti {
 		if tok < f.Len() {
-			tokens = append(tokens, f.keywords[tok])
+			tokens = append(tokens, f.Items[tok])
 		}
 	}
 	return tokens
 }
 
-func (f *Field) Add(val any, ids []int) {
+func (f *Facet) Add(val any, ids []int) {
 	for _, token := range f.Tokenize(val) {
 		if f.kwIdx == nil {
 			f.kwIdx = make(map[string]int)
 		}
 		if idx, ok := f.kwIdx[token.Value]; ok {
-			f.keywords[idx].Add(ids...)
+			f.Items[idx].Add(ids...)
 		} else {
-			idx = len(f.keywords)
+			idx = len(f.Items)
 			f.kwIdx[token.Value] = idx
 			token.Add(ids...)
-			f.keywords = append(f.keywords, token)
+			f.Items = append(f.Items, token)
 		}
 	}
 }
 
-func (f *Field) Tokenize(val any) []*Item {
+func (f *Facet) Tokenize(val any) []*Item {
 	return KeywordTokenizer(val)
 }
 
-func (f *Field) Search(term string) []*Item {
+func (f *Facet) Search(term string) []*Item {
 	matches := fuzzy.FindFrom(term, f)
 	tokens := make([]*Item, len(matches))
 	for i, match := range matches {
-		tokens[i] = f.keywords[match.Index]
+		tokens[i] = f.Items[match.Index]
 	}
 	return tokens
 }
 
-func (f *Field) Filter(val string) *roaring.Bitmap {
+func (f *Facet) Filter(val string) *roaring.Bitmap {
 	tokens := f.Find(val)
 	bits := make([]*roaring.Bitmap, len(tokens))
 	for i, token := range tokens {
@@ -130,37 +134,37 @@ func (f *Field) Filter(val string) *roaring.Bitmap {
 	return roaring.ParAnd(viper.GetInt("workers"), bits...)
 }
 
-func (f *Field) Find(val any) []*Item {
+func (f *Facet) Find(val any) []*Item {
 	var tokens []*Item
 	for _, tok := range f.Tokenize(val) {
 		if token, ok := f.kwIdx[tok.Value]; ok {
-			tokens = append(tokens, f.keywords[token])
+			tokens = append(tokens, f.Items[token])
 		}
 	}
 	return tokens
 }
 
-func (f *Field) Fuzzy(term string) *roaring.Bitmap {
+func (f *Facet) Fuzzy(term string) *roaring.Bitmap {
 	matches := fuzzy.FindFrom(term, f)
 	bits := make([]*roaring.Bitmap, len(matches))
 	for i, match := range matches {
-		b := f.keywords[match.Index].Bitmap()
+		b := f.Items[match.Index].Bitmap()
 		bits[i] = b
 	}
 	return roaring.ParOr(viper.GetInt("workers"), bits...)
 }
 
 // Len returns the number of items, to satisfy the fuzzy.Source interface.
-func (f *Field) Len() int {
-	return len(f.keywords)
+func (f *Facet) Len() int {
+	return len(f.Items)
 }
 
 // String returns an Item.Value, to satisfy the fuzzy.Source interface.
-func (f *Field) String(i int) string {
-	return f.keywords[i].Label
+func (f *Facet) String(i int) string {
+	return f.Items[i].Label
 }
 
-func joinAttr(field *Field) string {
+func joinAttr(field *Facet) string {
 	attr := field.Attribute
 	if field.SortBy != "" {
 		attr += ":"
@@ -173,7 +177,7 @@ func joinAttr(field *Field) string {
 	return attr
 }
 
-func parseAttr(field *Field, attr string) {
+func parseAttr(field *Facet, attr string) {
 	i := 0
 	for attr != "" {
 		var a string

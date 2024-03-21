@@ -5,8 +5,8 @@ import (
 	"strings"
 )
 
-func (f *Field) SortTokens() []*Item {
-	tokens := f.keywords
+func (f *Facet) SortTokens() []*Item {
+	tokens := f.Items
 
 	switch f.SortBy {
 	case SortByAlpha:

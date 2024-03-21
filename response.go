@@ -18,8 +18,8 @@ type Response struct {
 	results []map[string]any
 
 	RawQuery    string           `json:"params"`
-	FacetFields []*facet.Field   `json:"facetFields"`
-	Facets      *facet.Facets    `json:"facets"`
+	FacetFields []*facet.Facet   `json:"facetFields"`
+	Facets      *facet.Fields    `json:"facets"`
 	Hits        []map[string]any `json:"hits"`
 	NbHits      int              `json:"nbHits"`
 	NbPages     int              `json:"nbPages"`
@@ -41,7 +41,7 @@ func NewResponse(hits []map[string]any, params *param.Params) (*Response, error)
 		if err != nil {
 			return nil, fmt.Errorf("response failed to calculate facets: %w\n", err)
 		}
-		res.FacetFields = facets.Fields
+		res.FacetFields = facets.Facets
 		res.Facets = facets
 		res.results = res.FilterResults()
 	}

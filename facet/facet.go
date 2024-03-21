@@ -8,16 +8,16 @@ import (
 	"github.com/spf13/cast"
 )
 
-type Facets struct {
+type Fields struct {
 	params *param.Params
-	Fields []*Field         `json:"facetFields"`
+	Facets []*Facet         `json:"facetFields"`
 	data   []map[string]any `json:"-"`
 	ids    []string
 	bits   *roaring.Bitmap
 }
 
-func New(data []map[string]any, param *param.Params) (*Facets, error) {
-	facets := NewFacets(param.Facets)
+func New(data []map[string]any, param *param.Params) (*Fields, error) {
+	facets := NewFields(param.Facets)
 	facets.params = param
 	facets.data = data
 	facets.Calculate()
@@ -35,14 +35,14 @@ func New(data []map[string]any, param *param.Params) (*Facets, error) {
 	return facets, nil
 }
 
-func NewFacets(fields []string) *Facets {
-	return &Facets{
+func NewFields(fields []string) *Fields {
+	return &Fields{
 		bits:   roaring.New(),
-		Fields: NewFields(fields),
+		Facets: NewFacets(fields),
 	}
 }
 
-func (f *Facets) Calculate() *Facets {
+func (f *Fields) Calculate() *Fields {
 	var uid string
 	if f.params.UID != "" {
 		uid = f.params.UID
@@ -53,7 +53,7 @@ func (f *Facets) Calculate() *Facets {
 			id = cast.ToInt(i)
 		}
 		f.bits.AddInt(id)
-		for _, facet := range f.Fields {
+		for _, facet := range f.Facets {
 			if val, ok := d[facet.Attribute]; ok {
 				facet.Add(
 					val,
@@ -65,8 +65,8 @@ func (f *Facets) Calculate() *Facets {
 	return f
 }
 
-func (f *Facets) Filter(filters []any) (*Facets, error) {
-	filtered, err := Filter(f.bits, f.Fields, filters)
+func (f *Fields) Filter(filters []any) (*Fields, error) {
+	filtered, err := Filter(f.bits, f.Facets, filters)
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +86,7 @@ func (f *Facets) Filter(filters []any) (*Facets, error) {
 	return facets, nil
 }
 
-func (f Facets) getHits() []map[string]any {
+func (f Fields) getHits() []map[string]any {
 	var uid string
 	if f.params.UID != "" {
 		uid = f.params.UID
@@ -103,24 +103,24 @@ func (f Facets) getHits() []map[string]any {
 	return hits
 }
 
-func (f Facets) GetFacet(attr string) *Field {
-	for _, facet := range f.Fields {
+func (f Fields) GetFacet(attr string) *Facet {
+	for _, facet := range f.Facets {
 		if facet.Attribute == attr {
 			return facet
 		}
 	}
-	return &Field{}
+	return &Facet{}
 }
 
-func (f Facets) Len() int {
+func (f Fields) Len() int {
 	return int(f.bits.GetCardinality())
 }
 
-func (f *Facets) Bitmap() *roaring.Bitmap {
+func (f *Fields) Bitmap() *roaring.Bitmap {
 	return f.bits
 }
 
-func (f *Facets) Items() []string {
+func (f *Fields) Items() []string {
 	var ids []string
 
 	f.bits.Iterate(func(x uint32) bool {
@@ -131,9 +131,9 @@ func (f *Facets) Items() []string {
 	return ids
 }
 
-func (f *Facets) MarshalJSON() ([]byte, error) {
+func (f *Fields) MarshalJSON() ([]byte, error) {
 	m := make(map[string]int)
-	for _, fi := range f.Fields {
+	for _, fi := range f.Facets {
 		m[fi.Attribute] = f.Len()
 	}
 	return json.Marshal(m)
