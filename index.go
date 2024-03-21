@@ -145,17 +145,24 @@ func FilterDataByAttr(hits []map[string]any, fields []string) []map[string]any {
 
 func FilterDataByID(hits []map[string]any, uids []any, uid string) []map[string]any {
 	ids := cast.ToStringSlice(uids)
+	//fmt.Printf("ids %v\n", ids)
 
 	fn := func(hit map[string]any, idx int) bool {
 		if uid == "" {
 			return slices.Contains(ids, cast.ToString(idx))
 		}
+		var has bool
 		for _, id := range ids {
+			//println("id from facet item " + id)
 			if hi, ok := hit[uid]; ok {
-				return cast.ToString(hi) == id
+				//println("id from hit " + cast.ToString(hi))
+				//return cast.ToString(hi) == id
+				if cast.ToString(hi) == id {
+					has = true
+				}
 			}
 		}
-		return false
+		return has
 	}
 
 	f := lo.Filter(hits, fn)

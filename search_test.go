@@ -1,7 +1,6 @@
 package srch
 
 import (
-	"encoding/json"
 	"fmt"
 	"slices"
 	"testing"
@@ -189,36 +188,37 @@ func TestFacets(t *testing.T) {
 		t.Error(err)
 	}
 
-	for _, facet := range res.FacetFields {
-		println(facet.Attribute)
-		for _, tok := range facet.Items {
-			ids := lo.ToAnySlice(tok.RelatedTo)
-			rel := FilterDataByID(res.results, ids, res.UID)
-			i := 0
-			for _, r := range rel {
-				if facet.Attribute != "tags" {
-					continue
-				}
-				f, ok := r[facet.Attribute]
-				if ok {
-					vals := cast.ToStringSlice(f)
-					if slices.Contains(vals, tok.Label) != true {
-						t.Errorf("hit %v does not contain val %s", f, tok.Label)
-					}
-				}
-				i++
-			}
-			//if i != len(rel) {
-			//  t.Errorf("got %d hits with val, expected %d\n", i, len(rel))
-			//}
-
-		}
-		d, err := json.Marshal(facet)
-		if err != nil {
-			t.Error(err)
-		}
-		println(string(d))
+	facet, err := res.Facets.GetFacet("tags")
+	if err != nil {
+		t.Error(err)
 	}
+	for _, tok := range facet.Items {
+		ids := lo.ToAnySlice(tok.RelatedTo)
+		//fmt.Printf("ids %v\n", ids)
+		rel := FilterDataByID(res.results, ids, res.UID)
+
+		if len(rel) != len(ids) {
+			t.Errorf("got %d hits with val, expected %d\n", len(rel), len(ids))
+		}
+
+		i := 0
+		for _, r := range rel {
+			f, ok := r[facet.Attribute]
+			if ok {
+				vals := cast.ToStringSlice(f)
+				if slices.Contains(vals, tok.Label) != true {
+					t.Errorf("hit %v does not contain val %s", f, tok.Label)
+				}
+			}
+			i++
+		}
+	}
+
+	//d, err := json.Marshal(facet)
+	//if err != nil {
+	//t.Error(err)
+	//}
+	//println(string(d))
 }
 
 func TestNewRequest(t *testing.T) {

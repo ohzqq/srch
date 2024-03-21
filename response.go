@@ -65,7 +65,7 @@ func (res *Response) FilterByFacetValue(attr, val string) []map[string]any {
 	if err != nil {
 		return res.results
 	}
-	items := cast.ToAnySlice(f.FindByValue(val).RelatedTo)
+	items := lo.ToAnySlice(f.FindByValue(val).RelatedTo)
 	return FilterDataByID(res.results, items, res.UID)
 }
 
