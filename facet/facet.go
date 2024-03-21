@@ -1,151 +1,191 @@
 package facet
 
 import (
-	"encoding/json"
+	"strings"
 
 	"github.com/RoaringBitmap/roaring"
-	"github.com/ohzqq/srch/param"
-	"github.com/spf13/cast"
+	"github.com/sahilm/fuzzy"
+	"github.com/spf13/viper"
 )
 
-type Fields struct {
-	params *param.Params
-	Facets []*Facet         `json:"facetFields"`
-	data   []map[string]any `json:"-"`
-	ids    []string
-	bits   *roaring.Bitmap
+const (
+	SortByCount = `count`
+	SortByAlpha = `alpha`
+)
+
+type Facet struct {
+	Attribute string         `json:"attribute"`
+	Items     []*Item        `json:"items"`
+	Count     int            `json:"count"`
+	Sep       string         `json:"-"`
+	attr      string         `json:"-"`
+	SortBy    string         `json:"-"`
+	Order     string         `json:"-"`
+	kwIdx     map[string]int `json:"-"`
 }
 
-func New(data []map[string]any, param *param.Params) (*Fields, error) {
-	facets := NewFields(param.Facets)
-	facets.params = param
-	facets.data = data
-	facets.Calculate()
-
-	if len(facets.params.FacetFilters) > 0 {
-		filters := facets.params.FacetFilters
-		facets.params.FacetFilters = []any{}
-		filtered, err := facets.Filter(filters)
-		if err != nil {
-			return nil, err
-		}
-		return filtered.Calculate(), nil
+func NewFacet(attr string) *Facet {
+	f := &Facet{
+		Sep:       "/",
+		SortBy:    "count",
+		Order:     "desc",
+		Attribute: attr,
 	}
-
-	return facets, nil
-}
-
-func NewFields(fields []string) *Fields {
-	return &Fields{
-		bits:   roaring.New(),
-		Facets: NewFacets(fields),
-	}
-}
-
-func (f *Fields) Calculate() *Fields {
-	var uid string
-	if f.params.UID != "" {
-		uid = f.params.UID
-	}
-
-	for id, d := range f.data {
-		if i, ok := d[uid]; ok {
-			id = cast.ToInt(i)
-		}
-		f.bits.AddInt(id)
-		for _, facet := range f.Facets {
-			if val, ok := d[facet.attr]; ok {
-				facet.Add(val, []int{id})
-			}
-		}
-	}
-
-	for _, facet := range f.Facets {
-		facet.Items = facet.Keywords()
-		facet.Count = facet.Len()
-	}
+	parseAttr(f, attr)
 	return f
 }
 
-func (f *Fields) Filter(filters []any) (*Fields, error) {
-	filtered, err := Filter(f.bits, f.Facets, filters)
-	if err != nil {
-		return nil, err
+func NewFacets(attrs []string) []*Facet {
+	fields := make([]*Facet, len(attrs))
+	for i, attr := range attrs {
+		fields[i] = NewFacet(attr)
 	}
-
-	f.bits.And(filtered)
-
-	var data []map[string]any
-	if f.bits.GetCardinality() > 0 {
-		data = f.getHits()
-	}
-
-	facets, err := New(data, f.params)
-	if err != nil {
-		return nil, err
-	}
-
-	return facets, nil
+	return fields
 }
 
-func (f Fields) getHits() []map[string]any {
-	var uid string
-	if f.params.UID != "" {
-		uid = f.params.UID
-	}
-	var hits []map[string]any
-	for idx, d := range f.data {
-		if i, ok := d[uid]; ok {
-			idx = cast.ToInt(i)
+func (f *Facet) Add(val any, ids []int) {
+	for _, token := range f.Tokenize(val) {
+		if f.kwIdx == nil {
+			f.kwIdx = make(map[string]int)
 		}
-		if f.bits.ContainsInt(idx) {
-			hits = append(hits, d)
+		if idx, ok := f.kwIdx[token.Value]; ok {
+			f.Items[idx].Add(ids...)
+		} else {
+			idx = len(f.Items)
+			f.kwIdx[token.Value] = idx
+			token.Add(ids...)
+			f.Items = append(f.Items, token)
 		}
 	}
-	return hits
 }
 
-func (f Fields) GetFacet(attr string) *Facet {
-	for _, facet := range f.Facets {
-		if facet.Attribute == attr {
-			return facet
+func (f *Facet) Keywords() []*Item {
+	items := f.SortTokens()
+	for i, item := range items {
+		items[i].Count = item.Len()
+		items[i].RelatedTo = item.GetItems()
+	}
+
+	return items
+}
+
+func (f *Facet) GetValues() []string {
+	vals := make([]string, f.Len())
+	for i, token := range f.Items {
+		vals[i] = token.Value
+	}
+	return vals
+}
+
+func (f *Facet) FindByLabel(label string) *Item {
+	for _, token := range f.Items {
+		if token.Label == label {
+			return token
 		}
 	}
-	return &Facet{}
+	return NewItem(label)
 }
 
-func (f Fields) Len() int {
-	return int(f.bits.GetCardinality())
-}
-
-func (f *Fields) Bitmap() *roaring.Bitmap {
-	return f.bits
-}
-
-func (f *Fields) Items() []string {
-	var ids []string
-
-	f.bits.Iterate(func(x uint32) bool {
-		ids = append(ids, cast.ToString(x))
-		return true
-	})
-
-	return ids
-}
-
-func (f *Fields) MarshalJSON() ([]byte, error) {
-	m := make(map[string]int)
-	for _, fi := range f.Facets {
-		m[fi.attr] = f.Len()
+func (f *Facet) FindByValue(val string) *Item {
+	for _, token := range f.Items {
+		if token.Value == val {
+			return token
+		}
 	}
-	return json.Marshal(m)
+	return NewItem(val)
 }
 
-func ItemsByBitmap(data []map[string]any, bits *roaring.Bitmap) []map[string]any {
-	var res []map[string]any
-	bits.Iterate(func(x uint32) bool {
-		res = append(res, data[int(x)])
-		return true
-	})
-	return res
+func (f *Facet) FindByIndex(ti ...int) []*Item {
+	var tokens []*Item
+	for _, tok := range ti {
+		if tok < f.Len() {
+			tokens = append(tokens, f.Items[tok])
+		}
+	}
+	return tokens
+}
+
+func (f *Facet) Tokenize(val any) []*Item {
+	return KeywordTokenizer(val)
+}
+
+func (f *Facet) Search(term string) []*Item {
+	matches := fuzzy.FindFrom(term, f)
+	tokens := make([]*Item, len(matches))
+	for i, match := range matches {
+		tokens[i] = f.Items[match.Index]
+	}
+	return tokens
+}
+
+func (f *Facet) Filter(val string) *roaring.Bitmap {
+	tokens := f.Find(val)
+	bits := make([]*roaring.Bitmap, len(tokens))
+	for i, token := range tokens {
+		bits[i] = token.Bitmap()
+	}
+	return roaring.ParAnd(viper.GetInt("workers"), bits...)
+}
+
+func (f *Facet) Find(val any) []*Item {
+	var tokens []*Item
+	for _, tok := range f.Tokenize(val) {
+		if token, ok := f.kwIdx[tok.Value]; ok {
+			tokens = append(tokens, f.Items[token])
+		}
+	}
+	return tokens
+}
+
+func (f *Facet) Fuzzy(term string) *roaring.Bitmap {
+	matches := fuzzy.FindFrom(term, f)
+	bits := make([]*roaring.Bitmap, len(matches))
+	for i, match := range matches {
+		b := f.Items[match.Index].Bitmap()
+		bits[i] = b
+	}
+	return roaring.ParOr(viper.GetInt("workers"), bits...)
+}
+
+// Len returns the number of items, to satisfy the fuzzy.Source interface.
+func (f *Facet) Len() int {
+	return len(f.Items)
+}
+
+// String returns an Item.Value, to satisfy the fuzzy.Source interface.
+func (f *Facet) String(i int) string {
+	return f.Items[i].Label
+}
+
+func joinAttr(field *Facet) string {
+	attr := field.attr
+	if field.SortBy != "" {
+		attr += ":"
+		attr += field.SortBy
+	}
+	if field.Order != "" {
+		attr += ":"
+		attr += field.Order
+	}
+	return attr
+}
+
+func parseAttr(field *Facet, attr string) {
+	i := 0
+	for attr != "" {
+		var a string
+		a, attr, _ = strings.Cut(attr, ":")
+		if a == "" {
+			continue
+		}
+		switch i {
+		case 0:
+			field.attr = a
+		case 1:
+			field.SortBy = a
+		case 2:
+			field.Order = a
+		}
+		i++
+	}
 }

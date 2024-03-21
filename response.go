@@ -60,6 +60,15 @@ func (res *Response) Header() http.Header {
 	return h
 }
 
+func (res *Response) FilterByFacetValue(attr, val string) []map[string]any {
+	f, err := res.Facets.GetFacet(attr)
+	if err != nil {
+		return res.results
+	}
+	items := cast.ToAnySlice(f.FindByValue(val).RelatedTo)
+	return FilterDataByID(res.results, items, res.UID)
+}
+
 func (res *Response) calculatePagination() *Response {
 	res.HitsPerPage = res.hitsPerPage()
 	res.Page = res.page()

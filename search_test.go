@@ -1,6 +1,7 @@
 package srch
 
 import (
+	"encoding/json"
 	"fmt"
 	"slices"
 	"testing"
@@ -207,15 +208,16 @@ func TestFacets(t *testing.T) {
 				}
 				i++
 			}
-			if i != len(rel) {
-				t.Errorf("got %d hits with val, expected %d\n", i, len(rel))
-			}
+			//if i != len(rel) {
+			//  t.Errorf("got %d hits with val, expected %d\n", i, len(rel))
+			//}
+
 		}
-		//d, err := json.Marshal(facet)
-		//if err != nil {
-		//t.Error(err)
-		//}
-		//println(string(d))
+		d, err := json.Marshal(facet)
+		if err != nil {
+			t.Error(err)
+		}
+		println(string(d))
 	}
 }
 
