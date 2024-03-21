@@ -2,7 +2,6 @@ package blv
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/blevesearch/bleve/v2"
 	"github.com/blevesearch/bleve/v2/search/query"
@@ -15,10 +14,10 @@ type Index struct {
 	count int
 }
 
-func Open(params *param.Params) *Index {
+func Open(params *param.Params) (*Index, error) {
 	blv, err := bleve.Open(params.Path)
 	if err != nil {
-		log.Fatalf("%v at %s\n", err, params.Path)
+		return nil, fmt.Errorf("%w at %s\n", err, params.Path)
 	}
 	defer blv.Close()
 
@@ -26,7 +25,7 @@ func Open(params *param.Params) *Index {
 		Params: params,
 	}
 	idx.SetCount(blv)
-	return idx
+	return idx, nil
 }
 
 func New(params *param.Params) (*Index, error) {

@@ -49,10 +49,11 @@ type Params struct {
 }
 
 var (
-	blvPath  = regexp.MustCompile(`/?(blv)/(.*)`)
-	filePath = regexp.MustCompile(`/?(file)/(.*)`)
-	dirPath  = regexp.MustCompile(`/?(dir)/(.*)`)
-	routes   = []*regexp.Regexp{blvPath, filePath, dirPath}
+	blvPath    = regexp.MustCompile(`/?(blv)(.*)`)
+	filePath   = regexp.MustCompile(`/?(file)(.*)`)
+	dirPath    = regexp.MustCompile(`/?(dir)(.*)`)
+	pathRegexp = regexp.MustCompile(`/?(?P<route>blv|file|dir)(?P<path>.*)`)
+	routes     = []*regexp.Regexp{blvPath, filePath, dirPath}
 )
 
 func New() *Params {
@@ -70,8 +71,7 @@ func Parse(params string) (*Params, error) {
 		return nil, fmt.Errorf("param url parsing err: %w\n", err)
 	}
 	p.URL = u
-
-	p.ParseRoute(p.URL.Path)
+	p.Route = strings.TrimPrefix(p.URL.Path, "/")
 
 	err = p.Set(u.Query())
 	if err != nil {
@@ -103,34 +103,6 @@ func (p Params) Index() url.Values {
 	return vals
 }
 
-func (p *Params) ParseRoute(route string) *Params {
-	p.Route, p.Path = ParseRoute(route)
-	return p
-}
-
-func (p *Params) parseRoute() *Params {
-	p.Route, p.Path = ParseRoute(p.URL.Path)
-	return p
-}
-
-func ParseRoute(path string) (string, string) {
-	for _, reg := range routes {
-		matches := reg.FindStringSubmatch(path)
-		if len(matches) > 1 {
-			pre := matches[1]
-			loc := matches[2]
-			if !filepath.IsAbs(loc) {
-				loc, err := filepath.Abs(loc)
-				if err != nil {
-					loc = ""
-				}
-			}
-			return pre, loc
-		}
-	}
-	return "", ""
-}
-
 func (s *Params) Set(v url.Values) error {
 	for _, key := range SettingParams {
 		switch key {
@@ -152,6 +124,14 @@ func (s *Params) Set(v url.Values) error {
 	}
 	for _, key := range SearchParams {
 		switch key {
+		case Path:
+			if v.Has(key) {
+				path := v.Get(key)
+				if !filepath.IsAbs(path) {
+					path, _ = filepath.Abs(path)
+				}
+				s.Path = path
+			}
 		case SortFacetsBy:
 			s.SortFacetsBy = v.Get(key)
 		case Facets:
@@ -196,6 +176,8 @@ func (s *Params) Has(key string) bool {
 		return s.Page != 0
 	case HitsPerPage:
 		return s.HitsPerPage != 0
+	case Path:
+		return s.Path != ""
 	case Query:
 		return s.Query != ""
 	case SortBy:
@@ -253,6 +235,8 @@ func (s *Params) Values() url.Values {
 			continue
 		}
 		switch key {
+		case Path:
+			vals.Set(key, s.Path)
 		case SortFacetsBy:
 			vals.Set(key, s.SortFacetsBy)
 		case Facets:

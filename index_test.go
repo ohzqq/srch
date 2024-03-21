@@ -19,9 +19,9 @@ var books []map[string]any
 const numBooks = 7252
 
 const (
-	testDataFile = `file/testdata/nddata/ndbooks.ndjson`
-	testDataDir  = `dir/testdata/data-dir`
-	testBlvPath  = `blv/testdata/poot.bleve`
+	testDataFile = `testdata/nddata/ndbooks.ndjson`
+	testDataDir  = `testdata/data-dir`
+	testBlvPath  = `testdata/poot.bleve`
 )
 
 const (
@@ -34,7 +34,7 @@ const (
 	uidParam        = `uid=id`
 )
 
-var libCfgStr = mkURL(testDataFile, "searchableAttributes=title&facets=tags,authors,series,narrators")
+var libCfgStr = fileRoute("searchableAttributes=title&facets=tags,authors,series,narrators")
 
 func TestData(t *testing.T) {
 	books = loadData(t)
@@ -45,18 +45,13 @@ func TestData(t *testing.T) {
 }
 
 var testQuerySettings = []string{
-	"",
-	"searchableAttributes=",
 	blvRoute(srchAttrParam),
 	dirRoute(srchAttrParam),
-	mkURL("", facetParamSlice),
 	fileRoute(facetParamStr),
-	dirRoute(testDataDir, srchAttrParam),
-	dirRoute(testDataDir, srchAttrParam),
-	mkURL("", srchAttrParam, facetParamSlice),
+	dirRoute(srchAttrParam),
+	dirRoute(srchAttrParam),
 	fileRoute(srchAttrParam, facetParamStr),
-	mkURL("", srchAttrParam, facetParamStr),
-	fileRoute(testDataFile, srchAttrParam, facetParamSlice, `&page=3`, queryParam, sortParam, filterParam),
+	fileRoute(srchAttrParam, facetParamSlice, `&page=3`, queryParam, sortParam, filterParam),
 }
 
 func TestNewIndex(t *testing.T) {
@@ -64,8 +59,9 @@ func TestNewIndex(t *testing.T) {
 		q := testQuerySettings[i]
 		idx, err := New(q)
 		if err != nil {
+			t.Errorf("params %s\n ", q)
 			if errors.Is(err, NoDataErr) {
-				t.Log(err)
+				t.Errorf("test new index %v\n", err)
 			} else {
 				t.Error(err)
 			}
@@ -91,7 +87,7 @@ func TestNewIndexWithParams(t *testing.T) {
 		idx, err := New(q)
 		if err != nil {
 			if errors.Is(err, NoDataErr) {
-				t.Log(err)
+				t.Errorf("test new index %v\n", err)
 			} else {
 				t.Error(err)
 			}
@@ -140,7 +136,7 @@ func newTestIdx() *Index {
 func newTestIdxCfg(p string) *Index {
 	idx, err := New(libCfgStr + p)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("test new index %v\n", err)
 	}
 	return idx
 }
@@ -154,15 +150,18 @@ func mkURL(path string, rq ...string) string {
 }
 
 func blvRoute(params ...string) string {
-	return mkURL(testBlvPath, params...)
+	params = append(params, "path="+testBlvPath)
+	return mkURL(param.Blv, params...)
 }
 
 func dirRoute(params ...string) string {
-	return mkURL(testDataDir, params...)
+	params = append(params, "path="+testDataDir)
+	return mkURL(param.Dir, params...)
 }
 
 func fileRoute(params ...string) string {
-	return mkURL(testDataFile, params...)
+	params = append(params, "path="+testDataFile)
+	return mkURL(param.File, params...)
 }
 
 func totalBooksErr(total int, vals ...any) error {

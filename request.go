@@ -2,7 +2,6 @@ package srch
 
 import (
 	"net/url"
-	"path/filepath"
 	"strings"
 
 	"github.com/ohzqq/srch/param"
@@ -41,7 +40,12 @@ func (r *Request) SetValues(vals url.Values) *Request {
 
 func (p *Request) SetRoute(path string) *Request {
 	p.URL.Path = path
-	p.ParseRoute(p.URL.Path)
+	p.Params.Route = strings.TrimPrefix(path, "/")
+	return p
+}
+
+func (p *Request) SetPath(path string) *Request {
+	p.Params.Path = path
 	return p
 }
 
@@ -135,7 +139,6 @@ func (r *Request) HitsPerPage(p int) *Request {
 
 func GetViperParams() *Request {
 	vals := viper.AllSettings()
-	//fmt.Printf("%#v \n", vals)
 
 	params := make(url.Values)
 	for key, val := range cast.ToStringMapStringSlice(vals) {
@@ -156,7 +159,8 @@ func GetViperParams() *Request {
 	for _, key := range param.Routes {
 		if viper.IsSet(strings.ToLower(key)) {
 			val := viper.GetStringSlice(key)
-			req.SetRoute(filepath.Join(key, val[0]))
+			req.SetRoute(key)
+			req.SetPath(val[0])
 		}
 	}
 

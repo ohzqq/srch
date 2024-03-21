@@ -33,7 +33,8 @@ var fishfacetCount = map[string]int{
 
 func TestFuzzySearch(t *testing.T) {
 	req := NewRequest().
-		SetRoute(testDataFile).
+		SetRoute(param.File).
+		SetPath(testDataFile).
 		SrchAttr("title").
 		Query("fish")
 
@@ -42,9 +43,9 @@ func TestFuzzySearch(t *testing.T) {
 		t.Log(err)
 	}
 
-	if res.nbHits() != 56 {
-		fmt.Printf("route %s, path %s\n", req.Route, req.Path)
-		t.Fatal()
+	err = searchErr(res.nbHits(), 56, req.String())
+	if err != nil {
+		t.Error(err)
 	}
 }
 
@@ -132,9 +133,9 @@ var facetCount = map[string]int{
 }
 
 func TestFacetFilters(t *testing.T) {
-
 	req := NewRequest().
-		SetRoute(testDataDir).
+		SetRoute(param.Dir).
+		SetPath(testDataDir).
 		UID("id").
 		Facets("tags", "authors", "narrators", "series").
 		AndFilter("authors:amy lane").
@@ -142,7 +143,7 @@ func TestFacetFilters(t *testing.T) {
 
 	res, err := idx.Search(req.String())
 	if err != nil {
-		t.Fatal(err)
+		t.Error(err)
 	}
 
 	if 58 != res.NbHits {
@@ -176,7 +177,8 @@ func TestFacetFilters(t *testing.T) {
 func TestFacets(t *testing.T) {
 
 	req := NewRequest().
-		SetRoute(testDataDir).
+		SetRoute(param.Dir).
+		SetPath(testDataDir).
 		UID("id").
 		SrchAttr("title").
 		Facets("tags", "authors", "narrators", "series").
@@ -184,7 +186,7 @@ func TestFacets(t *testing.T) {
 
 	res, err := idx.Search(req.String())
 	if err != nil {
-		t.Fatal(err)
+		t.Error(err)
 	}
 
 	for _, facet := range res.FacetFields {
@@ -215,7 +217,8 @@ func TestFacets(t *testing.T) {
 func TestNewRequest(t *testing.T) {
 	for i := 0; i < 3; i++ {
 		req := NewRequest().
-			SetRoute(testBlvPath).
+			SetRoute(param.Blv).
+			SetPath(testBlvPath).
 			UID("id").
 			Query("fish").
 			Facets("tags").
@@ -224,7 +227,7 @@ func TestNewRequest(t *testing.T) {
 
 		res, err := idx.Search(req.String())
 		if err != nil {
-			t.Fatal(err)
+			t.Error(err)
 		}
 
 		err = searchErr(res.NbHits, 37, res.Params.Query)
@@ -265,7 +268,7 @@ func TestFlags(t *testing.T) {
 
 	res, err := idx.Search(req.String())
 	if err != nil {
-		t.Fatal(err)
+		t.Error(err)
 	}
 
 	err = searchErr(res.NbHits, numBooks, res.Params.Query)

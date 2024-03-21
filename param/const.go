@@ -20,6 +20,7 @@ const (
 	SrchAttr  = `searchableAttributes`
 	FacetAttr = `attributesForFaceting`
 	SortAttr  = `sortableAttributes`
+	Path      = `path`
 
 	// Cfg
 	Format       = `format`
@@ -61,6 +62,7 @@ var SearchParams = []string{
 	Filters,
 	FacetFilters,
 	Route,
+	Path,
 }
 
 var Routes = []string{

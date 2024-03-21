@@ -28,3 +28,6 @@ func TestNewClient(t *testing.T) {
 
 	fmt.Printf("data %#v\n", len(d))
 }
+
+func TestAbsPath(t *testing.T) {
+}
