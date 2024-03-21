@@ -19,7 +19,7 @@ type Field struct {
 	Sep       string `json:"-"`
 	SortBy    string
 	Order     string
-	keywords  []*Token
+	keywords  []*Item
 	kwIdx     map[string]int
 }
 
@@ -52,7 +52,7 @@ func (f *Field) MarshalJSON() ([]byte, error) {
 	return json.Marshal(field)
 }
 
-func (f *Field) Keywords() []*Token {
+func (f *Field) Keywords() []*Item {
 	return f.SortTokens()
 }
 
@@ -64,26 +64,26 @@ func (f *Field) GetValues() []string {
 	return vals
 }
 
-func (f *Field) FindByLabel(label string) *Token {
+func (f *Field) FindByLabel(label string) *Item {
 	for _, token := range f.keywords {
 		if token.Label == label {
 			return token
 		}
 	}
-	return NewToken(label)
+	return NewItem(label)
 }
 
-func (f *Field) FindByValue(val string) *Token {
+func (f *Field) FindByValue(val string) *Item {
 	for _, token := range f.keywords {
 		if token.Value == val {
 			return token
 		}
 	}
-	return NewToken(val)
+	return NewItem(val)
 }
 
-func (f *Field) FindByIndex(ti ...int) []*Token {
-	var tokens []*Token
+func (f *Field) FindByIndex(ti ...int) []*Item {
+	var tokens []*Item
 	for _, tok := range ti {
 		if tok < f.Len() {
 			tokens = append(tokens, f.keywords[tok])
@@ -108,13 +108,13 @@ func (f *Field) Add(val any, ids []int) {
 	}
 }
 
-func (f *Field) Tokenize(val any) []*Token {
+func (f *Field) Tokenize(val any) []*Item {
 	return KeywordTokenizer(val)
 }
 
-func (f *Field) Search(term string) []*Token {
+func (f *Field) Search(term string) []*Item {
 	matches := fuzzy.FindFrom(term, f)
-	tokens := make([]*Token, len(matches))
+	tokens := make([]*Item, len(matches))
 	for i, match := range matches {
 		tokens[i] = f.keywords[match.Index]
 	}
@@ -130,8 +130,8 @@ func (f *Field) Filter(val string) *roaring.Bitmap {
 	return roaring.ParAnd(viper.GetInt("workers"), bits...)
 }
 
-func (f *Field) Find(val any) []*Token {
-	var tokens []*Token
+func (f *Field) Find(val any) []*Item {
+	var tokens []*Item
 	for _, tok := range f.Tokenize(val) {
 		if token, ok := f.kwIdx[tok.Value]; ok {
 			tokens = append(tokens, f.keywords[token])

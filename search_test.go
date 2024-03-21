@@ -191,7 +191,7 @@ func TestFacets(t *testing.T) {
 
 	for _, facet := range res.FacetFields {
 		for _, tok := range facet.Keywords() {
-			ids := lo.ToAnySlice(tok.Items())
+			ids := lo.ToAnySlice(tok.GetItems())
 			rel := FilterDataByID(res.results, ids, res.Params.UID)
 			i := 0
 			for _, r := range rel {

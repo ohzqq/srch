@@ -8,65 +8,60 @@ import (
 	"github.com/spf13/cast"
 )
 
-type Token struct {
-	Value    string `json:"value"`
-	Label    string `json:"label"`
-	Children *Field
-	bits     *roaring.Bitmap
+type Item struct {
+	Value    string          `json:"value"`
+	Label    string          `json:"label"`
+	Count    int             `json:"count"`
+	Items    []int           `json:"items"`
+	Children *Field          `json:"-"`
+	bits     *roaring.Bitmap `json:"-"`
 }
 
-func NewToken(label string) *Token {
-	return &Token{
+func NewItem(label string) *Item {
+	return &Item{
 		Value: label,
 		Label: label,
 		bits:  roaring.New(),
 	}
 }
 
-func (kw *Token) Bitmap() *roaring.Bitmap {
-	return kw.bits
+func (i *Item) MarshalJSON() ([]byte, error) {
+	i.Count = i.Len()
+	i.Items = i.GetItems()
+	return json.Marshal(i)
 }
 
-func (kw *Token) SetValue(txt string) *Token {
-	kw.Value = txt
-	return kw
+func (i *Item) Bitmap() *roaring.Bitmap {
+	return i.bits
 }
 
-func (kw *Token) Items() []int {
-	i := kw.bits.ToArray()
-	return cast.ToIntSlice(i)
+func (i *Item) SetValue(txt string) *Item {
+	i.Value = txt
+	return i
 }
 
-func (kw *Token) Count() int {
-	return int(kw.bits.GetCardinality())
+func (i *Item) GetItems() []int {
+	items := i.bits.ToArray()
+	return cast.ToIntSlice(items)
 }
 
-func (kw *Token) Len() int {
-	return int(kw.bits.GetCardinality())
+func (i *Item) Len() int {
+	return int(i.bits.GetCardinality())
 }
 
-func (kw *Token) Contains(id int) bool {
-	return kw.bits.ContainsInt(id)
+func (i *Item) Contains(id int) bool {
+	return i.bits.ContainsInt(id)
 }
 
-func (kw *Token) Add(ids ...int) {
+func (i *Item) Add(ids ...int) {
 	for _, id := range ids {
-		if !kw.Contains(id) {
-			kw.bits.AddInt(id)
+		if !i.Contains(id) {
+			i.bits.AddInt(id)
 		}
 	}
 }
 
-func (kw *Token) MarshalJSON() ([]byte, error) {
-	item := map[string]any{
-		"count": kw.Len(),
-		"value": kw.Label,
-		"hits":  kw.Items(),
-	}
-	return json.Marshal(item)
-}
-
-func KeywordTokenizer(val any) []*Token {
+func KeywordTokenizer(val any) []*Item {
 	var tokens []string
 	switch v := val.(type) {
 	case string:
@@ -74,9 +69,9 @@ func KeywordTokenizer(val any) []*Token {
 	default:
 		tokens = cast.ToStringSlice(v)
 	}
-	items := make([]*Token, len(tokens))
+	items := make([]*Item, len(tokens))
 	for i, token := range tokens {
-		items[i] = NewToken(token)
+		items[i] = NewItem(token)
 		items[i].Value = normalizeText(token)
 	}
 	return items
