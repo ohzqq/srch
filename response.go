@@ -45,9 +45,12 @@ func NewResponse(hits []map[string]any, params *param.Params) (*Response, error)
 		res.FacetFields = facets.Facets
 		res.Facets = facets
 		res.results = res.FilterResults()
-		fmt.Printf("after facet %d\n", res.Facets.Len())
+
+		for _, facet := range res.FacetFields {
+			facet.Items = facet.Keywords()
+			facet.Count = facet.Len()
+		}
 	}
-	println(len(res.results))
 
 	res.HitsPerPage = res.hitsPerPage()
 	res.NbHits = res.nbHits()
