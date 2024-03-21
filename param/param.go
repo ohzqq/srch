@@ -119,9 +119,11 @@ func ParseRoute(path string) (string, string) {
 		if len(matches) > 1 {
 			pre := matches[1]
 			loc := matches[2]
-			loc, err := filepath.Abs(loc)
-			if err != nil {
-				loc = ""
+			if !filepath.IsAbs(loc) {
+				loc, err := filepath.Abs(loc)
+				if err != nil {
+					loc = ""
+				}
 			}
 			return pre, loc
 		}
