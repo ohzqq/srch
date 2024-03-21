@@ -188,6 +188,11 @@ func TestFacets(t *testing.T) {
 		t.Error(err)
 	}
 
+	dnr := res.FilterByFacetValue("tags", "dnr")
+	if len(dnr) != 22 {
+		t.Errorf("got %d hits with val, expected %d\n", len(dnr), 22)
+	}
+
 	facet, err := res.Facets.GetFacet("tags")
 	if err != nil {
 		t.Error(err)
