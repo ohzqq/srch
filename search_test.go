@@ -1,6 +1,7 @@
 package srch
 
 import (
+	"encoding/json"
 	"fmt"
 	"slices"
 	"testing"
@@ -175,7 +176,6 @@ func TestFacetFilters(t *testing.T) {
 }
 
 func TestFacets(t *testing.T) {
-
 	req := NewRequest().
 		SetRoute(param.Dir).
 		SetPath(testDataDir).
@@ -211,6 +211,11 @@ func TestFacets(t *testing.T) {
 			//  t.Errorf("got %d hits with val, expected %d\n", i, len(rel))
 			//}
 		}
+		d, err := json.Marshal(facet)
+		if err != nil {
+			t.Error(err)
+		}
+		println(string(d))
 	}
 }
 

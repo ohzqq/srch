@@ -1,7 +1,6 @@
 package facet
 
 import (
-	"encoding/json"
 	"strings"
 
 	"github.com/RoaringBitmap/roaring"
@@ -25,11 +24,15 @@ func NewItem(label string) *Item {
 	}
 }
 
-func (i *Item) MarshalJSON() ([]byte, error) {
-	i.Count = i.Len()
-	i.RelatedTo = i.GetItems()
-	return json.Marshal(i)
-}
+//func (i *Item) MarshalJSON() ([]byte, error) {
+//  //i.Count = i.Len()
+//  //i.RelatedTo = i.GetItems()
+//  ugh := map[string]any{
+//    "count":     i.Len(),
+//    "relatedTo": i.GetItems(),
+//  }
+//  return json.Marshal(ugh)
+//}
 
 func (i *Item) Bitmap() *roaring.Bitmap {
 	return i.bits

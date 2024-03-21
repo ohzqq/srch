@@ -60,7 +60,6 @@ func New(settings string) (*Index, error) {
 	idx.Data = data.New(idx.Params.Route, idx.Params.Path)
 
 	idx.Indexer = fuzz.Open(idx.Params)
-	println("new index parse " + idx.Params.String())
 
 	switch idx.Data.Route {
 	case param.Blv:

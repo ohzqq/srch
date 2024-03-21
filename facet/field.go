@@ -1,7 +1,6 @@
 package facet
 
 import (
-	"encoding/json"
 	"strings"
 
 	"github.com/RoaringBitmap/roaring"
@@ -19,6 +18,7 @@ type Facet struct {
 	Items     []*Item        `json:"items"`
 	Count     int            `json:"count"`
 	Sep       string         `json:"-"`
+	attr      string         `json:"-"`
 	SortBy    string         `json:"-"`
 	Order     string         `json:"-"`
 	kwIdx     map[string]int `json:"-"`
@@ -26,9 +26,10 @@ type Facet struct {
 
 func NewFacet(attr string) *Facet {
 	f := &Facet{
-		Sep:    "/",
-		SortBy: "count",
-		Order:  "desc",
+		Sep:       "/",
+		SortBy:    "count",
+		Order:     "desc",
+		Attribute: attr,
 	}
 	parseAttr(f, attr)
 	return f
@@ -42,22 +43,45 @@ func NewFacets(attrs []string) []*Facet {
 	return fields
 }
 
-func (f *Facet) MarshalJSON() ([]byte, error) {
-	f.Items = f.Keywords()
-	f.Count = f.Len()
-	f.Attribute = joinAttr(f)
-	//field := make(map[string]any)
-	//field["facetValues"] = f.Keywords()
-	//if f.Len() < 1 {
-	//field["facetValues"] = []any{}
-	//}
-	//field["attribute"] = joinAttr(f)
-	//field["count"] = f.Len()
-	return json.Marshal(f)
+//func (f *Facet) MarshalJSON() ([]byte, error) {
+//  f.Items = f.Keywords()
+//  f.Count = f.Len()
+//  f.Attribute = joinAttr(f)
+//  //field := make(map[string]any)
+//  //field["facetValues"] = f.Keywords()
+//  //if f.Len() < 1 {
+//  //field["facetValues"] = []any{}
+//  //}
+//  //field["attribute"] = joinAttr(f)
+//  //field["count"] = f.Len()
+//  return json.Marshal(f)
+//}
+
+func (f *Facet) Add(val any, ids []int) {
+	for _, token := range f.Tokenize(val) {
+		if f.kwIdx == nil {
+			f.kwIdx = make(map[string]int)
+		}
+		if idx, ok := f.kwIdx[token.Value]; ok {
+			f.Items[idx].Add(ids...)
+		} else {
+			idx = len(f.Items)
+			f.kwIdx[token.Value] = idx
+			token.Add(ids...)
+			f.Items = append(f.Items, token)
+		}
+		token.Count = token.Len()
+		token.RelatedTo = token.GetItems()
+	}
 }
 
 func (f *Facet) Keywords() []*Item {
-	return f.SortTokens()
+	items := f.SortTokens()
+	for i, item := range items {
+		items[i].Count = item.Len()
+		items[i].RelatedTo = item.GetItems()
+	}
+	return items
 }
 
 func (f *Facet) GetValues() []string {
@@ -94,22 +118,6 @@ func (f *Facet) FindByIndex(ti ...int) []*Item {
 		}
 	}
 	return tokens
-}
-
-func (f *Facet) Add(val any, ids []int) {
-	for _, token := range f.Tokenize(val) {
-		if f.kwIdx == nil {
-			f.kwIdx = make(map[string]int)
-		}
-		if idx, ok := f.kwIdx[token.Value]; ok {
-			f.Items[idx].Add(ids...)
-		} else {
-			idx = len(f.Items)
-			f.kwIdx[token.Value] = idx
-			token.Add(ids...)
-			f.Items = append(f.Items, token)
-		}
-	}
 }
 
 func (f *Facet) Tokenize(val any) []*Item {
@@ -165,7 +173,7 @@ func (f *Facet) String(i int) string {
 }
 
 func joinAttr(field *Facet) string {
-	attr := field.Attribute
+	attr := field.attr
 	if field.SortBy != "" {
 		attr += ":"
 		attr += field.SortBy
@@ -187,7 +195,7 @@ func parseAttr(field *Facet, attr string) {
 		}
 		switch i {
 		case 0:
-			field.Attribute = a
+			field.attr = a
 		case 1:
 			field.SortBy = a
 		case 2:

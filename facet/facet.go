@@ -54,13 +54,16 @@ func (f *Fields) Calculate() *Fields {
 		}
 		f.bits.AddInt(id)
 		for _, facet := range f.Facets {
-			if val, ok := d[facet.Attribute]; ok {
-				facet.Add(
-					val,
-					[]int{id},
-				)
+			if val, ok := d[facet.attr]; ok {
+				facet.Add(val, []int{id})
 			}
 		}
+	}
+
+	for _, facet := range f.Facets {
+		facet.Items = facet.Keywords()
+		facet.Count = facet.Len()
+		facet.Attribute = joinAttr(facet)
 	}
 	return f
 }
@@ -105,7 +108,7 @@ func (f Fields) getHits() []map[string]any {
 
 func (f Fields) GetFacet(attr string) *Facet {
 	for _, facet := range f.Facets {
-		if facet.Attribute == attr {
+		if facet.attr == attr {
 			return facet
 		}
 	}
@@ -134,7 +137,7 @@ func (f *Fields) Items() []string {
 func (f *Fields) MarshalJSON() ([]byte, error) {
 	m := make(map[string]int)
 	for _, fi := range f.Facets {
-		m[fi.Attribute] = f.Len()
+		m[fi.attr] = f.Len()
 	}
 	return json.Marshal(m)
 }
