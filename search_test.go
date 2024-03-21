@@ -1,7 +1,6 @@
 package srch
 
 import (
-	"encoding/json"
 	"fmt"
 	"slices"
 	"testing"
@@ -190,7 +189,7 @@ func TestFacets(t *testing.T) {
 	}
 
 	for _, facet := range res.FacetFields {
-		for _, tok := range facet.Keywords() {
+		for _, tok := range facet.Items {
 			ids := lo.ToAnySlice(tok.GetItems())
 			rel := FilterDataByID(res.results, ids, res.UID)
 			i := 0
@@ -211,11 +210,11 @@ func TestFacets(t *testing.T) {
 			//  t.Errorf("got %d hits with val, expected %d\n", i, len(rel))
 			//}
 		}
-		d, err := json.Marshal(facet)
-		if err != nil {
-			t.Error(err)
-		}
-		println(string(d))
+		//d, err := json.Marshal(facet)
+		//if err != nil {
+		//t.Error(err)
+		//}
+		//println(string(d))
 	}
 }
 
