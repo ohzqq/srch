@@ -43,20 +43,6 @@ func NewFacets(attrs []string) []*Facet {
 	return fields
 }
 
-//func (f *Facet) MarshalJSON() ([]byte, error) {
-//  f.Items = f.Keywords()
-//  f.Count = f.Len()
-//  f.Attribute = joinAttr(f)
-//  //field := make(map[string]any)
-//  //field["facetValues"] = f.Keywords()
-//  //if f.Len() < 1 {
-//  //field["facetValues"] = []any{}
-//  //}
-//  //field["attribute"] = joinAttr(f)
-//  //field["count"] = f.Len()
-//  return json.Marshal(f)
-//}
-
 func (f *Facet) Add(val any, ids []int) {
 	for _, token := range f.Tokenize(val) {
 		if f.kwIdx == nil {

@@ -189,8 +189,9 @@ func TestFacets(t *testing.T) {
 	}
 
 	for _, facet := range res.FacetFields {
+		println(facet.Attribute)
 		for _, tok := range facet.Items {
-			ids := lo.ToAnySlice(tok.GetItems())
+			ids := lo.ToAnySlice(tok.RelatedTo)
 			rel := FilterDataByID(res.results, ids, res.UID)
 			i := 0
 			for _, r := range rel {
@@ -206,9 +207,9 @@ func TestFacets(t *testing.T) {
 				}
 				i++
 			}
-			//if i != len(rel) {
-			//  t.Errorf("got %d hits with val, expected %d\n", i, len(rel))
-			//}
+			if i != len(rel) {
+				t.Errorf("got %d hits with val, expected %d\n", i, len(rel))
+			}
 		}
 		//d, err := json.Marshal(facet)
 		//if err != nil {

@@ -63,7 +63,6 @@ func (f *Fields) Calculate() *Fields {
 	for _, facet := range f.Facets {
 		facet.Items = facet.Keywords()
 		facet.Count = facet.Len()
-		facet.Attribute = joinAttr(facet)
 	}
 	return f
 }
@@ -108,7 +107,7 @@ func (f Fields) getHits() []map[string]any {
 
 func (f Fields) GetFacet(attr string) *Facet {
 	for _, facet := range f.Facets {
-		if facet.attr == attr {
+		if facet.Attribute == attr {
 			return facet
 		}
 	}
