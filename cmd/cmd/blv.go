@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"fmt"
-	"path/filepath"
+	"net/url"
 
 	"github.com/ohzqq/srch"
 	"github.com/ohzqq/srch/data"
@@ -33,7 +33,12 @@ func getIdxAndData(cmd *cobra.Command, path string) (*srch.Index, []map[string]a
 		return nil, nil, fmt.Errorf("failed to get data err: %w\n", err)
 	}
 
-	idx, err := srch.New(filepath.Join(param.Blv, path))
+	u := &url.URL{
+		Path:     param.Blv,
+		RawQuery: "path=" + path,
+	}
+
+	idx, err := srch.New(u.String())
 	return idx, docs, err
 }
 
