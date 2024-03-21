@@ -192,7 +192,7 @@ func TestFacets(t *testing.T) {
 	for _, facet := range res.FacetFields {
 		for _, tok := range facet.Keywords() {
 			ids := lo.ToAnySlice(tok.GetItems())
-			rel := FilterDataByID(res.results, ids, res.Params.UID)
+			rel := FilterDataByID(res.results, ids, res.UID)
 			i := 0
 			for _, r := range rel {
 				if facet.Attribute != "tags" {
@@ -235,7 +235,7 @@ func TestNewRequest(t *testing.T) {
 			t.Error(err)
 		}
 
-		err = searchErr(res.NbHits, 37, res.Params.Query)
+		err = searchErr(res.NbHits, 37, res.Query)
 		if err != nil {
 			t.Error(err)
 		}
@@ -276,7 +276,7 @@ func TestFlags(t *testing.T) {
 		t.Error(err)
 	}
 
-	err = searchErr(res.NbHits, numBooks, res.Params.Query)
+	err = searchErr(res.NbHits, numBooks, res.Query)
 	if err != nil {
 		t.Error(err)
 	}

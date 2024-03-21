@@ -77,7 +77,6 @@ func (res *Response) nbPages() int {
 	if hpp < 1 {
 		return 1
 	}
-	println(hpp)
 
 	nb := res.NbHits / hpp
 	if r := res.NbHits % hpp; r > 0 {
