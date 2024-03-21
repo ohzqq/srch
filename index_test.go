@@ -81,6 +81,35 @@ func TestNewIndex(t *testing.T) {
 	}
 }
 
+func TestNewIndexNoData(t *testing.T) {
+	params := "?searchableAttributes=title&facets=tags,authors,series,narrators"
+	idx, err := New(params)
+	if err != nil {
+		t.Error(err)
+	}
+	books := loadData(t)
+	idx.Batch(books)
+	err = totalBooksErr(7252, params)
+	if err != nil {
+		t.Error(err)
+	}
+
+	req := NewRequest().
+		SrchAttr("title").
+		Query("fish")
+	println("req string " + req.String())
+
+	res, err := idx.Search(req.String())
+	if err != nil {
+		t.Error(err)
+	}
+
+	err = searchErr(res.nbHits(), 56, req.String())
+	if err != nil {
+		t.Error(err)
+	}
+}
+
 func TestNewIndexWithParams(t *testing.T) {
 	for i := 0; i < len(testQuerySettings); i++ {
 		q := testQuerySettings[i]

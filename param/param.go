@@ -335,6 +335,7 @@ func unmarshalFilter(dec string) ([]any, error) {
 
 func parseSrchAttr(vals url.Values) []string {
 	if !vals.Has(SrchAttr) {
+		println("parse srch attr " + vals.Encode())
 		return []string{"*"}
 	}
 	v := GetQueryStringSlice(SrchAttr, vals)

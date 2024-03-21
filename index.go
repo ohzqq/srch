@@ -59,6 +59,9 @@ func New(settings string) (*Index, error) {
 
 	idx.Data = data.New(idx.Params.Route, idx.Params.Path)
 
+	idx.Indexer = fuzz.Open(idx.Params)
+	println("new index parse " + idx.Params.String())
+
 	switch idx.Data.Route {
 	case param.Blv:
 		idx.Params.SrchAttr = []string{"*"}
@@ -72,12 +75,11 @@ func New(settings string) (*Index, error) {
 		if err != nil {
 			return nil, err
 		}
-		idx.Indexer = fuzz.Open(idx.Params)
 		idx.Batch(idx.Docs)
 		return idx, nil
 	}
 
-	return idx, NoDataErr
+	return idx, nil
 }
 
 func (idx *Index) Search(params string) (*Response, error) {
