@@ -35,7 +35,6 @@ func NewResponse(hits []map[string]any, params *param.Params) (*Response, error)
 	if len(hits) == 0 {
 		return res, nil
 	}
-	println(len(hits))
 
 	if params.Has(param.Facets) {
 		facets, err := facet.New(hits, params)
