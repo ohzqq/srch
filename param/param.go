@@ -18,34 +18,35 @@ func init() {
 }
 
 type Params struct {
-	URL   *url.URL   `json:"-"`
-	Other url.Values `json:"-"`
+	URL   *url.URL   `json:"-" mapstructure:"url"`
+	Other url.Values `json:"-" mapstructure:"other"`
 
 	// Index Settings
-	SrchAttr     []string `query:"searchableAttributes,omitempty" json:"searchableAttributes,omitempty"`
-	FacetAttr    []string `query:"attributesForFaceting,omitempty" json:"attributesForFaceting,omitempty"`
-	SortAttr     []string `query:"sortableAttributes,omitempty" json:"sortableAttributes,omitempty"`
-	DefaultField string   `query:"defaultField,omitempty" json:"defaultField,omitempty"`
-	UID          string   `query:"uid,omitempty" json:"uid,omitempty"`
+	SrchAttr     []string `query:"searchableAttributes,omitempty" json:"searchableAttributes,omitempty" mapstructure:"searchable_attributes"`
+	FacetAttr    []string `query:"attributesForFaceting,omitempty" json:"attributesForFaceting,omitempty" mapstructure:"attributes_for_faceting"`
+	SortAttr     []string `query:"sortableAttributes,omitempty" json:"sortableAttributes,omitempty" mapstructure:"sortable_attributes"`
+	DefaultField string   `query:"defaultField,omitempty" json:"defaultField,omitempty" mapstructure:"defaultField"`
+	UID          string   `query:"uid,omitempty" json:"uid,omitempty" mapstructure:"uid"`
 
 	// Search
-	Hits        int      `query:"hits,omitempty" json:"hits,omitempty"`
-	RtrvAttr    []string `query:"attributesToRetrieve,omitempty" json:"attributesToRetrieve,omitempty"`
-	Page        int      `query:"page,omitempty" json:"page,omitempty"`
-	HitsPerPage int      `query:"hitsPerPage,omitempty" json:"hitsPerPage,omitempty"`
-	Query       string   `query:"query,omitempty" json:"query,omitempty"`
-	SortBy      string   `query:"sortBy,omitempty" json:"sortBy,omitempty"`
-	Order       string   `query:"order,omitempty" json:"order,omitempty"`
+	Hits        int      `query:"hits,omitempty" json:"hits,omitempty" mapstructure:"hits"`
+	RtrvAttr    []string `query:"attributesToRetrieve,omitempty" json:"attributesToRetrieve,omitempty" mapstructure:"attributes_to_retrieve"`
+	Page        int      `query:"page,omitempty" json:"page,omitempty" mapstructure:"page"`
+	HitsPerPage int      `query:"hitsPerPage,omitempty" json:"hitsPerPage,omitempty" mapstructure:"hits_per_page"`
+	Query       string   `query:"query,omitempty" json:"query,omitempty" mapstructure:"query"`
+	SortBy      string   `query:"sortBy,omitempty" json:"sortBy,omitempty" mapstructure:"sort_by"`
+	Order       string   `query:"order,omitempty" json:"order,omitempty" mapstructure:"order"`
 	// Facets
-	Facets       []string `query:"facets,omitempty" json:"facets,omitempty"`
-	Filters      string   `query:"filters,omitempty" json:"filters,omitempty"`
-	FacetFilters []any    `query:"facetFilters,omitempty" json:"facetFilters,omitempty"`
-	SortFacetsBy string   `query:"sortFacetsBy,omitempty" json:"sortFacetsBy,omitempty"`
+	Facets       []string `query:"facets,omitempty" json:"facets,omitempty" mapstructure:"facets"`
+	Filters      string   `query:"filters,omitempty" json:"filters,omitempty" mapstructure:"filters"`
+	FacetFilters []any    `query:"facetFilters,omitempty" json:"facetFilters,omitempty" mapstructure:"facet_filters"`
+	SortFacetsBy string   `query:"sortFacetsBy,omitempty" json:"sortFacetsBy,omitempty" mapstructure:"sort_facets_by"`
+	MaxFacetVals int      `query:"maxValuesPerFacet,omitempty" json:"maxValuesPerFacet,omitempty" mapstructure:"max_values_per_facet"`
 
 	// Data
-	Format string `json:"-"`
-	Path   string `json:"-"`
-	Route  string `json:"-"`
+	Format string `json:"-" mapstructure:"format"`
+	Path   string `json:"-" mapstructure:"path"`
+	Route  string `json:"-" mapstructure:"route"`
 }
 
 var (
@@ -149,6 +150,8 @@ func (s *Params) Set(v url.Values) error {
 			}
 		case Hits:
 			s.Hits = GetQueryInt(key, v)
+		case MaxFacetVals:
+			s.MaxFacetVals = GetQueryInt(key, v)
 		case RtrvAttr:
 			s.RtrvAttr = GetQueryStringSlice(key, v)
 		case Page:
@@ -176,6 +179,8 @@ func (s *Params) Has(key string) bool {
 		return s.Page != 0
 	case HitsPerPage:
 		return s.HitsPerPage != 0
+	case MaxFacetVals:
+		return s.MaxFacetVals != 0
 	case Path:
 		return s.Path != ""
 	case Query:
@@ -250,6 +255,8 @@ func (s *Params) Values() url.Values {
 			}
 		case Hits:
 			vals.Set(key, cast.ToString(s.Hits))
+		case MaxFacetVals:
+			vals.Set(key, cast.ToString(s.MaxFacetVals))
 		case RtrvAttr:
 			vals[key] = s.RtrvAttr
 		case Page:

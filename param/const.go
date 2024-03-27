@@ -7,6 +7,7 @@ const (
 	Page         = "page"
 	HitsPerPage  = "hitsPerPage"
 	SortFacetsBy = `sortFacetValuesBy`
+	MaxFacetVals = `maxValuesPerFacet`
 	Query        = `query`
 	Facets       = "facets"
 	Filters      = "filters"
@@ -58,6 +59,7 @@ var SearchParams = []string{
 	SortBy,
 	Order,
 	SortFacetsBy,
+	MaxFacetVals,
 	Facets,
 	Filters,
 	FacetFilters,

@@ -31,6 +31,35 @@ var fishfacetCount = map[string]int{
 	"narrators": 26,
 }
 
+func TestFilterAuth(t *testing.T) {
+
+	params := "?searchableAttributes=title&facets=tags,authors,series,narrators&hitsPerPage=25&order=desc&searchableAttributes=title&sortBy=added&uid=id"
+	idx, err := New(params)
+	if err != nil {
+		t.Error(err)
+	}
+	books := loadData(t)
+	idx.Batch(books)
+	err = totalBooksErr(7252, params)
+	if err != nil {
+		t.Error(err)
+	}
+
+	q := `?facetFilters=%5B%22authors%3Aandrew+grey%22%5D&facets=authors&facets=tags&facets=narrators&facets=series&hitsPerPage=25&order=desc&searchableAttributes=title&sortBy=added&uid=id`
+
+	res, err := idx.Search(q)
+	if err != nil {
+		t.Log(err)
+	}
+
+	err = searchErr(res.NbHits, 99, q)
+	if err != nil {
+		t.Error(err)
+	}
+
+	fmt.Printf("first hits %#v\n", res.Hits[0])
+}
+
 func TestFuzzySearch(t *testing.T) {
 	req := NewRequest().
 		SetRoute(param.File).
@@ -42,6 +71,7 @@ func TestFuzzySearch(t *testing.T) {
 	if err != nil {
 		t.Log(err)
 	}
+	println(req.String())
 
 	err = searchErr(res.nbHits(), 56, req.String())
 	if err != nil {
