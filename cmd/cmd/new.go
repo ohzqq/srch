@@ -19,7 +19,7 @@ var newCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 
-		route := filepath.Join(param.Blv, args[0])
+		route := filepath.Join(param.Blv.String(), args[0])
 		req := srch.NewRequest().SetRoute(route)
 
 		params, err := param.Parse(req.String())

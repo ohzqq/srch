@@ -6,6 +6,10 @@ import (
 	"net/url"
 	"path/filepath"
 	"testing"
+
+	"github.com/samber/lo"
+	"github.com/spf13/viper"
+	"golang.org/x/exp/maps"
 )
 
 type paramTest struct {
@@ -245,6 +249,75 @@ func TestNewQueryURLs(t *testing.T) {
 		}
 		println(p.String())
 	}
+}
+
+func TestDecodeParams(t *testing.T) {
+	for _, key := range SettingParams {
+		switch key {
+		case SrchAttr:
+			viper.SetDefault(key.Snake(), []string{"title"})
+		case FacetAttr:
+			viper.SetDefault(key.Snake(), []string{"tags"})
+		case SortAttr:
+			viper.SetDefault(key.Snake(), []string{"title:desc"})
+		case UID:
+			viper.SetDefault(key.Snake(), "id")
+		}
+	}
+
+	for _, key := range SearchParams {
+		switch key {
+		case SortFacetsBy:
+			viper.SetDefault(key.Snake(), "tags:count:desc")
+		case Facets:
+			viper.SetDefault(key.Snake(), []string{"tags"})
+		case RtrvAttr:
+			viper.SetDefault(key.Snake(), []string{"*"})
+		case Page:
+			viper.SetDefault(key.Snake(), 0)
+		case HitsPerPage:
+			viper.SetDefault(key.Snake(), -1)
+		case SortBy:
+			viper.SetDefault(key.Snake(), "title")
+		case Order:
+			viper.SetDefault(key.Snake(), "desc")
+		}
+	}
+
+	s := viper.AllSettings()
+
+	dec, err := DecodeSnakeMap(s)
+	if err != nil {
+		t.Error(err)
+	}
+	fmt.Printf("%#v\n", dec)
+}
+
+func TestParamStringer(t *testing.T) {
+	test := paramTests[len(paramTests)-1]
+	p, err := Parse(test.query)
+	if err != nil {
+		t.Error(err)
+	}
+	s := make(map[string]any)
+	for k, v := range p.Values() {
+		s[k] = v
+	}
+	q := QueryToSettings(s)
+
+	search := lo.Map(SearchParams, func(i Param, _ int) string { return i.Snake() })
+	settings := lo.Map(SettingParams, func(i Param, _ int) string { return i.Snake() })
+	keys := maps.Keys(q)
+
+	ss := lo.Intersect(keys, search)
+	if len(ss) < 1 {
+		t.Errorf("not same %#v\n", ss)
+	}
+	ss = lo.Intersect(keys, settings)
+	if len(ss) < 1 {
+		t.Errorf("not same %#v\n", ss)
+	}
+
 }
 
 type pathMatch struct {

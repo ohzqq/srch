@@ -63,32 +63,32 @@ func init() {
 	for _, key := range param.SettingParams {
 		switch key {
 		case param.SrchAttr:
-			viper.SetDefault(key, []string{"title"})
+			viper.SetDefault(key.Snake(), []string{"title"})
 		case param.FacetAttr:
-			viper.SetDefault(key, []string{"tags"})
+			viper.SetDefault(key.Snake(), []string{"tags"})
 		case param.SortAttr:
-			viper.SetDefault(key, []string{"title:desc"})
+			viper.SetDefault(key.Snake(), []string{"title:desc"})
 		case param.UID:
-			viper.SetDefault(key, "id")
+			viper.SetDefault(key.Snake(), "id")
 		}
 	}
 
 	for _, key := range param.SearchParams {
 		switch key {
 		case param.SortFacetsBy:
-			viper.SetDefault(key, "tags:count:desc")
+			viper.SetDefault(key.Snake(), "tags:count:desc")
 		case param.Facets:
-			viper.SetDefault(key, []string{"tags"})
+			viper.SetDefault(key.Snake(), []string{"tags"})
 		case param.RtrvAttr:
-			viper.SetDefault(key, "*")
+			viper.SetDefault(key.Snake(), "*")
 		case param.Page:
-			viper.SetDefault(key, 0)
+			viper.SetDefault(key.Snake(), 0)
 		case param.HitsPerPage:
-			viper.SetDefault(key, -1)
+			viper.SetDefault(key.Snake(), -1)
 		case param.SortBy:
-			viper.SetDefault(key, "title")
+			viper.SetDefault(key.Snake(), "title")
 		case param.Order:
-			viper.SetDefault(key, "desc")
+			viper.SetDefault(key.Snake(), "desc")
 		}
 	}
 

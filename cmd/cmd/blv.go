@@ -34,7 +34,7 @@ func getIdxAndData(cmd *cobra.Command, path string) (*srch.Index, []map[string]a
 	}
 
 	u := &url.URL{
-		Path:     param.Blv,
+		Path:     param.Blv.String(),
 		RawQuery: "path=" + path,
 	}
 
@@ -48,7 +48,7 @@ func getData(cmd *cobra.Command, params *param.Params) ([]map[string]any, error)
 
 	var dataFile bool
 	for _, r := range param.Routes {
-		if viper.IsSet(r) {
+		if viper.IsSet(r.Snake()) {
 			dataFile = true
 		}
 	}

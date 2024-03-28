@@ -143,13 +143,13 @@ func GetViperParams() *Request {
 	params := make(url.Values)
 	for key, val := range cast.ToStringMapStringSlice(vals) {
 		for _, k := range param.SettingParams {
-			if key == strings.ToLower(k) {
-				params[k] = val
+			if key == k.Snake() {
+				params[k.Query()] = val
 			}
 		}
 		for _, k := range param.SearchParams {
-			if key == strings.ToLower(k) {
-				params[k] = val
+			if key == k.Snake() {
+				params[k.Query()] = val
 			}
 		}
 	}
@@ -157,15 +157,12 @@ func GetViperParams() *Request {
 	req := NewRequest().SetValues(params)
 
 	for _, key := range param.Routes {
-		if viper.IsSet(strings.ToLower(key)) {
-			val := viper.GetStringSlice(key)
-			req.SetRoute(key)
+		if viper.IsSet(key.Snake()) {
+			val := viper.GetStringSlice(key.Snake())
+			req.SetRoute(key.Query())
 			req.SetPath(val[0])
 		}
 	}
 
 	return req
-}
-
-func init() {
 }

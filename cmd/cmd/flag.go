@@ -1,15 +1,13 @@
 package cmd
 
 import (
-	"github.com/gobuffalo/flect"
 	"github.com/ohzqq/srch/param"
 	"github.com/spf13/viper"
 )
 
 func defineFlags() {
 	for _, key := range param.SettingParams {
-		long := flect.Dasherize(key)
-		short := string(key[0])
+		short := string(key.String()[0])
 		var usage string
 		switch key {
 		case param.UID:
@@ -20,12 +18,11 @@ func defineFlags() {
 		default:
 			continue
 		}
-		defineFlag(long, short, usage)
+		defineFlag(key.Slug(), short, usage)
 	}
 
 	for _, key := range param.SearchParams {
-		long := flect.Dasherize(key)
-		short := string(key[0])
+		short := string(key.String()[0])
 		var usage string
 		switch key {
 		case param.Facets:
@@ -45,12 +42,11 @@ func defineFlags() {
 		default:
 			continue
 		}
-		defineFlag(long, short, usage)
+		defineFlag(key.Slug(), short, usage)
 	}
 
 	for _, key := range param.Routes {
-		long := flect.Dasherize(key)
-		short := string(key[0])
+		short := string(key.String()[0])
 		var usage string
 		switch key {
 		case param.File:
@@ -61,7 +57,7 @@ func defineFlags() {
 		case param.Blv:
 			usage = "path to bleve index"
 		}
-		defineFlag(long, short, usage)
+		defineFlag(key.Slug(), short, usage)
 	}
 
 	defineFlag("and", "a", "conjunctive facets, format attribute:value")

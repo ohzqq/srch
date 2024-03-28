@@ -5,6 +5,7 @@ import (
 	"slices"
 	"testing"
 
+	"github.com/mitchellh/mapstructure"
 	"github.com/ohzqq/srch/param"
 	"github.com/samber/lo"
 	"github.com/spf13/cast"
@@ -31,9 +32,49 @@ var fishfacetCount = map[string]int{
 	"narrators": 26,
 }
 
+func TestDecode(t *testing.T) {
+	p := map[string]interface{}{"facets": []interface{}{"tags", "authors", "narrators", "series"}, "hits_per_page": 25, "max_values_per_facet": 25, "order": "desc", "searchable_attributes": []interface{}{"title"}, "sort_by": "added", "uid": "id"}
+
+	params := param.New()
+	err := mapstructure.Decode(p, params)
+	if err != nil {
+		t.Error(err)
+	}
+	println(params.String())
+}
+
+func TestFilterAuth(t *testing.T) {
+
+	params := "?searchableAttributes=title&facets=tags,authors,series,narrators&hitsPerPage=25&order=desc&searchableAttributes=title&sortBy=added&uid=id"
+	idx, err := New(params)
+	if err != nil {
+		t.Error(err)
+	}
+	books := loadData(t)
+	idx.Batch(books)
+	err = totalBooksErr(7252, params)
+	if err != nil {
+		t.Error(err)
+	}
+
+	q := `?facetFilters=%5B%22authors%3Aandrew+grey%22%5D&facets=authors&facets=tags&facets=narrators&facets=series&hitsPerPage=25&order=desc&searchableAttributes=title&sortBy=added&uid=id`
+
+	res, err := idx.Search(q)
+	if err != nil {
+		t.Log(err)
+	}
+
+	err = searchErr(res.NbHits, 99, q)
+	if err != nil {
+		t.Error(err)
+	}
+
+	fmt.Printf("first hits %#v\n", res.Hits[0])
+}
+
 func TestFuzzySearch(t *testing.T) {
 	req := NewRequest().
-		SetRoute(param.File).
+		SetRoute(param.File.String()).
 		SetPath(testDataFile).
 		SrchAttr("title").
 		Query("fish")
@@ -42,6 +83,7 @@ func TestFuzzySearch(t *testing.T) {
 	if err != nil {
 		t.Log(err)
 	}
+	println(req.String())
 
 	err = searchErr(res.nbHits(), 56, req.String())
 	if err != nil {
@@ -134,7 +176,7 @@ var facetCount = map[string]int{
 
 func TestFacetFilters(t *testing.T) {
 	req := NewRequest().
-		SetRoute(param.Dir).
+		SetRoute(param.Dir.String()).
 		SetPath(testDataDir).
 		UID("id").
 		Facets("tags", "authors", "narrators", "series").
@@ -176,7 +218,7 @@ func TestFacetFilters(t *testing.T) {
 
 func TestFacets(t *testing.T) {
 	req := NewRequest().
-		SetRoute(param.Dir).
+		SetRoute(param.Dir.String()).
 		SetPath(testDataDir).
 		UID("id").
 		SrchAttr("title").
@@ -229,7 +271,7 @@ func TestFacets(t *testing.T) {
 func TestNewRequest(t *testing.T) {
 	for i := 0; i < 3; i++ {
 		req := NewRequest().
-			SetRoute(param.Blv).
+			SetRoute(param.Blv.String()).
 			SetPath(testBlvPath).
 			UID("id").
 			Query("fish").
@@ -274,7 +316,7 @@ func TestNewRequest(t *testing.T) {
 }
 
 func TestFlags(t *testing.T) {
-	viper.Set(param.Blv, "testdata/poot.bleve")
+	viper.Set(param.Blv.String(), "testdata/poot.bleve")
 
 	req := GetViperParams()
 
