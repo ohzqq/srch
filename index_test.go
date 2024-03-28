@@ -180,17 +180,17 @@ func mkURL(path string, rq ...string) string {
 
 func blvRoute(params ...string) string {
 	params = append(params, "path="+testBlvPath)
-	return mkURL(param.Blv, params...)
+	return mkURL(param.Blv.String(), params...)
 }
 
 func dirRoute(params ...string) string {
 	params = append(params, "path="+testDataDir)
-	return mkURL(param.Dir, params...)
+	return mkURL(param.Dir.String(), params...)
 }
 
 func fileRoute(params ...string) string {
 	params = append(params, "path="+testDataFile)
-	return mkURL(param.File, params...)
+	return mkURL(param.File.String(), params...)
 }
 
 func totalBooksErr(total int, vals ...any) error {
@@ -202,7 +202,7 @@ func totalBooksErr(total int, vals ...any) error {
 }
 
 func loadData(t *testing.T) []map[string]any {
-	d := data.New(param.File, `testdata/nddata/ndbooks.ndjson`)
+	d := data.New(param.File.String(), `testdata/nddata/ndbooks.ndjson`)
 
 	books, err := d.Decode()
 	if err != nil {

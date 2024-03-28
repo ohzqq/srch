@@ -1,6 +1,10 @@
 package param
 
-import "github.com/gobuffalo/flect"
+import (
+	"strings"
+
+	"github.com/gobuffalo/flect"
+)
 
 type Param int
 
@@ -46,12 +50,29 @@ const (
 	JSON   = `application/json`
 )
 
+// Query returns a camelCase string to use as the key in a URL query
 func (p Param) Query() string {
 	return p.String()
 }
 
+// Snake returns an alphanumeric, lowercased, underscored string
 func (p Param) Snake() string {
 	return flect.Underscore(p.String())
+}
+
+// ToLower returns an all lowercase string
+func (p Param) ToLower() string {
+	return strings.ToLower(p.String())
+}
+
+// Dasherize returns an alphanumeric, lowercased, dashed string
+func (p Param) Dasherize() string {
+	return flect.Dasherize(p.String())
+}
+
+// Slug returns an alphanumeric, lowercased, dashed string
+func (p Param) Slug() string {
+	return p.Dasherize()
 }
 
 var SettingParams = []Param{

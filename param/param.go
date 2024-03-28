@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/gobuffalo/flect"
+	"github.com/mitchellh/mapstructure"
 	"github.com/samber/lo"
 	"github.com/spf13/cast"
 )
@@ -18,6 +19,7 @@ func init() {
 	mime.AddExtensionType(".ndjson", "application/x-ndjson")
 }
 
+// Params is a structure for search params
 type Params struct {
 	URL   *url.URL   `json:"-" mapstructure:"-"`
 	Other url.Values `json:"-" mapstructure:"-"`
@@ -58,6 +60,7 @@ var (
 	routes     = []*regexp.Regexp{blvPath, filePath, dirPath}
 )
 
+// New initializes a Params structure with a non-nil URL
 func New() *Params {
 	return &Params{
 		URL:   &url.URL{},
@@ -65,6 +68,7 @@ func New() *Params {
 	}
 }
 
+// Parse parses an encoded URL into a Params struct
 func Parse(params string) (*Params, error) {
 	p := New()
 
@@ -83,6 +87,7 @@ func Parse(params string) (*Params, error) {
 	return p, nil
 }
 
+// Search returns a url.Values with only search params
 func (p Params) Search() url.Values {
 	vals := make(url.Values)
 	for _, key := range SearchParams {
@@ -94,6 +99,7 @@ func (p Params) Search() url.Values {
 	return vals
 }
 
+// Index returns a url.Values with only index setting params
 func (p Params) Index() url.Values {
 	vals := make(url.Values)
 	for _, key := range SettingParams {
@@ -105,6 +111,7 @@ func (p Params) Index() url.Values {
 	return vals
 }
 
+// SettingsToQuery returns a map with all keys converted to camelcase
 func SettingsToQuery(settings map[string]any) map[string]any {
 	for key, val := range settings {
 		settings[flect.Camelize(key)] = val
@@ -112,6 +119,7 @@ func SettingsToQuery(settings map[string]any) map[string]any {
 	return settings
 }
 
+// QueryToSettings returns a map with all keys converted to snakecase
 func QueryToSettings(settings map[string]any) map[string]any {
 	q := make(map[string]any)
 	for key, val := range settings {
@@ -120,95 +128,12 @@ func QueryToSettings(settings map[string]any) map[string]any {
 	return q
 }
 
-//func GetViperParams(v *viper.Viper) *Params {
-//  for _, key := range SettingParams {
-//    switch key {
-//    case SrchAttr:
-//      s.SrchAttr = parseSrchAttr(v)
-//    case FacetAttr:
-//      s.FacetAttr = parseFacetAttr(v)
-//    case SortAttr:
-//      s.SortAttr = GetQueryStringSlice(key.Query(), v)
-//    case DefaultField:
-//      s.DefaultField = v.Get(key.Query())
-//    case UID:
-//      s.UID = v.Get(key.Query())
-//    case Format:
-//      if v.Has(key.Query()) {
-//        s.Format = v.Get(key.Query())
-//      }
-//    }
-//  }
-//  for _, key := range SearchParams {
-//    switch key {
-//    case Path:
-//      if v.Has(key.Query()) {
-//        path := v.Get(key.Query())
-//        if !filepath.IsAbs(path) {
-//          path, _ = filepath.Abs(path)
-//        }
-//        s.Path = path
-//      }
-//    case SortFacetsBy:
-//      s.SortFacetsBy = v.Get(key.Query())
-//    case Facets:
-//      s.Facets = GetQueryStringSlice(key.Query(), v)
-//    case Filters:
-//      s.Filters = v.Get(key.Query())
-//    case FacetFilters:
-//      if v.Has(key.Query()) {
-//        fil := v.Get(key.Query())
-//        f, err := unmarshalFilter(fil)
-//        if err != nil {
-//          return fmt.Errorf("failed to unmarshal filters %v\nerr: %w\n", fil, err)
-//        }
-//        s.FacetFilters = f
-//      }
-//    case Hits:
-//      s.Hits = GetQueryInt(key.Query(), v)
-//    case MaxFacetVals:
-//      s.MaxFacetVals = GetQueryInt(key.Query(), v)
-//    case RtrvAttr:
-//      s.RtrvAttr = GetQueryStringSlice(key.Query(), v)
-//    case Page:
-//      s.Page = GetQueryInt(key.Query(), v)
-//    case HitsPerPage:
-//      s.HitsPerPage = GetQueryInt(key.Query(), v)
-//    case Query:
-//      s.Query = v.Get(key.Query())
-//    case SortBy:
-//      s.SortBy = v.Get(key.Query())
-//    case Order:
-//      s.Order = v.Get(key.Query())
-//    }
-//  }
-
-//  params := make(url.Values)
-//  for key, val := range cast.ToStringMapStringSlice(vals) {
-//    for _, k := range param.SettingParams {
-//      if key == k.Snake() {
-//        params[k] = val
-//      }
-//    }
-//    for _, k := range param.SearchParams {
-//      if key == k.Snake() {
-//        params[k] = val
-//      }
-//    }
-//  }
-
-//  req := NewRequest().SetValues(params)
-
-//  for _, key := range param.Routes {
-//    if viper.IsSet(key.Snake()) {
-//      val := viper.GetStringSlice(key)
-//      req.SetRoute(key)
-//      req.SetPath(val[0])
-//    }
-//  }
-
-//  return req
-//}
+// DecodeSnakeMap decodes a map with snakecase keys to Params
+func DecodeSnakeMap(settings map[string]any) (*Params, error) {
+	p := New()
+	err := mapstructure.Decode(QueryToSettings(settings), p)
+	return p, err
+}
 
 func (s *Params) Set(v url.Values) error {
 	for _, key := range SettingParams {

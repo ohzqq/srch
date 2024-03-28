@@ -74,7 +74,7 @@ func TestFilterAuth(t *testing.T) {
 
 func TestFuzzySearch(t *testing.T) {
 	req := NewRequest().
-		SetRoute(param.File).
+		SetRoute(param.File.String()).
 		SetPath(testDataFile).
 		SrchAttr("title").
 		Query("fish")
@@ -176,7 +176,7 @@ var facetCount = map[string]int{
 
 func TestFacetFilters(t *testing.T) {
 	req := NewRequest().
-		SetRoute(param.Dir).
+		SetRoute(param.Dir.String()).
 		SetPath(testDataDir).
 		UID("id").
 		Facets("tags", "authors", "narrators", "series").
@@ -218,7 +218,7 @@ func TestFacetFilters(t *testing.T) {
 
 func TestFacets(t *testing.T) {
 	req := NewRequest().
-		SetRoute(param.Dir).
+		SetRoute(param.Dir.String()).
 		SetPath(testDataDir).
 		UID("id").
 		SrchAttr("title").
@@ -271,7 +271,7 @@ func TestFacets(t *testing.T) {
 func TestNewRequest(t *testing.T) {
 	for i := 0; i < 3; i++ {
 		req := NewRequest().
-			SetRoute(param.Blv).
+			SetRoute(param.Blv.String()).
 			SetPath(testBlvPath).
 			UID("id").
 			Query("fish").
@@ -316,7 +316,7 @@ func TestNewRequest(t *testing.T) {
 }
 
 func TestFlags(t *testing.T) {
-	viper.Set(param.Blv, "testdata/poot.bleve")
+	viper.Set(param.Blv.String(), "testdata/poot.bleve")
 
 	req := GetViperParams()
 
