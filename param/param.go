@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/gobuffalo/flect"
 	"github.com/samber/lo"
 	"github.com/spf13/cast"
 )
@@ -18,8 +19,8 @@ func init() {
 }
 
 type Params struct {
-	URL   *url.URL   `json:"-" mapstructure:"url"`
-	Other url.Values `json:"-" mapstructure:"other"`
+	URL   *url.URL   `json:"-" mapstructure:"-"`
+	Other url.Values `json:"-" mapstructure:"-"`
 
 	// Index Settings
 	SrchAttr     []string `query:"searchableAttributes,omitempty" json:"searchableAttributes,omitempty" mapstructure:"searchable_attributes"`
@@ -86,8 +87,8 @@ func (p Params) Search() url.Values {
 	vals := make(url.Values)
 	for _, key := range SearchParams {
 		q := p.URL.Query()
-		if q.Has(key) {
-			vals[key] = q[key]
+		if q.Has(key.Query()) {
+			vals[key.Query()] = q[key.Query()]
 		}
 	}
 	return vals
@@ -97,12 +98,117 @@ func (p Params) Index() url.Values {
 	vals := make(url.Values)
 	for _, key := range SettingParams {
 		q := p.URL.Query()
-		if q.Has(key) {
-			vals[key] = q[key]
+		if q.Has(key.Query()) {
+			vals[key.Query()] = q[key.Query()]
 		}
 	}
 	return vals
 }
+
+func SettingsToQuery(settings map[string]any) map[string]any {
+	for key, val := range settings {
+		settings[flect.Camelize(key)] = val
+	}
+	return settings
+}
+
+func QueryToSettings(settings map[string]any) map[string]any {
+	q := make(map[string]any)
+	for key, val := range settings {
+		q[flect.Underscore(key)] = val
+	}
+	return q
+}
+
+//func GetViperParams(v *viper.Viper) *Params {
+//  for _, key := range SettingParams {
+//    switch key {
+//    case SrchAttr:
+//      s.SrchAttr = parseSrchAttr(v)
+//    case FacetAttr:
+//      s.FacetAttr = parseFacetAttr(v)
+//    case SortAttr:
+//      s.SortAttr = GetQueryStringSlice(key.Query(), v)
+//    case DefaultField:
+//      s.DefaultField = v.Get(key.Query())
+//    case UID:
+//      s.UID = v.Get(key.Query())
+//    case Format:
+//      if v.Has(key.Query()) {
+//        s.Format = v.Get(key.Query())
+//      }
+//    }
+//  }
+//  for _, key := range SearchParams {
+//    switch key {
+//    case Path:
+//      if v.Has(key.Query()) {
+//        path := v.Get(key.Query())
+//        if !filepath.IsAbs(path) {
+//          path, _ = filepath.Abs(path)
+//        }
+//        s.Path = path
+//      }
+//    case SortFacetsBy:
+//      s.SortFacetsBy = v.Get(key.Query())
+//    case Facets:
+//      s.Facets = GetQueryStringSlice(key.Query(), v)
+//    case Filters:
+//      s.Filters = v.Get(key.Query())
+//    case FacetFilters:
+//      if v.Has(key.Query()) {
+//        fil := v.Get(key.Query())
+//        f, err := unmarshalFilter(fil)
+//        if err != nil {
+//          return fmt.Errorf("failed to unmarshal filters %v\nerr: %w\n", fil, err)
+//        }
+//        s.FacetFilters = f
+//      }
+//    case Hits:
+//      s.Hits = GetQueryInt(key.Query(), v)
+//    case MaxFacetVals:
+//      s.MaxFacetVals = GetQueryInt(key.Query(), v)
+//    case RtrvAttr:
+//      s.RtrvAttr = GetQueryStringSlice(key.Query(), v)
+//    case Page:
+//      s.Page = GetQueryInt(key.Query(), v)
+//    case HitsPerPage:
+//      s.HitsPerPage = GetQueryInt(key.Query(), v)
+//    case Query:
+//      s.Query = v.Get(key.Query())
+//    case SortBy:
+//      s.SortBy = v.Get(key.Query())
+//    case Order:
+//      s.Order = v.Get(key.Query())
+//    }
+//  }
+
+//  params := make(url.Values)
+//  for key, val := range cast.ToStringMapStringSlice(vals) {
+//    for _, k := range param.SettingParams {
+//      if key == k.Snake() {
+//        params[k] = val
+//      }
+//    }
+//    for _, k := range param.SearchParams {
+//      if key == k.Snake() {
+//        params[k] = val
+//      }
+//    }
+//  }
+
+//  req := NewRequest().SetValues(params)
+
+//  for _, key := range param.Routes {
+//    if viper.IsSet(key.Snake()) {
+//      val := viper.GetStringSlice(key)
+//      req.SetRoute(key)
+//      req.SetPath(val[0])
+//    }
+//  }
+
+//  return req
+//}
 
 func (s *Params) Set(v url.Values) error {
 	for _, key := range SettingParams {
@@ -112,36 +218,36 @@ func (s *Params) Set(v url.Values) error {
 		case FacetAttr:
 			s.FacetAttr = parseFacetAttr(v)
 		case SortAttr:
-			s.SortAttr = GetQueryStringSlice(key, v)
+			s.SortAttr = GetQueryStringSlice(key.Query(), v)
 		case DefaultField:
-			s.DefaultField = v.Get(key)
+			s.DefaultField = v.Get(key.Query())
 		case UID:
-			s.UID = v.Get(key)
+			s.UID = v.Get(key.Query())
 		case Format:
-			if v.Has(key) {
-				s.Format = v.Get(key)
+			if v.Has(key.Query()) {
+				s.Format = v.Get(key.Query())
 			}
 		}
 	}
 	for _, key := range SearchParams {
 		switch key {
 		case Path:
-			if v.Has(key) {
-				path := v.Get(key)
+			if v.Has(key.Query()) {
+				path := v.Get(key.Query())
 				if !filepath.IsAbs(path) {
 					path, _ = filepath.Abs(path)
 				}
 				s.Path = path
 			}
 		case SortFacetsBy:
-			s.SortFacetsBy = v.Get(key)
+			s.SortFacetsBy = v.Get(key.Query())
 		case Facets:
-			s.Facets = GetQueryStringSlice(key, v)
+			s.Facets = GetQueryStringSlice(key.Query(), v)
 		case Filters:
-			s.Filters = v.Get(key)
+			s.Filters = v.Get(key.Query())
 		case FacetFilters:
-			if v.Has(key) {
-				fil := v.Get(key)
+			if v.Has(key.Query()) {
+				fil := v.Get(key.Query())
 				f, err := unmarshalFilter(fil)
 				if err != nil {
 					return fmt.Errorf("failed to unmarshal filters %v\nerr: %w\n", fil, err)
@@ -149,27 +255,27 @@ func (s *Params) Set(v url.Values) error {
 				s.FacetFilters = f
 			}
 		case Hits:
-			s.Hits = GetQueryInt(key, v)
+			s.Hits = GetQueryInt(key.Query(), v)
 		case MaxFacetVals:
-			s.MaxFacetVals = GetQueryInt(key, v)
+			s.MaxFacetVals = GetQueryInt(key.Query(), v)
 		case RtrvAttr:
-			s.RtrvAttr = GetQueryStringSlice(key, v)
+			s.RtrvAttr = GetQueryStringSlice(key.Query(), v)
 		case Page:
-			s.Page = GetQueryInt(key, v)
+			s.Page = GetQueryInt(key.Query(), v)
 		case HitsPerPage:
-			s.HitsPerPage = GetQueryInt(key, v)
+			s.HitsPerPage = GetQueryInt(key.Query(), v)
 		case Query:
-			s.Query = v.Get(key)
+			s.Query = v.Get(key.Query())
 		case SortBy:
-			s.SortBy = v.Get(key)
+			s.SortBy = v.Get(key.Query())
 		case Order:
-			s.Order = v.Get(key)
+			s.Order = v.Get(key.Query())
 		}
 	}
 	return nil
 }
 
-func (s *Params) Has(key string) bool {
+func (s *Params) Has(key Param) bool {
 	switch key {
 	case Hits:
 		return s.Hits != 0
@@ -222,17 +328,17 @@ func (s *Params) Values() url.Values {
 		}
 		switch key {
 		case SrchAttr:
-			vals[key] = s.SrchAttr
+			vals[key.Query()] = s.SrchAttr
 		case FacetAttr:
-			vals[key] = s.FacetAttr
+			vals[key.Query()] = s.FacetAttr
 		case SortAttr:
-			vals[key] = s.SortAttr
+			vals[key.Query()] = s.SortAttr
 		case DefaultField:
-			vals.Set(key, s.DefaultField)
+			vals.Set(key.Query(), s.DefaultField)
 		case UID:
-			vals.Set(key, s.UID)
+			vals.Set(key.Query(), s.UID)
 		case Format:
-			vals.Set(key, s.Format)
+			vals.Set(key.Query(), s.Format)
 		}
 	}
 	for _, key := range SearchParams {
@@ -241,34 +347,34 @@ func (s *Params) Values() url.Values {
 		}
 		switch key {
 		case Path:
-			vals.Set(key, s.Path)
+			vals.Set(key.Query(), s.Path)
 		case SortFacetsBy:
-			vals.Set(key, s.SortFacetsBy)
+			vals.Set(key.Query(), s.SortFacetsBy)
 		case Facets:
-			vals[key] = s.Facets
+			vals[key.Query()] = s.Facets
 		case Filters:
-			vals.Set(key, s.Filters)
+			vals.Set(key.Query(), s.Filters)
 		case FacetFilters:
 			d, err := json.Marshal(s.FacetFilters)
 			if err == nil {
-				vals.Set(key, string(d))
+				vals.Set(key.Query(), string(d))
 			}
 		case Hits:
-			vals.Set(key, cast.ToString(s.Hits))
+			vals.Set(key.Query(), cast.ToString(s.Hits))
 		case MaxFacetVals:
-			vals.Set(key, cast.ToString(s.MaxFacetVals))
+			vals.Set(key.Query(), cast.ToString(s.MaxFacetVals))
 		case RtrvAttr:
-			vals[key] = s.RtrvAttr
+			vals[key.Query()] = s.RtrvAttr
 		case Page:
-			vals.Set(key, cast.ToString(s.Page))
+			vals.Set(key.Query(), cast.ToString(s.Page))
 		case HitsPerPage:
-			vals.Set(key, cast.ToString(s.HitsPerPage))
+			vals.Set(key.Query(), cast.ToString(s.HitsPerPage))
 		case Query:
-			vals.Set(key, s.Query)
+			vals.Set(key.Query(), s.Query)
 		case SortBy:
-			vals.Set(key, s.SortBy)
+			vals.Set(key.Query(), s.SortBy)
 		case Order:
-			vals.Set(key, s.Order)
+			vals.Set(key.Query(), s.Order)
 		}
 	}
 	return vals
@@ -341,10 +447,10 @@ func unmarshalFilter(dec string) ([]any, error) {
 }
 
 func parseSrchAttr(vals url.Values) []string {
-	if !vals.Has(SrchAttr) {
+	if !vals.Has(SrchAttr.Query()) {
 		return []string{"*"}
 	}
-	v := GetQueryStringSlice(SrchAttr, vals)
+	v := GetQueryStringSlice(SrchAttr.Query(), vals)
 	if len(v) > 0 {
 		return v
 	}
@@ -352,8 +458,8 @@ func parseSrchAttr(vals url.Values) []string {
 }
 
 func parseFacetAttr(vals url.Values) []string {
-	if !vals.Has(FacetAttr) {
-		vals[FacetAttr] = GetQueryStringSlice(FacetAttr, vals)
+	if !vals.Has(FacetAttr.Query()) {
+		vals[FacetAttr.Query()] = GetQueryStringSlice(FacetAttr.Query(), vals)
 	}
-	return vals[Facets]
+	return vals[Facets.Query()]
 }

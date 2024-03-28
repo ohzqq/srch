@@ -5,6 +5,7 @@ import (
 	"slices"
 	"testing"
 
+	"github.com/mitchellh/mapstructure"
 	"github.com/ohzqq/srch/param"
 	"github.com/samber/lo"
 	"github.com/spf13/cast"
@@ -29,6 +30,17 @@ var fishfacetCount = map[string]int{
 	"authors":   29,
 	"series":    22,
 	"narrators": 26,
+}
+
+func TestDecode(t *testing.T) {
+	p := map[string]interface{}{"facets": []interface{}{"tags", "authors", "narrators", "series"}, "hits_per_page": 25, "max_values_per_facet": 25, "order": "desc", "searchable_attributes": []interface{}{"title"}, "sort_by": "added", "uid": "id"}
+
+	params := param.New()
+	err := mapstructure.Decode(p, params)
+	if err != nil {
+		t.Error(err)
+	}
+	println(params.String())
 }
 
 func TestFilterAuth(t *testing.T) {

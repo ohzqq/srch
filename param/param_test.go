@@ -6,6 +6,9 @@ import (
 	"net/url"
 	"path/filepath"
 	"testing"
+
+	"github.com/samber/lo"
+	"golang.org/x/exp/maps"
 )
 
 type paramTest struct {
@@ -245,6 +248,33 @@ func TestNewQueryURLs(t *testing.T) {
 		}
 		println(p.String())
 	}
+}
+
+func TestParamStringer(t *testing.T) {
+	test := paramTests[len(paramTests)-1]
+	p, err := Parse(test.query)
+	if err != nil {
+		t.Error(err)
+	}
+	s := make(map[string]any)
+	for k, v := range p.Values() {
+		s[k] = v
+	}
+	q := QueryToSettings(s)
+
+	search := lo.Map(SearchParams, func(i Param, _ int) string { return i.Snake() })
+	settings := lo.Map(SettingParams, func(i Param, _ int) string { return i.Snake() })
+	keys := maps.Keys(q)
+
+	ss := lo.Intersect(keys, search)
+	if len(ss) < 1 {
+		t.Errorf("not same %#v\n", ss)
+	}
+	ss = lo.Intersect(keys, settings)
+	if len(ss) < 1 {
+		t.Errorf("not same %#v\n", ss)
+	}
+
 }
 
 type pathMatch struct {
