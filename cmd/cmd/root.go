@@ -6,7 +6,6 @@ import (
 	"os"
 
 	"github.com/ohzqq/srch"
-	"github.com/ohzqq/srch/param"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -60,38 +59,6 @@ func Execute() {
 }
 
 func init() {
-	for _, key := range param.SettingParams {
-		switch key {
-		case param.SrchAttr:
-			viper.SetDefault(key.Snake(), []string{"title"})
-		case param.FacetAttr:
-			viper.SetDefault(key.Snake(), []string{"tags"})
-		case param.SortAttr:
-			viper.SetDefault(key.Snake(), []string{"title:desc"})
-		case param.UID:
-			viper.SetDefault(key.Snake(), "id")
-		}
-	}
-
-	for _, key := range param.SearchParams {
-		switch key {
-		case param.SortFacetsBy:
-			viper.SetDefault(key.Snake(), "tags:count:desc")
-		case param.Facets:
-			viper.SetDefault(key.Snake(), []string{"tags"})
-		case param.RtrvAttr:
-			viper.SetDefault(key.Snake(), "*")
-		case param.Page:
-			viper.SetDefault(key.Snake(), 0)
-		case param.HitsPerPage:
-			viper.SetDefault(key.Snake(), -1)
-		case param.SortBy:
-			viper.SetDefault(key.Snake(), "title")
-		case param.Order:
-			viper.SetDefault(key.Snake(), "desc")
-		}
-	}
-
 	cobra.OnInitialize(initConfig)
 
 	defineFlags()

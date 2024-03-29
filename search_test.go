@@ -40,7 +40,7 @@ func TestDecode(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	println(params.String())
+	//println(params.String())
 }
 
 func TestFilterAuth(t *testing.T) {
@@ -69,7 +69,7 @@ func TestFilterAuth(t *testing.T) {
 		t.Error(err)
 	}
 
-	fmt.Printf("first hits %#v\n", res.Hits[0])
+	//fmt.Printf("first hits %#v\n", res.Hits[0])
 }
 
 func TestFuzzySearch(t *testing.T) {
@@ -83,7 +83,7 @@ func TestFuzzySearch(t *testing.T) {
 	if err != nil {
 		t.Log(err)
 	}
-	println(req.String())
+	//println(req.String())
 
 	err = searchErr(res.nbHits(), 56, req.String())
 	if err != nil {
@@ -276,6 +276,10 @@ func TestNewRequest(t *testing.T) {
 			UID("id").
 			Query("fish").
 			Facets("tags").
+			//SortBy("added_stamp").
+			//Order("desc").
+			//SortAttr("added_stamp:int").
+			HitsPerPage(5).
 			Page(i)
 			//HitsPerPage(5)
 
@@ -290,28 +294,23 @@ func TestNewRequest(t *testing.T) {
 		}
 
 		hits := res.Hits
-		//fmt.Printf("%#v\n", res.nbHits[0]["title"])
+		//fmt.Printf("%#v\n", hits[0]["title"])
+		//fmt.Printf("%#v\n", hits[len(hits)-1]["title"])
 		if len(hits) > 0 {
 			title := hits[0]["title"].(string)
 			switch i {
 			case 0:
 				want := "Fish on a Bicycle"
 				if title != want {
-					fmt.Printf("got %s, wanted %s\n", title, want)
+					t.Errorf("got %s, wanted %s\n", title, want)
 				}
 			case 1:
-				want := "Hide and Seek"
+				want := "Fish Stick Fridays"
 				if title != want {
-					fmt.Printf("got %s, wanted %s\n", title, want)
+					t.Errorf("got %s, wanted %s\n", title, want)
 				}
 			}
 		}
-
-		//d, err := json.Marshal(res)
-		//if err != nil {
-		//t.Error(err)
-		//}
-		//println(string(d))
 	}
 }
 

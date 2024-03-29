@@ -3,6 +3,7 @@ package srch
 import (
 	"fmt"
 	"net/http"
+	"slices"
 
 	"github.com/go-http-utils/headers"
 	"github.com/ohzqq/srch/facet"
@@ -54,6 +55,19 @@ func NewResponse(hits []map[string]any, params *param.Params) (*Response, error)
 	res.HitsPerPage = res.hitsPerPage()
 	res.NbHits = res.nbHits()
 	res.calculatePagination()
+
+	if res.SortBy != "" {
+		for _, attr := range res.SortAttr {
+			by := NewSort(attr)
+			if res.SortBy == by.Field {
+				res.results = by.Sort(res.results)
+				if res.Order == "desc" {
+					slices.Reverse(res.results)
+				}
+			}
+		}
+	}
+
 	res.Hits = res.visibleHits()
 
 	return res, nil
@@ -105,7 +119,7 @@ func (res *Response) hitsPerPage() int {
 	if res.Params.Has(param.HitsPerPage) {
 		return res.Params.HitsPerPage
 	}
-	return viper.GetInt("hitsPerPage")
+	return viper.GetInt(param.HitsPerPage.Snake())
 }
 
 func (res *Response) page() int {
