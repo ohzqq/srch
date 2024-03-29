@@ -105,7 +105,7 @@ func (res *Response) hitsPerPage() int {
 	if res.Params.Has(param.HitsPerPage) {
 		return res.Params.HitsPerPage
 	}
-	return viper.GetInt("hitsPerPage")
+	return viper.GetInt(param.HitsPerPage.Snake())
 }
 
 func (res *Response) page() int {

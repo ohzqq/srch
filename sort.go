@@ -15,7 +15,9 @@ func NewSort(val string) *Sort {
 }
 
 func ParseSort(attr string) (string, string, string) {
-	var by, order, t string
+	var by string
+	order := "desc"
+	t := "string"
 	i := 0
 	for attr != "" {
 		var a string
