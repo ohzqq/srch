@@ -55,19 +55,20 @@ func NewResponse(hits []map[string]any, params *param.Params) (*Response, error)
 	res.HitsPerPage = res.hitsPerPage()
 	res.NbHits = res.nbHits()
 	res.calculatePagination()
-	res.Hits = res.visibleHits()
 
 	if res.SortBy != "" {
 		for _, attr := range res.SortAttr {
 			by := NewSort(attr)
 			if res.SortBy == by.Field {
-				res.Hits = by.Sort(res.Hits)
+				res.results = by.Sort(res.results)
 				if res.Order == "desc" {
-					slices.Reverse(res.Hits)
+					slices.Reverse(res.results)
 				}
 			}
 		}
 	}
+
+	res.Hits = res.visibleHits()
 
 	return res, nil
 }
