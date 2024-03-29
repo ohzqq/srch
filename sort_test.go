@@ -1,40 +1,100 @@
 package srch
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/ohzqq/srch/param"
-	"github.com/spf13/viper"
+	"github.com/spf13/cast"
 )
 
 func TestSortAttr(t *testing.T) {
 	var sortAttrs = []string{
 		"title",
-		"title:desc",
-		"title:asc:string",
-		"added:asc:int",
+		"title:string",
 	}
 
 	for _, test := range sortAttrs {
 		s := NewSort(test)
-		fmt.Printf("sort %#v\n", s)
+		if s.Field != "title" {
+			t.Errorf("got %s, expected %s\n", s.Field, "title")
+		}
+		if s.Type != "string" {
+			t.Errorf("got %s, expected %s\n", s.Type, "string")
+		}
 	}
 }
 
-func TestSortRequest(t *testing.T) {
+func TestSortByInt(t *testing.T) {
 	req := NewRequest().
 		SetRoute(param.Dir.String()).
 		UID("id").
 		Facets("tags", "authors", "narrators", "series").
-		SortAttr("added:asc:int").
+		SortAttr("added_stamp:int").
 		SetPath(testDataDir)
 
 	res, err := idx.Search(req.String())
 	if err != nil {
 		t.Error(err)
 	}
+	if title := cast.ToString(res.Hits[0]["title"]); title != "Cross & Crown" {
+		t.Errorf("got %s, wanted %s", title, "Cross & Crown")
+	}
 
-	println(viper.GetInt(param.HitsPerPage.Snake()))
-	fmt.Printf("%#v\n", res.Hits[0])
+	req.SortBy("added_stamp")
+	res, err = idx.Search(req.String())
+	if err != nil {
+		t.Error(err)
+	}
+
+	if title := cast.ToString(res.Hits[0]["title"]); title != "Camp H.O.W.L." {
+		t.Errorf("got %s, wanted %s", title, "Camp H.O.W.L.")
+	}
+
+	req.SortBy("added_stamp").Order("desc")
+	res, err = idx.Search(req.String())
+	if err != nil {
+		t.Error(err)
+	}
+
+	if title := cast.ToString(res.Hits[0]["title"]); title != "Bonds of Blood" {
+		t.Errorf("got %s, wanted %s", title, "Bonds of Blood")
+	}
+}
+
+func TestSortByStr(t *testing.T) {
+	req := NewRequest().
+		SetRoute(param.Dir.String()).
+		UID("id").
+		Facets("tags", "authors", "narrators", "series").
+		SetPath(testDataDir)
+
+	res, err := idx.Search(req.String())
+	if err != nil {
+		t.Error(err)
+	}
+	if title := cast.ToString(res.Hits[0]["title"]); title != "Cross & Crown" {
+		t.Errorf("got %s, wanted %s", title, "Cross & Crown")
+	}
+
+	req.SortAttr("title:string")
+
+	req.SortBy("title")
+	res, err = idx.Search(req.String())
+	if err != nil {
+		t.Error(err)
+	}
+
+	if title := cast.ToString(res.Hits[0]["title"]); title != "#Blur" {
+		t.Errorf("got %s, wanted %s", title, "#Blur")
+	}
+
+	req.SortBy("title").Order("desc")
+	res, err = idx.Search(req.String())
+	if err != nil {
+		t.Error(err)
+	}
+
+	if title := cast.ToString(res.Hits[0]["title"]); title != "‘Nother Sip of Gin" {
+		t.Errorf("got %s, wanted %s", title, "‘Nother Sip of Gin")
+	}
 }
