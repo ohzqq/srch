@@ -32,6 +32,19 @@ var fishfacetCount = map[string]int{
 	"narrators": 26,
 }
 
+func TestParams(t *testing.T) {
+	params := "?searchableAttributes=title&facets=tags,authors,series,narrators&hitsPerPage=25&order=desc&searchableAttributes=title&sortBy=added&uid=id"
+	println(params)
+
+	req := NewRequest().
+		SetRoute(param.File.String()).
+		SetPath("/mnt/c/Users/nina/code/srch/testdata/data-dir/audiobooks.json").
+		SrchAttr("title").
+		Query("fish")
+
+	println(req.String())
+}
+
 func TestDecode(t *testing.T) {
 	p := map[string]interface{}{"facets": []interface{}{"tags", "authors", "narrators", "series"}, "hits_per_page": 25, "max_values_per_facet": 25, "order": "desc", "searchable_attributes": []interface{}{"title"}, "sort_by": "added", "uid": "id"}
 

@@ -1,0 +1,11 @@
+{
+	    order cgi before respond
+}
+
+
+localhost {
+	cgi /file /mnt/c/Users/nina/code/srch/cmd/cgi/cgi {
+		pass_all_env
+	}
+}
+
