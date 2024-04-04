@@ -1,10 +1,13 @@
-package cmd
+package cgi
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
+	"net/http/cgi"
 
+	"github.com/ohzqq/srch"
 	"github.com/ohzqq/srch/param"
 )
 
@@ -15,19 +18,16 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	//r.ParseForm()
 	//form := r.Form
 
-	dec, err := json.NewDecoder(r.Body)
-	if err != nil {
-		log.Fatal(err)
-	}
+	dec := json.NewDecoder(r.Body)
 	defer r.Body.Close()
 
 	var data []map[string]any
-	err = dec.Decode(&data)
+	err := dec.Decode(&data)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	idx, err := New(r.URL.String())
+	idx, err := srch.New(r.URL.String())
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -42,13 +42,17 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
-	enc, err := json.NewEncoder(w)
-	if err != nil {
-		log.Fatal(err)
-	}
+	enc := json.NewEncoder(w)
 
 	err = enc.Encode(res)
 	if err != nil {
 		log.Fatal(err)
+	}
+}
+
+func main() {
+	err := cgi.Serve(http.HandlerFunc(handler))
+	if err != nil {
+		fmt.Println(err)
 	}
 }
