@@ -157,13 +157,13 @@ func (s *Params) Set(v url.Values) error {
 	for _, key := range SearchParams {
 		switch key {
 		case Path:
-			if v.Has(key.Query()) {
-				path := v.Get(key.Query())
-				if !filepath.IsAbs(path) {
-					path, _ = filepath.Abs(path)
-				}
-				s.Path = path
+			//if v.Has(key.Query()) {
+			path := v.Get(key.Query())
+			if !filepath.IsAbs(path) {
+				path, _ = filepath.Abs(path)
 			}
+			s.Path = path
+			//}
 		case SortFacetsBy:
 			s.SortFacetsBy = v.Get(key.Query())
 		case Facets:
