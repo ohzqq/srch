@@ -13,21 +13,35 @@ import (
 
 const blevePath = `../testdata/poot.bleve`
 const testDataFile = `../testdata/nddata/ndbooks.ndjson`
-const cfgStr = `searchableAttributes=title,tags,authors,narrators,series&fullText=../testdata/poot.bleve&uid=id`
+const cfgStr = `blv/../testdata/poot.bleve?searchableAttributes=title,tags,authors,narrators,series&uid=id`
 
 func TestNewBleveIndex(t *testing.T) {
 	//t.SkipNow()
 	cleanIdx()
 
-	params, err := param.Parse(cfgStr)
-	if err != nil {
-		t.Error(err)
+	//params, err := param.Parse(cfgStr)
+	//if err != nil {
+	//t.Error(err)
+	//}
+	params := &param.Params{
+		Path: blevePath,
 	}
+	//println(params.Path)
 
-	_, err = New(params)
+	_, err := New(params)
 	if err != nil {
 		t.Error(err)
 	}
+}
+
+func TestMem(t *testing.T) {
+	//books := loadData(t)
+
+	idx, err := Mem(testDataFile)
+	if err != nil {
+		t.Error(err)
+	}
+	println(idx.count)
 }
 
 func TestBatchIndex(t *testing.T) {

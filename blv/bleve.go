@@ -1,7 +1,11 @@
 package blv
 
 import (
+	"encoding/json"
 	"fmt"
+	"io"
+	"log"
+	"os"
 
 	"github.com/blevesearch/bleve/v2"
 	"github.com/blevesearch/bleve/v2/search/query"
@@ -11,13 +15,15 @@ import (
 
 type Index struct {
 	*param.Params
-	count int
+	count   int
+	memOnly bool
+	blv     bleve.Index
 }
 
-func Open(params *param.Params) (*Index, error) {
+func Open(params *param.Params) *Index {
 	blv, err := bleve.Open(params.Path)
 	if err != nil {
-		return nil, fmt.Errorf("%w at %s\n", err, params.Path)
+		log.Fatal(err)
 	}
 	defer blv.Close()
 
@@ -25,7 +31,7 @@ func Open(params *param.Params) (*Index, error) {
 		Params: params,
 	}
 	idx.SetCount(blv)
-	return idx, nil
+	return idx
 }
 
 func New(params *param.Params) (*Index, error) {
@@ -35,6 +41,29 @@ func New(params *param.Params) (*Index, error) {
 		return idx, err
 	}
 	defer blv.Close()
+
+	return idx, nil
+}
+
+func Mem(path string) (*Index, error) {
+	idx := &Index{
+		Params: &param.Params{
+			Path: path,
+			UID:  "id",
+		},
+	}
+
+	blv, err := bleve.NewMemOnly(bleve.NewIndexMapping())
+	if err != nil {
+		return idx, err
+	}
+
+	idx.blv = blv
+
+	err = idx.batch(path)
+	if err != nil {
+		return idx, err
+	}
 
 	return idx, nil
 }
@@ -104,9 +133,45 @@ func (idx *Index) Index(uid string, data map[string]any) error {
 	}
 	defer blv.Close()
 
-	fmt.Printf("indexing %v\n", uid)
-
 	return blv.Index(uid, data)
+}
+
+func (idx *Index) batch(path string) error {
+	var err error
+
+	f, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	dec := json.NewDecoder(f)
+	c := 0
+	for {
+		m := make(map[string]any)
+		if err := dec.Decode(&m); err == io.EOF {
+			break
+		} else if err != nil {
+			return err
+		}
+
+		if _, ok := m[idx.UID]; !ok {
+			m["id"] = c
+		}
+
+		id := cast.ToString(m["id"])
+
+		err := idx.blv.Index(id, m)
+		if err != nil {
+			return fmt.Errorf("index doc error: %w\n", err)
+		}
+
+		c++
+	}
+
+	idx.SetCount(idx.blv)
+
+	return nil
 }
 
 func (idx *Index) Batch(data []map[string]any) error {
