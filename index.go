@@ -114,6 +114,24 @@ func New(settings string) (*Index, error) {
 	return idx, nil
 }
 
+func Mem(settings string, data []map[string]any) (*Index, error) {
+	idx := newIndex()
+	var err error
+	idx.Params, err = param.Parse(settings)
+	if err != nil {
+		return nil, fmt.Errorf("new index param parsing err: %w\n", err)
+	}
+
+	idx.Indexer = fuzz.Open(idx.Params)
+	idx.Docs = data
+	err = idx.Batch(idx.Docs)
+	if err != nil {
+		return nil, fmt.Errorf("doc indexing err: %w\n", err)
+	}
+
+	return idx, nil
+}
+
 func (idx *Index) Search(params string) (*Response, error) {
 	var err error
 
