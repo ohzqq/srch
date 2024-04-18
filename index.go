@@ -8,7 +8,6 @@ import (
 	"slices"
 
 	"github.com/RoaringBitmap/roaring"
-	"github.com/ohzqq/srch/blv"
 	"github.com/ohzqq/srch/data"
 	"github.com/ohzqq/srch/fuzz"
 	"github.com/ohzqq/srch/param"
@@ -97,10 +96,10 @@ func New(settings string) (*Index, error) {
 	switch idx.Data.Route {
 	case param.Blv.String():
 		idx.Params.SrchAttr = []string{"*"}
-		idx.Indexer, err = blv.Open(idx.Params)
-		if err != nil {
-			return nil, fmt.Errorf("new index open bleve err: %w\n", err)
-		}
+		//idx.Indexer, err = blv.Open(idx.Params)
+		//if err != nil {
+		//return nil, fmt.Errorf("new index open bleve err: %w\n", err)
+		//}
 		return idx, nil
 	case param.Dir.String(), param.File.String():
 		err = idx.GetData()
