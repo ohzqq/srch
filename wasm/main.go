@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"net/url"
 	"runtime"
 	"syscall/js"
 
@@ -15,10 +14,6 @@ var (
 	search           js.Value
 	idx              *srch.Index
 	NotEnoughArgsErr = errors.New("error: not enough args")
-
-	JSON = &jsonGlobal{
-		fn: js.Global().Get("JSON"),
-	}
 )
 
 func init() {
@@ -37,7 +32,7 @@ func main() {
 
 func NewClient(this js.Value, args []js.Value) any {
 	defer Recover()
-	println("new client")
+	//println("new client")
 
 	err := CheckArgs(args)
 	if err != nil {
@@ -74,41 +69,28 @@ func Search(this js.Value, args []js.Value) any {
 		return js.Null()
 	}
 
-	//v := args[0].Index(0).Get("params")
-	//q := js.Global().Get("URLSearchParams").New(v).Call("toString")
-
 	var params string
 	params = args[0].String()
-	//params = JSON.Stringify(args[0])
 	println(params)
 
-	vals, err := url.ParseQuery(params)
+	//vals, err := url.ParseQuery(params)
+	//if err != nil {
+	//println(err.Error())
+	//return js.Null()
+	//}
+
+	//res, err := idx.Search("?" + vals.Encode())
+	res, err := idx.Search(params)
 	if err != nil {
 		println(err.Error())
 		return js.Null()
 	}
-	vals.Set("facets", "tags")
-	vals.Set("hitsPerPage", "25")
-	//vals.Set("query", "fish")
-	//println(vals.Encode())
-
-	//tq := `?facets=authors&facets=tags&facets=narrators&facets=series&hitsPerPage=25&order=desc&searchableAttributes=title&sortBy=added&uid=id&query=fish`
-
-	res, err := idx.Search("?" + vals.Encode())
-	if err != nil {
-		println(err.Error())
-		return js.Null()
-	}
-	//res.HitsPerPage = 25
 
 	d, err := json.Marshal(res)
 	if err != nil {
 		println(err.Error())
 		return js.Null()
 	}
-
-	//println(string(d))
-	fmt.Printf("total hits %d\n", res.NbHits)
 
 	return string(d)
 }
@@ -142,28 +124,4 @@ func CheckArgs(args []js.Value) error {
 		return NotEnoughArgsErr
 	}
 	return nil
-}
-
-type jsonGlobal struct {
-	fn js.Value
-}
-
-func (v *jsonGlobal) Stringify(obj js.Value) string {
-	defer Recover()
-
-	if obj.Truthy() {
-		return v.fn.Call("stringify", obj).String()
-	}
-
-	return ""
-}
-
-func (v *jsonGlobal) Parse(val string) js.Value {
-	defer Recover()
-
-	if val == "" {
-		val = "{}"
-	}
-
-	return v.fn.Call("parse", val)
 }
