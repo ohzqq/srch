@@ -1,0 +1,20 @@
+{
+	"sortBy": "added_stamp",
+	"order": "desc",
+	"sortableAttributes": [
+			"title:string",
+			"added_stamp:int"
+	],
+	"hitsPerPage": 25,
+	"maxValuesPerFacet": 25,
+	"facets": [
+			"tags",
+			"authors",
+			"narrators",
+			"series"
+	],
+	"searchableAttributes": [
+			"title"
+	],
+	"uid": "id"
+}

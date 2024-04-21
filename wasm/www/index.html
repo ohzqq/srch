@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html> 
+  <head> 
+     <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+
+	<script type="importmap">
+		{
+			"imports": {
+				"itemsjs-adapter": "./assets/js/itemsjs-instantsearch-adapter.esm.js"
+			}
+		}
+	</script>
+
+	<script src="/assets/wasm_exec.js"></script>
+	<script> 
+
+//async function getData() {
+  //const response = await fetch("/assets/data.json");
+  //const data = await response.json();
+	//return data
+//}
+
+    const go = new Go();
+    WebAssembly.instantiateStreaming(fetch("/assets/srch.wasm"), go.importObject)
+      .then((result) => {
+        go.run(result.instance);
+      });
+
+  //fetch("/assets/data.json")
+      //.then((res) => res.json())
+      //.then((data) => dd = JSON.stringify(data))
+      //.then(() => srch.newClient(params, dd);
+
+    //srch.newClient(params, dd)
+
+  </script>
+
+	<script src="/assets/js/instantsearch.production.min.js"></script>
+	<script src="/assets/js/podlove-button.js"></script>
+
+
+<style>
+:root {
+	color-scheme: light dark;
+
+	--black: #262626;
+	--white: #fff;
+	--red: #FF875F;
+	--green: #AFFFAF;
+	--warning: #ffbf00;
+	--blue: #5FAFFF;
+	--purple: #AFAFFF;
+	--cyan: #AFFFFF;
+	--white: #ffffff;
+	--dark-grey: #444444;
+	--grey: #626262;
+	--light-grey: #eeeeee;
+
+	--light-primary: #5755d9;
+	--light-secondary: #f1f1fc;
+
+	--dark-primary: var(--purple);
+	--dark-secondary: var(--blue);
+	--dark-success: #32b643;
+	--dark-warning: #ffb700;
+	--dark-error: #e85600;
+	--dark-dark: #303742;
+	--dark-grey-dark: #66758c;
+	--dark-grey: #bcc3ce;
+	--dark-grey-light: #f7f8f9;
+	--dark-bg: var(--black);
+	--dark-text: var(--white);
+}
+
+</style>
+  <!--<link rel="stylesheet" href="/assets/css/cssui.dropdown.min.css">-->
+  <link rel="stylesheet" href="/assets/css/spectre.css">
+  <link rel="stylesheet" href="/assets/css/spectre-exp.css">
+  <link rel="stylesheet" href="/assets/css/spectre-icons.css">
+
+  <link rel="stylesheet" href="/assets/css/cssui.min.css">
+  <link rel="stylesheet" href="/assets/css/cssui.slideout.min.css">
+  
+  <style> 
+#searchbox {
+	position: fixed;
+  top:0;
+  z-index: 100;
+  width: 100%;
+}
+      
+#hits {
+  margin-top: 5em;
+}
+
+.fabs {
+	position: fixed;
+	right: 0;
+	bottom: 0;
+	z-index: 100;
+	display: flex;
+	/*flex-direction: column-reverse;*/
+	place-items: center;
+	margin: 1em;
+	list-style: none;
+	padding: 1em;
+}
+
+  </style>
+  </head>
+  <body>
+    <div class="container"> 
+      <div id="searchbox"></div>
+
+      <div id="hits"></div>
+
+      <div class="columns fabs">
+        <details class="column col-2 text-center" 
+               role="group" 
+               aria-label="floating action buttons" 
+       > 
+        <summary class="btn btn-success" 
+                 style="list-style:none;"> 
+          facets
+        </summary>
+        <ul class="" style="list-style:none;">
+          <li>
+            <a href="#slideout" 
+               class="btn btn-success">
+              open
+          </a>
+          </li>
+          <li>
+            <a href="#" class="btn btn-success" data-slideout-close>
+              close
+            </a>
+          </li>
+          <li>
+            <div id="clear-refinements" class=""></div>
+          </li>
+    </ul>
+      </details>
+      </div>
+
+
+      <div id="pagination"></div>
+
+     <div id="slideout" data-slideout-panel>
+       <div data-slideout-header>
+        Facets
+       </div>
+
+      <div id="sort-by">
+        
+      </div>
+
+      <div id="refinement-list"></div>
+
+      </div>
+     </div>
+    </div>
+
+	<script type="module"> 
+		import { createIndex, getSearchClient } from  "itemsjs-adapter";
+
+		window.createIndex = createIndex
+		window.getSearchClient = getSearchClient
+	</script>
+  <script> 
+	</script>
+  <script src="assets/app.js"></script>
+  </body>
+</html>
