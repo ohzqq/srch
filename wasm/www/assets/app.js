@@ -325,7 +325,27 @@ function adaptReq(requests) {
 }
 
 function adaptRes(res) {
-	return JSON.parse(res)
+	let r = JSON.parse(res)
+
+
+	//console.log(r.facets)
+	let facets = {};
+	r.facetFields.forEach((facet) => {
+		let f = {};
+			facet.items.forEach((item) => {
+
+			//let i = {}
+			f[`${item.label}`] = item.count
+			//console.log(i)
+			//return i
+		});
+
+		facets[`${facet.attribute}`] = f
+	});
+	//r.facets = facets
+	console.log(r)
+
+	return r
 }
 
 let search = {};
@@ -409,7 +429,7 @@ async function initSearch() {
 
 	console.log(opts.facets)
 
-	opts.facets.forEach((attr) => {
+	opts.attributesForFaceting.forEach((attr) => {
 		console.log(`'#${attr}'`);
 		//let facet = opts.aggregations[attr];
 		let con = document.createElement("div");

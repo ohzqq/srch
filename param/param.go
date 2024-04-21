@@ -141,7 +141,8 @@ func (s *Params) Set(v url.Values) error {
 		case SrchAttr:
 			s.SrchAttr = parseSrchAttr(v)
 		case FacetAttr:
-			s.FacetAttr = parseFacetAttr(v)
+			//s.FacetAttr = parseFacetAttr(v)
+			s.FacetAttr = GetQueryStringSlice(key.Query(), v)
 		case SortAttr:
 			s.SortAttr = GetQueryStringSlice(key.Query(), v)
 		case DefaultField:
@@ -386,5 +387,5 @@ func parseFacetAttr(vals url.Values) []string {
 	if !vals.Has(FacetAttr.Query()) {
 		vals[FacetAttr.Query()] = GetQueryStringSlice(FacetAttr.Query(), vals)
 	}
-	return vals[Facets.Query()]
+	return vals[FacetAttr.Query()]
 }

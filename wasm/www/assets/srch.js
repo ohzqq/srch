@@ -23,19 +23,6 @@ function performSrch(requests) {
 			let res = srch.search(req);
 			let responses = JSON.parse(res)
 
-			//responses.facetFields.forEach((facet) => {
-				//let f = facet.items.map((item) => {
-					//let i = {}
-					//i[`${item.value}`] = item.count
-				//console.log({item.value: item.count})
-					//let i = {
-						//item.label: item.count,
-					//}
-					//console.log(i)
-					//return i
-				//});
-			//});
-
 			//console.log(responses)
 			return Promise.resolve({ results: [responses] });
 
