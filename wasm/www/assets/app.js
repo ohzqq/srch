@@ -310,6 +310,24 @@ async function getData() {
 	return data
 }
 
+function cfgSrchClient(opts, data) {
+	let params = new URLSearchParams(opts).toString()
+  srch.newClient("?" + params, JSON.stringify(data))
+	console.log(params)
+};
+
+function adaptReq(requests) {
+	let pp = {
+		...cfg,
+		...requests[0].params,
+	}
+	return "?" + new URLSearchParams(pp).toString()
+}
+
+function adaptRes(res) {
+	return JSON.parse(res)
+}
+
 let search = {};
 
 // Start Search
@@ -320,42 +338,19 @@ async function initSearch() {
 	//
   const opts = await getCfg();
   const data = await getData();
+	cfgSrchClient(opts, data);
 
 	//console.log(opts)
 
 	//const index = createIndex(data, opts);
 	//const searchClient = getSearchClient(index);
-	//
-	let params = new URLSearchParams(opts).toString()
-
-  srch.newClient("?" + params, JSON.stringify(data))
-
-	console.log(params)
-
+	
 	const customSearchClient = {
 		search: function (requests) {
-			let pp = {
-				...opts,
-				...requests[0].params,
-			}
-			let req = "?" + new URLSearchParams(pp).toString()
+			let req = adaptReq(requests);
+			console.log("request " + req)
 			let res = srch.search(req);
-			let responses = JSON.parse(res)
-
-			//responses.facetFields.forEach((facet) => {
-				//let f = facet.items.map((item) => {
-					//let i = {}
-					//i[`${item.value}`] = item.count
-				//console.log({item.value: item.count})
-					//let i = {
-						//item.label: item.count,
-					//}
-					//console.log(i)
-					//return i
-				//});
-			//});
-
-			//console.log(responses)
+			let responses = adaptRes(res);
 			return Promise.resolve({ results: [responses] });
 		}
 	};
