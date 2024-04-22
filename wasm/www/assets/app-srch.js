@@ -190,7 +190,7 @@ const renderRefinementList = (renderOptions, isFirstRender) => {
   }
 
   widgetParams.container.querySelector('div').innerHTML = items
-		.filter((item) => item.count > cfg.minFacetCount)
+		//.filter((item) => item.count > cfg.minFacetCount)
     .map(
       item => `
         <label class="form-checkbox">
@@ -318,8 +318,8 @@ function adaptReq(requests) {
 		...cfg,
 		...requests[0].params,
 	}
-	console.log("adapt request");
-	console.log(requests[0].params);
+	//console.log("adapt request");
+	//console.log(requests[0].params);
 	return "?" + new URLSearchParams(pp).toString()
 }
 
@@ -332,7 +332,6 @@ function adaptRes(res) {
 			facet.items.forEach((item) => {
 			facets[`${facet.attribute}`][`${item.label}`] = item.count
 		});
-
 	});
 	r.facets = facets
 	console.log(r)
@@ -413,41 +412,31 @@ async function initSearch() {
 	]);
 
 	// Add refinementLists by aggregations
-	//const facets = document.querySelector("#refinement-list");
+	const facets = document.querySelector("#refinement-list");
 
 	//console.log(opts.facets)
 
-	//opts.attributesForFaceting.forEach((attr) => {
+	opts.attributesForFaceting.forEach((attr) => {
 		//console.log(`'#${attr}'`);
-		//let con = document.createElement("div");
-		//con.id = attr;
-		//facets.appendChild(con);
+		let con = document.createElement("div");
+		con.id = attr;
+		facets.appendChild(con);
 
-		//search.addWidgets([
-			//customRefinementList({
-				//container: con,
-				//attribute: attr,
+		search.addWidgets([
+			customRefinementList({
+				container: con,
+				attribute: attr,
 				//limit: 1000,
 				//operator: facet.conjunction ? "and" : "or",
 				//operator: "and",
-				//showMore: true,
-				//showMoreLimit: 20,
-			//})
-		//]);
-	//});
+				showMore: true,
+				showMoreLimit: 20,
+			})
+		]);
+	});
 
 	// add more widgets
 	search.addWidgets([
-		refinementList({
-			container: document.querySelector('#tags'),
-			attribute: "tags",
-			operator: "or",
-		}),
-		refinementList({
-			container: document.querySelector('#authors'),
-			attribute: "authors",
-			operator: "and",
-		}),
 		customPagination({
 			container: document.querySelector('#pagination'),
 			totalPages: 5,

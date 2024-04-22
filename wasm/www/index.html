@@ -13,26 +13,11 @@
 
 	<script src="/assets/wasm_exec.js"></script>
 	<script> 
-
-//async function getData() {
-  //const response = await fetch("/assets/data.json");
-  //const data = await response.json();
-	//return data
-//}
-
     const go = new Go();
     WebAssembly.instantiateStreaming(fetch("/assets/srch.wasm"), go.importObject)
       .then((result) => {
         go.run(result.instance);
       });
-
-  //fetch("/assets/data.json")
-      //.then((res) => res.json())
-      //.then((data) => dd = JSON.stringify(data))
-      //.then(() => srch.newClient(params, dd);
-
-    //srch.newClient(params, dd)
-
   </script>
 
 	<script src="/assets/js/instantsearch.production.min.js"></script>
@@ -151,12 +136,9 @@
        </div>
 
       <div id="sort-by">
-        
       </div>
 
       <div id="refinement-list"> 
-        <div id="tags"></div>
-        <div id="authors"></div>
       </div>
 
       </div>

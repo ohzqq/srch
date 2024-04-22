@@ -21,11 +21,11 @@ type Response struct {
 	RawQuery    string         `json:"params"`
 	FacetFields []*facet.Facet `json:"facetFields"`
 	//Facets      *facet.Fields    `json:"facets"`
-	facets  *facet.Fields             `json:"facets"`
-	Facets  map[string]map[string]int `json:"facets"`
-	Hits    []map[string]any          `json:"hits"`
-	NbHits  int                       `json:"nbHits"`
-	NbPages int                       `json:"nbPages"`
+	facets *facet.Fields `json:"facets"`
+	//Facets  map[string]map[string]int `json:"facets"`
+	Hits    []map[string]any `json:"hits"`
+	NbHits  int              `json:"nbHits"`
+	NbPages int              `json:"nbPages"`
 }
 
 func NewResponse(hits []map[string]any, params *param.Params) (*Response, error) {
@@ -33,7 +33,6 @@ func NewResponse(hits []map[string]any, params *param.Params) (*Response, error)
 		results:  hits,
 		Params:   params,
 		RawQuery: params.Encode(),
-		Facets:   make(map[string]map[string]int),
 	}
 
 	if len(hits) == 0 {
@@ -52,11 +51,6 @@ func NewResponse(hits []map[string]any, params *param.Params) (*Response, error)
 		for _, facet := range res.FacetFields {
 			facet.Items = facet.Keywords()
 			facet.Count = facet.Len()
-			items := make(map[string]int)
-			for _, item := range facet.Items {
-				items[item.Label] = item.Count
-			}
-			res.Facets[facet.Attribute] = items
 		}
 	}
 
