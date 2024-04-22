@@ -3,14 +3,6 @@
   <head> 
      <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
 
-	<script type="importmap">
-		{
-			"imports": {
-				"itemsjs-adapter": "./assets/js/itemsjs-instantsearch-adapter.esm.js"
-			}
-		}
-	</script>
-
 	<script src="/assets/wasm_exec.js"></script>
 	<script> 
     const go = new Go();
@@ -22,6 +14,7 @@
 
 	<script src="/assets/js/instantsearch.production.min.js"></script>
 	<script src="/assets/js/podlove-button.js"></script>
+	<script src="/assets/js/alpine.js"></script>
 
 
 <style>
@@ -145,12 +138,6 @@
      </div>
     </div>
 
-	<script type="module"> 
-		import { createIndex, getSearchClient } from  "itemsjs-adapter";
-
-		window.createIndex = createIndex
-		window.getSearchClient = getSearchClient
-	</script>
   <script src="assets/app-srch.js"></script>
   <!--<script src="assets/app.js"></script>-->
   </body>

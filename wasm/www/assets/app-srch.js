@@ -97,8 +97,6 @@ const renderPagination = (renderOptions, isFirstRender) => {
 };
 const customPagination = connectPagination(renderPagination);
 
-
-
 // SortBy
 const renderSortBy = (renderOptions, isFirstRender) => {
   const {
@@ -257,7 +255,6 @@ const renderHits = (renderOptions, isFirstRender) => {
 
 	let template = '';
 	hits.forEach((item, idx) => {
-
 		let series = item.series ? `${item.series}, book ${item.series_index}` : ''
 		template += `
 			<div class="card">
@@ -303,14 +300,42 @@ async function getData() {
 	return data
 }
 
+const sortings = [];
+const facets = [];
+
 function cfgSrchClient(opts, data) {
+	opts.attributesForFaceting.forEach((attr) => {
+		let f = {
+			attribute: attr,
+			operator: "or",
+		}
+		const conj = (a) => a === attr;
+		if (opts.conjunctiveFacets.some(conj)) {
+			f.operator = "and"
+		}
+		facets.push(f);
+	});
+	delete opts["conjunctiveFacets"];
+
 	let params = new URLSearchParams(opts).toString()
   srch.newClient("?" + params, JSON.stringify(data))
-	//console.log(params)
+
+	cfg.sortableAttributes.forEach((by) => {
+		let attr = by.split(":")[0];
+		sortings.push({
+			value: `${attr}:desc`,
+			label: `${attr} (desc)`,
+		});
+		sortings.push({
+			value: `${attr}:asc`,
+			label: `${attr} (asc)`,
+		});
+	});
 };
 
+// adapt the instantsearch request
 function adaptReq(requests) {
-	console.log(requests[0].params);
+	//console.log(requests[0].params);
 
 	if (requests[0].indexName !== "search") {
 		let by = requests[0].indexName.split(":");
@@ -327,23 +352,21 @@ function adaptReq(requests) {
 		...cfg,
 		...requests[0].params,
 	}
-	//console.log("adapt request");
 	return "?" + new URLSearchParams(pp).toString()
 }
 
+// adapt the response to instantsearch format
 function adaptRes(res) {
 	let r = JSON.parse(res)
 	//console.log(r.facets)
-	let facets = {};
+	let facetz = {};
 	r.facetFields.forEach((facet) => {
-		facets[`${facet.attribute}`] = {}
+		facetz[`${facet.attribute}`] = {}
 			facet.items.forEach((item) => {
-			facets[`${facet.attribute}`][`${item.label}`] = item.count
+			facetz[`${facet.attribute}`][`${item.label}`] = item.count
 		});
 	});
-	r.facets = facets
-	//console.log(r)
-
+	r.facets = facetz
 	return r
 }
 
@@ -351,20 +374,16 @@ let search = {};
 
 // Start Search
 async function initSearch() {
-	console.log("start instantsearch")
-	
+	//console.log("start instantsearch")
 	const opts = await getCfg();
   const data = await getData();
 	cfgSrchClient(opts, data);
-	//
 
-	//console.log(opts)
-	
+	// define custom client
 	const customSearchClient = {
 		search: function (requests) {
 			//console.log(requests[0])
 			let req = adaptReq(requests);
-			//console.log("request " + req)
 			let res = srch.search(req);
 			let responses = adaptRes(res);
 			return Promise.resolve({ results: [responses] });
@@ -380,78 +399,38 @@ async function initSearch() {
 		},
 	});
 
-	let sortings = [];
-	cfg.sortableAttributes.forEach((by) => {
-		let attr = by.split(":")[0];
-		sortings.push({
-			value: `${attr}:desc`,
-			label: `${attr} (desc)`,
-		});
-		sortings.push({
-			value: `${attr}:asc`,
-			label: `${attr} (asc)`,
-		});
-	});
-	console.log(sortings)
-
 	// add widgets
 	search.addWidgets([
 		sortBy({
 			container: document.querySelector('#sort-by'),
 			items: sortings,
-			//items: cfg.sortableAttributes.map((sort) => {
-				//let by = sort.split(":")
-				//return {
-					//value: by[0],
-					//label: `${by[0]} ()`,
-				//}
-			//}),
 			cssClasses: {
 				select: ['form-select'],
 				root: 'form-group',
 			},
 		}),
-		//hits({
 		customHits({
 			container: document.querySelector('#hits'),
-			//transformItems(items) {
-				//items.forEach((item) => {
-					//let pd = {
-						//title: item.title,
-						//cover: item.cover,
-						//feeds: [
-							//{
-								//type: "audio",
-								//format: "aac",
-								//url: item.url,
-							//},
-						//],
-					//};
-					//window[`podcastData${item.id}`] = JSON.stringify(pd);
-				//});
-				//return items;
-			//},
 		}),
 	]);
 
 	// Add refinementLists by aggregations
-	const facets = document.querySelector("#refinement-list");
+	const facetCon = document.querySelector("#refinement-list");
 
-	//console.log(opts.facets)
+	console.log(facets)
 
-	opts.attributesForFaceting.forEach((attr) => {
+	facets.forEach((facet) => {
 		//console.log(`'#${attr}'`);
 		let con = document.createElement("div");
-		con.id = attr;
-		facets.appendChild(con);
+		con.id = facet.attribute;
+		facetCon.appendChild(con);
 
 		search.addWidgets([
 			customRefinementList({
 				container: con,
-				attribute: attr,
+				attribute: facet.attribute,
 				//limit: 1000,
-				//operator: facet.conjunction ? "and" : "or",
-				//operator: "and",
+				operator: facet.operator,
 				showMore: true,
 				showMoreLimit: 20,
 			})
@@ -485,9 +464,6 @@ async function initSearch() {
 			}
 		}),
 	]);
-
-
-
 	search.start();
 }
 
