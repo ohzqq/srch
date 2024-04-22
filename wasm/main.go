@@ -71,6 +71,7 @@ func Search(this js.Value, args []js.Value) any {
 
 	var params string
 	params = args[0].String()
+	fmt.Printf("wasm search func %v\n", params)
 	println(params)
 
 	//vals, err := url.ParseQuery(params)

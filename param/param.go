@@ -174,6 +174,7 @@ func (s *Params) Set(v url.Values) error {
 		case FacetFilters:
 			if v.Has(key.Query()) {
 				fil := v.Get(key.Query())
+				fmt.Printf("facetFilters %s\n", fil)
 				f, err := unmarshalFilter(fil)
 				if err != nil {
 					return fmt.Errorf("failed to unmarshal filters %v\nerr: %w\n", fil, err)

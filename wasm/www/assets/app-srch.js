@@ -306,14 +306,20 @@ async function getData() {
 function cfgSrchClient(opts, data) {
 	let params = new URLSearchParams(opts).toString()
   srch.newClient("?" + params, JSON.stringify(data))
-	console.log(params)
+	//console.log(params)
 };
 
 function adaptReq(requests) {
+	let filters = requests[0].params.facetFilters
+	if (filters) {
+		requests[0].params.facetFilters = JSON.stringify(filters) 
+	};
 	let pp = {
 		...cfg,
 		...requests[0].params,
 	}
+	console.log("adapt request");
+	console.log(requests[0].params);
 	return "?" + new URLSearchParams(pp).toString()
 }
 
@@ -349,7 +355,7 @@ async function initSearch() {
 	
 	const customSearchClient = {
 		search: function (requests) {
-			console.log(requests[0])
+			//console.log(requests[0])
 			let req = adaptReq(requests);
 			//console.log("request " + req)
 			let res = srch.search(req);
@@ -435,6 +441,12 @@ async function initSearch() {
 		refinementList({
 			container: document.querySelector('#tags'),
 			attribute: "tags",
+			operator: "or",
+		}),
+		refinementList({
+			container: document.querySelector('#authors'),
+			attribute: "authors",
+			operator: "and",
 		}),
 		customPagination({
 			container: document.querySelector('#pagination'),
