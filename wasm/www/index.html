@@ -14,7 +14,7 @@
 
 	<script src="/assets/js/instantsearch.production.min.js"></script>
 	<script src="/assets/js/podlove-button.js"></script>
-	<script src="/assets/js/alpine.js"></script>
+	<script defer src="/assets/js/alpine.js"></script>
 
 
 <style>
@@ -89,54 +89,49 @@
   <body>
     <div class="container"> 
       <div id="searchbox"></div>
+      <div id="clear-refinements" class=""></div>
+      <div class="columns">
 
+
+      <div x-data="sidebar"
+           class="column col-4 col-lg-4 col-md-12 col-sm-12 "
+           >
+
+        <button class="btn btn-primary" @click="toggle"> 
+          menu
+        </button>
+
+       <nav id="menu" 
+            x-show="open" @click.outside="toggle">
+         <div>
+          Facets
+         </div>
+
+        <div id="sort-by"> </div>
+
+        <div id="refinement-list"> </div>
+    </nav>
+
+    </div>
+
+    <div class="column col-8 col-lg-8 col-md-12 col-sm-12"
       <div id="hits"></div>
-
-      <div class="columns fabs">
-        <details class="column col-2 text-center" 
-               role="group" 
-               aria-label="floating action buttons" 
-       > 
-        <summary class="btn btn-success" 
-                 style="list-style:none;"> 
-          facets
-        </summary>
-        <ul class="" style="list-style:none;">
-          <li>
-            <a href="#slideout" 
-               class="btn btn-success">
-              open
-          </a>
-          </li>
-          <li>
-            <a href="#" class="btn btn-success" data-slideout-close>
-              close
-            </a>
-          </li>
-          <li>
-            <div id="clear-refinements" class=""></div>
-          </li>
-    </ul>
-      </details>
-      </div>
+     </div>
 
 
       <div id="pagination"></div>
-
-     <div id="slideout" data-slideout-panel>
-       <div data-slideout-header>
-        Facets
-       </div>
-
-      <div id="sort-by">
-      </div>
-
-      <div id="refinement-list"> 
-      </div>
-
-      </div>
-     </div>
     </div>
+
+    <script> 
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('sidebar', () => ({
+            open: false,
+            toggle() {
+                this.open = ! this.open
+            }
+        }))
+    })
+    </script>
 
   <script src="assets/app-srch.js"></script>
   <!--<script src="assets/app.js"></script>-->
