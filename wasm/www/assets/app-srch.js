@@ -14,6 +14,7 @@ const {
 	pagination,
 	searchBox,
 	sortBy,
+	refinementList,
 } = instantsearch.widgets;
 
 // Pagination
@@ -287,9 +288,9 @@ const renderHits = (renderOptions, isFirstRender) => {
 };
 const customHits = connectHits(renderHits);
 
-// Get itemsjs Options
-async function getOpts() {
-  const cfgResp = await fetch("/assets/audiobooks.json");
+// Get srch Options
+async function getCfg() {
+  const cfgResp = await fetch("/assets/srch.json");
   const opts = await cfgResp.json();
 	window.cfg = opts
   return opts
@@ -302,24 +303,65 @@ async function getData() {
 	return data
 }
 
+function cfgSrchClient(opts, data) {
+	let params = new URLSearchParams(opts).toString()
+  srch.newClient("?" + params, JSON.stringify(data))
+	console.log(params)
+};
+
+function adaptReq(requests) {
+	let pp = {
+		...cfg,
+		...requests[0].params,
+	}
+	return "?" + new URLSearchParams(pp).toString()
+}
+
+function adaptRes(res) {
+	let r = JSON.parse(res)
+	//console.log(r.facets)
+	let facets = {};
+	r.facetFields.forEach((facet) => {
+		facets[`${facet.attribute}`] = {}
+			facet.items.forEach((item) => {
+			facets[`${facet.attribute}`][`${item.label}`] = item.count
+		});
+
+	});
+	r.facets = facets
+	console.log(r)
+
+	return r
+}
+
 let search = {};
 
 // Start Search
 async function initSearch() {
 	console.log("start instantsearch")
 	
-	const opts = await getOpts();
+	const opts = await getCfg();
   const data = await getData();
+	cfgSrchClient(opts, data);
+	//
 
 	console.log(opts)
-
-	const index = createIndex(data, opts);
-	const searchClient = getSearchClient(index);
 	
+	const customSearchClient = {
+		search: function (requests) {
+			console.log(requests[0])
+			let req = adaptReq(requests);
+			//console.log("request " + req)
+			let res = srch.search(req);
+			let responses = adaptRes(res);
+			return Promise.resolve({ results: [responses] });
+		}
+	};
+
 	// set instantsearch options
 	search = instantsearch({
 		indexName: 'search',
-		searchClient: searchClient,
+		searchClient: customSearchClient,
 		routing: {
 			router: instantsearch.routers.history(),
 		},
@@ -328,19 +370,19 @@ async function initSearch() {
 
 	// add widgets
 	search.addWidgets([
-		sortBy({
-			container: document.querySelector('#sort-by'),
-			items: Object.entries(opts.sortings).map((sort) => {
-				return {
-					value: sort[0],
-					label: `${sort[1].field} (${sort[1].order})`,
-				}
-			}),
-			cssClasses: {
-				select: ['form-select'],
-				root: 'form-group',
-			},
-		}),
+		//sortBy({
+			//container: document.querySelector('#sort-by'),
+			//items: Object.entries(opts.sortings).map((sort) => {
+				//return {
+					//value: sort[0],
+					//label: `${sort[1].field} (${sort[1].order})`,
+				//}
+			//}),
+			//cssClasses: {
+				//select: ['form-select'],
+				//root: 'form-group',
+			//},
+		//}),
 		//hits({
 		customHits({
 			container: document.querySelector('#hits'),
@@ -365,31 +407,35 @@ async function initSearch() {
 	]);
 
 	// Add refinementLists by aggregations
-	const facets = document.querySelector("#refinement-list");
+	//const facets = document.querySelector("#refinement-list");
 
 	//console.log(opts.facets)
 
-	for (const attr in opts.aggregations) {
-		let facet = opts.aggregations[attr];
-		let con = document.createElement("div");
-		con.id = attr;
+	//opts.attributesForFaceting.forEach((attr) => {
 		//console.log(`'#${attr}'`);
-		facets.appendChild(con);
+		//let con = document.createElement("div");
+		//con.id = attr;
+		//facets.appendChild(con);
 
-		search.addWidgets([
-			customRefinementList({
-				container: con,
-				attribute: attr,
+		//search.addWidgets([
+			//customRefinementList({
+				//container: con,
+				//attribute: attr,
 				//limit: 1000,
 				//operator: facet.conjunction ? "and" : "or",
-				showMore: true,
-				showMoreLimit: 20,
-			})
-		]);
-	};
+				//operator: "and",
+				//showMore: true,
+				//showMoreLimit: 20,
+			//})
+		//]);
+	//});
 
 	// add more widgets
 	search.addWidgets([
+		refinementList({
+			container: document.querySelector('#tags'),
+			attribute: "tags",
+		}),
 		customPagination({
 			container: document.querySelector('#pagination'),
 			totalPages: 5,
