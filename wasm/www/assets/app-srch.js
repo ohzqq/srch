@@ -310,16 +310,24 @@ function cfgSrchClient(opts, data) {
 };
 
 function adaptReq(requests) {
+	console.log(requests[0].params);
+
+	if (requests[0].indexName !== "search") {
+		let by = requests[0].indexName.split(":");
+		requests[0].params.sortBy = by[0]
+		requests[0].params.order = by[1]
+	};
+
 	let filters = requests[0].params.facetFilters
 	if (filters) {
 		requests[0].params.facetFilters = JSON.stringify(filters) 
 	};
+
 	let pp = {
 		...cfg,
 		...requests[0].params,
 	}
 	//console.log("adapt request");
-	//console.log(requests[0].params);
 	return "?" + new URLSearchParams(pp).toString()
 }
 
@@ -334,7 +342,7 @@ function adaptRes(res) {
 		});
 	});
 	r.facets = facets
-	console.log(r)
+	//console.log(r)
 
 	return r
 }
@@ -350,7 +358,7 @@ async function initSearch() {
 	cfgSrchClient(opts, data);
 	//
 
-	console.log(opts)
+	//console.log(opts)
 	
 	const customSearchClient = {
 		search: function (requests) {
@@ -371,23 +379,38 @@ async function initSearch() {
 			router: instantsearch.routers.history(),
 		},
 	});
-	console.log("search")
+
+	let sortings = [];
+	cfg.sortableAttributes.forEach((by) => {
+		let attr = by.split(":")[0];
+		sortings.push({
+			value: `${attr}:desc`,
+			label: `${attr} (desc)`,
+		});
+		sortings.push({
+			value: `${attr}:asc`,
+			label: `${attr} (asc)`,
+		});
+	});
+	console.log(sortings)
 
 	// add widgets
 	search.addWidgets([
-		//sortBy({
-			//container: document.querySelector('#sort-by'),
-			//items: Object.entries(opts.sortings).map((sort) => {
+		sortBy({
+			container: document.querySelector('#sort-by'),
+			items: sortings,
+			//items: cfg.sortableAttributes.map((sort) => {
+				//let by = sort.split(":")
 				//return {
-					//value: sort[0],
-					//label: `${sort[1].field} (${sort[1].order})`,
+					//value: by[0],
+					//label: `${by[0]} ()`,
 				//}
 			//}),
-			//cssClasses: {
-				//select: ['form-select'],
-				//root: 'form-group',
-			//},
-		//}),
+			cssClasses: {
+				select: ['form-select'],
+				root: 'form-group',
+			},
+		}),
 		//hits({
 		customHits({
 			container: document.querySelector('#hits'),

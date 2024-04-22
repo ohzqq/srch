@@ -2,8 +2,8 @@
 	"sortBy": "added_stamp",
 	"order": "desc",
 	"sortableAttributes": [
-			"title:string",
-			"added_stamp:int"
+			"added_stamp:int",
+			"title:string"
 	],
 	"hitsPerPage": 25,
 	"maxValuesPerFacet": 25,
