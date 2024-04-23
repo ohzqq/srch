@@ -170,21 +170,10 @@ const renderRefinementList = (renderOptions, isFirstRender) => {
   } = renderOptions;
 
   if (isFirstRender) {
-		const ul = document.createElement('div');
-		//ul.id = `list-${widgetParams.attribute}`
-		ul.className = 'form-group'
-
-    let button = document.createElement('button');
-    button.textContent = 'Show more';
-	  button.id = `show-more-${widgetParams.attribute}`
-	  button.className = 'btn btn-primary'
-
+	  let button = document.getElementById(`show-more-${widgetParams.attribute}`)
     button.addEventListener('click', () => {
       toggleShowMore();
     });
-
-		widgetParams.container.appendChild(ul);
-    widgetParams.container.appendChild(button);
   }
 
   widgetParams.container.querySelector('div').innerHTML = items
@@ -421,13 +410,13 @@ async function initSearch() {
 
 	Alpine.store('srch').facets.forEach((facet) => {
 		//console.log(`'#${attr}'`);
-		let con = document.createElement("div");
-		con.id = facet.attribute;
-		facetCon.appendChild(con);
+		//let con = document.createElement("div");
+		//con.id = facet.attribute;
+		//facetCon.appendChild(con);
 
 		search.addWidgets([
 			customRefinementList({
-				container: con,
+				container: document.getElementById(`${facet.attribute}`),
 				attribute: facet.attribute,
 				//limit: 1000,
 				operator: facet.operator,
