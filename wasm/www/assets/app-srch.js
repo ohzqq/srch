@@ -442,5 +442,3 @@ async function initSearch() {
 	]);
 	search.start();
 }
-
-initSearch();
