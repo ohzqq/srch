@@ -168,12 +168,17 @@
           init() {
             fetch("/assets/srch.json")
               .then((res) => res.json())
-              .then((o) => this.cfg = o)
+              .then((o) => {
+                this.cfg = o
+              })
+              .then(() => {
+
+initSearch();
+              });
           },
           cfg: {},
           facets() {
-            let facets = [];
-            this.cfg.attributesForFaceting.forEach((attr) => {
+            return this.cfg.attributesForFaceting.map((attr) => {
               let f = {
                 attribute: attr,
                 operator: "or",
@@ -182,10 +187,9 @@
               if (this.cfg.conjunctiveFacets.some(conj)) {
                 f.operator = "and"
               }
-              facets.push(f);
+              return f;
             });
-            delete this.cfg["conjunctiveFacets"];
-            return facets;
+            //delete this.cfg["conjunctiveFacets"];
           },
           sortings() { 
             let sort = []

@@ -419,7 +419,7 @@ async function initSearch() {
 	// Add refinementLists by aggregations
 	const facetCon = document.querySelector("#refinement-list");
 
-	//console.log(facets)
+	console.log(Alpine.store('srch').facets())
 
 	Alpine.store('srch').facets().forEach((facet) => {
 		//console.log(`'#${attr}'`);
