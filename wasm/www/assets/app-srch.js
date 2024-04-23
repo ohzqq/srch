@@ -141,17 +141,12 @@ const customSortBy = connectSortBy(renderSortBy);
 const renderClearRefinements = (renderOptions, isFirstRender) => {
 	const { canRefine, refine, widgetParams } = renderOptions;
 	if (isFirstRender) {
-		const button = document.createElement('ion-button');
-		button.textContent = 'clear';
-
+		const button = document.getElementById('clear-facets');
 		button.addEventListener('click', () => {
 			refine();
 		});
-
-		widgetParams.container.appendChild(button);
 	}
-
-	widgetParams.container.querySelector('ion-button').disabled = !canRefine;
+	widgetParams.container.querySelector('button').disabled = !canRefine;
 };
 const customClearRefinements = connectClearRefinements(renderClearRefinements);
 
@@ -405,15 +400,7 @@ async function initSearch() {
 		}),
 	]);
 
-	// Add refinementLists by aggregations
-	const facetCon = document.querySelector("#refinement-list");
-
 	Alpine.store('srch').facets.forEach((facet) => {
-		//console.log(`'#${attr}'`);
-		//let con = document.createElement("div");
-		//con.id = facet.attribute;
-		//facetCon.appendChild(con);
-
 		search.addWidgets([
 			customRefinementList({
 				container: document.getElementById(`${facet.attribute}`),
