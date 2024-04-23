@@ -170,42 +170,14 @@
               .then((res) => res.json())
               .then((o) => {
                 this.cfg = o
+                this.facets = facets(this.cfg);
+                this.sortby = sortings(this.cfg);
               })
-              .then(() => {
-
-initSearch();
-              });
+              .then(initSearch());
           },
           cfg: {},
-          facets() {
-            return this.cfg.attributesForFaceting.map((attr) => {
-              let f = {
-                attribute: attr,
-                operator: "or",
-              }
-              const conj = (a) => a === attr;
-              if (this.cfg.conjunctiveFacets.some(conj)) {
-                f.operator = "and"
-              }
-              return f;
-            });
-            //delete this.cfg["conjunctiveFacets"];
-          },
-          sortings() { 
-            let sort = []
-            this.cfg.sortableAttributes.forEach((by) => {
-              let attr = by.split(":")[0];
-              sort.push({
-                value: `${attr}:desc`,
-                label: `${attr} (desc)`,
-              });
-              sort.push({
-                value: `${attr}:asc`,
-                label: `${attr} (asc)`,
-              });
-            });
-            return sort;
-          },
+          facets: [],
+          sortby: [],
         })
     });
     </script>

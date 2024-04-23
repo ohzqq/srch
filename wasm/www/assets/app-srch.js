@@ -300,39 +300,9 @@ async function getData() {
 	return data
 }
 
-const sortings = [];
-const facets = [];
-
 function cfgSrchClient(opts, data) {
-	//Alpine.store('cfg').setFacets(opts.attributesForFaceting)
-
-	opts.attributesForFaceting.forEach((attr) => {
-		let f = {
-			attribute: attr,
-			operator: "or",
-		}
-		const conj = (a) => a === attr;
-		if (opts.conjunctiveFacets.some(conj)) {
-			f.operator = "and"
-		}
-		facets.push(f);
-	});
-	//delete opts["conjunctiveFacets"];
-
 	let params = new URLSearchParams(opts).toString()
   srch.newClient("?" + params, JSON.stringify(data))
-
-	Alpine.store('srch').cfg.sortableAttributes.forEach((by) => {
-		let attr = by.split(":")[0];
-		sortings.push({
-			value: `${attr}:desc`,
-			label: `${attr} (desc)`,
-		});
-		sortings.push({
-			value: `${attr}:asc`,
-			label: `${attr} (asc)`,
-		});
-	});
 };
 
 // adapt the instantsearch request
@@ -356,6 +326,36 @@ function adaptReq(requests) {
 	}
 	return "?" + new URLSearchParams(pp).toString()
 }
+
+function sortings(cfg) {
+	let sort = []
+	cfg.sortableAttributes.forEach((by) => {
+		let attr = by.split(":")[0];
+		sort.push({
+			value: `${attr}:desc`,
+			label: `${attr} (desc)`,
+		});
+		sort.push({
+			value: `${attr}:asc`,
+			label: `${attr} (asc)`,
+		});
+	});
+	return sort;
+};
+
+function facets(cfg) {
+	return cfg.attributesForFaceting.map((attr) => {
+		let op = 'or';
+		const conj = (a) => a === attr;
+		if (cfg.conjunctiveFacets.some(conj)) {
+			op = "and"
+		}
+		return {
+			attribute: attr,
+			operator: op,
+		};
+	});
+};
 
 // adapt the response to instantsearch format
 function adaptRes(res) {
@@ -405,7 +405,7 @@ async function initSearch() {
 	search.addWidgets([
 		sortBy({
 			container: document.querySelector('#sort-by'),
-			items: Alpine.store('srch').sortings(),
+			items: Alpine.store('srch').sortby,
 			cssClasses: {
 				select: ['form-select'],
 				root: 'form-group',
@@ -419,9 +419,7 @@ async function initSearch() {
 	// Add refinementLists by aggregations
 	const facetCon = document.querySelector("#refinement-list");
 
-	console.log(Alpine.store('srch').facets())
-
-	Alpine.store('srch').facets().forEach((facet) => {
+	Alpine.store('srch').facets.forEach((facet) => {
 		//console.log(`'#${attr}'`);
 		let con = document.createElement("div");
 		con.id = facet.attribute;
