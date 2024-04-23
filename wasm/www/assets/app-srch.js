@@ -304,6 +304,8 @@ const sortings = [];
 const facets = [];
 
 function cfgSrchClient(opts, data) {
+	//Alpine.store('cfg').setFacets(opts.attributesForFaceting)
+
 	opts.attributesForFaceting.forEach((attr) => {
 		let f = {
 			attribute: attr,
@@ -315,12 +317,12 @@ function cfgSrchClient(opts, data) {
 		}
 		facets.push(f);
 	});
-	delete opts["conjunctiveFacets"];
+	//delete opts["conjunctiveFacets"];
 
 	let params = new URLSearchParams(opts).toString()
   srch.newClient("?" + params, JSON.stringify(data))
 
-	cfg.sortableAttributes.forEach((by) => {
+	Alpine.store('srch').cfg.sortableAttributes.forEach((by) => {
 		let attr = by.split(":")[0];
 		sortings.push({
 			value: `${attr}:desc`,
@@ -349,7 +351,7 @@ function adaptReq(requests) {
 	};
 
 	let pp = {
-		...cfg,
+		...Alpine.store('srch').cfg,
 		...requests[0].params,
 	}
 	return "?" + new URLSearchParams(pp).toString()
@@ -375,9 +377,9 @@ let search = {};
 // Start Search
 async function initSearch() {
 	//console.log("start instantsearch")
-	const opts = await getCfg();
+	//const opts = await getCfg();
   const data = await getData();
-	cfgSrchClient(opts, data);
+	cfgSrchClient(Alpine.store('srch').cfg, data);
 
 	// define custom client
 	const customSearchClient = {
@@ -403,7 +405,7 @@ async function initSearch() {
 	search.addWidgets([
 		sortBy({
 			container: document.querySelector('#sort-by'),
-			items: sortings,
+			items: Alpine.store('srch').sortings(),
 			cssClasses: {
 				select: ['form-select'],
 				root: 'form-group',
@@ -417,9 +419,9 @@ async function initSearch() {
 	// Add refinementLists by aggregations
 	const facetCon = document.querySelector("#refinement-list");
 
-	console.log(facets)
+	//console.log(facets)
 
-	facets.forEach((facet) => {
+	Alpine.store('srch').facets().forEach((facet) => {
 		//console.log(`'#${attr}'`);
 		let con = document.createElement("div");
 		con.id = facet.attribute;

@@ -14,6 +14,7 @@
 
 	<script src="/assets/js/instantsearch.production.min.js"></script>
 	<script src="/assets/js/podlove-button.js"></script>
+	<script defer src="/assets/js/alpine-anchor.js"></script>
 	<script defer src="/assets/js/alpine.js"></script>
 
 
@@ -77,32 +78,58 @@
 	bottom: 0;
 	z-index: 100;
 	display: flex;
-	/*flex-direction: column-reverse;*/
+	flex-direction: column-reverse;
 	place-items: center;
 	margin: 1em;
 	list-style: none;
 	padding: 1em;
 }
-
+ #facet-menu {
+   position: fixed;
+   margin: 0;
+   padding: 0;
+   overflow: auto;
+   height: 100%;
+   background: var(--dark-grey-dark);
+   z-index: 100;
+ }
   </style>
   </head>
   <body>
-    <div class="container"> 
+    <div class="container" x-data="layout"> 
       <div id="searchbox"></div>
-      <div id="clear-refinements" class=""></div>
       <div class="columns">
 
 
-      <div x-data="sidebar"
-           class="column col-4 col-lg-4 col-md-12 col-sm-12 "
-           >
+        <div class="fabs" > 
+          <button class="btn btn-primary" 
+                  x-ref="fab"
+                  @click="toggleFab"> 
+                  <!--@click.outside="toggleFab"-->
+            menu
+          </button>
+          <div x-show="showFab" 
+               id="fab-menu"
+               x-anchor.top-start="$refs.fab">
 
-        <button class="btn btn-primary" @click="toggle"> 
+            <button class="btn btn-primary" 
+                @click="toggleFacets"> 
+              facets
+          </button>
+          <div id="clear-refinements" class=""></div>
+          </div>
+        </div>
+
+      <div x-show="showFacets" 
+           @click.outside="toggleFacets"
+           class="column col-4 col-lg-4 "
+           :class="showFacets ? 'col-md-9 col-sm-9' : 'hide-sm hide-md'"
+           id="facet-menu">
+        <button class="btn btn-primary" @click="toggleFacets"> 
           menu
-        </button>
 
        <nav id="menu" 
-            x-show="open" @click.outside="toggle">
+            >
          <div>
           Facets
          </div>
@@ -114,23 +141,69 @@
 
     </div>
 
-    <div class="column col-8 col-lg-8 col-md-12 col-sm-12"
+    <div class="column col-sm-12"
+         :class="showFacets ? 'col-xl-8 col-lg-8 col-md-8' : 'col-xl-12 col-lg-12 col-md-12 '"
+         >
       <div id="hits"></div>
+
+      <div id="pagination"></div>
      </div>
 
 
-      <div id="pagination"></div>
     </div>
 
     <script> 
     document.addEventListener('alpine:init', () => {
-        Alpine.data('sidebar', () => ({
-            open: false,
-            toggle() {
-                this.open = ! this.open
+        Alpine.data('layout', () => ({
+            showFacets: false,
+            showFab: false,
+            toggleFacets() {
+                this.showFacets = ! this.showFacets
+            },
+            toggleFab() {
+                this.showFab = ! this.showFab
             }
-        }))
-    })
+        })),
+        Alpine.store('srch', {
+          init() {
+            fetch("/assets/srch.json")
+              .then((res) => res.json())
+              .then((o) => this.cfg = o)
+          },
+          cfg: {},
+          facets() {
+            let facets = [];
+            this.cfg.attributesForFaceting.forEach((attr) => {
+              let f = {
+                attribute: attr,
+                operator: "or",
+              }
+              const conj = (a) => a === attr;
+              if (this.cfg.conjunctiveFacets.some(conj)) {
+                f.operator = "and"
+              }
+              facets.push(f);
+            });
+            delete this.cfg["conjunctiveFacets"];
+            return facets;
+          },
+          sortings() { 
+            let sort = []
+            this.cfg.sortableAttributes.forEach((by) => {
+              let attr = by.split(":")[0];
+              sort.push({
+                value: `${attr}:desc`,
+                label: `${attr} (desc)`,
+              });
+              sort.push({
+                value: `${attr}:asc`,
+                label: `${attr} (asc)`,
+              });
+            });
+            return sort;
+          },
+        })
+    });
     </script>
 
   <script src="assets/app-srch.js"></script>
