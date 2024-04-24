@@ -28,7 +28,6 @@ function facets(cfg) {
 	});
 };
 
-
 async function fetchWASM(url) {
 	let response = await fetch(url);
 	let wasm = await WebAssembly.instantiateStreaming(response, go.importObject);
