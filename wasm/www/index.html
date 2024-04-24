@@ -169,16 +169,16 @@
             showFacets: false,
             showFab: false,
             toggleFacets() {
-                this.showFacets = ! this.showFacets
+              this.showFacets = ! this.showFacets
             },
             toggleFab() {
-                this.showFab = ! this.showFab
+              this.showFab = ! this.showFab
             }
         })),
         Alpine.store('srch', {
           init() {
-            FetchWASM("/assets/srch.wasm")
-              .then(getCfg('/assets/srch.json')
+            fetchWASM("/assets/srch.wasm")
+              .then(fetchCfg('/assets/srch.json')
                 .then((o) => this.cfg = o)
               )
               .then(() => {

@@ -269,7 +269,38 @@ const renderHits = (renderOptions, isFirstRender) => {
 };
 const customHits = connectHits(renderHits);
 
-async function FetchWASM(url) {
+function sortings(cfg) {
+	let sort = []
+	cfg.sortableAttributes.forEach((by) => {
+		let attr = by.split(":")[0];
+		sort.push({
+			value: `${attr}:desc`,
+			label: `${attr} (desc)`,
+		});
+		sort.push({
+			value: `${attr}:asc`,
+			label: `${attr} (asc)`,
+		});
+	});
+	return sort;
+};
+
+function facets(cfg) {
+	return cfg.attributesForFaceting.map((attr) => {
+		let op = 'or';
+		const conj = (a) => a === attr;
+		if (cfg.conjunctiveFacets.some(conj)) {
+			op = "and"
+		}
+		return {
+			attribute: attr,
+			operator: op,
+		};
+	});
+};
+
+
+async function fetchWASM(url) {
 	let response = await fetch(url);
 	let wasm = await WebAssembly.instantiateStreaming(response, go.importObject);
 
@@ -278,14 +309,14 @@ async function FetchWASM(url) {
 };
 
 // Get srch Options
-async function getCfg(url) {
+async function fetchCfg(url) {
   const cfgResp = await fetch(url);
   const opts = await cfgResp.json();
   return opts
 };
 
 // Get data
-async function getData(url) {
+async function fetchData(url) {
   const response = await fetch(url);
   const data = await response.json();
 	return data
@@ -319,36 +350,6 @@ function adaptReq(requests) {
 	return queryStr(requests[0].params)
 }
 
-function sortings(cfg) {
-	let sort = []
-	cfg.sortableAttributes.forEach((by) => {
-		let attr = by.split(":")[0];
-		sort.push({
-			value: `${attr}:desc`,
-			label: `${attr} (desc)`,
-		});
-		sort.push({
-			value: `${attr}:asc`,
-			label: `${attr} (asc)`,
-		});
-	});
-	return sort;
-};
-
-function facets(cfg) {
-	return cfg.attributesForFaceting.map((attr) => {
-		let op = 'or';
-		const conj = (a) => a === attr;
-		if (cfg.conjunctiveFacets.some(conj)) {
-			op = "and"
-		}
-		return {
-			attribute: attr,
-			operator: op,
-		};
-	});
-};
-
 // adapt the response to instantsearch format
 function adaptRes(res) {
 	let r = JSON.parse(res)
@@ -369,7 +370,7 @@ let search = {};
 // Start Search
 async function initSearch(url) {
 	//console.log("start instantsearch")
-	const data = await getData(url);
+	const data = await fetchData(url);
 	cfgSrchClient(Alpine.store('srch').cfg, data);
 
 	// define custom client
