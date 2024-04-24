@@ -6,10 +6,6 @@
 	<script src="/assets/wasm_exec.js"></script>
 	<script> 
     const go = new Go();
-    WebAssembly.instantiateStreaming(fetch("/assets/srch.wasm"), go.importObject)
-      .then((result) => {
-        go.run(result.instance);
-      });
   </script>
 
 	<script src="/assets/js/instantsearch.production.min.js"></script>
@@ -181,14 +177,15 @@
         })),
         Alpine.store('srch', {
           init() {
-            fetch("/assets/srch.json")
-              .then((res) => res.json())
-              .then((o) => {
-                this.cfg = o
+            FetchWASM("/assets/srch.wasm")
+              .then(getCfg('/assets/srch.json')
+                .then((o) => this.cfg = o)
+              )
+              .then(() => {
                 this.facets = facets(this.cfg);
                 this.sortby = sortings(this.cfg);
               })
-              .then(initSearch());
+              .then(initSearch("/assets/data.json"));
           },
           cfg: {},
           facets: [],
