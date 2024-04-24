@@ -14,6 +14,7 @@ const {
 	pagination,
 	searchBox,
 	sortBy,
+	refinementList,
 } = instantsearch.widgets;
 
 // Pagination
@@ -96,8 +97,6 @@ const renderPagination = (renderOptions, isFirstRender) => {
 };
 const customPagination = connectPagination(renderPagination);
 
-
-
 // SortBy
 const renderSortBy = (renderOptions, isFirstRender) => {
   const {
@@ -142,17 +141,12 @@ const customSortBy = connectSortBy(renderSortBy);
 const renderClearRefinements = (renderOptions, isFirstRender) => {
 	const { canRefine, refine, widgetParams } = renderOptions;
 	if (isFirstRender) {
-		const button = document.createElement('ion-button');
-		button.textContent = 'clear';
-
+		const button = document.getElementById('clear-facets');
 		button.addEventListener('click', () => {
 			refine();
 		});
-
-		widgetParams.container.appendChild(button);
 	}
-
-	widgetParams.container.querySelector('ion-button').disabled = !canRefine;
+	widgetParams.container.querySelector('button').disabled = !canRefine;
 };
 const customClearRefinements = connectClearRefinements(renderClearRefinements);
 
@@ -171,25 +165,14 @@ const renderRefinementList = (renderOptions, isFirstRender) => {
   } = renderOptions;
 
   if (isFirstRender) {
-		const ul = document.createElement('div');
-		//ul.id = `list-${widgetParams.attribute}`
-		ul.className = 'form-group'
-
-    let button = document.createElement('button');
-    button.textContent = 'Show more';
-	  button.id = `show-more-${widgetParams.attribute}`
-	  button.className = 'btn btn-primary'
-
+	  let button = document.getElementById(`show-more-${widgetParams.attribute}`)
     button.addEventListener('click', () => {
       toggleShowMore();
     });
-
-		widgetParams.container.appendChild(ul);
-    widgetParams.container.appendChild(button);
   }
 
   widgetParams.container.querySelector('div').innerHTML = items
-		.filter((item) => item.count > cfg.minFacetCount)
+		//.filter((item) => item.count > cfg.minFacetCount)
     .map(
       item => `
         <label class="form-checkbox">
@@ -256,7 +239,6 @@ const renderHits = (renderOptions, isFirstRender) => {
 
 	let template = '';
 	hits.forEach((item, idx) => {
-
 		let series = item.series ? `${item.series}, book ${item.series_index}` : ''
 		template += `
 			<div class="card">
@@ -287,9 +269,9 @@ const renderHits = (renderOptions, isFirstRender) => {
 };
 const customHits = connectHits(renderHits);
 
-// Get itemsjs Options
-async function getOpts() {
-  const cfgResp = await fetch("/assets/audiobooks.json");
+// Get srch Options
+async function getCfg() {
+  const cfgResp = await fetch("/assets/srch.json");
   const opts = await cfgResp.json();
 	window.cfg = opts
   return opts
@@ -302,91 +284,134 @@ async function getData() {
 	return data
 }
 
+function cfgSrchClient(opts, data) {
+	let params = new URLSearchParams(opts).toString()
+  srch.newClient("?" + params, JSON.stringify(data))
+};
+
+// adapt the instantsearch request
+function adaptReq(requests) {
+	//console.log(requests[0].params);
+
+	if (requests[0].indexName !== "search") {
+		let by = requests[0].indexName.split(":");
+		requests[0].params.sortBy = by[0]
+		requests[0].params.order = by[1]
+	};
+
+	let filters = requests[0].params.facetFilters
+	if (filters) {
+		requests[0].params.facetFilters = JSON.stringify(filters) 
+	};
+
+	let pp = {
+		...Alpine.store('srch').cfg,
+		...requests[0].params,
+	}
+	return "?" + new URLSearchParams(pp).toString()
+}
+
+function sortings(cfg) {
+	let sort = []
+	cfg.sortableAttributes.forEach((by) => {
+		let attr = by.split(":")[0];
+		sort.push({
+			value: `${attr}:desc`,
+			label: `${attr} (desc)`,
+		});
+		sort.push({
+			value: `${attr}:asc`,
+			label: `${attr} (asc)`,
+		});
+	});
+	return sort;
+};
+
+function facets(cfg) {
+	return cfg.attributesForFaceting.map((attr) => {
+		let op = 'or';
+		const conj = (a) => a === attr;
+		if (cfg.conjunctiveFacets.some(conj)) {
+			op = "and"
+		}
+		return {
+			attribute: attr,
+			operator: op,
+		};
+	});
+};
+
+// adapt the response to instantsearch format
+function adaptRes(res) {
+	let r = JSON.parse(res)
+	//console.log(r.facets)
+	let facetz = {};
+	r.facetFields.forEach((facet) => {
+		facetz[`${facet.attribute}`] = {}
+			facet.items.forEach((item) => {
+			facetz[`${facet.attribute}`][`${item.label}`] = item.count
+		});
+	});
+	r.facets = facetz
+	return r
+}
+
 let search = {};
 
 // Start Search
 async function initSearch() {
-	console.log("start instantsearch")
-	
-	const opts = await getOpts();
+	//console.log("start instantsearch")
+	//const opts = await getCfg();
   const data = await getData();
+	cfgSrchClient(Alpine.store('srch').cfg, data);
 
-	console.log(opts)
+	// define custom client
+	const customSearchClient = {
+		search: function (requests) {
+			//console.log(requests[0])
+			let req = adaptReq(requests);
+			let res = srch.search(req);
+			let responses = adaptRes(res);
+			return Promise.resolve({ results: [responses] });
+		}
+	};
 
-	const index = createIndex(data, opts);
-	const searchClient = getSearchClient(index);
-	
 	// set instantsearch options
 	search = instantsearch({
 		indexName: 'search',
-		searchClient: searchClient,
+		searchClient: customSearchClient,
 		routing: {
 			router: instantsearch.routers.history(),
 		},
 	});
-	console.log("search")
 
 	// add widgets
 	search.addWidgets([
 		sortBy({
 			container: document.querySelector('#sort-by'),
-			items: Object.entries(opts.sortings).map((sort) => {
-				return {
-					value: sort[0],
-					label: `${sort[1].field} (${sort[1].order})`,
-				}
-			}),
+			items: Alpine.store('srch').sortby,
 			cssClasses: {
 				select: ['form-select'],
 				root: 'form-group',
 			},
 		}),
-		//hits({
 		customHits({
 			container: document.querySelector('#hits'),
-			//transformItems(items) {
-				//items.forEach((item) => {
-					//let pd = {
-						//title: item.title,
-						//cover: item.cover,
-						//feeds: [
-							//{
-								//type: "audio",
-								//format: "aac",
-								//url: item.url,
-							//},
-						//],
-					//};
-					//window[`podcastData${item.id}`] = JSON.stringify(pd);
-				//});
-				//return items;
-			//},
 		}),
 	]);
 
-	// Add refinementLists by aggregations
-	const facets = document.querySelector("#refinement-list");
-
-	//console.log(opts.facets)
-
-	for (const attr in opts.aggregations) {
-		let facet = opts.aggregations[attr];
-		let con = document.createElement("div");
-		con.id = attr;
-		//console.log(`'#${attr}'`);
-		facets.appendChild(con);
-
+	Alpine.store('srch').facets.forEach((facet) => {
 		search.addWidgets([
 			customRefinementList({
-				container: con,
-				attribute: attr,
+				container: document.getElementById(`${facet.attribute}`),
+				attribute: facet.attribute,
 				//limit: 1000,
-				//operator: facet.conjunction ? "and" : "or",
+				operator: facet.operator,
 				showMore: true,
 				showMoreLimit: 20,
 			})
 		]);
-	};
+	});
 
 	// add more widgets
 	search.addWidgets([
@@ -415,10 +440,5 @@ async function initSearch() {
 			}
 		}),
 	]);
-
-
-
 	search.start();
 }
-
-initSearch();
