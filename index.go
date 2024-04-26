@@ -8,7 +8,6 @@ import (
 	"slices"
 
 	"github.com/RoaringBitmap/roaring"
-	"github.com/ohzqq/srch/blv"
 	"github.com/ohzqq/srch/data"
 	"github.com/ohzqq/srch/fuzz"
 	"github.com/ohzqq/srch/param"
@@ -16,42 +15,6 @@ import (
 	"github.com/spf13/cast"
 	"github.com/spf13/viper"
 )
-
-func init() {
-	log.SetFlags(log.Lshortfile)
-	for _, key := range param.SettingParams {
-		switch key {
-		case param.SrchAttr:
-			viper.SetDefault(key.Snake(), []string{"title"})
-		case param.FacetAttr:
-			viper.SetDefault(key.Snake(), []string{"tags"})
-		case param.SortAttr:
-			viper.SetDefault(key.Snake(), []string{"title:desc"})
-		case param.UID:
-			viper.SetDefault(key.Snake(), "id")
-		}
-	}
-
-	for _, key := range param.SearchParams {
-		switch key {
-		case param.SortFacetsBy:
-			viper.SetDefault(key.Snake(), "tags:count:desc")
-		case param.Facets:
-			viper.SetDefault(key.Snake(), []string{"tags"})
-		case param.RtrvAttr:
-			viper.SetDefault(key.Snake(), "*")
-		case param.Page:
-			viper.SetDefault(key.Snake(), 0)
-		case param.HitsPerPage:
-			viper.SetDefault(key.Snake(), -1)
-		case param.SortBy:
-			viper.SetDefault(key.Snake(), "title")
-		case param.Order:
-			viper.SetDefault(key.Snake(), "desc")
-		}
-	}
-
-}
 
 type Indexer interface {
 	Index(uid string, data map[string]any) error
@@ -97,10 +60,10 @@ func New(settings string) (*Index, error) {
 	switch idx.Data.Route {
 	case param.Blv.String():
 		idx.Params.SrchAttr = []string{"*"}
-		idx.Indexer, err = blv.Open(idx.Params)
-		if err != nil {
-			return nil, fmt.Errorf("new index open bleve err: %w\n", err)
-		}
+		//idx.Indexer, err = blv.Open(idx.Params)
+		//if err != nil {
+		//return nil, fmt.Errorf("new index open bleve err: %w\n", err)
+		//}
 		return idx, nil
 	case param.Dir.String(), param.File.String():
 		err = idx.GetData()
@@ -109,6 +72,24 @@ func New(settings string) (*Index, error) {
 		}
 		idx.Batch(idx.Docs)
 		return idx, nil
+	}
+
+	return idx, nil
+}
+
+func Mem(settings string, data []map[string]any) (*Index, error) {
+	idx := newIndex()
+	var err error
+	idx.Params, err = param.Parse(settings)
+	if err != nil {
+		return nil, fmt.Errorf("new index param parsing err: %w\n", err)
+	}
+
+	idx.Indexer = fuzz.Open(idx.Params)
+	idx.Docs = data
+	err = idx.Batch(idx.Docs)
+	if err != nil {
+		return nil, fmt.Errorf("doc indexing err: %w\n", err)
 	}
 
 	return idx, nil
@@ -207,4 +188,40 @@ func exist(path string) bool {
 		return false
 	}
 	return true
+}
+
+func init() {
+	log.SetFlags(log.Lshortfile)
+	for _, key := range param.SettingParams {
+		switch key {
+		case param.SrchAttr:
+			viper.SetDefault(key.Snake(), []string{"title"})
+		case param.FacetAttr:
+			viper.SetDefault(key.Snake(), []string{"tags"})
+		case param.SortAttr:
+			viper.SetDefault(key.Snake(), []string{"title:desc"})
+		case param.UID:
+			viper.SetDefault(key.Snake(), "id")
+		}
+	}
+
+	for _, key := range param.SearchParams {
+		switch key {
+		case param.SortFacetsBy:
+			viper.SetDefault(key.Snake(), "tags:count:desc")
+		case param.Facets:
+			viper.SetDefault(key.Snake(), []string{"tags"})
+		case param.RtrvAttr:
+			viper.SetDefault(key.Snake(), "*")
+		case param.Page:
+			viper.SetDefault(key.Snake(), 0)
+		case param.HitsPerPage:
+			viper.SetDefault(key.Snake(), -1)
+		case param.SortBy:
+			viper.SetDefault(key.Snake(), "title")
+		case param.Order:
+			viper.SetDefault(key.Snake(), "desc")
+		}
+	}
+
 }

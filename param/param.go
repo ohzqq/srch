@@ -141,7 +141,8 @@ func (s *Params) Set(v url.Values) error {
 		case SrchAttr:
 			s.SrchAttr = parseSrchAttr(v)
 		case FacetAttr:
-			s.FacetAttr = parseFacetAttr(v)
+			//s.FacetAttr = parseFacetAttr(v)
+			s.FacetAttr = GetQueryStringSlice(key.Query(), v)
 		case SortAttr:
 			s.SortAttr = GetQueryStringSlice(key.Query(), v)
 		case DefaultField:
@@ -173,6 +174,7 @@ func (s *Params) Set(v url.Values) error {
 		case FacetFilters:
 			if v.Has(key.Query()) {
 				fil := v.Get(key.Query())
+				fmt.Printf("facetFilters %s\n", fil)
 				f, err := unmarshalFilter(fil)
 				if err != nil {
 					return fmt.Errorf("failed to unmarshal filters %v\nerr: %w\n", fil, err)
@@ -386,5 +388,5 @@ func parseFacetAttr(vals url.Values) []string {
 	if !vals.Has(FacetAttr.Query()) {
 		vals[FacetAttr.Query()] = GetQueryStringSlice(FacetAttr.Query(), vals)
 	}
-	return vals[Facets.Query()]
+	return vals[FacetAttr.Query()]
 }

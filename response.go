@@ -18,12 +18,14 @@ type Response struct {
 
 	results []map[string]any
 
-	RawQuery    string           `json:"params"`
-	FacetFields []*facet.Facet   `json:"facetFields"`
-	Facets      *facet.Fields    `json:"facets"`
-	Hits        []map[string]any `json:"hits"`
-	NbHits      int              `json:"nbHits"`
-	NbPages     int              `json:"nbPages"`
+	RawQuery    string         `json:"params"`
+	FacetFields []*facet.Facet `json:"facetFields"`
+	//Facets      *facet.Fields    `json:"facets"`
+	facets *facet.Fields `json:"facets"`
+	//Facets  map[string]map[string]int `json:"facets"`
+	Hits    []map[string]any `json:"hits"`
+	NbHits  int              `json:"nbHits"`
+	NbPages int              `json:"nbPages"`
 }
 
 func NewResponse(hits []map[string]any, params *param.Params) (*Response, error) {
@@ -43,7 +45,7 @@ func NewResponse(hits []map[string]any, params *param.Params) (*Response, error)
 			return nil, fmt.Errorf("response failed to calculate facets: %w\n", err)
 		}
 		res.FacetFields = facets.Facets
-		res.Facets = facets
+		res.facets = facets
 		res.results = res.FilterResults()
 
 		for _, facet := range res.FacetFields {
@@ -88,7 +90,7 @@ func (res *Response) Header() http.Header {
 }
 
 func (res *Response) FilterByFacetValue(attr, val string) []map[string]any {
-	f, err := res.Facets.GetFacet(attr)
+	f, err := res.facets.GetFacet(attr)
 	if err != nil {
 		return res.results
 	}
@@ -152,7 +154,7 @@ func (res *Response) FilterResults() []map[string]any {
 		if i, ok := d[res.UID]; ok {
 			idx = cast.ToInt(i)
 		}
-		if res.Facets.Bitmap().ContainsInt(idx) {
+		if res.facets.Bitmap().ContainsInt(idx) {
 			hits = append(hits, d)
 		}
 	}

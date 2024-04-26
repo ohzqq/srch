@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html> 
+  <head> 
+     <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+
+	<script src="/assets/wasm_exec.js"></script>
+	<script> 
+    const go = new Go();
+  </script>
+
+	<script src="/assets/js/instantsearch.production.min.js"></script>
+	<script src="/assets/js/podlove-button.js"></script>
+	<script defer src="/assets/js/alpine-anchor.js"></script>
+	<script defer src="/assets/js/alpine.js"></script>
+
+
+<style>
+:root {
+	color-scheme: light dark;
+
+	--black: #262626;
+	--white: #fff;
+	--red: #FF875F;
+	--green: #AFFFAF;
+	--warning: #ffbf00;
+	--blue: #5FAFFF;
+	--purple: #AFAFFF;
+	--cyan: #AFFFFF;
+	--white: #ffffff;
+	--dark-grey: #444444;
+	--grey: #626262;
+	--light-grey: #eeeeee;
+
+	--light-primary: #5755d9;
+	--light-secondary: #f1f1fc;
+
+	--dark-primary: var(--purple);
+	--dark-secondary: var(--blue);
+	--dark-success: #32b643;
+	--dark-warning: #ffb700;
+	--dark-error: #e85600;
+	--dark-dark: #303742;
+	--dark-grey-dark: #66758c;
+	--dark-grey: #bcc3ce;
+	--dark-grey-light: #f7f8f9;
+	--dark-bg: var(--black);
+	--dark-text: var(--white);
+}
+
+</style>
+  <!--<link rel="stylesheet" href="/assets/css/cssui.dropdown.min.css">-->
+  <link rel="stylesheet" href="/assets/css/spectre.css">
+  <link rel="stylesheet" href="/assets/css/spectre-exp.css">
+  <link rel="stylesheet" href="/assets/css/spectre-icons.css">
+
+  <style> 
+#searchbox {
+	position: fixed;
+  top:0;
+  z-index: 100;
+  width: 100%;
+}
+      
+#hits {
+  margin-top: 5em;
+}
+
+.fabs {
+	position: fixed;
+	right: 0;
+	bottom: 0;
+	z-index: 100;
+	display: flex;
+	flex-direction: column-reverse;
+	place-items: center;
+	margin: 1em;
+	list-style: none;
+	padding: 1em;
+}
+ #facet-menu {
+   position: fixed;
+   margin: 0;
+   padding: 0;
+   overflow: auto;
+   height: 100%;
+   background: var(--dark-grey-dark);
+   z-index: 100;
+ }
+  </style>
+  </head>
+  <body>
+    <div class="container" x-data="layout"> 
+      <div id="searchbox"></div>
+      <div class="columns">
+
+
+        <div class="fabs" > 
+          <button class="btn btn-primary" 
+                  x-ref="fab"
+                  @click="toggleFab"> 
+                  <!--@click.outside="toggleFab"-->
+            menu
+          </button>
+          <div x-show="showFab" 
+               id="fab-menu"
+               x-anchor.top-start="$refs.fab">
+
+            <button class="btn btn-primary" 
+                @click="toggleFacets"> 
+              facets
+          </button>
+          <div id="clear-refinements" class=""> 
+            <!--<button id="clear-facets">clear</button>-->
+          </div>
+          </div>
+        </div>
+
+      <div x-show="showFacets" 
+           @click.outside="toggleFacets"
+           class="column col-4 col-lg-4 "
+           :class="showFacets ? 'col-md-9 col-sm-9' : 'hide-sm hide-md'"
+           id="facet-menu">
+        <button class="btn btn-primary" @click="toggleFacets"> 
+          menu
+
+       <nav id="menu" 
+            >
+         <div>
+          Facets
+         </div>
+
+        <div id="sort-by"> </div>
+
+        <div id="refinement-list" x-data> 
+          <template x-for="facet in $store.srch.cfg.attributesForFaceting"> 
+            <div x-bind:id="facet"> 
+              <div class="form-group"> 
+              </div>
+              <button x-bind:id=`show-more-${facet}` 
+                      class="btn btn-primary"> 
+                show more
+              </button>
+
+            </div>
+          </template>
+        </div>
+    </nav>
+
+    </div>
+
+    <div class="column col-sm-12"
+         :class="showFacets ? 'col-xl-8 col-lg-8 col-md-8' : 'col-xl-12 col-lg-12 col-md-12 '"
+         >
+      <div id="hits"></div>
+
+      <div id="pagination"></div>
+     </div>
+
+
+    </div>
+
+  <script src="assets/js/widgets.js"></script>
+  <script src="assets/app.js"></script>
+    <script> 
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('layout', () => ({
+            showFacets: false,
+            showFab: false,
+            toggleFacets() {
+              this.showFacets = ! this.showFacets
+            },
+            toggleFab() {
+              this.showFab = ! this.showFab
+            }
+        })),
+        Alpine.store('srch', {
+          init() {
+            fetchWASM("/assets/srch.wasm")
+              .then(fetchCfg('/assets/srch.json')
+                .then((o) => this.cfg = o)
+              )
+              .then(() => {
+                this.facets = facets(this.cfg);
+                this.sortby = sortings(this.cfg);
+              })
+              .then(initSearch("/assets/data.json"));
+          },
+          cfg: {},
+          facets: [],
+          sortby: [],
+        })
+    });
+    </script>
+  </body>
+</html>

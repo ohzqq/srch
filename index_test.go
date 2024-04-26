@@ -81,6 +81,36 @@ func TestNewIndex(t *testing.T) {
 	}
 }
 
+func TestMem(t *testing.T) {
+	books = loadData(t)
+	params := "?searchableAttributes=title&facets=tags,authors,series,narrators"
+
+	idx, err := Mem(params, books)
+	if err != nil {
+		t.Error(err)
+	}
+
+	err = totalBooksErr(7252, params)
+	if err != nil {
+		t.Error(err)
+	}
+
+	req := NewRequest().
+		SrchAttr("title").
+		HitsPerPage(25).
+		Query("fish")
+
+	res, err := idx.Search(req.String())
+	if err != nil {
+		t.Error(err)
+	}
+
+	err = searchErr(res.NbHits, 56, req.String())
+	if err != nil {
+		t.Error(err)
+	}
+}
+
 func TestNewIndexNoData(t *testing.T) {
 	params := "?searchableAttributes=title&facets=tags,authors,series,narrators"
 	idx, err := New(params)

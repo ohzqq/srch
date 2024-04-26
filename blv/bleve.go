@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"os"
 
 	"github.com/blevesearch/bleve/v2"
@@ -20,18 +19,20 @@ type Index struct {
 	blv     bleve.Index
 }
 
-func Open(params *param.Params) *Index {
+func Open(params *param.Params) (*Index, error) {
 	blv, err := bleve.Open(params.Path)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 	defer blv.Close()
 
 	idx := &Index{
 		Params: params,
+
 	}
 	idx.SetCount(blv)
-	return idx
+
+	return idx, nil
 }
 
 func New(params *param.Params) (*Index, error) {

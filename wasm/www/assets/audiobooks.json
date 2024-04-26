@@ -1,0 +1,42 @@
+{
+	"title": "poot",
+	"searchableFields": [
+			"title",
+			"tags",
+			"authors"
+	],
+	"minFacetCount": 2,
+	"custom_id_field": "id",
+	"sortings": {
+			"title_asc": {
+					"field": "title",
+					"order": "asc"
+			},
+			"title_desc": {
+					"field": "title",
+					"order": "desc"
+			}
+	},
+	"aggregations": {
+			"tags": {
+					"title": "tags",
+					"size": 1000,
+					"conjunction": true
+			},
+			"authors": {
+					"title": "authors",
+					"size": 1000,
+					"conjunction": false
+			},
+			"narrators": {
+					"title": "narrators",
+					"size": 1000,
+					"conjunction": false
+			},
+			"series": {
+					"title": "series",
+					"size": 1000,
+					"conjunction": false
+			}
+	}
+}
