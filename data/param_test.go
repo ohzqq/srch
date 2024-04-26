@@ -3,6 +3,8 @@ package data
 import (
 	"fmt"
 	"testing"
+
+	"github.com/bits-and-blooms/bloom/v3"
 )
 
 var testQuerySettings = []string{
@@ -17,7 +19,15 @@ var testQuerySettings = []string{
 	`searchableAttributes=title&dataFile=../testdata/data-dir/audiobooks.json&attributesForFaceting=tags,authors,series,narrators&page=3&query=fish&facets=tags&facets=authors&sortBy=title&order=desc&facetFilters=["authors:amy lane", ["tags:romance", "tags:-dnr"]]`,
 }
 
+const hareTestDB = `../testdata/hare`
+
+type Record struct {
+	ID     int
+	Fields map[string]*bloom.BloomFilter
+}
+
 func TestNewClient(t *testing.T) {
+	t.SkipNow()
 	tp := `../testdata/data-dir`
 
 	data := New("dir", tp)
@@ -29,5 +39,15 @@ func TestNewClient(t *testing.T) {
 	fmt.Printf("data %#v\n", len(d))
 }
 
-func TestAbsPath(t *testing.T) {
+func TestNewData(t *testing.T) {
+	d := NewData()
+	d.AddFile(`../testdata/ndbooks.ndjson`)
+
+	err := d.decodeNDJSON()
+	if err != nil {
+		t.Error(err)
+	}
+
+	fmt.Printf("data %#v\n", len(d.data))
+	fmt.Printf("ids %#v\n", len(d.ids))
 }

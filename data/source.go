@@ -9,6 +9,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/spf13/cast"
 )
 
 func init() {
@@ -25,6 +27,8 @@ type Data struct {
 	Path  string
 	Route string
 	Files []*File
+	data  []map[string]any
+	ids   []string
 }
 
 type File struct {
@@ -52,6 +56,10 @@ func New(r, path string) *Data {
 	return d
 }
 
+func NewData() *Data {
+	return &Data{}
+}
+
 func (d *Data) AddFile(paths ...string) {
 	for _, path := range paths {
 		file, err := NewFile(path)
@@ -62,31 +70,61 @@ func (d *Data) AddFile(paths ...string) {
 	}
 }
 
-func (d *Data) Decode() ([]map[string]any, error) {
-	var data []map[string]any
-
+func (d *Data) decodeNDJSON() error {
+	i := 0
 	for _, file := range d.Files {
 		f, err := os.Open(file.Path)
 		if err != nil {
-			return data, err
+			return err
+		}
+		defer f.Close()
+
+		dec := json.NewDecoder(f)
+		for {
+			m := make(map[string]any)
+			if err := dec.Decode(&m); err == io.EOF {
+				break
+			} else if err != nil {
+				return err
+			}
+			var id any
+			if uid, ok := m["id"]; ok {
+				id = uid
+			} else {
+				id = i
+			}
+			d.ids = append(d.ids, cast.ToString(id))
+			d.data = append(d.data, m)
+			i++
+		}
+		//return nil
+	}
+	return nil
+}
+
+func (d *Data) Decode() ([]map[string]any, error) {
+	for _, file := range d.Files {
+		f, err := os.Open(file.Path)
+		if err != nil {
+			return d.data, err
 		}
 		defer f.Close()
 
 		switch file.ContentType {
 		case NdJSON:
-			err := DecodeNDJSON(f, &data)
+			err := DecodeNDJSON(f, &d.data)
 			if err != nil {
 				return nil, err
 			}
 		case JSON:
-			err := DecodeJSON(f, &data)
+			err := DecodeJSON(f, &d.data)
 			if err != nil {
 				return nil, err
 			}
 		}
 	}
 
-	return data, nil
+	return d.data, nil
 }
 
 func NewFile(path string) (*File, error) {
