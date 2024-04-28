@@ -59,7 +59,7 @@ func TestNewFacets(t *testing.T) {
 		t.Error(err)
 	}
 
-	facets, err := New(data, p.FacetSettings)
+	facets, err := New(data, p)
 	if err != nil {
 		t.Error(err)
 	}

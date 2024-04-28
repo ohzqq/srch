@@ -74,7 +74,22 @@ func KeywordTokenizer(val any) []*Item {
 func Tokenize(vals ...string) []string {
 	var toks []string
 	for _, v := range vals {
+		//toks = append(toks, v)
+		tokens := split(v)
+		tokens = removeStopwords(tokens)
+		for _, t := range tokens {
+			toks = append(toks, normalizeStr(t))
+		}
 	}
+	return toks
+}
+
+func Keywords(val string, sep string) []string {
+	var toks []string
+	for _, v := range strings.Split(val, sep) {
+		toks = append(toks, normalizeStr(v))
+	}
+	return toks
 }
 
 func normalizeText(token string) string {
@@ -90,7 +105,15 @@ func normalizeText(token string) string {
 }
 
 func split(tok string) []string {
-	return strings.FieldsFunc(tok, unicode.IsSpace)
+	fn := func(r rune) bool {
+		return unicode.IsSpace(r) || unicode.IsPunct(r)
+	}
+	return strings.FieldsFunc(tok, fn)
+}
+
+func normalizeStr(tok string) string {
+	low := strings.ToLower(tok)
+	return stripNonAlphaNumeric(low)
 }
 
 func lowerCase(tokens []string) []string {
@@ -101,14 +124,24 @@ func lowerCase(tokens []string) []string {
 	return lower
 }
 
+func removeStopwords(tokens []string) []string {
+	var toks []string
+	for _, t := range tokens {
+		if len(t) > 2 {
+			toks = append(toks, t)
+		}
+	}
+	return toks
+}
+
 func stripNonAlphaNumeric(token string) string {
 	s := []byte(token)
 	n := 0
 	for _, b := range s {
-		if ('a' <= b && b <= 'z') ||
-			('A' <= b && b <= 'Z') ||
-			('0' <= b && b <= '9') ||
-			b == ' ' {
+		r := rune(b)
+		if unicode.IsLetter(r) ||
+			unicode.IsNumber(r) ||
+			unicode.IsSpace(r) {
 			s[n] = b
 			n++
 		}
