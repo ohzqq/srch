@@ -85,10 +85,10 @@ func Tokenize(vals ...string) []string {
 	return toks
 }
 
-func Keywords(val string, sep string) []string {
+func Keywords(vals ...string) []string {
 	var toks []string
-	for _, v := range strings.Split(val, sep) {
-		toks = append(toks, normalizeStr(v))
+	for _, v := range vals {
+		toks = append(toks, normalizeKeyword(v))
 	}
 	return toks
 }
@@ -110,6 +110,10 @@ func split(tok string) []string {
 		return unicode.IsSpace(r) || unicode.IsPunct(r)
 	}
 	return strings.FieldsFunc(tok, fn)
+}
+
+func normalizeKeyword(tok string) string {
+	return strings.ToLower(tok)
 }
 
 func normalizeStr(tok string) string {

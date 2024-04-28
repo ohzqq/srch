@@ -51,17 +51,25 @@ func TestNewData(t *testing.T) {
 
 	params := param.New()
 	params.SrchAttr = []string{"title"}
+	params.Facets = []string{"tags"}
 
 	var docs []*Doc
 	for _, da := range d.data {
 		docs = append(docs, NewDoc(da, params))
 	}
 
-	var found []bool
+	var ids []int
 	for _, doc := range docs {
-		if f := doc.Test("love"); f {
-			found = append(found, f)
-		}
+		ids = append(ids, doc.SearchFields("love man")...)
 	}
-	fmt.Printf("data %#v\n", len(found))
+	fmt.Printf("data %#v\n", ids)
+	fmt.Printf("data %#v\n", len(ids))
+
+	//found := []bool{}
+	//for _, doc := range docs {
+	//  if f := doc.SearchFacets("litrpg"); f {
+	//    found = append(found, f)
+	//  }
+	//}
+	//fmt.Printf("data %#v\n", len(found))
 }
