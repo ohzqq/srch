@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/bits-and-blooms/bloom/v3"
+	"github.com/ohzqq/srch/param"
 )
 
 var testQuerySettings = []string{
@@ -48,6 +49,19 @@ func TestNewData(t *testing.T) {
 		t.Error(err)
 	}
 
-	fmt.Printf("data %#v\n", len(d.data))
-	fmt.Printf("ids %#v\n", len(d.ids))
+	params := param.New()
+	params.SrchAttr = []string{"title"}
+
+	var docs []*Doc
+	for _, da := range d.data {
+		docs = append(docs, NewDoc(da, params))
+	}
+
+	var found []bool
+	for _, doc := range docs {
+		if f := doc.Test("love"); f {
+			found = append(found, f)
+		}
+	}
+	fmt.Printf("data %#v\n", len(found))
 }

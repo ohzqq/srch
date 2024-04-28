@@ -24,6 +24,7 @@ require (
 	github.com/atotto/clipboard v0.1.4 // indirect
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/bits-and-blooms/bitset v1.13.0 // indirect
+	github.com/bits-and-blooms/bloom v2.0.3+incompatible // indirect
 	github.com/blevesearch/bleve_index_api v1.0.6 // indirect
 	github.com/blevesearch/geo v0.1.18 // indirect
 	github.com/blevesearch/go-porterstemmer v1.0.3 // indirect
@@ -49,6 +50,7 @@ require (
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
+	github.com/kljensen/snowball v0.9.0 // indirect
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mattn/go-isatty v0.0.18 // indirect
@@ -66,9 +68,11 @@ require (
 	github.com/sagikazarmark/locafero v0.4.0 // indirect
 	github.com/sagikazarmark/slog-shim v0.1.0 // indirect
 	github.com/sourcegraph/conc v0.3.0 // indirect
+	github.com/spaolacci/murmur3 v1.1.0 // indirect
 	github.com/spf13/afero v1.11.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
+	github.com/willf/bitset v1.1.11 // indirect
 	go.etcd.io/bbolt v1.3.7 // indirect
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/multierr v1.9.0 // indirect

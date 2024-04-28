@@ -5,6 +5,7 @@ import (
 	"unicode"
 
 	"github.com/RoaringBitmap/roaring"
+	"github.com/kljensen/snowball/english"
 	"github.com/spf13/cast"
 )
 
@@ -112,8 +113,13 @@ func split(tok string) []string {
 }
 
 func normalizeStr(tok string) string {
-	low := strings.ToLower(tok)
-	return stripNonAlphaNumeric(low)
+	tok = stripNonAlphaNumeric(tok)
+	tok = stem(tok)
+	return tok
+}
+
+func stem(tok string) string {
+	return english.Stem(tok, false)
 }
 
 func lowerCase(tokens []string) []string {
