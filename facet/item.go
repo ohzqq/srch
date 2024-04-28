@@ -2,6 +2,7 @@ package facet
 
 import (
 	"strings"
+	"unicode"
 
 	"github.com/RoaringBitmap/roaring"
 	"github.com/spf13/cast"
@@ -70,6 +71,12 @@ func KeywordTokenizer(val any) []*Item {
 	return items
 }
 
+func Tokenize(vals ...string) []string {
+	var toks []string
+	for _, v := range vals {
+	}
+}
+
 func normalizeText(token string) string {
 	fields := lowerCase(strings.Split(token, " "))
 	for t, term := range fields {
@@ -80,6 +87,10 @@ func normalizeText(token string) string {
 		}
 	}
 	return strings.Join(fields, " ")
+}
+
+func split(tok string) []string {
+	return strings.FieldsFunc(tok, unicode.IsSpace)
 }
 
 func lowerCase(tokens []string) []string {
