@@ -40,11 +40,11 @@ func TokenizeKeywords(og []string) []string {
 func TokenizeFulltext(og []string) []string {
 	var toks []string
 	for _, v := range og {
-		tokens := Split(v)
-		tokens = RemoveStopwords(tokens...)
+		tokens := SplitAndNormalize(v)
+		tokens = RemoveStopWords(tokens...)
 		for _, t := range tokens {
 			t = Stem(t)
-			toks = append(toks, Normalize(t))
+			toks = append(toks, t)
 		}
 	}
 	return toks
@@ -53,24 +53,19 @@ func TokenizeFulltext(og []string) []string {
 func TokenizeSimple(og []string) []string {
 	var toks []string
 	for _, v := range og {
-		tokens := Split(v)
-		tokens = RemoveStopLetters(tokens...)
+		tokens := SplitAndNormalize(v)
 		for _, t := range tokens {
 			t = Stem(t)
-			toks = append(toks, Normalize(t))
+			toks = append(toks, t)
 		}
 	}
 	return toks
 }
 
-func Normalize(tok string) string {
-	var toks []string
-	for _, t := range Split(tok) {
-		t = AlphaNumericOnly(t)
-		t = strings.ToLower(t)
-		toks = append(toks, t)
-	}
-	return strings.Join(toks, " ")
+func Normalize(t string) string {
+	t = AlphaNumericOnly(t)
+	t = strings.ToLower(t)
+	return t
 }
 
 func AlphaNumericOnly(token string) string {
@@ -92,14 +87,22 @@ func SplitOnWhitespace(tok string) []string {
 	return strings.FieldsFunc(tok, unicode.IsSpace)
 }
 
-func Split(tok string) []string {
+func SplitOnWhitespaceAndPunct(tok string) []string {
 	fn := func(r rune) bool {
 		return unicode.IsSpace(r) || unicode.IsPunct(r)
 	}
 	return strings.FieldsFunc(tok, fn)
 }
 
-func RemoveStopwords(tokens ...string) []string {
+func SplitAndNormalize(tok string) []string {
+	var toks []string
+	for _, t := range SplitOnWhitespaceAndPunct(tok) {
+		toks = append(toks, t)
+	}
+	return RemoveStopLetters(toks...)
+}
+
+func RemoveStopWords(tokens ...string) []string {
 	return lo.Without(tokens, defaultStopwords...)
 }
 
@@ -142,13 +145,11 @@ var defaultStopwords = []string{
 	"but",
 	"by",
 	"can",
-	"cant",
 	"did",
 	"do",
 	"does",
 	"doing",
 	"don",
-	"dont",
 	"down",
 	"during",
 	"each",

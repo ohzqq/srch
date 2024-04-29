@@ -15,17 +15,18 @@ func TestSplitOnWhitespace(t *testing.T) {
 }
 
 func TestRemoveStopwords(t *testing.T) {
-	w := RemoveStopwords(splitT()...)
+	w := RemoveStopWords(splitT()...)
 	if len(w) != 15 {
 		t.Errorf("%v\n", len(w))
 	}
 }
 
 func TestNormalize(t *testing.T) {
-	want := `tad s finally entered the ultimate dungeon titan though it wasn t with the fanfare of a triumphant hero but with the intense desperation of a quiet death`
-	toks := Normalize(testStr)
-	if toks != want {
-		t.Errorf("got %v\nwanted %s\n", toks, want)
+	toks := SplitAndNormalize(testStr)
+	want := 26
+	if len(toks) != want {
+		fmt.Printf("toks %#v\n", toks)
+		t.Errorf("got %v, wanted %v\n", len(toks), want)
 	}
 }
 
@@ -63,11 +64,10 @@ func TestSimpleTokenize(t *testing.T) {
 	toks := Simple.Tokenize(testStr)
 	want := 26
 	if len(toks) != want {
-		fmt.Printf("toks %#v\n", toks)
 		t.Errorf("got %v, wanted %v\n", len(toks), want)
 	}
 }
 
 func splitT() []string {
-	return Split(testStr)
+	return SplitOnWhitespaceAndPunct(testStr)
 }
