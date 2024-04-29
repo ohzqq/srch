@@ -41,10 +41,27 @@ func TestNewClient(t *testing.T) {
 }
 
 func TestNewData(t *testing.T) {
-	d := NewData()
-	d.AddFile(`../testdata/ndbooks.ndjson`)
+	d, err := newData()
+	if err != nil {
+		t.Error(err)
+	}
 
-	err := d.decodeNDJSON()
+	params := param.New()
+	params.SrchAttr = []string{"title"}
+	params.Facets = []string{"tags"}
+
+	var docs []*Doc
+	for _, da := range d.data {
+		docs = append(docs, NewDoc(da, params))
+	}
+	want := 7252
+	if len(docs) != want {
+		t.Errorf("indexed %v docs, expected %v\n", len(docs), want)
+	}
+}
+
+func TestSearchFields(t *testing.T) {
+	d, err := newData()
 	if err != nil {
 		t.Error(err)
 	}
@@ -62,14 +79,41 @@ func TestNewData(t *testing.T) {
 	for _, doc := range docs {
 		ids = append(ids, doc.SearchFields("love man")...)
 	}
-	fmt.Printf("data %#v\n", ids)
-	fmt.Printf("data %#v\n", len(ids))
+	if len(ids) != 2 {
+		t.Errorf("got %v results, expected %v\n", len(ids), 2)
+	}
+}
 
-	//found := []bool{}
-	//for _, doc := range docs {
-	//  if f := doc.SearchFacets("litrpg"); f {
-	//    found = append(found, f)
-	//  }
-	//}
-	//fmt.Printf("data %#v\n", len(found))
+func TestSearchFacets(t *testing.T) {
+	d, err := newData()
+	if err != nil {
+		t.Error(err)
+	}
+
+	params := param.New()
+	params.SrchAttr = []string{"title"}
+	params.Facets = []string{"tags"}
+
+	var docs []*Doc
+	for _, da := range d.data {
+		docs = append(docs, NewDoc(da, params))
+	}
+
+	var ids []int
+	for _, doc := range docs {
+		ids = append(ids, doc.SearchFacets("litrpg")...)
+	}
+
+	if len(ids) != 2 {
+		t.Errorf("got %v results, expected %v\n", len(ids), 2)
+	}
+}
+
+func newData() (*Data, error) {
+	d := NewData()
+	d.AddFile(`../testdata/ndbooks.ndjson`)
+
+	err := d.decodeNDJSON()
+
+	return d, err
 }
