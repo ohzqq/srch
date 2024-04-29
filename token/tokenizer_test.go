@@ -28,7 +28,30 @@ func TestNormalize(t *testing.T) {
 	}
 }
 
-func TestTokenize(t *testing.T) {
+func TestKeywordTokenize(t *testing.T) {
+	tests := []string{
+		"grumpy/sunshine",
+		"best friend's brother",
+		"angst",
+		"ABO",
+	}
+	want := []string{
+		"grumpy/sunshine",
+		"best friend's brother",
+		"angst",
+		"abo",
+	}
+
+	kw := &Keyword{}
+	tokens := kw.Tokenize(tests...)
+	for i, tok := range tokens {
+		if tok != want[i] {
+			t.Errorf("got %s, wanted %s\n", tok, want[i])
+		}
+	}
+}
+
+func TestFulltextTokenize(t *testing.T) {
 	ft := &Fulltext{}
 	toks := ft.Tokenize(testStr)
 	want := 22

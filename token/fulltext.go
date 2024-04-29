@@ -12,7 +12,7 @@ func (f *Fulltext) Tokenize(og ...string) []string {
 		tokens = RemoveStopwords(tokens...)
 		for _, t := range tokens {
 			t = Stem(t)
-			toks = append(toks, normalizeStr(t))
+			toks = append(toks, Normalize(t))
 		}
 	}
 	return toks
