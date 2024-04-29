@@ -11,6 +11,7 @@ type DB struct {
 
 func NewDB() (*DB, error) {
 	ds, err := ram.New(make(map[string]map[int]string))
+	//ds, err := disk.New(hareTestDB, ".json")
 	if err != nil {
 		return nil, err
 	}

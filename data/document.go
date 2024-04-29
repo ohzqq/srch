@@ -1,6 +1,8 @@
 package data
 
 import (
+	"fmt"
+
 	"github.com/bits-and-blooms/bloom/v3"
 	"github.com/ohzqq/hare"
 	"github.com/ohzqq/srch/analyze"
@@ -29,7 +31,7 @@ func NewDoc(data map[string]any, params *param.Params) *Doc {
 		if f, ok := data[attr]; ok {
 			str := cast.ToString(f)
 			toks := analyze.Fulltext.Tokenize(str)
-			filter := bloom.NewWithEstimates(1000000, 0.01)
+			filter := bloom.NewWithEstimates(uint(len(toks)*5), 0.01)
 			for _, tok := range toks {
 				filter.TestOrAddString(tok)
 			}
@@ -41,7 +43,7 @@ func NewDoc(data map[string]any, params *param.Params) *Doc {
 		if f, ok := data[attr]; ok {
 			str := cast.ToStringSlice(f)
 			toks := analyze.Keywords.Tokenize(str...)
-			filter := bloom.NewWithEstimates(1000000, 0.01)
+			filter := bloom.NewWithEstimates(uint(len(toks)*5), 0.01)
 			for _, tok := range toks {
 				filter.TestOrAddString(tok)
 			}
@@ -51,26 +53,22 @@ func NewDoc(data map[string]any, params *param.Params) *Doc {
 	return doc
 }
 
-func (d *Doc) SearchFields(kw string) []int {
-	var ids []int
+func (d *Doc) SearchAllFields(kw string) bool {
 	for n, _ := range d.Fields {
-		toks := analyze.Fulltext.Tokenize(kw)
-		var w []int
-		for _, tok := range toks {
-			if d.SearchField(n, tok) {
-				w = append(w, d.ID)
-			}
-		}
-		if len(w) == len(toks) {
-			ids = append(ids, d.ID)
-		}
+		return d.SearchField(n, kw)
 	}
-	return ids
+	return false
 }
 
 func (d *Doc) SearchField(name string, kw string) bool {
 	if f, ok := d.Fields[name]; ok {
-		return f.TestString(kw)
+		toks := analyze.Fulltext.Tokenize(kw)
+		for _, tok := range toks {
+			if f.TestString(tok) {
+				fmt.Printf("id: %v, field: %v, token: %v\n", d.ID, name, tok)
+				return true
+			}
+		}
 	}
 	return false
 }

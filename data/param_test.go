@@ -6,6 +6,7 @@ import (
 
 	"github.com/bits-and-blooms/bloom/v3"
 	"github.com/ohzqq/srch/param"
+	"github.com/samber/lo"
 )
 
 var testQuerySettings = []string{
@@ -19,8 +20,6 @@ var testQuerySettings = []string{
 	"searchableAttributes=title&dataFile=../testdata/data-dir/audiobooks.json&attributesForFaceting=tags,authors,series,narrators",
 	`searchableAttributes=title&dataFile=../testdata/data-dir/audiobooks.json&attributesForFaceting=tags,authors,series,narrators&page=3&query=fish&facets=tags&facets=authors&sortBy=title&order=desc&facetFilters=["authors:amy lane", ["tags:romance", "tags:-dnr"]]`,
 }
-
-const hareTestDB = `../testdata/hare`
 
 type Record struct {
 	ID     int
@@ -67,7 +66,7 @@ func TestSearchFields(t *testing.T) {
 	}
 
 	params := param.New()
-	params.SrchAttr = []string{"title"}
+	params.SrchAttr = []string{"title", "comments"}
 	params.Facets = []string{"tags"}
 
 	var docs []*Doc
@@ -77,8 +76,12 @@ func TestSearchFields(t *testing.T) {
 
 	var ids []int
 	for _, doc := range docs {
-		ids = append(ids, doc.SearchFields("love man")...)
+		if doc.SearchAllFields("falling fish") {
+			ids = append(ids, doc.ID)
+		}
 	}
+	ids = lo.Uniq(ids)
+	//fmt.Printf("res %#v\n", ids)
 	if len(ids) != 2 {
 		t.Errorf("got %v results, expected %v\n", len(ids), 2)
 	}
