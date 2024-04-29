@@ -25,6 +25,27 @@ func (t Analyzer) Tokenize(og ...string) []string {
 	}
 }
 
+func TokenizeKeywords(og []string) []string {
+	toks := make([]string, len(og))
+	for i, t := range og {
+		toks[i] = strings.ToLower(t)
+	}
+	return toks
+}
+
+func TokenizeFulltext(og []string) []string {
+	var toks []string
+	for _, v := range og {
+		tokens := Split(v)
+		tokens = RemoveStopwords(tokens...)
+		for _, t := range tokens {
+			t = Stem(t)
+			toks = append(toks, Normalize(t))
+		}
+	}
+	return toks
+}
+
 func Normalize(tok string) string {
 	var toks []string
 	for _, t := range Split(tok) {
