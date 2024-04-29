@@ -10,17 +10,22 @@ import (
 )
 
 type Doc struct {
-	SrchFields map[string]*bloom.BloomFilter `json:"searchableAttributes"`
-	Facets     map[string]*bloom.BloomFilter `json:"attributesForFaceting"`
-	id         int
+	Fields map[string]*bloom.BloomFilter `json:"searchableAttributes"`
+	Facets map[string]*bloom.BloomFilter `json:"attributesForFaceting"`
+	*param.Params
+	ID int
 }
 
 func NewDoc(data map[string]any, params *param.Params) *Doc {
 	doc := &Doc{
-		SrchFields: make(map[string]*bloom.BloomFilter),
-		Facets:     make(map[string]*bloom.BloomFilter),
-		id:         cast.ToInt(data["id"]),
+		Fields: make(map[string]*bloom.BloomFilter),
+		Facets: make(map[string]*bloom.BloomFilter),
+		Params: params,
 	}
+	if id, ok := data[params.UID]; ok {
+		doc.ID = cast.ToInt(id)
+	}
+
 	for _, attr := range params.SrchAttr {
 		if f, ok := data[attr]; ok {
 			str := cast.ToString(f)
@@ -29,7 +34,7 @@ func NewDoc(data map[string]any, params *param.Params) *Doc {
 			for _, tok := range toks {
 				filter.TestOrAddString(tok)
 			}
-			doc.SrchFields[attr] = filter
+			doc.Fields[attr] = filter
 		}
 	}
 
@@ -49,23 +54,23 @@ func NewDoc(data map[string]any, params *param.Params) *Doc {
 
 func (d *Doc) SearchFields(kw string) []int {
 	var ids []int
-	for n, _ := range d.SrchFields {
+	for n, _ := range d.Fields {
 		toks := facet.Tokenize(kw)
 		var w []int
 		for _, tok := range toks {
 			if d.SearchField(n, tok) {
-				w = append(w, d.id)
+				w = append(w, d.ID)
 			}
 		}
 		if len(w) == len(toks) {
-			ids = append(ids, d.id)
+			ids = append(ids, d.ID)
 		}
 	}
 	return ids
 }
 
 func (d *Doc) SearchField(name string, kw string) bool {
-	if f, ok := d.SrchFields[name]; ok {
+	if f, ok := d.Fields[name]; ok {
 		return f.TestString(kw)
 	}
 	return false

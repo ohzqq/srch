@@ -65,6 +65,7 @@ func New() *Params {
 	return &Params{
 		URL:   &url.URL{},
 		Other: make(url.Values),
+		UID:   "id",
 	}
 }
 
