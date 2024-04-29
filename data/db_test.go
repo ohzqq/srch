@@ -3,15 +3,14 @@ package data
 import (
 	"testing"
 
-	"github.com/ohzqq/hare"
-	"github.com/ohzqq/hare/datastores/disk"
 	"github.com/ohzqq/srch/param"
+	"github.com/samber/lo"
 )
 
 const hareTestDB = `testdata/hare`
 
 func TestNewDB(t *testing.T) {
-	db, err := NewDB()
+	db, err := NewMemDB()
 	if err != nil {
 		t.Error(err)
 	}
@@ -21,7 +20,88 @@ func TestNewDB(t *testing.T) {
 	}
 }
 
-func TestInsertRecords(t *testing.T) {
+func TestAllRecs(t *testing.T) {
+	db, err := OpenDB(hareTestDB)
+	if err != nil {
+		t.Error(err)
+	}
+	res, err := db.AllRecords()
+	if err != nil {
+		t.Error(err)
+	}
+	if len(res) != 7252 {
+		t.Errorf("got %v, want %v\n", len(res), 7252)
+	}
+}
+
+func TestSearchDB(t *testing.T) {
+	db, err := OpenDB(hareTestDB)
+	if err != nil {
+		t.Error(err)
+	}
+
+	ids, err := db.Search("falling fish")
+	if err != nil {
+		t.Error(err)
+	}
+
+	ids = lo.Uniq(ids)
+
+	if len(ids) != 2 {
+		t.Errorf("got %v results, expected %v\n", len(ids), 2)
+	}
+}
+
+func TestFindRec(t *testing.T) {
+	db, err := OpenDB(hareTestDB)
+	if err != nil {
+		t.Error(err)
+	}
+	find := 1832
+	doc, err := db.Find(find)
+	if err != nil {
+		t.Error(err)
+	}
+	found := doc.SearchAllFields("range")
+	if !found {
+		t.Errorf("%#v\n", doc)
+	}
+}
+
+func TestInsertRecordsRam(t *testing.T) {
+	//t.SkipNow()
+	db := newDB()
+	d, err := newData()
+	if err != nil {
+		t.Error(err)
+	}
+
+	params := param.New()
+	params.SrchAttr = []string{"title", "comments"}
+	params.Facets = []string{"tags"}
+
+	var docs []*Doc
+	for _, da := range d.data {
+		docs = append(docs, NewDoc(da, params))
+	}
+
+	for _, doc := range docs {
+		id, err := db.Insert(doc)
+		if err != nil {
+			t.Error(err)
+		}
+		if id != doc.ID {
+			t.Errorf("got id %v, expected %v\n", id, doc.ID)
+		}
+	}
+
+	err = db.DropTable("index")
+	if err != nil {
+		t.Error(err)
+	}
+}
+
+func TestInsertRecordsDisk(t *testing.T) {
 	t.SkipNow()
 	//db := newDB()
 	d, err := newData()
@@ -38,22 +118,13 @@ func TestInsertRecords(t *testing.T) {
 		docs = append(docs, NewDoc(da, params))
 	}
 
-	ds, err := disk.New(hareTestDB, ".json")
-	if err != nil {
-		t.Error(err)
-	}
-	db, err := hare.New(ds)
-	if err != nil {
-		t.Error(err)
-	}
-
-	err = db.CreateTable("index")
+	db, err := NewDiskDB(hareTestDB)
 	if err != nil {
 		t.Error(err)
 	}
 
 	for _, doc := range docs {
-		id, err := db.Insert("index", doc)
+		id, err := db.Insert(doc)
 		if err != nil {
 			t.Error(err)
 		}
@@ -70,6 +141,6 @@ func TestInsertRecords(t *testing.T) {
 }
 
 func newDB() *DB {
-	db, _ := NewDB()
+	db, _ := NewMemDB()
 	return db
 }

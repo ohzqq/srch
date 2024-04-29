@@ -1,8 +1,6 @@
 package data
 
 import (
-	"fmt"
-
 	"github.com/bits-and-blooms/bloom/v3"
 	"github.com/ohzqq/hare"
 	"github.com/ohzqq/srch/analyze"
@@ -11,10 +9,10 @@ import (
 )
 
 type Doc struct {
-	Fields map[string]*bloom.BloomFilter `json:"searchableAttributes"`
-	Facets map[string]*bloom.BloomFilter `json:"attributesForFaceting"`
-	*param.Params
-	ID int
+	Fields        map[string]*bloom.BloomFilter `json:"searchableAttributes"`
+	Facets        map[string]*bloom.BloomFilter `json:"attributesForFaceting"`
+	*param.Params `json:"-"`
+	ID            int `json:"id"`
 }
 
 func NewDoc(data map[string]any, params *param.Params) *Doc {
@@ -31,7 +29,7 @@ func NewDoc(data map[string]any, params *param.Params) *Doc {
 		if f, ok := data[attr]; ok {
 			str := cast.ToString(f)
 			toks := analyze.Fulltext.Tokenize(str)
-			filter := bloom.NewWithEstimates(uint(len(toks)*5), 0.01)
+			filter := bloom.NewWithEstimates(uint(len(toks)*2), 0.01)
 			for _, tok := range toks {
 				filter.TestOrAddString(tok)
 			}
@@ -65,7 +63,7 @@ func (d *Doc) SearchField(name string, kw string) bool {
 		toks := analyze.Fulltext.Tokenize(kw)
 		for _, tok := range toks {
 			if f.TestString(tok) {
-				fmt.Printf("id: %v, field: %v, token: %v\n", d.ID, name, tok)
+				//fmt.Printf("id: %v, field: %v, token: %v\n", d.ID, name, tok)
 				return true
 			}
 		}
