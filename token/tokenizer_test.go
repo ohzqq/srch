@@ -42,8 +42,7 @@ func TestKeywordTokenize(t *testing.T) {
 		"abo",
 	}
 
-	kw := &Keyword{}
-	tokens := kw.Tokenize(tests...)
+	tokens := Keywords.Tokenize(tests...)
 	for i, tok := range tokens {
 		if tok != want[i] {
 			t.Errorf("got %s, wanted %s\n", tok, want[i])
@@ -52,8 +51,7 @@ func TestKeywordTokenize(t *testing.T) {
 }
 
 func TestFulltextTokenize(t *testing.T) {
-	ft := &Fulltext{}
-	toks := ft.Tokenize(testStr)
+	toks := Fulltext.Tokenize(testStr)
 	want := 22
 	if len(toks) != want {
 		t.Errorf("got %v, wanted %v\n", len(toks), want)

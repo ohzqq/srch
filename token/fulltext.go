@@ -1,11 +1,6 @@
 package token
 
-type Fulltext struct {
-	og []string
-}
-
-func (f *Fulltext) Tokenize(og ...string) []string {
-	f.og = og
+func TokenizeFulltext(og []string) []string {
 	var toks []string
 	for _, v := range og {
 		tokens := Split(v)

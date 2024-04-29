@@ -7,8 +7,22 @@ import (
 	"github.com/kljensen/snowball/english"
 )
 
-type Tokenizer interface {
-	Tokenize(...string) []string
+type Analyzer int
+
+const (
+	Keywords Analyzer = iota
+	Fulltext
+)
+
+func (t Analyzer) Tokenize(og ...string) []string {
+	switch t {
+	case Fulltext:
+		return TokenizeFulltext(og)
+	case Keywords:
+		return TokenizeKeywords(og)
+	default:
+		return og
+	}
 }
 
 func Normalize(tok string) string {
@@ -59,10 +73,4 @@ func RemoveStopwords(tokens ...string) []string {
 
 func Stem(tok string) string {
 	return english.Stem(tok, false)
-}
-
-func normalizeStr(tok string) string {
-	tok = strings.ToLower(tok)
-	tok = AlphaNumericOnly(tok)
-	return tok
 }

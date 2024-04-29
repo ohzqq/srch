@@ -2,12 +2,7 @@ package token
 
 import "strings"
 
-type Keyword struct {
-	og []string
-}
-
-func (k *Keyword) Tokenize(og ...string) []string {
-	k.og = og
+func TokenizeKeywords(og []string) []string {
 	toks := make([]string, len(og))
 	for i, t := range og {
 		toks[i] = strings.ToLower(t)
