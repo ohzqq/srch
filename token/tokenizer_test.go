@@ -1,10 +1,11 @@
 package token
 
 import (
+	"fmt"
 	"testing"
 )
 
-const testStr = `Tad's finally entered the ultimate dungeon, Titan—though it was not with the fanfare of a triumphant hero, but with the intense desperation of a quiet death.`
+const testStr = `Tad's finally entered the ultimate dungeon, Titan—though it wasn't with the fanfare of a triumphant hero, but with the intense desperation of a quiet death.`
 
 func TestSplitOnWhitespace(t *testing.T) {
 	splt := splitT()
@@ -15,16 +16,16 @@ func TestSplitOnWhitespace(t *testing.T) {
 
 func TestRemoveStopwords(t *testing.T) {
 	w := RemoveStopwords(splitT()...)
-	if len(w) != 22 {
+	if len(w) != 15 {
 		t.Errorf("%v\n", len(w))
 	}
 }
 
 func TestNormalize(t *testing.T) {
-	want := `tad s finally entered the ultimate dungeon titan though it was not with the fanfare of a triumphant hero but with the intense desperation of a quiet death`
+	want := `tad s finally entered the ultimate dungeon titan though it wasn t with the fanfare of a triumphant hero but with the intense desperation of a quiet death`
 	toks := Normalize(testStr)
 	if toks != want {
-		t.Errorf("got %v, wanted %s\n", toks, want)
+		t.Errorf("got %v\nwanted %s\n", toks, want)
 	}
 }
 
@@ -52,8 +53,17 @@ func TestKeywordTokenize(t *testing.T) {
 
 func TestFulltextTokenize(t *testing.T) {
 	toks := Fulltext.Tokenize(testStr)
-	want := 22
+	want := 15
 	if len(toks) != want {
+		t.Errorf("got %v, wanted %v\n", len(toks), want)
+	}
+}
+
+func TestSimpleTokenize(t *testing.T) {
+	toks := Simple.Tokenize(testStr)
+	want := 26
+	if len(toks) != want {
+		fmt.Printf("toks %#v\n", toks)
 		t.Errorf("got %v, wanted %v\n", len(toks), want)
 	}
 }
