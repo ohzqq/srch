@@ -80,6 +80,8 @@ github.com/hashicorp/hcl v1.0.0 h1:0Anlzjpi4vEasTeNFn2mLJgTSwt0+6sfsiTG8qcWGx4=
 github.com/hashicorp/hcl v1.0.0/go.mod h1:E5yfLk+7swimpb2L/Alb/PJmXilQ/rhwaUYs4T20WEQ=
 github.com/inconshreveable/mousetrap v1.1.0 h1:wN+x4NVGpMsO7ErUn/mUI3vEoE6Jt13X2s0bqwp9tc8=
 github.com/inconshreveable/mousetrap v1.1.0/go.mod h1:vpF70FUmC8bwa3OWnCshd2FqLfsEA9PFc4w1p2J65bw=
+github.com/jameycribbs/hare v0.6.0 h1:jvDZ/ZhYAKzo4nPgryUviEcoNwnkGNbnJ4WyVyf1zck=
+github.com/jameycribbs/hare v0.6.0/go.mod h1:pO8GwHOqBVd352oemfxOnJn4m1xRKKUrQ5Cn1VLjM34=
 github.com/json-iterator/go v1.1.12 h1:PV8peI4a0ysnczrg+LtxykD8LfKY9ML6u2jnxaEnrnM=
 github.com/json-iterator/go v1.1.12/go.mod h1:e30LSqwooZae/UwlEbR2852Gd8hjQvJoHmT4TnhNGBo=
 github.com/kljensen/snowball v0.9.0 h1:OpXkQBcic6vcPG+dChOGLIA/GNuVg47tbbIJ2s7Keas=
@@ -122,6 +124,8 @@ github.com/muesli/termenv v0.15.2 h1:GohcuySI0QmI3wN8Ok9PtKGkgkFIk7y6Vpb5PvrY+Wo
 github.com/muesli/termenv v0.15.2/go.mod h1:Epx+iuz8sNs7mNKhxzH4fWXGNpZwUaJKRS1noLXviQ8=
 github.com/ohzqq/bubbles v0.16.423 h1:LgASYQ6SBCDcCDgnRPCrEjE+f4pqC/8uLYAWsc7bU3c=
 github.com/ohzqq/bubbles v0.16.423/go.mod h1:QF3rYreJlK1z9mZXXtsfQnVBntNQLj/V41G3JlUBETI=
+github.com/ohzqq/hare v0.6.1 h1:HMWBFCxfknz4qbiiMQbiWPcNZQkyUXxD8KulDbn4rBg=
+github.com/ohzqq/hare v0.6.1/go.mod h1:4Javk8RqIGy/S/WbZwQE8fvdoUUB2C9AU72YzP9Momc=
 github.com/pelletier/go-toml/v2 v2.1.0 h1:FnwAJ4oYMvbT/34k9zzHuZNrhlz48GB3/s6at6/MHO4=
 github.com/pelletier/go-toml/v2 v2.1.0/go.mod h1:tJU2Z3ZkXwnxa4DPO899bsyIoywizdUvyaeZurnPPDc=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
