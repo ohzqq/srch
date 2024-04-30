@@ -114,7 +114,6 @@ func TestInsertRecordsDisk(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	db.onDisk = true
 
 	h, err := OpenHare(hareTestDB)
 	if err != nil {

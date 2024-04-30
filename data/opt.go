@@ -18,12 +18,11 @@ func WithName(name string) Opt {
 
 func WithHare(path string) Opt {
 	return func(db *DB) error {
-		h, err := OpenHare(path)
+		src, err := Open(path)
 		if err != nil {
 			return err
 		}
-		db.onDisk = true
-		db.Database = h
+		db.Src = src
 		return nil
 	}
 }

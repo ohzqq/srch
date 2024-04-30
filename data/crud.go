@@ -14,9 +14,7 @@ type DB struct {
 	*param.Params
 	Src
 
-	onDisk bool
-	docs   []*doc.Doc
-	Name   string
+	Name string
 }
 
 type Src interface {
@@ -50,7 +48,7 @@ func NewDB(params string, opts ...Opt) (*DB, error) {
 }
 
 func (db *DB) Insert(data map[string]any) (*doc.Doc, error) {
-	id := len(db.docs)
+	var id int
 	if i, ok := data[db.UID]; ok {
 		id = cast.ToInt(i)
 	}
@@ -64,17 +62,6 @@ func (db *DB) Insert(data map[string]any) (*doc.Doc, error) {
 	}
 
 	return doc, nil
-}
-
-func (db *DB) insertDoc(doc *doc.Doc) error {
-	db.docs = append(db.docs, doc)
-	if db.onDisk {
-		_, err := db.Database.Insert(db.Name, doc)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
 }
 
 func (db *DB) NewDoc(data map[string]any) *doc.Doc {
@@ -102,12 +89,4 @@ func (db *DB) Search(kw string) ([]int, error) {
 	}
 
 	return ids, nil
-}
-
-func (d *Data) Update(id string, data any) error {
-	return nil
-}
-
-func (d *Data) Delete(id string, data any) error {
-	return nil
 }
