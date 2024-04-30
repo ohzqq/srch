@@ -23,9 +23,7 @@ func newDoc() *Doc {
 }
 
 func NewDoc(data map[string]any, params *param.Params) *Doc {
-
 	doc := newDoc()
-
 	for _, attr := range params.SrchAttr {
 		if f, ok := data[attr]; ok {
 			str := cast.ToString(f)

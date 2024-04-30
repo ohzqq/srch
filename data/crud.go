@@ -1,8 +1,10 @@
 package data
 
 import (
+	"github.com/bits-and-blooms/bloom/v3"
 	"github.com/ohzqq/hare"
 	"github.com/ohzqq/hare/datastores/disk"
+	"github.com/ohzqq/srch/analyze"
 	"github.com/ohzqq/srch/param"
 	"github.com/spf13/cast"
 )
@@ -70,7 +72,7 @@ func (db *DB) Insert(data map[string]any) (*Doc, error) {
 		id = cast.ToInt(i)
 	}
 
-	doc := NewDoc(data, db.Params)
+	doc := db.NewDoc(data)
 	doc.SetID(id)
 
 	err := db.insertDoc(doc)
@@ -90,6 +92,34 @@ func (db *DB) insertDoc(doc *Doc) error {
 		}
 	}
 	return nil
+}
+
+func (db *DB) NewDoc(data map[string]any) *Doc {
+	doc := newDoc()
+	for _, attr := range db.Params.SrchAttr {
+		if f, ok := data[attr]; ok {
+			str := cast.ToString(f)
+			toks := analyze.Fulltext.Tokenize(str)
+			filter := bloom.NewWithEstimates(uint(len(toks)*2), 0.01)
+			for _, tok := range toks {
+				filter.TestOrAddString(tok)
+			}
+			doc.Fulltext[attr] = filter
+		}
+	}
+
+	for _, attr := range db.Params.Facets {
+		if f, ok := data[attr]; ok {
+			str := cast.ToStringSlice(f)
+			toks := analyze.Keywords.Tokenize(str...)
+			filter := bloom.NewWithEstimates(uint(len(toks)*5), 0.01)
+			for _, tok := range toks {
+				filter.TestOrAddString(tok)
+			}
+			doc.Keyword[attr] = filter
+		}
+	}
+	return doc
 }
 
 func (db *DB) Find(id int) (*Doc, error) {
