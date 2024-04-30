@@ -4,7 +4,6 @@ import (
 	"errors"
 
 	"github.com/ohzqq/hare"
-	"github.com/ohzqq/hare/datastores/disk"
 	"github.com/ohzqq/srch/doc"
 	"github.com/ohzqq/srch/param"
 	"github.com/spf13/cast"
@@ -12,11 +11,11 @@ import (
 
 type DB struct {
 	*hare.Database
+	*param.Params
+
 	onDisk bool
 	docs   []*doc.Doc
 	Name   string
-	uid    string
-	*param.Params
 }
 
 func NewDB(params string, opts ...Opt) (*DB, error) {
@@ -37,30 +36,6 @@ func NewDB(params string, opts ...Opt) (*DB, error) {
 		}
 	}
 	return db, nil
-}
-
-func NewDiskDB(path string) (*DB, error) {
-	db, err := NewDB("", WithHare(path))
-	if err != nil {
-		return nil, err
-	}
-	err = db.CreateTable("index")
-	if err != nil {
-		return nil, err
-	}
-	return db, nil
-}
-
-func OpenHare(path string) (*hare.Database, error) {
-	ds, err := disk.New(path, ".json")
-	if err != nil {
-		return nil, err
-	}
-	h, err := hare.New(ds)
-	if err != nil {
-		return nil, err
-	}
-	return h, nil
 }
 
 func (db *DB) Insert(data map[string]any) (*doc.Doc, error) {
