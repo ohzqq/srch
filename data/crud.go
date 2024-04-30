@@ -1,6 +1,8 @@
 package data
 
 import (
+	"errors"
+
 	"github.com/ohzqq/hare"
 	"github.com/ohzqq/hare/datastores/disk"
 	"github.com/ohzqq/srch/doc"
@@ -61,10 +63,6 @@ func OpenHare(path string) (*hare.Database, error) {
 	return h, nil
 }
 
-func (d *Data) Read(id string, data any) error {
-	return nil
-}
-
 func (db *DB) Insert(data map[string]any) (*doc.Doc, error) {
 	id := len(db.docs)
 	if i, ok := data[db.UID]; ok {
@@ -94,14 +92,23 @@ func (db *DB) insertDoc(doc *doc.Doc) error {
 }
 
 func (db *DB) NewDoc(data map[string]any) *doc.Doc {
-	m := doc.NewMapping(db.Params)
-	return doc.New().SetMapping(m).SetData(data)
+	return doc.New().
+		SetMapping(doc.NewMapping(db.Params)).
+		SetData(data)
 }
 
 func (db *DB) Find(id int) (*doc.Doc, error) {
-	doc := doc.New()
-	err := db.Database.Find(db.Name, id, doc)
-	return doc, err
+	if !db.onDisk {
+		doc := doc.New()
+		err := db.Database.Find(db.Name, id, doc)
+		return doc, err
+	}
+	for _, doc := range db.docs {
+		if doc.GetID() == id {
+			return doc, nil
+		}
+	}
+	return nil, errors.New("doc not found")
 }
 
 func (db *DB) Search(kw string) ([]int, error) {
@@ -122,6 +129,9 @@ func (db *DB) Search(kw string) ([]int, error) {
 }
 
 func (db *DB) AllRecords() ([]*doc.Doc, error) {
+	if !db.onDisk {
+		return db.docs, nil
+	}
 	ids, err := db.IDs(db.Name)
 	if err != nil {
 		return nil, err
