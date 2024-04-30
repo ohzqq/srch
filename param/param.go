@@ -73,6 +73,10 @@ func New() *Params {
 func Parse(params string) (*Params, error) {
 	p := New()
 
+	if params == "" {
+		return p, nil
+	}
+
 	u, err := url.Parse(params)
 	if err != nil {
 		return nil, fmt.Errorf("param url parsing err: %w\n", err)

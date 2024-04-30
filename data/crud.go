@@ -4,6 +4,7 @@ import (
 	"github.com/ohzqq/hare"
 	"github.com/ohzqq/hare/datastores/disk"
 	"github.com/ohzqq/srch/param"
+	"github.com/spf13/cast"
 )
 
 type DB struct {
@@ -16,10 +17,16 @@ type DB struct {
 }
 
 func NewDB(params string, opts ...Opt) (*DB, error) {
-	db := &DB{
-		Name: "index",
-		uid:  "id",
+	p, err := param.Parse(params)
+	if err != nil {
+		return nil, err
 	}
+
+	db := &DB{
+		Name:   "index",
+		Params: p,
+	}
+
 	for _, opt := range opts {
 		err := opt(db)
 		if err != nil {
@@ -57,13 +64,31 @@ func (d *Data) Read(id string, data any) error {
 	return nil
 }
 
-func (db *DB) Insert(doc *Doc) (int, error) {
+func (db *DB) Insert(data map[string]any) (*Doc, error) {
 	id := len(db.docs)
+	if i, ok := data[db.UID]; ok {
+		id = cast.ToInt(i)
+	}
+	doc := NewDoc(data, db.Params)
+	doc.SetID(id)
+
+	err := db.insertDoc(doc)
+	if err != nil {
+		return nil, err
+	}
+
+	return doc, nil
+}
+
+func (db *DB) insertDoc(doc *Doc) error {
 	db.docs = append(db.docs, doc)
 	if db.onDisk {
-		return db.Database.Insert(db.Name, doc)
+		_, err := db.Database.Insert(db.Name, doc)
+		if err != nil {
+			return err
+		}
 	}
-	return id, nil
+	return nil
 }
 
 func (db *DB) Find(id int) (*Doc, error) {

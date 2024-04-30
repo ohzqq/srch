@@ -5,6 +5,7 @@ import (
 
 	"github.com/ohzqq/srch/param"
 	"github.com/samber/lo"
+	"github.com/spf13/cast"
 )
 
 const hareTestDB = `testdata/hare`
@@ -62,66 +63,55 @@ func TestFindRec(t *testing.T) {
 
 func TestInsertRecordsRam(t *testing.T) {
 	//t.SkipNow()
-	db := newDB()
+	params := testParams()
+	db, err := NewDB(params)
+	if err != nil {
+		t.Error(err)
+	}
+
 	d, err := newData()
 	if err != nil {
 		t.Error(err)
 	}
 
-	params := param.New()
-	params.SrchAttr = []string{"title", "comments"}
-	params.Facets = []string{"tags"}
-
-	var docs []*Doc
-	for _, da := range d.data {
-		docs = append(docs, NewDoc(da, params))
-	}
-
-	for _, doc := range docs {
-		id, err := db.Insert(doc)
+	for id, dd := range d.data {
+		doc, err := db.Insert(dd)
 		if err != nil {
 			t.Error(err)
 		}
-		if id != doc.ID {
-			t.Errorf("got id %v, expected %v\n", id, doc.ID)
+		if i, ok := dd[db.UID]; ok {
+			id = cast.ToInt(i)
 		}
-	}
-
-	err = db.DropTable("index")
-	if err != nil {
-		t.Error(err)
+		if doc.GetID() != id {
+			t.Errorf("got id %v, expected %v\n", doc.GetID(), id)
+		}
 	}
 }
 
 func TestInsertRecordsDisk(t *testing.T) {
 	t.SkipNow()
 	//db := newDB()
+	params := testParams()
+	db, err := NewDB(params, WithHare(hareTestDB))
+	if err != nil {
+		t.Error(err)
+	}
+
 	d, err := newData()
 	if err != nil {
 		t.Error(err)
 	}
 
-	params := param.New()
-	params.SrchAttr = []string{"title", "comments"}
-	params.Facets = []string{"tags"}
-
-	var docs []*Doc
-	for _, da := range d.data {
-		docs = append(docs, NewDoc(da, params))
-	}
-
-	db, err := NewDiskDB(hareTestDB)
-	if err != nil {
-		t.Error(err)
-	}
-
-	for _, doc := range docs {
-		id, err := db.Insert(doc)
+	for id, dd := range d.data {
+		doc, err := db.Insert(dd)
 		if err != nil {
 			t.Error(err)
 		}
-		if id != doc.ID {
-			t.Errorf("got id %v, expected %v\n", id, doc.ID)
+		if i, ok := dd[db.UID]; ok {
+			id = cast.ToInt(i)
+		}
+		if doc.GetID() != id {
+			t.Errorf("got id %v, expected %v\n", doc.GetID(), id)
 		}
 	}
 

@@ -21,9 +21,6 @@ func NewDoc(data map[string]any, params *param.Params) *Doc {
 		Facets: make(map[string]*bloom.BloomFilter),
 		Params: params,
 	}
-	if id, ok := data[params.UID]; ok {
-		doc.ID = cast.ToInt(id)
-	}
 
 	for _, attr := range params.SrchAttr {
 		if f, ok := data[attr]; ok {
@@ -105,4 +102,11 @@ func (d *Doc) GetID() int {
 
 func (d *Doc) AfterFind(_ *hare.Database) error {
 	return nil
+}
+
+func getDocID(uid any, doc map[string]any) int {
+	if u, ok := doc[cast.ToString(uid)]; ok {
+		return cast.ToInt(u)
+	}
+	return cast.ToInt(uid)
 }
