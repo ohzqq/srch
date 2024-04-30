@@ -9,19 +9,9 @@ import (
 
 const hareTestDB = `testdata/hare`
 
-func TestNewDB(t *testing.T) {
-	db, err := NewMemDB()
-	if err != nil {
-		t.Error(err)
-	}
-
-	if !db.TableExists("index") {
-		t.Error("table doesn't exist")
-	}
-}
-
 func TestAllRecs(t *testing.T) {
-	db, err := OpenDB(hareTestDB)
+	params := testParams()
+	db, err := NewDB(params, WithHare(hareTestDB))
 	if err != nil {
 		t.Error(err)
 	}
@@ -35,7 +25,8 @@ func TestAllRecs(t *testing.T) {
 }
 
 func TestSearchDB(t *testing.T) {
-	db, err := OpenDB(hareTestDB)
+	params := testParams()
+	db, err := NewDB(params, WithHare(hareTestDB))
 	if err != nil {
 		t.Error(err)
 	}
@@ -53,7 +44,8 @@ func TestSearchDB(t *testing.T) {
 }
 
 func TestFindRec(t *testing.T) {
-	db, err := OpenDB(hareTestDB)
+	params := testParams()
+	db, err := NewDB(params, WithHare(hareTestDB))
 	if err != nil {
 		t.Error(err)
 	}
@@ -140,7 +132,15 @@ func TestInsertRecordsDisk(t *testing.T) {
 
 }
 
+func testParams() string {
+	params := param.New()
+	//params.UID = "id"
+	params.SrchAttr = []string{"title", "comments"}
+	params.Facets = []string{"tags"}
+	return params.String()
+}
+
 func newDB() *DB {
-	db, _ := NewMemDB()
+	db, _ := NewDB(testParams())
 	return db
 }

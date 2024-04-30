@@ -3,58 +3,45 @@ package data
 import (
 	"github.com/ohzqq/hare"
 	"github.com/ohzqq/hare/datastores/disk"
-	"github.com/ohzqq/hare/datastores/ram"
 	"github.com/ohzqq/srch/param"
 )
 
 type DB struct {
 	*hare.Database
-	docs []*Doc
-	Name string
+	onDisk bool
+	docs   []*Doc
+	Name   string
+	uid    string
 	*param.Params
 }
 
-type Opt func(*DB)
-
-func NewDB(name string) *DB {
-	if name == "" {
-		name = "index"
+func NewDB(params string, opts ...Opt) (*DB, error) {
+	db := &DB{
+		Name: "index",
+		uid:  "id",
 	}
-	return &DB{Name: name}
-}
-
-func NewMemDB() (*DB, error) {
-	ds, err := ram.New(make(map[string]map[int]string))
-	//ds, err := disk.New(hareTestDB, ".json")
-	if err != nil {
-		return nil, err
-	}
-	h, err := hare.New(ds)
-	if err != nil {
-		return nil, err
-	}
-	db := NewDB("")
-	db.Database = h
-	err = db.CreateTable(db.Name)
-	if err != nil {
-		return nil, err
+	for _, opt := range opts {
+		err := opt(db)
+		if err != nil {
+			return nil, err
+		}
 	}
 	return db, nil
 }
 
 func NewDiskDB(path string) (*DB, error) {
-	db, err := OpenDB(path)
+	db, err := NewDB("", WithHare(path))
 	if err != nil {
 		return nil, err
 	}
-	err = db.CreateTable(db.Name)
+	err = db.CreateTable("index")
 	if err != nil {
 		return nil, err
 	}
 	return db, nil
 }
 
-func OpenDB(path string) (*DB, error) {
+func OpenHare(path string) (*hare.Database, error) {
 	ds, err := disk.New(path, ".json")
 	if err != nil {
 		return nil, err
@@ -63,17 +50,20 @@ func OpenDB(path string) (*DB, error) {
 	if err != nil {
 		return nil, err
 	}
-	db := NewDB("")
-	db.Database = h
-	return db, nil
+	return h, nil
 }
 
 func (d *Data) Read(id string, data any) error {
 	return nil
 }
 
-func (db *DB) Insert(rec hare.Record) (int, error) {
-	return db.Database.Insert(db.Name, rec)
+func (db *DB) Insert(doc *Doc) (int, error) {
+	id := len(db.docs)
+	db.docs = append(db.docs, doc)
+	if db.onDisk {
+		return db.Database.Insert(db.Name, doc)
+	}
+	return id, nil
 }
 
 func (db *DB) Find(id int) (*Doc, error) {
