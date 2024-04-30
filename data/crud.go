@@ -9,9 +9,12 @@ import (
 
 type DB struct {
 	*hare.Database
+	docs []*Doc
 	Name string
 	*param.Params
 }
+
+type Opt func(*DB)
 
 func NewDB(name string) *DB {
 	if name == "" {
