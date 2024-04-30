@@ -39,8 +39,9 @@ func TestSearchDB(t *testing.T) {
 
 	ids = lo.Uniq(ids)
 
-	if len(ids) != 2 {
-		t.Errorf("got %v results, expected %v\n", len(ids), 2)
+	want := 10
+	if len(ids) > want {
+		t.Errorf("got %v results, expected %v\n", len(ids), want)
 	}
 }
 

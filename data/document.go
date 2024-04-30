@@ -9,18 +9,22 @@ import (
 )
 
 type Doc struct {
-	Fields        map[string]*bloom.BloomFilter `json:"searchableAttributes"`
-	Facets        map[string]*bloom.BloomFilter `json:"attributesForFaceting"`
+	Fulltext      map[string]*bloom.BloomFilter `json:"searchableAttributes"`
+	Keyword       map[string]*bloom.BloomFilter `json:"attributesForFaceting"`
 	*param.Params `json:"-"`
 	ID            int `json:"id"`
 }
 
-func NewDoc(data map[string]any, params *param.Params) *Doc {
-	doc := &Doc{
-		Fields: make(map[string]*bloom.BloomFilter),
-		Facets: make(map[string]*bloom.BloomFilter),
-		Params: params,
+func newDoc() *Doc {
+	return &Doc{
+		Fulltext: make(map[string]*bloom.BloomFilter),
+		Keyword:  make(map[string]*bloom.BloomFilter),
 	}
+}
+
+func NewDoc(data map[string]any, params *param.Params) *Doc {
+
+	doc := newDoc()
 
 	for _, attr := range params.SrchAttr {
 		if f, ok := data[attr]; ok {
@@ -30,7 +34,7 @@ func NewDoc(data map[string]any, params *param.Params) *Doc {
 			for _, tok := range toks {
 				filter.TestOrAddString(tok)
 			}
-			doc.Fields[attr] = filter
+			doc.Fulltext[attr] = filter
 		}
 	}
 
@@ -42,21 +46,21 @@ func NewDoc(data map[string]any, params *param.Params) *Doc {
 			for _, tok := range toks {
 				filter.TestOrAddString(tok)
 			}
-			doc.Facets[attr] = filter
+			doc.Keyword[attr] = filter
 		}
 	}
 	return doc
 }
 
 func (d *Doc) SearchAllFields(kw string) bool {
-	for n, _ := range d.Fields {
+	for n, _ := range d.Fulltext {
 		return d.SearchField(n, kw)
 	}
 	return false
 }
 
 func (d *Doc) SearchField(name string, kw string) bool {
-	if f, ok := d.Fields[name]; ok {
+	if f, ok := d.Fulltext[name]; ok {
 		toks := analyze.Fulltext.Tokenize(kw)
 		for _, tok := range toks {
 			if f.TestString(tok) {
@@ -70,7 +74,7 @@ func (d *Doc) SearchField(name string, kw string) bool {
 
 func (d *Doc) SearchFacets(kw string) []int {
 	var ids []int
-	for n, _ := range d.Fields {
+	for n, _ := range d.Fulltext {
 		toks := analyze.Keywords.Tokenize(kw)
 		var w []int
 		for _, tok := range toks {
@@ -86,7 +90,7 @@ func (d *Doc) SearchFacets(kw string) []int {
 }
 
 func (d *Doc) SearchFacet(name string, kw string) bool {
-	if f, ok := d.Facets[name]; ok {
+	if f, ok := d.Keyword[name]; ok {
 		return f.TestString(kw)
 	}
 	return false

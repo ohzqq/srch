@@ -69,6 +69,7 @@ func (db *DB) Insert(data map[string]any) (*Doc, error) {
 	if i, ok := data[db.UID]; ok {
 		id = cast.ToInt(i)
 	}
+
 	doc := NewDoc(data, db.Params)
 	doc.SetID(id)
 
