@@ -37,18 +37,37 @@ func OpenHare(path string) (*hare.Database, error) {
 	return h, nil
 }
 
-func (db *Disk) Insert(doc *doc.Doc) error {
-	_, err := db.Database.Insert("index", doc)
-	if err != nil {
-		return err
+func (db *Disk) Insert(docs ...*doc.Doc) error {
+	for _, doc := range docs {
+		_, err := db.Database.Insert("index", doc)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
 
-func (db *Disk) Find(id int) (*doc.Doc, error) {
-	doc := &doc.Doc{}
-	err := db.Database.Find(db.name, id, doc)
-	return doc, err
+func (db *Disk) Find(ids ...int) ([]*doc.Doc, error) {
+	var docs []*doc.Doc
+	switch len(ids) {
+	case 0:
+		return docs, nil
+	case 1:
+		if ids[0] == -1 {
+			return db.FindAll()
+		}
+		fallthrough
+	default:
+		for _, id := range ids {
+			doc := &doc.Doc{}
+			err := db.Database.Find(db.name, id, doc)
+			if err != nil {
+				return nil, err
+			}
+			docs = append(docs, doc)
+		}
+		return docs, nil
+	}
 }
 
 func (db *Disk) FindAll() ([]*doc.Doc, error) {
@@ -56,15 +75,7 @@ func (db *Disk) FindAll() ([]*doc.Doc, error) {
 	if err != nil {
 		return nil, err
 	}
-	docs := make([]*doc.Doc, len(ids))
-	for i, id := range ids {
-		doc, err := db.Find(id)
-		if err != nil {
-			return nil, err
-		}
-		docs[i] = doc
-	}
-	return docs, nil
+	return db.Find(ids...)
 }
 
 func (db *Disk) Delete(id int) error {

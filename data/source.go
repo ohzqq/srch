@@ -23,11 +23,6 @@ const (
 	JSON   = `application/json`
 )
 
-type Src interface {
-	Insert(...Doc) error
-	IDs() []int
-}
-
 type Doc interface {
 	GetID() int
 }

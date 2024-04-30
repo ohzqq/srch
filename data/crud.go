@@ -18,6 +18,11 @@ type DB struct {
 	Name   string
 }
 
+type Src interface {
+	Insert(doc ...*doc.Doc) error
+	Find(id ...int) ([]*doc.Doc, error)
+}
+
 func NewDB(params string, opts ...Opt) (*DB, error) {
 	p, err := param.Parse(params)
 	if err != nil {
