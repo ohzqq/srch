@@ -3,18 +3,17 @@ package data
 import (
 	"errors"
 
-	"github.com/ohzqq/hare"
+	"github.com/ohzqq/srch/analyze"
 	"github.com/ohzqq/srch/doc"
-	"github.com/ohzqq/srch/param"
 	"github.com/spf13/cast"
 )
 
 type DB struct {
-	*hare.Database
-	*param.Params
 	Src
 
-	Name string
+	Name    string
+	UID     string
+	mapping map[string]analyze.Analyzer
 }
 
 type Src interface {
@@ -22,15 +21,12 @@ type Src interface {
 	Find(id ...int) ([]*doc.Doc, error)
 }
 
-func NewDB(params string, opts ...Opt) (*DB, error) {
-	p, err := param.Parse(params)
-	if err != nil {
-		return nil, err
-	}
-
+func NewDB(src Src, mapping map[string]analyze.Analyzer, opts ...Opt) (*DB, error) {
 	db := &DB{
-		Name:   "index",
-		Params: p,
+		Name:    "index",
+		mapping: mapping,
+		Src:     src,
+		UID:     "id",
 	}
 
 	for _, opt := range opts {
@@ -45,6 +41,16 @@ func NewDB(params string, opts ...Opt) (*DB, error) {
 	}
 
 	return db, nil
+}
+
+func (db *DB) Batch(data []map[string]any) error {
+	for _, d := range data {
+		_, err := db.Insert(d)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (db *DB) Insert(data map[string]any) (*doc.Doc, error) {
@@ -66,7 +72,7 @@ func (db *DB) Insert(data map[string]any) (*doc.Doc, error) {
 
 func (db *DB) NewDoc(data map[string]any) *doc.Doc {
 	return doc.New().
-		SetMapping(doc.NewMapping(db.Params)).
+		SetMapping(db.mapping).
 		SetData(data)
 }
 

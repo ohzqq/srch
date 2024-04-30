@@ -3,9 +3,9 @@ package data
 import (
 	"testing"
 
+	"github.com/ohzqq/srch/doc"
 	"github.com/ohzqq/srch/param"
 	"github.com/samber/lo"
-	"github.com/spf13/cast"
 )
 
 const hareTestDB = `testdata/hare`
@@ -13,7 +13,13 @@ const hareTestDB = `testdata/hare`
 func TestAllRecs(t *testing.T) {
 	t.SkipNow()
 	params := testParams()
-	db, err := NewDB(params, WithHare(hareTestDB))
+	dsk, err := Open(hareTestDB)
+	if err != nil {
+		t.Error(err)
+	}
+
+	m := doc.NewMapping(params)
+	db, err := NewDB(dsk, m)
 	if err != nil {
 		t.Error(err)
 	}
@@ -33,7 +39,8 @@ func TestSearchDB(t *testing.T) {
 		t.Error(err)
 	}
 
-	db, err := NewDB(params, WithSrc(dsk))
+	m := doc.NewMapping(params)
+	db, err := NewDB(dsk, m)
 	if err != nil {
 		t.Error(err)
 	}
@@ -59,7 +66,8 @@ func TestFindRec(t *testing.T) {
 		t.Error(err)
 	}
 
-	db, err := NewDB(params, WithSrc(dsk))
+	m := doc.NewMapping(params)
+	db, err := NewDB(dsk, m)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -78,27 +86,20 @@ func TestInsertRecordsRam(t *testing.T) {
 	//t.SkipNow()
 	mem := NewMem()
 	params := testParams()
-	db, err := NewDB(params, WithSrc(mem))
+	m := doc.NewMapping(params)
+	db, err := NewDB(mem, m)
 	if err != nil {
 		t.Error(err)
 	}
 
-	d, err := newData()
+	data, err := newData()
 	if err != nil {
 		t.Error(err)
 	}
 
-	for id, dd := range d.data {
-		doc, err := db.Insert(dd)
-		if err != nil {
-			t.Error(err)
-		}
-		if i, ok := dd[db.UID]; ok {
-			id = cast.ToInt(i)
-		}
-		if doc.GetID() != id {
-			t.Errorf("got id %v, expected %v\n", doc.GetID(), id)
-		}
+	err = db.Batch(data.data)
+	if err != nil {
+		t.Error(err)
 	}
 }
 
@@ -107,41 +108,23 @@ func TestInsertRecordsDisk(t *testing.T) {
 	params := testParams()
 	dsk, err := NewDisk(hareTestDB)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
+	m := doc.NewMapping(params)
 
-	db, err := NewDB(params, WithSrc(dsk))
+	db, err := NewDB(dsk, m)
 	if err != nil {
 		t.Error(err)
 	}
 
-	h, err := OpenHare(hareTestDB)
-	if err != nil {
-		t.Error(err)
-	}
-	err = h.CreateTable("index")
+	data, err := newData()
 	if err != nil {
 		t.Error(err)
 	}
 
-	db.Database = h
-
-	d, err := newData()
+	err = db.Batch(data.data)
 	if err != nil {
 		t.Error(err)
-	}
-
-	for id, dd := range d.data {
-		doc, err := db.Insert(dd)
-		if err != nil {
-			t.Error(err)
-		}
-		if i, ok := dd[db.UID]; ok {
-			id = cast.ToInt(i)
-		}
-		if doc.GetID() != id {
-			t.Errorf("got id %v, expected %v\n", doc.GetID(), id)
-		}
 	}
 
 	//err = db.DropTable("index")
@@ -151,15 +134,10 @@ func TestInsertRecordsDisk(t *testing.T) {
 
 }
 
-func testParams() string {
+func testParams() *param.Params {
 	params := param.New()
 	//params.UID = "id"
 	params.SrchAttr = []string{"title", "comments"}
 	params.Facets = []string{"tags"}
-	return params.String()
-}
-
-func newDB() *DB {
-	db, _ := NewDB(testParams())
-	return db
+	return params
 }
