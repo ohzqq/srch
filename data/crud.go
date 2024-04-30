@@ -12,7 +12,7 @@ import (
 type DB struct {
 	*hare.Database
 	onDisk bool
-	docs   []*Doc
+	docs   []*doc.Doc
 	Name   string
 	uid    string
 	*param.Params

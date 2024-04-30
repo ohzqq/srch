@@ -1,4 +1,4 @@
-package data
+package doc
 
 import (
 	"github.com/bits-and-blooms/bloom/v3"
@@ -9,17 +9,67 @@ import (
 )
 
 type Doc struct {
-	Fulltext      map[string]*bloom.BloomFilter `json:"searchableAttributes"`
-	Keyword       map[string]*bloom.BloomFilter `json:"attributesForFaceting"`
-	*param.Params `json:"-"`
-	ID            int `json:"id"`
+	Fulltext map[string]*bloom.BloomFilter `json:"searchableAttributes"`
+	Keywords map[string]*bloom.BloomFilter `json:"attributesForFaceting"`
+	Simple   map[string]*bloom.BloomFilter `json:"attributesForFaceting"`
+	ID       int                           `json:"id"`
+	Mapping  map[string]analyze.Analyzer
 }
 
-func newDoc() *Doc {
+func New() *Doc {
 	return &Doc{
 		Fulltext: make(map[string]*bloom.BloomFilter),
-		Keyword:  make(map[string]*bloom.BloomFilter),
+		Keywords: make(map[string]*bloom.BloomFilter),
+		Simple:   make(map[string]*bloom.BloomFilter),
 	}
+}
+
+func (d *Doc) SetMapping(m map[string]int) *Doc {
+	d.Mapping = m
+	return d
+}
+
+func (doc *Doc) SetData(data map[string]any) *Doc {
+	for attr, ana := range d.Mapping {
+		if val, ok := data[attr]; ok {
+			str := cast.ToString(f)
+			toks := ana.Tokenize(str)
+			filter := bloom.NewWithEstimates(uint(len(toks)*2), 0.01)
+			for _, tok := range toks {
+				filter.TestOrAddString(tok)
+			}
+
+			switch ana {
+			case analyze.Keywords:
+				doc.Keywords[attr] = filter
+			case analyze.Fulltext:
+				doc.Fulltext[attr] = filter
+			case analyze.Simple:
+				fallthrough
+			default:
+				doc.Simple[attr] = filter
+			}
+		}
+	}
+	return doc
+}
+
+func NewMapping(params *param.Params) map[string]analyze.Analyzer {
+	m := make(map[string]analyze.Analyzer)
+
+	for _, attr := range params.SrchAttr {
+		if f, ok := data[attr]; ok {
+			m[attr] = analyze.Fulltext
+		}
+	}
+
+	for _, attr := range params.Facets {
+		if f, ok := data[attr]; ok {
+			m[attr] = analyze.Keywords
+		}
+	}
+
+	return m
 }
 
 func NewDoc(data map[string]any, params *param.Params) *Doc {
@@ -44,7 +94,7 @@ func NewDoc(data map[string]any, params *param.Params) *Doc {
 			for _, tok := range toks {
 				filter.TestOrAddString(tok)
 			}
-			doc.Keyword[attr] = filter
+			doc.Keywords[attr] = filter
 		}
 	}
 	return doc
@@ -72,7 +122,7 @@ func (d *Doc) SearchField(name string, kw string) bool {
 
 func (d *Doc) SearchFacets(kw string) []int {
 	var ids []int
-	for n, _ := range d.Fulltext {
+	for n, _ := range d.Keywords {
 		toks := analyze.Keywords.Tokenize(kw)
 		var w []int
 		for _, tok := range toks {
@@ -88,7 +138,7 @@ func (d *Doc) SearchFacets(kw string) []int {
 }
 
 func (d *Doc) SearchFacet(name string, kw string) bool {
-	if f, ok := d.Keyword[name]; ok {
+	if f, ok := d.Keywords[name]; ok {
 		return f.TestString(kw)
 	}
 	return false
