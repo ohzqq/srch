@@ -98,8 +98,9 @@ func (db *DB) NewDoc(data map[string]any) *doc.Doc {
 }
 
 func (db *DB) Find(id int) (*doc.Doc, error) {
-	if !db.onDisk {
-		doc := doc.New()
+	if db.onDisk {
+		//doc := doc.New().SetMapping(doc.NewMapping(db.Params))
+		doc := &doc.Doc{}
 		err := db.Database.Find(db.Name, id, doc)
 		return doc, err
 	}
