@@ -12,6 +12,7 @@ import (
 type DB struct {
 	*hare.Database
 	*param.Params
+	Src
 
 	onDisk bool
 	docs   []*doc.Doc
@@ -40,6 +41,11 @@ func NewDB(params string, opts ...Opt) (*DB, error) {
 			return nil, err
 		}
 	}
+
+	if db.Src == nil {
+		return nil, errors.New("need a data source")
+	}
+
 	return db, nil
 }
 
@@ -52,7 +58,7 @@ func (db *DB) Insert(data map[string]any) (*doc.Doc, error) {
 	doc := db.NewDoc(data)
 	doc.SetID(id)
 
-	err := db.insertDoc(doc)
+	err := db.Src.Insert(doc)
 	if err != nil {
 		return nil, err
 	}
@@ -77,25 +83,14 @@ func (db *DB) NewDoc(data map[string]any) *doc.Doc {
 		SetData(data)
 }
 
-func (db *DB) Find(id int) (*doc.Doc, error) {
-	if db.onDisk {
-		//doc := doc.New().SetMapping(doc.NewMapping(db.Params))
-		doc := &doc.Doc{}
-		err := db.Database.Find(db.Name, id, doc)
-		return doc, err
-	}
-	for _, doc := range db.docs {
-		if doc.GetID() == id {
-			return doc, nil
-		}
-	}
-	return nil, errors.New("doc not found")
+func (db *DB) Find(ids ...int) ([]*doc.Doc, error) {
+	return db.Src.Find(ids...)
 }
 
 func (db *DB) Search(kw string) ([]int, error) {
 	var ids []int
 
-	docs, err := db.AllRecords()
+	docs, err := db.Find(-1)
 	if err != nil {
 		return ids, err
 	}
@@ -107,25 +102,6 @@ func (db *DB) Search(kw string) ([]int, error) {
 	}
 
 	return ids, nil
-}
-
-func (db *DB) AllRecords() ([]*doc.Doc, error) {
-	if !db.onDisk {
-		return db.docs, nil
-	}
-	ids, err := db.IDs(db.Name)
-	if err != nil {
-		return nil, err
-	}
-	docs := make([]*doc.Doc, len(ids))
-	for i, id := range ids {
-		doc, err := db.Find(id)
-		if err != nil {
-			return nil, err
-		}
-		docs[i] = doc
-	}
-	return docs, nil
 }
 
 func (d *Data) Update(id string, data any) error {

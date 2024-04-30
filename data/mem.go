@@ -10,14 +10,19 @@ type Mem struct {
 	docs []*doc.Doc
 }
 
+func NewMem() *Mem {
+	return &Mem{}
+}
+
 func (m *Mem) Insert(docs ...*doc.Doc) error {
-	for i, doc := range docs {
+	for _, doc := range docs {
 		_, err := m.Find(doc.GetID())
 		if err != nil {
 			m.docs = append(m.docs, doc)
 			return nil
 		}
-		m.docs[i] = doc
+		m.docs = append(m.docs, doc)
+		//m.docs[i] = doc
 	}
 	return nil
 }

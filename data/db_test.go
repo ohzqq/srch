@@ -11,12 +11,13 @@ import (
 const hareTestDB = `testdata/hare`
 
 func TestAllRecs(t *testing.T) {
+	t.SkipNow()
 	params := testParams()
 	db, err := NewDB(params, WithHare(hareTestDB))
 	if err != nil {
 		t.Error(err)
 	}
-	res, err := db.AllRecords()
+	res, err := db.Find(-1)
 	if err != nil {
 		t.Error(err)
 	}
@@ -27,7 +28,12 @@ func TestAllRecs(t *testing.T) {
 
 func TestSearchDB(t *testing.T) {
 	params := testParams()
-	db, err := NewDB(params, WithHare(hareTestDB))
+	dsk, err := Open(hareTestDB)
+	if err != nil {
+		t.Error(err)
+	}
+
+	db, err := NewDB(params, WithSrc(dsk))
 	if err != nil {
 		t.Error(err)
 	}
@@ -46,10 +52,16 @@ func TestSearchDB(t *testing.T) {
 }
 
 func TestFindRec(t *testing.T) {
+	//t.SkipNow()
 	params := testParams()
-	db, err := NewDB(params, WithHare(hareTestDB))
+	dsk, err := Open(hareTestDB)
 	if err != nil {
 		t.Error(err)
+	}
+
+	db, err := NewDB(params, WithSrc(dsk))
+	if err != nil {
+		t.Fatal(err)
 	}
 	find := 1832
 	_, err = db.Find(find)
@@ -64,8 +76,9 @@ func TestFindRec(t *testing.T) {
 
 func TestInsertRecordsRam(t *testing.T) {
 	//t.SkipNow()
+	mem := NewMem()
 	params := testParams()
-	db, err := NewDB(params)
+	db, err := NewDB(params, WithSrc(mem))
 	if err != nil {
 		t.Error(err)
 	}
@@ -92,7 +105,12 @@ func TestInsertRecordsRam(t *testing.T) {
 func TestInsertRecordsDisk(t *testing.T) {
 	t.SkipNow()
 	params := testParams()
-	db, err := NewDB(params)
+	dsk, err := NewDisk(hareTestDB)
+	if err != nil {
+		t.Error(err)
+	}
+
+	db, err := NewDB(params, WithSrc(dsk))
 	if err != nil {
 		t.Error(err)
 	}

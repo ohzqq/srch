@@ -25,6 +25,17 @@ func NewDisk(path string) (*Disk, error) {
 	}, nil
 }
 
+func Open(path string) (*Disk, error) {
+	db, err := OpenHare(path)
+	if err != nil {
+		return nil, err
+	}
+	return &Disk{
+		Database: db,
+		name:     "index",
+	}, nil
+}
+
 func OpenHare(path string) (*hare.Database, error) {
 	ds, err := disk.New(path, ".json")
 	if err != nil {

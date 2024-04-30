@@ -2,6 +2,13 @@ package data
 
 type Opt func(*DB) error
 
+func WithSrc(src Src) Opt {
+	return func(db *DB) error {
+		db.Src = src
+		return nil
+	}
+}
+
 func WithName(name string) Opt {
 	return func(db *DB) error {
 		db.Name = name
