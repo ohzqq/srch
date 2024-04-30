@@ -5,7 +5,6 @@ import (
 
 	"github.com/ohzqq/srch/doc"
 	"github.com/ohzqq/srch/param"
-	"github.com/samber/lo"
 )
 
 const hareTestDB = `testdata/hare`
@@ -45,14 +44,14 @@ func TestSearchDB(t *testing.T) {
 		t.Error(err)
 	}
 
-	ids, err := db.Search("falling fish")
+	ids, err := db.Search("falling love")
+	//ids, err := db.Search("dragon omega")
 	if err != nil {
 		t.Error(err)
 	}
+	println(len(ids))
 
-	ids = lo.Uniq(ids)
-
-	want := 10
+	want := 140
 	if len(ids) > want {
 		t.Errorf("got %v results, expected %v\n", len(ids), want)
 	}
@@ -137,7 +136,9 @@ func TestInsertRecordsDisk(t *testing.T) {
 func testParams() *param.Params {
 	params := param.New()
 	//params.UID = "id"
-	params.SrchAttr = []string{"title", "comments"}
+	//params.SrchAttr = []string{"title"}
+	//params.SrchAttr = []string{"comments"}
+	params.SrchAttr = []string{"title", "comments", "tags"}
 	params.Facets = []string{"tags"}
 	return params
 }

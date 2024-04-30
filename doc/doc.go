@@ -13,8 +13,10 @@ type Doc struct {
 	Keywords map[string]*bloom.BloomFilter `json:"attributesForFaceting"`
 	Simple   map[string]*bloom.BloomFilter `json:"attributesForFaceting"`
 	ID       int                           `json:"id"`
-	Mapping  map[string]analyze.Analyzer
+	Mapping  Mapping                       `json:"-"`
 }
+
+type Mapping map[analyze.Analyzer][]string
 
 func New() *Doc {
 	return &Doc{
@@ -24,45 +26,47 @@ func New() *Doc {
 	}
 }
 
-func (d *Doc) SetMapping(m map[string]analyze.Analyzer) *Doc {
+func (d *Doc) SetMapping(m Mapping) *Doc {
 	d.Mapping = m
 	return d
 }
 
 func (doc *Doc) SetData(data map[string]any) *Doc {
-	for attr, ana := range doc.Mapping {
-		if val, ok := data[attr]; ok {
-			str := cast.ToString(val)
-			toks := ana.Tokenize(str)
-			filter := bloom.NewWithEstimates(uint(len(toks)*2), 0.01)
-			for _, tok := range toks {
-				filter.TestOrAddString(tok)
-			}
+	for ana, attrs := range doc.Mapping {
+		for _, attr := range attrs {
+			if val, ok := data[attr]; ok {
+				str := cast.ToString(val)
+				toks := ana.Tokenize(str)
+				filter := bloom.NewWithEstimates(uint(len(toks)*2), 0.01)
+				for _, tok := range toks {
+					filter.TestOrAddString(tok)
+				}
 
-			switch ana {
-			case analyze.Keywords:
-				doc.Keywords[attr] = filter
-			case analyze.Fulltext:
-				doc.Fulltext[attr] = filter
-			case analyze.Simple:
-				fallthrough
-			default:
-				doc.Simple[attr] = filter
+				switch ana {
+				case analyze.Keywords:
+					doc.Keywords[attr] = filter
+				case analyze.Fulltext:
+					doc.Fulltext[attr] = filter
+				case analyze.Simple:
+					fallthrough
+				default:
+					doc.Simple[attr] = filter
+				}
 			}
 		}
 	}
 	return doc
 }
 
-func NewMapping(params *param.Params) map[string]analyze.Analyzer {
-	m := make(map[string]analyze.Analyzer)
+func NewMapping(params *param.Params) Mapping {
+	m := make(Mapping)
 
 	for _, attr := range params.SrchAttr {
-		m[attr] = analyze.Fulltext
+		m[analyze.Fulltext] = append(m[analyze.Fulltext], attr)
 	}
 
 	for _, attr := range params.Facets {
-		m[attr] = analyze.Keywords
+		m[analyze.Keywords] = append(m[analyze.Keywords], attr)
 	}
 
 	return m
@@ -72,6 +76,7 @@ func NewDoc(data map[string]any, params *param.Params) *Doc {
 	doc := New()
 	for _, attr := range params.SrchAttr {
 		if f, ok := data[attr]; ok {
+			println(attr)
 			str := cast.ToString(f)
 			toks := analyze.Fulltext.Tokenize(str)
 			filter := bloom.NewWithEstimates(uint(len(toks)*2), 0.01)
@@ -101,6 +106,36 @@ func (d *Doc) SearchAllFields(kw string) bool {
 		return d.SearchField(n, kw)
 	}
 	return false
+}
+
+func (d *Doc) Search(name string, kw string) int {
+	for ana, attrs := range d.Mapping {
+		for _, name := range attrs {
+			toks := ana.Tokenize(kw)
+			switch ana {
+			case analyze.Fulltext:
+				if f, ok := d.Fulltext[name]; ok {
+					for _, tok := range toks {
+						if f.TestString(tok) {
+							//fmt.Printf("id: %v, field: %v, token: %v\n", d.ID, name, tok)
+							return d.GetID()
+						}
+					}
+				}
+			case analyze.Keywords:
+				if f, ok := d.Keywords[name]; ok {
+					for _, tok := range toks {
+						if f.TestString(tok) {
+							//fmt.Printf("id: %v, field: %v, token: %v\n", d.ID, name, tok)
+							return d.GetID()
+						}
+					}
+				}
+			case analyze.Simple:
+			}
+		}
+	}
+	return -1
 }
 
 func (d *Doc) SearchField(name string, kw string) bool {

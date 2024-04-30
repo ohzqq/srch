@@ -1,10 +1,9 @@
 package data
 
 import (
-	"errors"
-
 	"github.com/ohzqq/srch/analyze"
 	"github.com/ohzqq/srch/doc"
+	"github.com/samber/lo"
 	"github.com/spf13/cast"
 )
 
@@ -13,7 +12,7 @@ type DB struct {
 
 	Name    string
 	UID     string
-	mapping map[string]analyze.Analyzer
+	mapping doc.Mapping
 }
 
 type Src interface {
@@ -21,7 +20,7 @@ type Src interface {
 	Find(id ...int) ([]*doc.Doc, error)
 }
 
-func NewDB(src Src, mapping map[string]analyze.Analyzer, opts ...Opt) (*DB, error) {
+func NewDB(src Src, mapping doc.Mapping, opts ...Opt) (*DB, error) {
 	db := &DB{
 		Name:    "index",
 		mapping: mapping,
@@ -30,14 +29,7 @@ func NewDB(src Src, mapping map[string]analyze.Analyzer, opts ...Opt) (*DB, erro
 	}
 
 	for _, opt := range opts {
-		err := opt(db)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	if db.Src == nil {
-		return nil, errors.New("need a data source")
+		opt(db)
 	}
 
 	return db, nil
@@ -45,7 +37,7 @@ func NewDB(src Src, mapping map[string]analyze.Analyzer, opts ...Opt) (*DB, erro
 
 func (db *DB) Batch(data []map[string]any) error {
 	for _, d := range data {
-		_, err := db.Insert(d)
+		err := db.Insert(d)
 		if err != nil {
 			return err
 		}
@@ -53,7 +45,7 @@ func (db *DB) Batch(data []map[string]any) error {
 	return nil
 }
 
-func (db *DB) Insert(data map[string]any) (*doc.Doc, error) {
+func (db *DB) Insert(data map[string]any) error {
 	var id int
 	if i, ok := data[db.UID]; ok {
 		id = cast.ToInt(i)
@@ -64,10 +56,10 @@ func (db *DB) Insert(data map[string]any) (*doc.Doc, error) {
 
 	err := db.Src.Insert(doc)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return doc, nil
+	return nil
 }
 
 func (db *DB) NewDoc(data map[string]any) *doc.Doc {
@@ -76,23 +68,37 @@ func (db *DB) NewDoc(data map[string]any) *doc.Doc {
 		SetData(data)
 }
 
-func (db *DB) Find(ids ...int) ([]*doc.Doc, error) {
-	return db.Src.Find(ids...)
-}
-
 func (db *DB) Search(kw string) ([]int, error) {
-	var ids []int
-
 	docs, err := db.Find(-1)
 	if err != nil {
-		return ids, err
+		return nil, err
 	}
 
-	for _, doc := range docs {
-		if doc.SearchAllFields(kw) {
-			ids = append(ids, doc.ID)
+	//var fields []*roaring.Bitmap
+	var res [][]int
+	for ana, attrs := range db.mapping {
+		for _, attr := range attrs {
+			var ids []int
+			if ana == analyze.Fulltext {
+				for _, doc := range docs {
+					id := doc.Search(attr, kw)
+					if id != -1 {
+						if attr == "tags" {
+							println(attr)
+						}
+						ids = append(ids, id)
+					}
+				}
+				res = append(res, ids)
+			}
 		}
 	}
 
+	var ids []int
+	c := 1
+	for i := 0; c < len(res); i++ {
+		ids = lo.Intersect(res[i], res[c])
+		c++
+	}
 	return ids, nil
 }
