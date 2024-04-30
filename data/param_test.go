@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/bits-and-blooms/bloom/v3"
+	"github.com/ohzqq/srch/doc"
 	"github.com/ohzqq/srch/param"
 	"github.com/samber/lo"
 )
@@ -49,9 +50,9 @@ func TestNewData(t *testing.T) {
 	params.SrchAttr = []string{"title"}
 	params.Facets = []string{"tags"}
 
-	var docs []*Doc
+	var docs []*doc.Doc
 	for _, da := range d.data {
-		docs = append(docs, NewDoc(da, params))
+		docs = append(docs, doc.New().SetMapping(doc.NewMapping(params)).SetData(da))
 	}
 	want := 7252
 	if len(docs) != want {
@@ -69,9 +70,9 @@ func TestSearchFields(t *testing.T) {
 	params.SrchAttr = []string{"title", "comments"}
 	params.Facets = []string{"tags"}
 
-	var docs []*Doc
+	var docs []*doc.Doc
 	for _, da := range d.data {
-		docs = append(docs, NewDoc(da, params))
+		docs = append(docs, doc.New().SetMapping(doc.NewMapping(params)).SetData(da))
 	}
 
 	var ids []int
@@ -97,9 +98,9 @@ func TestSearchFacets(t *testing.T) {
 	params.SrchAttr = []string{"title"}
 	params.Facets = []string{"tags"}
 
-	var docs []*Doc
+	var docs []*doc.Doc
 	for _, da := range d.data {
-		docs = append(docs, NewDoc(da, params))
+		docs = append(docs, doc.New().SetMapping(doc.NewMapping(params)).SetData(da))
 	}
 
 	var ids []int

@@ -1,10 +1,9 @@
 package data
 
 import (
-	"github.com/bits-and-blooms/bloom/v3"
 	"github.com/ohzqq/hare"
 	"github.com/ohzqq/hare/datastores/disk"
-	"github.com/ohzqq/srch/analyze"
+	"github.com/ohzqq/srch/doc"
 	"github.com/ohzqq/srch/param"
 	"github.com/spf13/cast"
 )
@@ -66,7 +65,7 @@ func (d *Data) Read(id string, data any) error {
 	return nil
 }
 
-func (db *DB) Insert(data map[string]any) (*Doc, error) {
+func (db *DB) Insert(data map[string]any) (*doc.Doc, error) {
 	id := len(db.docs)
 	if i, ok := data[db.UID]; ok {
 		id = cast.ToInt(i)
@@ -83,7 +82,7 @@ func (db *DB) Insert(data map[string]any) (*Doc, error) {
 	return doc, nil
 }
 
-func (db *DB) insertDoc(doc *Doc) error {
+func (db *DB) insertDoc(doc *doc.Doc) error {
 	db.docs = append(db.docs, doc)
 	if db.onDisk {
 		_, err := db.Database.Insert(db.Name, doc)
@@ -94,36 +93,13 @@ func (db *DB) insertDoc(doc *Doc) error {
 	return nil
 }
 
-func (db *DB) NewDoc(data map[string]any) *Doc {
-	doc := newDoc()
-	for _, attr := range db.Params.SrchAttr {
-		if f, ok := data[attr]; ok {
-			str := cast.ToString(f)
-			toks := analyze.Fulltext.Tokenize(str)
-			filter := bloom.NewWithEstimates(uint(len(toks)*2), 0.01)
-			for _, tok := range toks {
-				filter.TestOrAddString(tok)
-			}
-			doc.Fulltext[attr] = filter
-		}
-	}
-
-	for _, attr := range db.Params.Facets {
-		if f, ok := data[attr]; ok {
-			str := cast.ToStringSlice(f)
-			toks := analyze.Keywords.Tokenize(str...)
-			filter := bloom.NewWithEstimates(uint(len(toks)*5), 0.01)
-			for _, tok := range toks {
-				filter.TestOrAddString(tok)
-			}
-			doc.Keyword[attr] = filter
-		}
-	}
-	return doc
+func (db *DB) NewDoc(data map[string]any) *doc.Doc {
+	m := doc.NewMapping(db.Params)
+	return doc.New().SetMapping(m).SetData(data)
 }
 
-func (db *DB) Find(id int) (*Doc, error) {
-	doc := &Doc{}
+func (db *DB) Find(id int) (*doc.Doc, error) {
+	doc := doc.New()
 	err := db.Database.Find(db.Name, id, doc)
 	return doc, err
 }
@@ -145,12 +121,12 @@ func (db *DB) Search(kw string) ([]int, error) {
 	return ids, nil
 }
 
-func (db *DB) AllRecords() ([]*Doc, error) {
+func (db *DB) AllRecords() ([]*doc.Doc, error) {
 	ids, err := db.IDs(db.Name)
 	if err != nil {
 		return nil, err
 	}
-	docs := make([]*Doc, len(ids))
+	docs := make([]*doc.Doc, len(ids))
 	for i, id := range ids {
 		doc, err := db.Find(id)
 		if err != nil {

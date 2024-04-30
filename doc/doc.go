@@ -24,15 +24,15 @@ func New() *Doc {
 	}
 }
 
-func (d *Doc) SetMapping(m map[string]int) *Doc {
+func (d *Doc) SetMapping(m map[string]analyze.Analyzer) *Doc {
 	d.Mapping = m
 	return d
 }
 
 func (doc *Doc) SetData(data map[string]any) *Doc {
-	for attr, ana := range d.Mapping {
+	for attr, ana := range doc.Mapping {
 		if val, ok := data[attr]; ok {
-			str := cast.ToString(f)
+			str := cast.ToString(val)
 			toks := ana.Tokenize(str)
 			filter := bloom.NewWithEstimates(uint(len(toks)*2), 0.01)
 			for _, tok := range toks {
@@ -58,22 +58,18 @@ func NewMapping(params *param.Params) map[string]analyze.Analyzer {
 	m := make(map[string]analyze.Analyzer)
 
 	for _, attr := range params.SrchAttr {
-		if f, ok := data[attr]; ok {
-			m[attr] = analyze.Fulltext
-		}
+		m[attr] = analyze.Fulltext
 	}
 
 	for _, attr := range params.Facets {
-		if f, ok := data[attr]; ok {
-			m[attr] = analyze.Keywords
-		}
+		m[attr] = analyze.Keywords
 	}
 
 	return m
 }
 
 func NewDoc(data map[string]any, params *param.Params) *Doc {
-	doc := newDoc()
+	doc := New()
 	for _, attr := range params.SrchAttr {
 		if f, ok := data[attr]; ok {
 			str := cast.ToString(f)
