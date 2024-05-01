@@ -8,14 +8,6 @@ import (
 	"github.com/samber/lo"
 )
 
-type Tokenizer struct {
-	toLower           bool
-	alphaNumOnly      bool
-	splitOnPunct      bool
-	splitOnWhitespace bool
-	stem              bool
-}
-
 type Analyzer int
 
 const (
@@ -35,6 +27,25 @@ func (t Analyzer) Tokenize(og ...string) []string {
 	default:
 		return TokenizeKeyword(og)
 	}
+}
+
+func (t Analyzer) tokenizer() *Tokenizer {
+	tok := DefaultTokenizer()
+	switch t {
+	case Standard:
+		tok.splitStr = true
+		tok.onPunct = true
+		tok.stem = true
+		tok.rmStopwords = true
+	case Simple:
+		tok.splitStr = true
+		tok.stem = true
+	case Keyword:
+		fallthrough
+	default:
+		return tok
+	}
+	return tok
 }
 
 func TokenizeKeyword(og []string) []string {

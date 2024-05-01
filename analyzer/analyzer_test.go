@@ -23,7 +23,7 @@ func TestRemoveStopwords(t *testing.T) {
 
 func TestNormalize(t *testing.T) {
 	toks := SplitAndNormalize(testStr)
-	want := 26
+	want := 25
 	if len(toks) != want {
 		fmt.Printf("toks %#v\n", toks)
 		t.Errorf("got %v, wanted %v\n", len(toks), want)
@@ -44,7 +44,7 @@ func TestKeywordTokenize(t *testing.T) {
 		"abo",
 	}
 
-	tokens := Keywords.Tokenize(tests...)
+	tokens := Keyword.Tokenize(tests...)
 	for i, tok := range tokens {
 		if tok != want[i] {
 			t.Errorf("got %s, wanted %s\n", tok, want[i])
@@ -53,7 +53,7 @@ func TestKeywordTokenize(t *testing.T) {
 }
 
 func TestFulltextTokenize(t *testing.T) {
-	toks := Fulltext.Tokenize(testStr)
+	toks := Standard.Tokenize(testStr)
 	want := 15
 	if len(toks) != want {
 		t.Errorf("got %v, wanted %v\n", len(toks), want)
