@@ -103,7 +103,7 @@ func TestInsertRecordsRam(t *testing.T) {
 }
 
 func TestInsertRecordsDisk(t *testing.T) {
-	t.SkipNow()
+	//t.SkipNow()
 	params := testParams()
 	dsk, err := NewDisk(hareTestDB)
 	if err != nil {

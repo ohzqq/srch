@@ -88,7 +88,7 @@ func RemovePunct(toks []string) []string {
 	for _, tok := range toks {
 		if len(tok) > 1 {
 			none = append(none, tok)
-		} else {
+		} else if len(tok) == 1 {
 			if r := rune(tok[0]); !unicode.IsPunct(r) {
 				none = append(none, tok)
 			}
