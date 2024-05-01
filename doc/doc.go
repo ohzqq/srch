@@ -3,7 +3,7 @@ package doc
 import (
 	"github.com/bits-and-blooms/bloom/v3"
 	"github.com/ohzqq/hare"
-	"github.com/ohzqq/srch/analyze"
+	"github.com/ohzqq/srch/analyzer"
 	"github.com/ohzqq/srch/param"
 	"github.com/spf13/cast"
 )
@@ -16,7 +16,7 @@ type Doc struct {
 	Mapping  Mapping                       `json:"-"`
 }
 
-type Mapping map[analyze.Analyzer][]string
+type Mapping map[analyzer.Analyzer][]string
 
 func New() *Doc {
 	return &Doc{
@@ -43,11 +43,11 @@ func (doc *Doc) SetData(data map[string]any) *Doc {
 				}
 
 				switch ana {
-				case analyze.Keywords:
+				case analyzer.Keywords:
 					doc.Keywords[attr] = filter
-				case analyze.Fulltext:
+				case analyzer.Fulltext:
 					doc.Fulltext[attr] = filter
-				case analyze.Simple:
+				case analyzer.Simple:
 					fallthrough
 				default:
 					doc.Simple[attr] = filter
@@ -62,11 +62,11 @@ func NewMapping(params *param.Params) Mapping {
 	m := make(Mapping)
 
 	for _, attr := range params.SrchAttr {
-		m[analyze.Fulltext] = append(m[analyze.Fulltext], attr)
+		m[analyzer.Fulltext] = append(m[analyzer.Fulltext], attr)
 	}
 
 	for _, attr := range params.Facets {
-		m[analyze.Keywords] = append(m[analyze.Keywords], attr)
+		m[analyzer.Keywords] = append(m[analyzer.Keywords], attr)
 	}
 
 	return m
@@ -76,9 +76,8 @@ func NewDoc(data map[string]any, params *param.Params) *Doc {
 	doc := New()
 	for _, attr := range params.SrchAttr {
 		if f, ok := data[attr]; ok {
-			println(attr)
 			str := cast.ToString(f)
-			toks := analyze.Fulltext.Tokenize(str)
+			toks := analyzer.Fulltext.Tokenize(str)
 			filter := bloom.NewWithEstimates(uint(len(toks)*2), 0.01)
 			for _, tok := range toks {
 				filter.TestOrAddString(tok)
@@ -90,7 +89,7 @@ func NewDoc(data map[string]any, params *param.Params) *Doc {
 	for _, attr := range params.Facets {
 		if f, ok := data[attr]; ok {
 			str := cast.ToStringSlice(f)
-			toks := analyze.Keywords.Tokenize(str...)
+			toks := analyzer.Keywords.Tokenize(str...)
 			filter := bloom.NewWithEstimates(uint(len(toks)*5), 0.01)
 			for _, tok := range toks {
 				filter.TestOrAddString(tok)
@@ -113,7 +112,7 @@ func (d *Doc) Search(name string, kw string) int {
 		for _, name := range attrs {
 			toks := ana.Tokenize(kw)
 			switch ana {
-			case analyze.Fulltext:
+			case analyzer.Fulltext:
 				if f, ok := d.Fulltext[name]; ok {
 					for _, tok := range toks {
 						if f.TestString(tok) {
@@ -122,7 +121,7 @@ func (d *Doc) Search(name string, kw string) int {
 						}
 					}
 				}
-			case analyze.Keywords:
+			case analyzer.Keywords:
 				if f, ok := d.Keywords[name]; ok {
 					for _, tok := range toks {
 						if f.TestString(tok) {
@@ -131,7 +130,7 @@ func (d *Doc) Search(name string, kw string) int {
 						}
 					}
 				}
-			case analyze.Simple:
+			case analyzer.Simple:
 			}
 		}
 	}
@@ -140,7 +139,7 @@ func (d *Doc) Search(name string, kw string) int {
 
 func (d *Doc) SearchField(name string, kw string) bool {
 	if f, ok := d.Fulltext[name]; ok {
-		toks := analyze.Fulltext.Tokenize(kw)
+		toks := analyzer.Fulltext.Tokenize(kw)
 		for _, tok := range toks {
 			if f.TestString(tok) {
 				//fmt.Printf("id: %v, field: %v, token: %v\n", d.ID, name, tok)
@@ -154,7 +153,7 @@ func (d *Doc) SearchField(name string, kw string) bool {
 func (d *Doc) SearchFacets(kw string) []int {
 	var ids []int
 	for n, _ := range d.Keywords {
-		toks := analyze.Keywords.Tokenize(kw)
+		toks := analyzer.Keywords.Tokenize(kw)
 		var w []int
 		for _, tok := range toks {
 			if d.SearchFacet(n, tok) {

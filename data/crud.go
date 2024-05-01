@@ -1,7 +1,7 @@
 package data
 
 import (
-	"github.com/ohzqq/srch/analyze"
+	"github.com/ohzqq/srch/analyzer"
 	"github.com/ohzqq/srch/doc"
 	"github.com/samber/lo"
 	"github.com/spf13/cast"
@@ -79,7 +79,7 @@ func (db *DB) Search(kw string) ([]int, error) {
 	for ana, attrs := range db.mapping {
 		for _, attr := range attrs {
 			var ids []int
-			if ana == analyze.Fulltext {
+			if ana == analyzer.Fulltext {
 				for _, doc := range docs {
 					id := doc.Search(attr, kw)
 					if id != -1 {
