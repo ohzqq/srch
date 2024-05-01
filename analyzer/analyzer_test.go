@@ -63,7 +63,7 @@ func TestSimpleTokenize(t *testing.T) {
 		[]string{"him"},
 		[]string{"i", "knew", "him"},
 		[]string{"all", "in", "with", "him"},
-		[]string{"the", "stori", "of", "night"},
+		[]string{"the", "stori", "of", "the", "night"},
 	}
 
 	for i, test := range tests {

@@ -21,7 +21,7 @@ func (t Analyzer) Tokenize(og ...string) []string {
 	for _, str := range og {
 		tokens = append(tokens, t.analyze(str)...)
 	}
-	return lo.Uniq(tokens)
+	return tokens
 }
 
 func (t Analyzer) String() string {
@@ -39,7 +39,6 @@ func (t Analyzer) String() string {
 
 func (t Analyzer) analyze(str string) []string {
 	str = strings.ToLower(str)
-
 	tokens := t.split(str)
 	tokens = t.rmStopwords(tokens)
 	tokens = t.stem(tokens)
