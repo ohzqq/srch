@@ -8,6 +8,14 @@ import (
 	"github.com/samber/lo"
 )
 
+type Tokenizer struct {
+	toLower           bool
+	alphaNumOnly      bool
+	splitOnPunct      bool
+	splitOnWhitespace bool
+	stem              bool
+}
+
 type Analyzer int
 
 const (
@@ -19,17 +27,17 @@ const (
 func (t Analyzer) Tokenize(og ...string) []string {
 	switch t {
 	case Standard:
-		return TokenizeFulltext(og)
-	case Keyword:
-		return TokenizeKeywords(og)
+		return TokenizeStandard(og)
 	case Simple:
 		return TokenizeSimple(og)
+	case Keyword:
+		fallthrough
 	default:
-		return og
+		return TokenizeKeyword(og)
 	}
 }
 
-func TokenizeKeywords(og []string) []string {
+func TokenizeKeyword(og []string) []string {
 	toks := make([]string, len(og))
 	for i, t := range og {
 		toks[i] = strings.ToLower(t)
@@ -37,7 +45,19 @@ func TokenizeKeywords(og []string) []string {
 	return toks
 }
 
-func TokenizeFulltext(og []string) []string {
+func TokenizeSimple(og []string) []string {
+	var toks []string
+	for _, v := range og {
+		tokens := SplitOnWhitespace(v)
+		for _, t := range tokens {
+			t = Stem(t)
+			toks = append(toks, t)
+		}
+	}
+	return toks
+}
+
+func TokenizeStandard(og []string) []string {
 	var toks []string
 	for _, v := range og {
 		tokens := SplitAndNormalize(v)
@@ -50,16 +70,12 @@ func TokenizeFulltext(og []string) []string {
 	return toks
 }
 
-func TokenizeSimple(og []string) []string {
+func SplitAndNormalize(tok string) []string {
 	var toks []string
-	for _, v := range og {
-		tokens := SplitAndNormalize(v)
-		for _, t := range tokens {
-			t = Stem(t)
-			toks = append(toks, t)
-		}
+	for _, t := range SplitOnWhitespaceAndPunct(tok) {
+		toks = append(toks, t)
 	}
-	return toks
+	return RemoveStopLetters(toks...)
 }
 
 func Normalize(t string) string {
@@ -92,14 +108,6 @@ func SplitOnWhitespaceAndPunct(tok string) []string {
 		return unicode.IsSpace(r) || unicode.IsPunct(r)
 	}
 	return strings.FieldsFunc(tok, fn)
-}
-
-func SplitAndNormalize(tok string) []string {
-	var toks []string
-	for _, t := range SplitOnWhitespaceAndPunct(tok) {
-		toks = append(toks, t)
-	}
-	return RemoveStopLetters(toks...)
 }
 
 func RemoveStopWords(tokens ...string) []string {
