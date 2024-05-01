@@ -39,7 +39,10 @@ func (t Analyzer) tokenizer() *Tokenizer {
 		tok.rmStopwords = true
 	case Simple:
 		tok.splitStr = true
+		tok.onPunct = true
+		tok.rmStopLetters = true
 		tok.stem = true
+		tok.rmPunct = true
 	case Keyword:
 		fallthrough
 	default:
@@ -136,6 +139,7 @@ func Stem(tok string) string {
 var stopLetters = []string{
 	"t",
 	"s",
+	"ll",
 }
 
 var defaultStopwords = []string{

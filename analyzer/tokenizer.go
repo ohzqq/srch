@@ -8,12 +8,14 @@ import (
 )
 
 type Tokenizer struct {
-	toLower      bool
-	alphaNumOnly bool
-	onPunct      bool
-	splitStr     bool
-	stem         bool
-	rmStopwords  bool
+	toLower       bool
+	alphaNumOnly  bool
+	onPunct       bool
+	splitStr      bool
+	stem          bool
+	rmStopwords   bool
+	rmStopLetters bool
+	rmPunct       bool
 }
 
 func DefaultTokenizer() *Tokenizer {
@@ -22,7 +24,7 @@ func DefaultTokenizer() *Tokenizer {
 	}
 }
 
-func (t *Tokenizer) Tokenizer(og ...string) []string {
+func (t *Tokenizer) Tokenize(og ...string) []string {
 	var tokens []string
 	for _, str := range og {
 		tokens = append(tokens, t.analyze(str)...)
@@ -45,6 +47,14 @@ func (t *Tokenizer) analyze(str string) []string {
 
 	if t.rmStopwords {
 		tokens = RemoveStopWords(tokens...)
+	}
+
+	if t.rmStopLetters {
+		tokens = RemoveStopLetters(tokens...)
+	}
+
+	if t.rmPunct {
+		tokens = RemovePunct(tokens)
 	}
 
 	if t.stem {
@@ -86,4 +96,18 @@ func AlphaNumOnly(toks []string) []string {
 		alpha[i] = AlphaNumericOnly(tok)
 	}
 	return alpha
+}
+
+func RemovePunct(toks []string) []string {
+	var none []string
+	for _, tok := range toks {
+		if len(tok) > 1 {
+			none = append(none, tok)
+		} else {
+			if r := rune(tok[0]); !unicode.IsPunct(r) {
+				none = append(none, tok)
+			}
+		}
+	}
+	return none
 }
