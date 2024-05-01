@@ -10,7 +10,6 @@ import (
 type Tokenizer struct {
 	toLower       bool
 	alphaNumOnly  bool
-	onPunct       bool
 	splitStr      bool
 	stem          bool
 	rmStopwords   bool
@@ -39,7 +38,7 @@ func (t *Tokenizer) analyze(str string) []string {
 		return []string{str}
 	}
 
-	tokens := t.split(str)
+	tokens := SplitOnWhitespaceAndPunct(str)
 
 	if t.alphaNumOnly {
 		tokens = AlphaNumOnly(tokens)
@@ -50,11 +49,7 @@ func (t *Tokenizer) analyze(str string) []string {
 	}
 
 	if t.rmStopLetters {
-		tokens = RemoveStopLetters(tokens...)
-	}
-
-	if t.rmPunct {
-		tokens = RemovePunct(tokens)
+		tokens = RemoveStopLetters(tokens)
 	}
 
 	if t.stem {
@@ -66,11 +61,6 @@ func (t *Tokenizer) analyze(str string) []string {
 
 func (t *Tokenizer) split(tok string) []string {
 	fn := unicode.IsSpace
-	if t.onPunct {
-		fn = func(r rune) bool {
-			return unicode.IsSpace(r) || unicode.IsPunct(r)
-		}
-	}
 	return strings.FieldsFunc(tok, fn)
 }
 

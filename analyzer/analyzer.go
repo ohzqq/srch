@@ -17,16 +17,21 @@ const (
 )
 
 func (t Analyzer) Tokenize(og ...string) []string {
-	switch t {
-	case Standard:
-		return TokenizeStandard(og)
-	case Simple:
-		return TokenizeSimple(og)
-	case Keyword:
-		fallthrough
-	default:
-		return TokenizeKeyword(og)
+	var tokens []string
+	for _, str := range og {
+		tokens = append(tokens, t.analyze(str)...)
 	}
+	//slices.Sort(tokens)
+	return lo.Uniq(tokens)
+}
+
+func (t Analyzer) analyze(str string) []string {
+	str = strings.ToLower(str)
+
+	tokens := t.split(str)
+	tokens = t.rmStopwords(tokens)
+	tokens = t.stem(tokens)
+	return tokens
 }
 
 func (t Analyzer) tokenizer() *Tokenizer {
@@ -34,12 +39,10 @@ func (t Analyzer) tokenizer() *Tokenizer {
 	switch t {
 	case Standard:
 		tok.splitStr = true
-		tok.onPunct = true
 		tok.stem = true
 		tok.rmStopwords = true
 	case Simple:
 		tok.splitStr = true
-		tok.onPunct = true
 		tok.rmStopLetters = true
 		tok.stem = true
 		tok.rmPunct = true
@@ -49,6 +52,36 @@ func (t Analyzer) tokenizer() *Tokenizer {
 		return tok
 	}
 	return tok
+}
+
+func (t Analyzer) rmStopwords(toks []string) []string {
+	toks = RemovePunct(toks)
+	switch t {
+	case Simple:
+		return RemoveStopLetters(toks)
+	case Standard:
+		return RemoveStopwords(toks)
+	default:
+		return toks
+	}
+}
+
+func (t Analyzer) split(str string) []string {
+	switch t {
+	case Keyword:
+		return []string{str}
+	default:
+		return SplitOnWhitespaceAndPunct(str)
+	}
+}
+
+func (t Analyzer) stem(tokens []string) []string {
+	switch t {
+	case Keyword:
+		return tokens
+	default:
+		return StemWords(tokens)
+	}
 }
 
 func TokenizeKeyword(og []string) []string {
@@ -89,7 +122,7 @@ func SplitAndNormalize(tok string) []string {
 	for _, t := range SplitOnWhitespaceAndPunct(tok) {
 		toks = append(toks, t)
 	}
-	return RemoveStopLetters(toks...)
+	return RemoveStopLetters(toks)
 }
 
 func Normalize(t string) string {
@@ -128,7 +161,11 @@ func RemoveStopWords(tokens ...string) []string {
 	return lo.Without(tokens, defaultStopwords...)
 }
 
-func RemoveStopLetters(tokens ...string) []string {
+func RemoveStopwords(tokens []string) []string {
+	return lo.Without(tokens, defaultStopwords...)
+}
+
+func RemoveStopLetters(tokens []string) []string {
 	return lo.Without(tokens, stopLetters...)
 }
 

@@ -64,6 +64,7 @@ func TestSimpleTokenize(t *testing.T) {
 	toks := Simple.Tokenize(testStr)
 	want := 25
 	if len(toks) != want {
+		fmt.Printf("tokens %#v\n", toks)
 		t.Errorf("got %v, wanted %v\n", len(toks), want)
 	}
 }
