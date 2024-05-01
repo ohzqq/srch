@@ -21,6 +21,7 @@ func New() *Doc {
 		Fulltext: make(map[string]*bloom.BloomFilter),
 		Keywords: make(map[string]*bloom.BloomFilter),
 		Simple:   make(map[string]*bloom.BloomFilter),
+		Mapping:  NewMapping(),
 	}
 }
 
@@ -41,9 +42,9 @@ func (doc *Doc) SetData(data map[string]any) *Doc {
 				}
 
 				switch ana {
-				case analyzer.Keywords:
+				case analyzer.Keyword:
 					doc.Keywords[attr] = filter
-				case analyzer.Fulltext:
+				case analyzer.Standard:
 					doc.Fulltext[attr] = filter
 				case analyzer.Simple:
 					fallthrough
@@ -61,7 +62,7 @@ func NewDoc(data map[string]any, params *param.Params) *Doc {
 	for _, attr := range params.SrchAttr {
 		if f, ok := data[attr]; ok {
 			str := cast.ToString(f)
-			toks := analyzer.Fulltext.Tokenize(str)
+			toks := analyzer.Standard.Tokenize(str)
 			filter := bloom.NewWithEstimates(uint(len(toks)*2), 0.01)
 			for _, tok := range toks {
 				filter.TestOrAddString(tok)
@@ -73,7 +74,7 @@ func NewDoc(data map[string]any, params *param.Params) *Doc {
 	for _, attr := range params.Facets {
 		if f, ok := data[attr]; ok {
 			str := cast.ToStringSlice(f)
-			toks := analyzer.Keywords.Tokenize(str...)
+			toks := analyzer.Keyword.Tokenize(str...)
 			filter := bloom.NewWithEstimates(uint(len(toks)*5), 0.01)
 			for _, tok := range toks {
 				filter.TestOrAddString(tok)
@@ -96,7 +97,7 @@ func (d *Doc) Search(name string, kw string) int {
 		for _, name := range attrs {
 			toks := ana.Tokenize(kw)
 			switch ana {
-			case analyzer.Fulltext:
+			case analyzer.Standard:
 				if f, ok := d.Fulltext[name]; ok {
 					for _, tok := range toks {
 						if f.TestString(tok) {
@@ -105,7 +106,7 @@ func (d *Doc) Search(name string, kw string) int {
 						}
 					}
 				}
-			case analyzer.Keywords:
+			case analyzer.Keyword:
 				if f, ok := d.Keywords[name]; ok {
 					for _, tok := range toks {
 						if f.TestString(tok) {
@@ -123,7 +124,7 @@ func (d *Doc) Search(name string, kw string) int {
 
 func (d *Doc) SearchField(name string, kw string) bool {
 	if f, ok := d.Fulltext[name]; ok {
-		toks := analyzer.Fulltext.Tokenize(kw)
+		toks := analyzer.Standard.Tokenize(kw)
 		for _, tok := range toks {
 			if f.TestString(tok) {
 				//fmt.Printf("id: %v, field: %v, token: %v\n", d.ID, name, tok)
@@ -137,7 +138,7 @@ func (d *Doc) SearchField(name string, kw string) bool {
 func (d *Doc) SearchFacets(kw string) []int {
 	var ids []int
 	for n, _ := range d.Keywords {
-		toks := analyzer.Keywords.Tokenize(kw)
+		toks := analyzer.Keyword.Tokenize(kw)
 		var w []int
 		for _, tok := range toks {
 			if d.SearchFacet(n, tok) {

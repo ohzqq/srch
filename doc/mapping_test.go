@@ -8,6 +8,12 @@ import (
 	"github.com/ohzqq/srch/param"
 )
 
+var testMapping = map[analyzer.Analyzer][]string{
+	analyzer.Standard: []string{"comments", "tags"},
+	analyzer.Simple:   []string{"title"},
+	analyzer.Keyword:  []string{"tags", "authors", "series", "narrators"},
+}
+
 func testParams() *param.Params {
 	params := param.New()
 	//params.SrchAttr = []string{"title"}
@@ -18,12 +24,6 @@ func testParams() *param.Params {
 }
 
 func TestNewMapping(t *testing.T) {
-	var testMapping = map[analyzer.Analyzer][]string{
-		analyzer.Fulltext: []string{"comments", "tags"},
-		analyzer.Simple:   []string{"title"},
-		analyzer.Keywords: []string{"tags", "authors", "series", "narrators"},
-	}
-
 	m := NewMapping()
 	m.AddFulltext("comments", "tags")
 	m.AddSimple("title")
@@ -38,8 +38,8 @@ func TestNewMapping(t *testing.T) {
 
 func TestMappingParams(t *testing.T) {
 	var testMapping = map[analyzer.Analyzer][]string{
-		analyzer.Fulltext: []string{"title", "comments", "tags"},
-		analyzer.Keywords: []string{"tags", "authors", "series", "narrators"},
+		analyzer.Standard: []string{"title", "comments", "tags"},
+		analyzer.Keyword:  []string{"tags", "authors", "series", "narrators"},
 	}
 
 	m := NewMappingFromParams(testParams())

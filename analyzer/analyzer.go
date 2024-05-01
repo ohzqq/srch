@@ -11,16 +11,16 @@ import (
 type Analyzer int
 
 const (
-	Keywords Analyzer = iota
+	Keyword Analyzer = iota
 	Simple
-	Fulltext
+	Standard
 )
 
 func (t Analyzer) Tokenize(og ...string) []string {
 	switch t {
-	case Fulltext:
+	case Standard:
 		return TokenizeFulltext(og)
-	case Keywords:
+	case Keyword:
 		return TokenizeKeywords(og)
 	case Simple:
 		return TokenizeSimple(og)

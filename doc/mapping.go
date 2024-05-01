@@ -12,25 +12,25 @@ func NewMapping() Mapping {
 }
 
 func NewMappingFromParams(params *param.Params) Mapping {
-	m := make(Mapping)
+	m := NewMapping()
 
 	for _, attr := range params.SrchAttr {
-		m[analyzer.Fulltext] = append(m[analyzer.Fulltext], attr)
+		m[analyzer.Standard] = append(m[analyzer.Standard], attr)
 	}
 
 	for _, attr := range params.Facets {
-		m[analyzer.Keywords] = append(m[analyzer.Keywords], attr)
+		m[analyzer.Keyword] = append(m[analyzer.Keyword], attr)
 	}
 
 	return m
 }
 
 func (m Mapping) AddFulltext(name ...string) {
-	m[analyzer.Fulltext] = append(m[analyzer.Fulltext], name...)
+	m[analyzer.Standard] = append(m[analyzer.Standard], name...)
 }
 
 func (m Mapping) AddKeywords(name ...string) {
-	m[analyzer.Keywords] = append(m[analyzer.Keywords], name...)
+	m[analyzer.Keyword] = append(m[analyzer.Keyword], name...)
 }
 
 func (m Mapping) AddSimple(name ...string) {

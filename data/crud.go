@@ -79,7 +79,7 @@ func (db *DB) Search(kw string) ([]int, error) {
 	for ana, attrs := range db.mapping {
 		for _, attr := range attrs {
 			var ids []int
-			if ana == analyzer.Fulltext {
+			if ana == analyzer.Standard {
 				for _, doc := range docs {
 					id := doc.Search(attr, kw)
 					if id != -1 {
