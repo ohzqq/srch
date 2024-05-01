@@ -17,7 +17,7 @@ func TestAllRecs(t *testing.T) {
 		t.Error(err)
 	}
 
-	m := doc.NewMapping(params)
+	m := doc.NewMappingFromParams(params)
 	db, err := NewDB(dsk, m)
 	if err != nil {
 		t.Error(err)
@@ -38,7 +38,7 @@ func TestSearchDB(t *testing.T) {
 		t.Error(err)
 	}
 
-	m := doc.NewMapping(params)
+	m := doc.NewMappingFromParams(params)
 	db, err := NewDB(dsk, m)
 	if err != nil {
 		t.Error(err)
@@ -65,7 +65,7 @@ func TestFindRec(t *testing.T) {
 		t.Error(err)
 	}
 
-	m := doc.NewMapping(params)
+	m := doc.NewMappingFromParams(params)
 	db, err := NewDB(dsk, m)
 	if err != nil {
 		t.Fatal(err)
@@ -85,7 +85,7 @@ func TestInsertRecordsRam(t *testing.T) {
 	//t.SkipNow()
 	mem := NewMem()
 	params := testParams()
-	m := doc.NewMapping(params)
+	m := doc.NewMappingFromParams(params)
 	db, err := NewDB(mem, m)
 	if err != nil {
 		t.Error(err)
@@ -109,7 +109,7 @@ func TestInsertRecordsDisk(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	m := doc.NewMapping(params)
+	m := doc.NewMappingFromParams(params)
 
 	db, err := NewDB(dsk, m)
 	if err != nil {

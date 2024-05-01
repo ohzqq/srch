@@ -52,7 +52,7 @@ func TestNewData(t *testing.T) {
 
 	var docs []*doc.Doc
 	for _, da := range d.data {
-		docs = append(docs, doc.New().SetMapping(doc.NewMapping(params)).SetData(da))
+		docs = append(docs, doc.New().SetMapping(doc.NewMappingFromParams(params)).SetData(da))
 	}
 	want := 7252
 	if len(docs) != want {
@@ -72,7 +72,7 @@ func TestSearchFields(t *testing.T) {
 
 	var docs []*doc.Doc
 	for _, da := range d.data {
-		docs = append(docs, doc.New().SetMapping(doc.NewMapping(params)).SetData(da))
+		docs = append(docs, doc.New().SetMapping(doc.NewMappingFromParams(params)).SetData(da))
 	}
 
 	var ids []int
@@ -100,7 +100,7 @@ func TestSearchFacets(t *testing.T) {
 
 	var docs []*doc.Doc
 	for _, da := range d.data {
-		docs = append(docs, doc.New().SetMapping(doc.NewMapping(params)).SetData(da))
+		docs = append(docs, doc.New().SetMapping(doc.NewMappingFromParams(params)).SetData(da))
 	}
 
 	var ids []int

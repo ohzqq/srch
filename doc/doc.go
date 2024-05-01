@@ -16,8 +16,6 @@ type Doc struct {
 	Mapping  Mapping                       `json:"-"`
 }
 
-type Mapping map[analyzer.Analyzer][]string
-
 func New() *Doc {
 	return &Doc{
 		Fulltext: make(map[string]*bloom.BloomFilter),
@@ -56,20 +54,6 @@ func (doc *Doc) SetData(data map[string]any) *Doc {
 		}
 	}
 	return doc
-}
-
-func NewMapping(params *param.Params) Mapping {
-	m := make(Mapping)
-
-	for _, attr := range params.SrchAttr {
-		m[analyzer.Fulltext] = append(m[analyzer.Fulltext], attr)
-	}
-
-	for _, attr := range params.Facets {
-		m[analyzer.Keywords] = append(m[analyzer.Keywords], attr)
-	}
-
-	return m
 }
 
 func NewDoc(data map[string]any, params *param.Params) *Doc {
