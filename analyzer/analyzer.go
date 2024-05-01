@@ -34,26 +34,6 @@ func (t Analyzer) analyze(str string) []string {
 	return tokens
 }
 
-func (t Analyzer) tokenizer() *Tokenizer {
-	tok := DefaultTokenizer()
-	switch t {
-	case Standard:
-		tok.splitStr = true
-		tok.stem = true
-		tok.rmStopwords = true
-	case Simple:
-		tok.splitStr = true
-		tok.rmStopLetters = true
-		tok.stem = true
-		tok.rmPunct = true
-	case Keyword:
-		fallthrough
-	default:
-		return tok
-	}
-	return tok
-}
-
 func (t Analyzer) rmStopwords(toks []string) []string {
 	toks = RemovePunct(toks)
 	switch t {
@@ -84,37 +64,26 @@ func (t Analyzer) stem(tokens []string) []string {
 	}
 }
 
-func TokenizeKeyword(og []string) []string {
-	toks := make([]string, len(og))
-	for i, t := range og {
-		toks[i] = strings.ToLower(t)
+func ToLower(toks []string) []string {
+	low := make([]string, len(toks))
+	for i, tok := range toks {
+		low[i] = strings.ToLower(tok)
 	}
-	return toks
+	return low
 }
 
-func TokenizeSimple(og []string) []string {
-	var toks []string
-	for _, v := range og {
-		tokens := SplitOnWhitespace(v)
-		for _, t := range tokens {
-			t = Stem(t)
-			toks = append(toks, t)
+func RemovePunct(toks []string) []string {
+	var none []string
+	for _, tok := range toks {
+		if len(tok) > 1 {
+			none = append(none, tok)
+		} else {
+			if r := rune(tok[0]); !unicode.IsPunct(r) {
+				none = append(none, tok)
+			}
 		}
 	}
-	return toks
-}
-
-func TokenizeStandard(og []string) []string {
-	var toks []string
-	for _, v := range og {
-		tokens := SplitAndNormalize(v)
-		tokens = RemoveStopWords(tokens...)
-		for _, t := range tokens {
-			t = Stem(t)
-			toks = append(toks, t)
-		}
-	}
-	return toks
+	return none
 }
 
 func SplitAndNormalize(tok string) []string {
@@ -167,6 +136,14 @@ func RemoveStopwords(tokens []string) []string {
 
 func RemoveStopLetters(tokens []string) []string {
 	return lo.Without(tokens, stopLetters...)
+}
+
+func StemWords(toks []string) []string {
+	stem := make([]string, len(toks))
+	for i, tok := range toks {
+		stem[i] = Stem(tok)
+	}
+	return stem
 }
 
 func Stem(tok string) string {

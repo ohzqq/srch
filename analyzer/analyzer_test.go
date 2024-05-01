@@ -45,10 +45,9 @@ func TestKeywordTokenize(t *testing.T) {
 	}
 
 	tokens := Keyword.Tokenize(tests...)
-	for i, tok := range tokens {
-		if tok != want[i] {
-			t.Errorf("got %s, wanted %s\n", tok, want[i])
-		}
+	err := testTokenizer(want, tokens)
+	if err != nil {
+		t.Error(err)
 	}
 }
 
@@ -61,14 +60,44 @@ func TestFulltextTokenize(t *testing.T) {
 }
 
 func TestSimpleTokenize(t *testing.T) {
-	toks := Simple.Tokenize(testStr)
-	want := 25
-	if len(toks) != want {
-		fmt.Printf("tokens %#v\n", toks)
-		t.Errorf("got %v, wanted %v\n", len(toks), want)
+	tests := []string{
+		"Where All Paths Meet",
+		"Mimic & Me",
+		"Natural-Born Cullers",
+		"The Hitman's Guide to Codenames and Ill-Gotten Gains",
+		"HIM",
+		"I Knew Him",
+		"All in with Him",
+	}
+
+	want := [][]string{
+		[]string{"where", "all", "path", "meet"},
+		[]string{"mimic", "me"},
+		[]string{"natur", "born", "culler"},
+		[]string{"the", "hitman", "guid", "to", "codenam", "and", "ill", "gotten", "gain"},
+		[]string{"him"},
+		[]string{"i", "knew", "him"},
+		[]string{"all", "in", "with", "him"},
+	}
+
+	for i, test := range tests {
+		tokens := Simple.Tokenize(test)
+		err := testTokenizer(want[i], tokens)
+		if err != nil {
+			t.Error(err)
+		}
 	}
 }
 
 func splitT() []string {
 	return SplitOnWhitespaceAndPunct(testStr)
+}
+
+func testTokenizer(want []string, tokens []string) error {
+	for i, tok := range tokens {
+		if tok != want[i] {
+			return fmt.Errorf("tokens %#v\ngot %v, wanted %s\n", tokens, tok, want[i])
+		}
+	}
+	return nil
 }
