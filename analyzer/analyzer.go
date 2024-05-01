@@ -21,8 +21,20 @@ func (t Analyzer) Tokenize(og ...string) []string {
 	for _, str := range og {
 		tokens = append(tokens, t.analyze(str)...)
 	}
-	//slices.Sort(tokens)
 	return lo.Uniq(tokens)
+}
+
+func (t Analyzer) String() string {
+	switch t {
+	case Keyword:
+		return "keyword"
+	case Simple:
+		return "simple"
+	case Standard:
+		return "standard"
+	default:
+		return ""
+	}
 }
 
 func (t Analyzer) analyze(str string) []string {

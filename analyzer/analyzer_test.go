@@ -52,6 +52,7 @@ func TestSimpleTokenize(t *testing.T) {
 		"HIM",
 		"I Knew Him",
 		"All in with Him",
+		"The Story of the Night",
 	}
 
 	want := [][]string{
@@ -62,6 +63,7 @@ func TestSimpleTokenize(t *testing.T) {
 		[]string{"him"},
 		[]string{"i", "knew", "him"},
 		[]string{"all", "in", "with", "him"},
+		[]string{"the", "stori", "of", "night"},
 	}
 
 	for i, test := range tests {
