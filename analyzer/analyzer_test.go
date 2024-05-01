@@ -14,22 +14,6 @@ func TestSplitOnWhitespace(t *testing.T) {
 	}
 }
 
-func TestRemoveStopwords(t *testing.T) {
-	w := RemoveStopWords(splitT()...)
-	if len(w) != 15 {
-		t.Errorf("%v\n", len(w))
-	}
-}
-
-func TestNormalize(t *testing.T) {
-	toks := SplitAndNormalize(testStr)
-	want := 26
-	if len(toks) != want {
-		fmt.Printf("toks %#v\n", toks)
-		t.Errorf("got %v, wanted %v\n", len(toks), want)
-	}
-}
-
 func TestKeywordTokenize(t *testing.T) {
 	tests := []string{
 		"grumpy/sunshine",

@@ -86,35 +86,6 @@ func RemovePunct(toks []string) []string {
 	return none
 }
 
-func SplitAndNormalize(tok string) []string {
-	var toks []string
-	for _, t := range SplitOnWhitespaceAndPunct(tok) {
-		toks = append(toks, t)
-	}
-	return RemoveStopLetters(toks)
-}
-
-func Normalize(t string) string {
-	t = AlphaNumericOnly(t)
-	t = strings.ToLower(t)
-	return t
-}
-
-func AlphaNumericOnly(token string) string {
-	s := []byte(token)
-	n := 0
-	for _, b := range s {
-		r := rune(b)
-		if unicode.IsLetter(r) ||
-			unicode.IsSpace(r) ||
-			unicode.IsNumber(r) {
-			s[n] = b
-			n++
-		}
-	}
-	return string(s[:n])
-}
-
 func SplitOnWhitespace(tok string) []string {
 	return strings.FieldsFunc(tok, unicode.IsSpace)
 }
@@ -124,10 +95,6 @@ func SplitOnWhitespaceAndPunct(tok string) []string {
 		return unicode.IsSpace(r) || unicode.IsPunct(r)
 	}
 	return strings.FieldsFunc(tok, fn)
-}
-
-func RemoveStopWords(tokens ...string) []string {
-	return lo.Without(tokens, defaultStopwords...)
 }
 
 func RemoveStopwords(tokens []string) []string {
