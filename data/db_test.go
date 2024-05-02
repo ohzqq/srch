@@ -1,6 +1,7 @@
 package data
 
 import (
+	"slices"
 	"testing"
 
 	"github.com/ohzqq/srch/doc"
@@ -10,11 +11,24 @@ import (
 const hareTestDB = `testdata/hare`
 
 func TestAllRecs(t *testing.T) {
-	t.SkipNow()
+	//t.SkipNow()
 	params := testParams()
 	dsk, err := Open(hareTestDB)
 	if err != nil {
 		t.Error(err)
+	}
+
+	ids, err := dsk.IDs("index")
+	if err != nil {
+		t.Error(err)
+	}
+	slices.Sort(ids)
+	i := 1
+	for _, id := range ids {
+		if id != i {
+			println(i)
+		}
+		i++
 	}
 
 	m := doc.NewMappingFromParams(params)
@@ -26,6 +40,7 @@ func TestAllRecs(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+
 	if len(res) != 7252 {
 		t.Errorf("got %v, want %v\n", len(res), 7252)
 	}
@@ -44,15 +59,18 @@ func TestSearchDB(t *testing.T) {
 		t.Error(err)
 	}
 
-	ids, err := db.Search("falling love")
-	//ids, err := db.Search("dragon omega")
+	//fmt.Printf("%#v\n", m)
+
+	//ids, err := db.Search("falling love")
+	ids, err := db.Search("dragon omega")
 	if err != nil {
 		t.Error(err)
 	}
-	println(len(ids))
 
+	//fmt.Printf("%#v\n", ids)
 	want := 140
 	if len(ids) > want {
+		println(len(ids) > want)
 		t.Errorf("got %v results, expected %v\n", len(ids), want)
 	}
 }

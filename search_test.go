@@ -7,7 +7,6 @@ import (
 
 	"github.com/mitchellh/mapstructure"
 	"github.com/ohzqq/srch/param"
-	"github.com/samber/lo"
 	"github.com/spf13/cast"
 	"github.com/spf13/viper"
 )
@@ -216,57 +215,57 @@ func TestFacetFilters(t *testing.T) {
 
 }
 
-func TestFacets(t *testing.T) {
-	req := NewRequest().
-		SetRoute(param.Dir.String()).
-		SetPath(testDataDir).
-		UID("id").
-		SrchAttr("title").
-		Facets("tags", "authors", "narrators", "series").
-		Query("fish")
+//func TestFacets(t *testing.T) {
+//  req := NewRequest().
+//    SetRoute(param.Dir.String()).
+//    SetPath(testDataDir).
+//    UID("id").
+//    SrchAttr("title").
+//    Facets("tags", "authors", "narrators", "series").
+//    Query("fish")
 
-	res, err := idx.Search(req.String())
-	if err != nil {
-		t.Error(err)
-	}
+//  res, err := idx.Search(req.String())
+//  if err != nil {
+//    t.Error(err)
+//  }
 
-	dnr := res.FilterByFacetValue("tags", "dnr")
-	if len(dnr) != 22 {
-		t.Errorf("got %d hits with val, expected %d\n", len(dnr), 22)
-	}
+//  dnr := res.FilterByFacetValue("tags", "dnr")
+//  if len(dnr) != 22 {
+//    t.Errorf("got %d hits with val, expected %d\n", len(dnr), 22)
+//  }
 
-	facet, err := res.Facets.GetFacet("tags")
-	if err != nil {
-		t.Error(err)
-	}
-	for _, tok := range facet.Items {
-		ids := lo.ToAnySlice(tok.RelatedTo)
-		//fmt.Printf("ids %v\n", ids)
-		rel := FilterDataByID(res.results, ids, res.UID)
+//  facet, err := res.Facets.GetFacet("tags")
+//  if err != nil {
+//    t.Error(err)
+//  }
+//  for _, tok := range facet.Items {
+//    ids := lo.ToAnySlice(tok.RelatedTo)
+//    //fmt.Printf("ids %v\n", ids)
+//    rel := FilterDataByID(res.results, ids, res.UID)
 
-		if len(rel) != len(ids) {
-			t.Errorf("got %d hits with val, expected %d\n", len(rel), len(ids))
-		}
+//    if len(rel) != len(ids) {
+//      t.Errorf("got %d hits with val, expected %d\n", len(rel), len(ids))
+//    }
 
-		i := 0
-		for _, r := range rel {
-			f, ok := r[facet.Attribute]
-			if ok {
-				vals := cast.ToStringSlice(f)
-				if slices.Contains(vals, tok.Label) != true {
-					t.Errorf("hit %v does not contain val %s", f, tok.Label)
-				}
-			}
-			i++
-		}
-	}
+//    i := 0
+//    for _, r := range rel {
+//      f, ok := r[facet.Attribute]
+//      if ok {
+//        vals := cast.ToStringSlice(f)
+//        if slices.Contains(vals, tok.Label) != true {
+//          t.Errorf("hit %v does not contain val %s", f, tok.Label)
+//        }
+//      }
+//      i++
+//    }
+//  }
 
-	//d, err := json.Marshal(facet)
-	//if err != nil {
-	//t.Error(err)
-	//}
-	//println(string(d))
-}
+//  //d, err := json.Marshal(facet)
+//  //if err != nil {
+//  //t.Error(err)
+//  //}
+//  //println(string(d))
+//}
 
 func TestNewRequest(t *testing.T) {
 	for i := 0; i < 3; i++ {

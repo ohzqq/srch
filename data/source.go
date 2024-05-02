@@ -78,6 +78,38 @@ func (d *Data) AddFile(paths ...string) {
 	}
 }
 
+//func (d *Data) Docs() []*doc.Doc {
+//  i := 0
+//  for _, file := range d.Files {
+//    f, err := os.Open(file.Path)
+//    if err != nil {
+//      return err
+//    }
+//    defer f.Close()
+
+//    dec := json.NewDecoder(f)
+//    for {
+//      m := make(map[string]any)
+//      if err := dec.Decode(&m); err == io.EOF {
+//        break
+//      } else if err != nil {
+//        return err
+//      }
+//      var id any
+//      if uid, ok := m["id"]; ok {
+//        id = uid
+//      } else {
+//        id = i
+//      }
+//      d.ids = append(d.ids, cast.ToString(id))
+//      d.data = append(d.data, m)
+//      i++
+//    }
+//    //return nil
+//  }
+//  return nil
+//}
+
 func (d *Data) decodeNDJSON() error {
 	i := 0
 	for _, file := range d.Files {

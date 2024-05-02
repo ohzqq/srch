@@ -1,6 +1,8 @@
 package doc
 
 import (
+	"fmt"
+
 	"github.com/bits-and-blooms/bloom/v3"
 	"github.com/ohzqq/hare"
 	"github.com/ohzqq/srch/analyzer"
@@ -92,32 +94,28 @@ func (d *Doc) SearchAllFields(kw string) bool {
 	return false
 }
 
-func (d *Doc) Search(name string, kw string) int {
-	for ana, attrs := range d.Mapping {
-		for _, name := range attrs {
-			toks := ana.Tokenize(kw)
-			switch ana {
-			case analyzer.Standard:
-				if f, ok := d.Fulltext[name]; ok {
-					for _, tok := range toks {
-						if f.TestString(tok) {
-							//fmt.Printf("id: %v, field: %v, token: %v\n", d.ID, name, tok)
-							return d.GetID()
-						}
-					}
+func (d *Doc) Search(name string, ana analyzer.Analyzer, kw string) int {
+	toks := ana.Tokenize(kw)
+	switch ana {
+	case analyzer.Standard:
+		if f, ok := d.Fulltext[name]; ok {
+			for _, tok := range toks {
+				if f.TestString(tok) {
+					fmt.Printf("id: %v, field: %v, token: %v\n", d.ID, name, tok)
+					return d.GetID()
 				}
-			case analyzer.Keyword:
-				if f, ok := d.Keywords[name]; ok {
-					for _, tok := range toks {
-						if f.TestString(tok) {
-							//fmt.Printf("id: %v, field: %v, token: %v\n", d.ID, name, tok)
-							return d.GetID()
-						}
-					}
-				}
-			case analyzer.Simple:
 			}
 		}
+	case analyzer.Keyword:
+		if f, ok := d.Keywords[name]; ok {
+			for _, tok := range toks {
+				if f.TestString(tok) {
+					//fmt.Printf("id: %v, field: %v, token: %v\n", d.ID, name, tok)
+					return d.GetID()
+				}
+			}
+		}
+	case analyzer.Simple:
 	}
 	return -1
 }

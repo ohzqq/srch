@@ -45,7 +45,7 @@ func TestData(t *testing.T) {
 }
 
 var testQuerySettings = []string{
-	blvRoute(srchAttrParam),
+	dirRoute(srchAttrParam),
 	dirRoute(srchAttrParam),
 	fileRoute(facetParamStr),
 	dirRoute(srchAttrParam),

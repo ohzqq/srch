@@ -81,11 +81,9 @@ func (db *DB) Search(kw string) ([]int, error) {
 			var ids []int
 			if ana == analyzer.Standard {
 				for _, doc := range docs {
-					id := doc.Search(attr, kw)
+					doc.SetMapping(db.mapping)
+					id := doc.Search(attr, ana, kw)
 					if id != -1 {
-						if attr == "tags" {
-							println(attr)
-						}
 						ids = append(ids, id)
 					}
 				}
