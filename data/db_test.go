@@ -1,14 +1,46 @@
 package data
 
 import (
+	"fmt"
+	"path/filepath"
 	"slices"
 	"testing"
 
+	"github.com/ohzqq/hare"
+	"github.com/ohzqq/hare/datastores/ram"
 	"github.com/ohzqq/srch/doc"
 	"github.com/ohzqq/srch/param"
 )
 
 const hareTestDB = `testdata/hare`
+
+func TestMemHare(t *testing.T) {
+	tp := filepath.Join(hareTestDB, "index.json")
+
+	data := New("file", tp)
+	d, err := data.Docs()
+	if err != nil {
+		t.Error(err)
+	}
+
+	ds, err := ram.New(d)
+	if err != nil {
+		t.Error(err)
+	}
+
+	db, err := hare.New(ds)
+	if err != nil {
+		t.Error(err)
+	}
+
+	ids, err := db.IDs("index")
+	if err != nil {
+		t.Error(err)
+	}
+
+	fmt.Printf("%v\n", len(ids))
+
+}
 
 func TestAllRecs(t *testing.T) {
 	//t.SkipNow()

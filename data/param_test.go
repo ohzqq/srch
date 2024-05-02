@@ -117,7 +117,11 @@ func newData() (*Data, error) {
 	d := NewData()
 	d.AddFile(`../testdata/ndbooks.ndjson`)
 
-	err := d.decodeNDJSON()
+	data, err := d.Decode()
+	if err != nil {
+		return nil, err
+	}
+	d.data = data
 
 	return d, err
 }

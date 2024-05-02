@@ -1,6 +1,7 @@
 package data
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/json"
 	"errors"
@@ -9,8 +10,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-
-	"github.com/spf13/cast"
 )
 
 func init() {
@@ -78,68 +77,27 @@ func (d *Data) AddFile(paths ...string) {
 	}
 }
 
-//func (d *Data) Docs() []*doc.Doc {
-//  i := 0
-//  for _, file := range d.Files {
-//    f, err := os.Open(file.Path)
-//    if err != nil {
-//      return err
-//    }
-//    defer f.Close()
+const dummyRune = 'X'
 
-//    dec := json.NewDecoder(f)
-//    for {
-//      m := make(map[string]any)
-//      if err := dec.Decode(&m); err == io.EOF {
-//        break
-//      } else if err != nil {
-//        return err
-//      }
-//      var id any
-//      if uid, ok := m["id"]; ok {
-//        id = uid
-//      } else {
-//        id = i
-//      }
-//      d.ids = append(d.ids, cast.ToString(id))
-//      d.data = append(d.data, m)
-//      i++
-//    }
-//    //return nil
-//  }
-//  return nil
-//}
+func (d *Data) Docs() (map[string]map[int]string, error) {
+	table := map[string]map[int]string{
+		"index": make(map[int]string),
+	}
 
-func (d *Data) decodeNDJSON() error {
-	i := 0
+	//i := 0
 	for _, file := range d.Files {
 		f, err := os.Open(file.Path)
 		if err != nil {
-			return err
+			return table, err
 		}
 		defer f.Close()
 
-		dec := json.NewDecoder(f)
-		for {
-			m := make(map[string]any)
-			if err := dec.Decode(&m); err == io.EOF {
-				break
-			} else if err != nil {
-				return err
-			}
-			var id any
-			if uid, ok := m["id"]; ok {
-				id = uid
-			} else {
-				id = i
-			}
-			d.ids = append(d.ids, cast.ToString(id))
-			d.data = append(d.data, m)
-			i++
+		err = DecodeHareDB(f, table["index"])
+		if err != nil {
+			return nil, err
 		}
-		//return nil
 	}
-	return nil
+	return table, nil
 }
 
 func (d *Data) Decode() ([]map[string]any, error) {
@@ -183,6 +141,51 @@ func NewFile(path string) (*File, error) {
 	}
 
 	return file, nil
+}
+
+func DecodeHareDB(s io.ReadSeeker, table map[int]string) error {
+
+	var totalOffset int64
+	var recLen int
+	var recMap map[string]interface{}
+
+	r := bufio.NewReader(s)
+
+	_, err := s.Seek(0, 0)
+	if err != nil {
+		return err
+	}
+
+	for {
+		rec, err := r.ReadBytes('\n')
+
+		recLen = len(rec)
+		totalOffset += int64(recLen)
+
+		if err == io.EOF {
+			break
+		}
+
+		if err != nil {
+			return err
+		}
+
+		// Skip dummy records.
+		if (rec[0] == '\n') || (rec[0] == dummyRune) {
+			continue
+		}
+
+		//Unmarshal so we can grab the record ID.
+		if err := json.Unmarshal(rec, &recMap); err != nil {
+			return err
+		}
+		recMapID := int(recMap["id"].(float64))
+
+		//println(string(rec))
+		table[recMapID] = string(rec)
+	}
+
+	return nil
 }
 
 func DecodeData(r io.Reader, ct string, data *[]map[string]any) error {
