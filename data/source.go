@@ -1,7 +1,6 @@
 package data
 
 import (
-	"bufio"
 	"bytes"
 	"encoding/json"
 	"errors"
@@ -77,25 +76,16 @@ func (d *Data) AddFile(paths ...string) {
 	}
 }
 
-const dummyRune = 'X'
-
-func (d *Data) Docs() (map[string]map[int]string, error) {
-	table := map[string]map[int]string{
-		"index": make(map[int]string),
-	}
+func (d *Data) Docs() (map[string][]byte, error) {
+	table := make(map[string][]byte)
 
 	//i := 0
 	for _, file := range d.Files {
-		f, err := os.Open(file.Path)
+		f, err := os.ReadFile(file.Path)
 		if err != nil {
 			return table, err
 		}
-		defer f.Close()
-
-		err = DecodeHareDB(f, table["index"])
-		if err != nil {
-			return nil, err
-		}
+		table["index"] = f
 	}
 	return table, nil
 }
@@ -141,51 +131,6 @@ func NewFile(path string) (*File, error) {
 	}
 
 	return file, nil
-}
-
-func DecodeHareDB(s io.ReadSeeker, table map[int]string) error {
-
-	var totalOffset int64
-	var recLen int
-	var recMap map[string]interface{}
-
-	r := bufio.NewReader(s)
-
-	_, err := s.Seek(0, 0)
-	if err != nil {
-		return err
-	}
-
-	for {
-		rec, err := r.ReadBytes('\n')
-
-		recLen = len(rec)
-		totalOffset += int64(recLen)
-
-		if err == io.EOF {
-			break
-		}
-
-		if err != nil {
-			return err
-		}
-
-		// Skip dummy records.
-		if (rec[0] == '\n') || (rec[0] == dummyRune) {
-			continue
-		}
-
-		//Unmarshal so we can grab the record ID.
-		if err := json.Unmarshal(rec, &recMap); err != nil {
-			return err
-		}
-		recMapID := int(recMap["id"].(float64))
-
-		//println(string(rec))
-		table[recMapID] = string(rec)
-	}
-
-	return nil
 }
 
 func DecodeData(r io.Reader, ct string, data *[]map[string]any) error {
