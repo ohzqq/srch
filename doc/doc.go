@@ -10,8 +10,8 @@ import (
 )
 
 type Doc struct {
-	Fulltext map[string]*bloom.BloomFilter `json:"searchableAttributes"`
-	Keywords map[string]*bloom.BloomFilter `json:"attributesForFaceting"`
+	Standard map[string]*bloom.BloomFilter `json:"searchableAttributes"`
+	Keyword  map[string]*bloom.BloomFilter `json:"attributesForFaceting"`
 	Simple   map[string]*bloom.BloomFilter `json:"attributesForFaceting"`
 	ID       int                           `json:"id"`
 	Mapping  Mapping                       `json:"-"`
@@ -19,8 +19,8 @@ type Doc struct {
 
 func New() *Doc {
 	return &Doc{
-		Fulltext: make(map[string]*bloom.BloomFilter),
-		Keywords: make(map[string]*bloom.BloomFilter),
+		Standard: make(map[string]*bloom.BloomFilter),
+		Keyword:  make(map[string]*bloom.BloomFilter),
 		Simple:   make(map[string]*bloom.BloomFilter),
 		Mapping:  NewMapping(),
 	}
@@ -44,9 +44,9 @@ func (doc *Doc) SetData(data map[string]any) *Doc {
 
 				switch ana {
 				case analyzer.Keyword:
-					doc.Keywords[attr] = filter
+					doc.Keyword[attr] = filter
 				case analyzer.Standard:
-					doc.Fulltext[attr] = filter
+					doc.Standard[attr] = filter
 				case analyzer.Simple:
 					fallthrough
 				default:
@@ -68,7 +68,7 @@ func NewDoc(data map[string]any, params *param.Params) *Doc {
 			for _, tok := range toks {
 				filter.TestOrAddString(tok)
 			}
-			doc.Fulltext[attr] = filter
+			doc.Standard[attr] = filter
 		}
 	}
 
@@ -80,14 +80,14 @@ func NewDoc(data map[string]any, params *param.Params) *Doc {
 			for _, tok := range toks {
 				filter.TestOrAddString(tok)
 			}
-			doc.Keywords[attr] = filter
+			doc.Keyword[attr] = filter
 		}
 	}
 	return doc
 }
 
 func (d *Doc) SearchAllFields(kw string) bool {
-	for n, _ := range d.Fulltext {
+	for n, _ := range d.Standard {
 		return d.SearchField(n, kw)
 	}
 	return false
@@ -109,10 +109,18 @@ func (d *Doc) Search(name string, ana analyzer.Analyzer, kw string) int {
 }
 
 func (d *Doc) SearchField(name string, tok string) bool {
-	if f, ok := d.Fulltext[name]; ok {
-		//println(name)
+	if f, ok := d.Standard[name]; ok {
 		if f.TestString(tok) {
-			//fmt.Printf("id: %v, field: %v, token: %v\n", d.ID, name, tok)
+			return true
+		}
+	}
+	if f, ok := d.Keyword[name]; ok {
+		if f.TestString(tok) {
+			return true
+		}
+	}
+	if f, ok := d.Simple[name]; ok {
+		if f.TestString(tok) {
 			return true
 		}
 	}
@@ -121,7 +129,7 @@ func (d *Doc) SearchField(name string, tok string) bool {
 
 func (d *Doc) SearchFacets(kw string) []int {
 	var ids []int
-	for n, _ := range d.Keywords {
+	for n, _ := range d.Keyword {
 		toks := analyzer.Keyword.Tokenize(kw)
 		var w []int
 		for _, tok := range toks {
@@ -137,7 +145,7 @@ func (d *Doc) SearchFacets(kw string) []int {
 }
 
 func (d *Doc) SearchFacet(name string, kw string) bool {
-	if f, ok := d.Keywords[name]; ok {
+	if f, ok := d.Keyword[name]; ok {
 		return f.TestString(kw)
 	}
 	return false
