@@ -1,9 +1,9 @@
 package data
 
 import (
+	"github.com/RoaringBitmap/roaring"
 	"github.com/ohzqq/srch/analyzer"
 	"github.com/ohzqq/srch/doc"
-	"github.com/samber/lo"
 	"github.com/spf13/cast"
 )
 
@@ -74,29 +74,20 @@ func (db *DB) Search(kw string) ([]int, error) {
 		return nil, err
 	}
 
-	//var fields []*roaring.Bitmap
-	var res [][]int
+	res := roaring.New()
 	for ana, attrs := range db.mapping {
 		for _, attr := range attrs {
-			var ids []int
 			if ana == analyzer.Standard {
 				for _, doc := range docs {
 					doc.SetMapping(db.mapping)
 					id := doc.Search(attr, ana, kw)
 					if id != -1 {
-						ids = append(ids, id)
+						res.AddInt(id)
 					}
 				}
-				res = append(res, ids)
 			}
 		}
 	}
-
-	var ids []int
-	c := 1
-	for i := 0; c < len(res); i++ {
-		ids = lo.Intersect(res[i], res[c])
-		c++
-	}
+	ids := cast.ToIntSlice(res.ToArray())
 	return ids, nil
 }

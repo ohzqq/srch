@@ -1,12 +1,11 @@
 package doc
 
 import (
-	"fmt"
-
 	"github.com/bits-and-blooms/bloom/v3"
 	"github.com/ohzqq/hare"
 	"github.com/ohzqq/srch/analyzer"
 	"github.com/ohzqq/srch/param"
+	"github.com/samber/lo"
 	"github.com/spf13/cast"
 )
 
@@ -96,38 +95,25 @@ func (d *Doc) SearchAllFields(kw string) bool {
 
 func (d *Doc) Search(name string, ana analyzer.Analyzer, kw string) int {
 	toks := ana.Tokenize(kw)
-	switch ana {
-	case analyzer.Standard:
-		if f, ok := d.Fulltext[name]; ok {
-			for _, tok := range toks {
-				if f.TestString(tok) {
-					fmt.Printf("id: %v, field: %v, token: %v\n", d.ID, name, tok)
-					return d.GetID()
-				}
-			}
+	//println(len(toks))
+	var found []bool
+	for _, tok := range toks {
+		found = append(found, d.SearchField(name, tok))
+	}
+	if f := lo.Uniq(found); len(f) == 1 {
+		if f[0] {
+			return d.GetID()
 		}
-	case analyzer.Keyword:
-		if f, ok := d.Keywords[name]; ok {
-			for _, tok := range toks {
-				if f.TestString(tok) {
-					//fmt.Printf("id: %v, field: %v, token: %v\n", d.ID, name, tok)
-					return d.GetID()
-				}
-			}
-		}
-	case analyzer.Simple:
 	}
 	return -1
 }
 
-func (d *Doc) SearchField(name string, kw string) bool {
+func (d *Doc) SearchField(name string, tok string) bool {
 	if f, ok := d.Fulltext[name]; ok {
-		toks := analyzer.Standard.Tokenize(kw)
-		for _, tok := range toks {
-			if f.TestString(tok) {
-				//fmt.Printf("id: %v, field: %v, token: %v\n", d.ID, name, tok)
-				return true
-			}
+		//println(name)
+		if f.TestString(tok) {
+			//fmt.Printf("id: %v, field: %v, token: %v\n", d.ID, name, tok)
+			return true
 		}
 	}
 	return false

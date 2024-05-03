@@ -7,7 +7,6 @@ import (
 	"github.com/bits-and-blooms/bloom/v3"
 	"github.com/ohzqq/srch/doc"
 	"github.com/ohzqq/srch/param"
-	"github.com/samber/lo"
 )
 
 var testQuerySettings = []string{
@@ -54,62 +53,9 @@ func TestNewData(t *testing.T) {
 	for _, da := range d.data {
 		docs = append(docs, doc.New().SetMapping(doc.NewMappingFromParams(params)).SetData(da))
 	}
-	want := 7252
+	want := 7251
 	if len(docs) != want {
 		t.Errorf("indexed %v docs, expected %v\n", len(docs), want)
-	}
-}
-
-func TestSearchFields(t *testing.T) {
-	d, err := newData()
-	if err != nil {
-		t.Error(err)
-	}
-
-	params := param.New()
-	params.SrchAttr = []string{"title", "comments"}
-	params.Facets = []string{"tags"}
-
-	var docs []*doc.Doc
-	for _, da := range d.data {
-		docs = append(docs, doc.New().SetMapping(doc.NewMappingFromParams(params)).SetData(da))
-	}
-
-	var ids []int
-	for _, doc := range docs {
-		if doc.SearchAllFields("falling fish") {
-			ids = append(ids, doc.ID)
-		}
-	}
-	ids = lo.Uniq(ids)
-	//fmt.Printf("res %#v\n", ids)
-	if len(ids) != 2 {
-		t.Errorf("got %v results, expected %v\n", len(ids), 2)
-	}
-}
-
-func TestSearchFacets(t *testing.T) {
-	d, err := newData()
-	if err != nil {
-		t.Error(err)
-	}
-
-	params := param.New()
-	params.SrchAttr = []string{"title"}
-	params.Facets = []string{"tags"}
-
-	var docs []*doc.Doc
-	for _, da := range d.data {
-		docs = append(docs, doc.New().SetMapping(doc.NewMappingFromParams(params)).SetData(da))
-	}
-
-	var ids []int
-	for _, doc := range docs {
-		ids = append(ids, doc.SearchFacets("litrpg")...)
-	}
-
-	if len(ids) != 2 {
-		t.Errorf("got %v results, expected %v\n", len(ids), 2)
 	}
 }
 

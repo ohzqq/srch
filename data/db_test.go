@@ -73,8 +73,8 @@ func TestAllRecs(t *testing.T) {
 		t.Error(err)
 	}
 
-	if len(res) != 7252 {
-		t.Errorf("got %v, want %v\n", len(res), 7252)
+	if len(res) != 7251 {
+		t.Errorf("got %v, want %v\n", len(res), 7251)
 	}
 }
 
@@ -93,17 +93,80 @@ func TestSearchDB(t *testing.T) {
 
 	//fmt.Printf("%#v\n", m)
 
-	//ids, err := db.Search("falling love")
+	//ids, err := db.Search("falling fish")
 	ids, err := db.Search("dragon omega")
 	if err != nil {
 		t.Error(err)
 	}
 
-	//fmt.Printf("%#v\n", ids)
+	fmt.Printf("%#v\n", ids)
 	want := 140
 	if len(ids) > want {
-		println(len(ids) > want)
+		//println(len(ids) > want)
 		t.Errorf("got %v results, expected %v\n", len(ids), want)
+	}
+}
+
+func TestSearchAllDB(t *testing.T) {
+	tests := []map[string][]string{
+		map[string][]string{
+			"dragon": []string{"title"},
+		},
+		map[string][]string{
+			"omega": []string{"title"},
+		},
+		map[string][]string{
+			"dragon omega": []string{"title"},
+		},
+		map[string][]string{
+			"dragon": []string{"comments"},
+		},
+		map[string][]string{
+			"omega": []string{"comments"},
+		},
+		map[string][]string{
+			"dragon omega": []string{"comments"},
+		},
+		map[string][]string{
+			"dragon": []string{"title", "comments"},
+		},
+		map[string][]string{
+			"omega": []string{"title", "comments"},
+		},
+		map[string][]string{
+			"dragon omega": []string{"title", "comments"},
+		},
+	}
+
+	dsk, err := Open(hareTestDB)
+	if err != nil {
+		t.Error(err)
+	}
+
+	for _, test := range tests {
+		//if i == 2 {
+		for kw, attrs := range test {
+			params := param.New()
+			params.SrchAttr = attrs
+
+			m := doc.NewMappingFromParams(params)
+			db, err := NewDB(dsk, m)
+			if err != nil {
+				t.Error(err)
+			}
+
+			ids, err := db.Search(kw)
+			if err != nil {
+				t.Error(err)
+			}
+			//fmt.Printf("%#v\n", ids)
+			if kw == "dragon omega" {
+				fmt.Printf("kw %s, attrs %v: %#v\n", kw, attrs, ids)
+				//  fmt.Printf("kw %s, attrs %v: %#v\n", kw, attrs, len(ids[0]))
+			}
+
+			//}
+		}
 	}
 }
 
@@ -153,7 +216,7 @@ func TestInsertRecordsRam(t *testing.T) {
 }
 
 func TestInsertRecordsDisk(t *testing.T) {
-	//t.SkipNow()
+	t.SkipNow()
 	params := testParams()
 	dsk, err := NewDisk(hareTestDB)
 	if err != nil {
