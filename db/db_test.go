@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/ohzqq/hare"
+	"github.com/ohzqq/hare/datastores/net"
 	"github.com/ohzqq/hare/datastores/ram"
 	"github.com/ohzqq/srch/data"
 	"github.com/ohzqq/srch/doc"
@@ -180,29 +181,30 @@ func TestFindRec(t *testing.T) {
 func TestInsertRecordsRam(t *testing.T) {
 	//t.SkipNow()
 
-	//params := testParams()
-	//m := doc.NewMappingFromParams(params)
-	//db, err := New(mem, m)
-	//if err != nil {
-	//t.Error(err)
-	//}
+	d, err := os.ReadFile(`../testdata/ndbooks.ndjson`)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	mem, err := net.New("http://mxb.ca/search/index.json", d)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	params := testParams()
+	m := doc.NewMappingFromParams(params)
+
+	db, err := New(mem, m)
+	if err != nil {
+		t.Error(err)
+	}
 
 	//data, err := newData()
 	//if err != nil {
 	//t.Error(err)
 	//}
 
-	d, err := os.ReadFile(`../testdata/ndbooks.ndjson`)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	mem, err := NewNet("http://mxb.ca/search/index.json", d)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	total, err := mem.IDs("index")
+	total, err := db.IDs("index")
 	if err != nil {
 		t.Error(err)
 	}
