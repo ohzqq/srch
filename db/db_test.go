@@ -208,6 +208,38 @@ func TestNewRamDB(t *testing.T) {
 	//}
 }
 
+func TestInsertRamDB(t *testing.T) {
+	//t.SkipNow()
+
+	params := testParams()
+	m := doc.NewMappingFromParams(params)
+
+	data, err := os.ReadFile(`../testdata/ndbooks.ndjson`)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	db, err := New(m)
+	if err != nil {
+		t.Error(err)
+	}
+
+	err = db.Batch(data)
+	if err != nil {
+		t.Error(err)
+	}
+
+	ids, err := db.IDs("index")
+	if err != nil {
+		t.Error(err)
+	}
+
+	if len(ids) != 7251 {
+		t.Errorf("got %v, want %v\n", len(ids), 7251)
+	}
+
+}
+
 func TestNewNet(t *testing.T) {
 	d, err := os.ReadFile(`../testdata/ndbooks.ndjson`)
 	if err != nil {
