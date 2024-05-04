@@ -257,7 +257,7 @@ func TestInsertRecordsDisk(t *testing.T) {
 		t.Error(err)
 	}
 
-	err = db.Batch(data)
+	err = db.BatchInsert(data)
 	if err != nil {
 		t.Error(err)
 	}

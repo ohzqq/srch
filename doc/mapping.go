@@ -11,6 +11,12 @@ func NewMapping() Mapping {
 	return make(Mapping)
 }
 
+func DefaultMapping() Mapping {
+	m := NewMapping()
+	m.AddSimple("*")
+	return m
+}
+
 func NewMappingFromParams(params *param.Params) Mapping {
 	m := NewMapping()
 

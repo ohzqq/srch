@@ -31,6 +31,26 @@ func (d *Doc) SetMapping(m Mapping) *Doc {
 	return d
 }
 
+func (doc *Doc) AddField(ana analyzer.Analyzer, attr string, val any) {
+	str := cast.ToString(val)
+	toks := ana.Tokenize(str)
+	filter := bloom.NewWithEstimates(uint(len(toks)*2), 0.01)
+	for _, tok := range toks {
+		filter.TestOrAddString(tok)
+	}
+
+	switch ana {
+	case analyzer.Keyword:
+		doc.Keyword[attr] = filter
+	case analyzer.Standard:
+		doc.Standard[attr] = filter
+	case analyzer.Simple:
+		fallthrough
+	default:
+		doc.Simple[attr] = filter
+	}
+}
+
 func (doc *Doc) SetData(data map[string]any) *Doc {
 	for ana, attrs := range doc.Mapping {
 		for _, attr := range attrs {

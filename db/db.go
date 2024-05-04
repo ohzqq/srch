@@ -1,6 +1,11 @@
 package db
 
 import (
+	"bytes"
+	"encoding/json"
+	"io"
+	"slices"
+
 	"github.com/RoaringBitmap/roaring"
 	"github.com/ohzqq/hare"
 	"github.com/ohzqq/srch/analyzer"
@@ -13,14 +18,15 @@ type DB struct {
 
 	Name    string
 	UID     string
-	mapping doc.Mapping
+	ids     []int
+	Mapping doc.Mapping
 }
 
 func New(mapping doc.Mapping, opts ...Opt) (*DB, error) {
 	db := &DB{
 		Name:    "index",
 		UID:     "id",
-		mapping: mapping,
+		Mapping: mapping,
 	}
 
 	for _, opt := range opts {
@@ -53,14 +59,41 @@ func (db *DB) Init(ds hare.Datastorage) error {
 	return nil
 }
 
-func (db *DB) Batch(data []map[string]any) error {
+func (db *DB) BatchInsert(data []map[string]any) error {
 	for _, d := range data {
-		err := db.Insert(d)
+		err := db.InsertDoc(d)
 		if err != nil {
 			return err
 		}
 	}
 	return nil
+}
+
+func (db *DB) Batch(d []byte) error {
+	r := bytes.NewReader(d)
+	dec := json.NewDecoder(r)
+	for {
+		m := make(map[string]any)
+		if err := dec.Decode(&m); err == io.EOF {
+			break
+		} else if err != nil {
+			return err
+		}
+		err := db.InsertDoc(m)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (idx *DB) Insert(d []byte) error {
+	doc := make(map[string]any)
+	err := json.Unmarshal(d, &doc)
+	if err != nil {
+		return err
+	}
+	return idx.InsertDoc(doc)
 }
 
 func (db *DB) Find(ids ...int) ([]*doc.Doc, error) {
@@ -94,21 +127,22 @@ func (db *DB) FindAll() ([]*doc.Doc, error) {
 	return db.Find(ids...)
 }
 
-func (db *DB) Insert(data map[string]any) error {
-	doc := db.NewDoc(data)
-
-	_, err := db.Database.Insert("index", doc)
+func (db *DB) InsertDoc(data map[string]any) error {
+	doc := doc.New()
+	for ana, attrs := range db.Mapping {
+		for field, val := range data {
+			if ana == analyzer.Simple && slices.Equal(attrs, []string{"*"}) {
+				doc.AddField(ana, field, val)
+			}
+			doc.AddField(ana, field, val)
+		}
+	}
+	id, err := db.Database.Insert(db.Name, doc)
 	if err != nil {
 		return err
 	}
-
+	db.ids = append(db.ids, id)
 	return nil
-}
-
-func (db *DB) NewDoc(data map[string]any) *doc.Doc {
-	return doc.New().
-		SetMapping(db.mapping).
-		SetData(data)
 }
 
 func (db *DB) Search(kw string) ([]int, error) {
@@ -118,15 +152,12 @@ func (db *DB) Search(kw string) ([]int, error) {
 	}
 
 	res := roaring.New()
-	for ana, attrs := range db.mapping {
+	for ana, attrs := range db.Mapping {
 		for _, attr := range attrs {
-			if ana == analyzer.Standard {
-				for _, doc := range docs {
-					doc.SetMapping(db.mapping)
-					id := doc.Search(attr, ana, kw)
-					if id != -1 {
-						res.AddInt(id)
-					}
+			for _, doc := range docs {
+				id := doc.Search(attr, ana, kw)
+				if id != -1 {
+					res.AddInt(id)
 				}
 			}
 		}
