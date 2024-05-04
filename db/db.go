@@ -2,12 +2,14 @@ package db
 
 import (
 	"github.com/RoaringBitmap/roaring"
+	"github.com/ohzqq/hare"
 	"github.com/ohzqq/srch/analyzer"
 	"github.com/ohzqq/srch/doc"
 	"github.com/spf13/cast"
 )
 
 type DB struct {
+	*hare.Database
 	Src
 
 	Name    string
@@ -20,7 +22,21 @@ type Src interface {
 	Find(id ...int) ([]*doc.Doc, error)
 }
 
-func New(src Src, mapping doc.Mapping, opts ...Opt) (*DB, error) {
+func New(ds hare.Datastorage, mapping doc.Mapping, opts ...Opt) (*DB, error) {
+	hdb, err := hare.New(ds)
+	if err != nil {
+		return nil, err
+	}
+	db := &DB{
+		Database: hdb,
+		Name:     "index",
+		UID:      "id",
+		mapping:  mapping,
+	}
+	return db, nil
+}
+
+func NewDB(src Src, mapping doc.Mapping, opts ...Opt) (*DB, error) {
 	db := &DB{
 		Name:    "index",
 		mapping: mapping,
@@ -69,7 +85,7 @@ func (db *DB) NewDoc(data map[string]any) *doc.Doc {
 }
 
 func (db *DB) Search(kw string) ([]int, error) {
-	docs, err := db.Find(-1)
+	docs, err := db.Src.Find(-1)
 	if err != nil {
 		return nil, err
 	}

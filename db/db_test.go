@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	"github.com/ohzqq/hare"
-	"github.com/ohzqq/hare/datastores/net"
 	"github.com/ohzqq/hare/datastores/ram"
 	"github.com/ohzqq/srch/data"
 	"github.com/ohzqq/srch/doc"
@@ -69,11 +68,11 @@ func TestAllRecs(t *testing.T) {
 	}
 
 	m := doc.NewMappingFromParams(params)
-	db, err := New(dsk, m)
+	db, err := NewDB(dsk, m)
 	if err != nil {
 		t.Error(err)
 	}
-	res, err := db.Find(-1)
+	res, err := db.Src.Find(-1)
 	if err != nil {
 		t.Error(err)
 	}
@@ -137,7 +136,7 @@ func TestSearchDB(t *testing.T) {
 			params.SrchAttr = attrs
 
 			m := doc.NewMappingFromParams(params)
-			db, err := New(dsk, m)
+			db, err := NewDB(dsk, m)
 			if err != nil {
 				t.Error(err)
 			}
@@ -163,12 +162,12 @@ func TestFindRec(t *testing.T) {
 	}
 
 	m := doc.NewMappingFromParams(params)
-	db, err := New(dsk, m)
+	db, err := NewDB(dsk, m)
 	if err != nil {
 		t.Fatal(err)
 	}
 	find := 1832
-	_, err = db.Find(find)
+	_, err = db.Src.Find(find)
 	if err != nil {
 		t.Error(err)
 	}
@@ -180,17 +179,13 @@ func TestFindRec(t *testing.T) {
 
 func TestInsertRecordsRam(t *testing.T) {
 	//t.SkipNow()
-	mem, err := NewMem()
-	if err != nil {
-		t.Fatal(err)
-	}
 
-	params := testParams()
-	m := doc.NewMappingFromParams(params)
-	db, err := New(mem, m)
-	if err != nil {
-		t.Error(err)
-	}
+	//params := testParams()
+	//m := doc.NewMappingFromParams(params)
+	//db, err := New(mem, m)
+	//if err != nil {
+	//t.Error(err)
+	//}
 
 	//data, err := newData()
 	//if err != nil {
@@ -202,14 +197,42 @@ func TestInsertRecordsRam(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	mem, err := net.New("index", d)
+	mem, err := NewNet("http://mxb.ca/search/index.json", d)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	err = db.Batch(data)
+	total, err := mem.IDs("index")
 	if err != nil {
 		t.Error(err)
+	}
+	if len(total) != 7251 {
+		t.Errorf("got %v, wanted %v\n", len(total), 7251)
+	}
+
+	//err = db.Batch(data)
+	//if err != nil {
+	//t.Error(err)
+	//}
+}
+
+func TestNewNet(t *testing.T) {
+	d, err := os.ReadFile(`../testdata/ndbooks.ndjson`)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	mem, err := NewNet("http://mxb.ca/search/index.json", d)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	total, err := mem.IDs("index")
+	if err != nil {
+		t.Error(err)
+	}
+	if len(total) != 7251 {
+		t.Errorf("got %v, wanted %v\n", len(total), 7251)
 	}
 }
 
@@ -222,7 +245,7 @@ func TestInsertRecordsDisk(t *testing.T) {
 	}
 	m := doc.NewMappingFromParams(params)
 
-	db, err := New(dsk, m)
+	db, err := NewDB(dsk, m)
 	if err != nil {
 		t.Error(err)
 	}
