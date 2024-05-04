@@ -2,11 +2,13 @@ package db
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 	"slices"
 	"testing"
 
 	"github.com/ohzqq/hare"
+	"github.com/ohzqq/hare/datastores/net"
 	"github.com/ohzqq/hare/datastores/ram"
 	"github.com/ohzqq/srch/data"
 	"github.com/ohzqq/srch/doc"
@@ -67,7 +69,7 @@ func TestAllRecs(t *testing.T) {
 	}
 
 	m := doc.NewMappingFromParams(params)
-	db, err := NewDB(dsk, m)
+	db, err := New(dsk, m)
 	if err != nil {
 		t.Error(err)
 	}
@@ -135,7 +137,7 @@ func TestSearchDB(t *testing.T) {
 			params.SrchAttr = attrs
 
 			m := doc.NewMappingFromParams(params)
-			db, err := NewDB(dsk, m)
+			db, err := New(dsk, m)
 			if err != nil {
 				t.Error(err)
 			}
@@ -161,7 +163,7 @@ func TestFindRec(t *testing.T) {
 	}
 
 	m := doc.NewMappingFromParams(params)
-	db, err := NewDB(dsk, m)
+	db, err := New(dsk, m)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -178,17 +180,31 @@ func TestFindRec(t *testing.T) {
 
 func TestInsertRecordsRam(t *testing.T) {
 	//t.SkipNow()
-	mem := NewMem()
+	mem, err := NewMem()
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	params := testParams()
 	m := doc.NewMappingFromParams(params)
-	db, err := NewDB(mem, m)
+	db, err := New(mem, m)
 	if err != nil {
 		t.Error(err)
 	}
 
-	data, err := newData()
+	//data, err := newData()
+	//if err != nil {
+	//t.Error(err)
+	//}
+
+	d, err := os.ReadFile(`../testdata/ndbooks.ndjson`)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
+	}
+
+	mem, err := net.New("index", d)
+	if err != nil {
+		t.Fatal(err)
 	}
 
 	err = db.Batch(data)
@@ -206,7 +222,7 @@ func TestInsertRecordsDisk(t *testing.T) {
 	}
 	m := doc.NewMappingFromParams(params)
 
-	db, err := NewDB(dsk, m)
+	db, err := New(dsk, m)
 	if err != nil {
 		t.Error(err)
 	}

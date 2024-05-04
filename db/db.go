@@ -20,7 +20,7 @@ type Src interface {
 	Find(id ...int) ([]*doc.Doc, error)
 }
 
-func NewDB(src Src, mapping doc.Mapping, opts ...Opt) (*DB, error) {
+func New(src Src, mapping doc.Mapping, opts ...Opt) (*DB, error) {
 	db := &DB{
 		Name:    "index",
 		mapping: mapping,

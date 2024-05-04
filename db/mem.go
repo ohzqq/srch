@@ -3,15 +3,26 @@ package db
 import (
 	"slices"
 
+	"github.com/ohzqq/hare"
+	"github.com/ohzqq/hare/datastores/ram"
+	"github.com/ohzqq/hare/datastores/store"
 	"github.com/ohzqq/srch/doc"
 )
 
 type Mem struct {
+	*hare.Database
 	docs []*doc.Doc
 }
 
-func NewMem() *Mem {
-	return &Mem{}
+func NewMem() (*Mem, error) {
+	r := &ram.Ram{
+		Store: store.New(),
+	}
+	db, err := hare.New(r)
+	if err != nil {
+		return nil, err
+	}
+	return &Mem{Database: db}, nil
 }
 
 func (m *Mem) Insert(docs ...*doc.Doc) error {
