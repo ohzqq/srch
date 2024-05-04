@@ -239,15 +239,16 @@ func TestNewNet(t *testing.T) {
 }
 
 func TestInsertRecordsDisk(t *testing.T) {
-	t.SkipNow()
+	//t.SkipNow()
 	params := testParams()
-	dsk, err := NewDisk(hareTestDB)
+	m := doc.NewMappingFromParams(params)
+
+	ds, err := NewDS(hareTestDB)
 	if err != nil {
 		t.Fatal(err)
 	}
-	m := doc.NewMappingFromParams(params)
 
-	db, err := NewDB(dsk, m)
+	db, err := New(ds, m)
 	if err != nil {
 		t.Error(err)
 	}
@@ -262,10 +263,10 @@ func TestInsertRecordsDisk(t *testing.T) {
 		t.Error(err)
 	}
 
-	//err = db.DropTable("index")
-	//if err != nil {
-	//  t.Error(err)
-	//}
+	err = db.DropTable("index")
+	if err != nil {
+		t.Error(err)
+	}
 
 }
 

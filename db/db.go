@@ -62,15 +62,14 @@ func (db *DB) Batch(data []map[string]any) error {
 }
 
 func (db *DB) Insert(data map[string]any) error {
-	var id int
-	if i, ok := data[db.UID]; ok {
-		id = cast.ToInt(i)
-	}
+	//var id int
+	//if i, ok := data[db.UID]; ok {
+	//id = cast.ToInt(i)
+	//}
 
 	doc := db.NewDoc(data)
-	doc.SetID(id)
 
-	err := db.Src.Insert(doc)
+	_, err := db.Database.Insert("index", doc)
 	if err != nil {
 		return err
 	}
