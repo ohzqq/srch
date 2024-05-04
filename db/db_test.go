@@ -68,7 +68,7 @@ func TestAllRecs(t *testing.T) {
 	}
 
 	m := doc.NewMappingFromParams(params)
-	db, err := NewDB(dsk, m)
+	db, err := New(m, WithDisk(hareTestDB))
 	if err != nil {
 		t.Error(err)
 	}
@@ -136,9 +136,13 @@ func TestSearchDB(t *testing.T) {
 			params.SrchAttr = attrs
 
 			m := doc.NewMappingFromParams(params)
-			db, err := NewDB(dsk, m)
+			db, err := New(m)
 			if err != nil {
 				t.Error(err)
+			}
+			err = db.Init(dsk)
+			if err != nil {
+				t.Fatal(err)
 			}
 
 			ids, err := db.Search(kw)
@@ -156,13 +160,9 @@ func TestSearchDB(t *testing.T) {
 func TestFindRec(t *testing.T) {
 	//t.SkipNow()
 	params := testParams()
-	dsk, err := NewDisk(hareTestDB)
-	if err != nil {
-		t.Error(err)
-	}
-
 	m := doc.NewMappingFromParams(params)
-	db, err := NewDB(dsk, m)
+
+	db, err := New(m, WithDisk(hareTestDB))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -180,15 +180,10 @@ func TestFindRec(t *testing.T) {
 func TestNewRamDB(t *testing.T) {
 	//t.SkipNow()
 
-	mem, err := NewMem()
-	if err != nil {
-		t.Fatal(err)
-	}
-
 	params := testParams()
 	m := doc.NewMappingFromParams(params)
 
-	db, err := NewDB(mem, m)
+	db, err := New(m)
 	if err != nil {
 		t.Error(err)
 	}
@@ -213,7 +208,7 @@ func TestNewNet(t *testing.T) {
 	params := testParams()
 	m := doc.NewMappingFromParams(params)
 
-	db, err := New(InitNet("http://mxb.ca/search/index.json", d), m)
+	db, err := New(m, WithURL("http://mxb.ca/search/index.json", d))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -232,7 +227,7 @@ func TestInsertRecordsDisk(t *testing.T) {
 	params := testParams()
 	m := doc.NewMappingFromParams(params)
 
-	db, err := New(InitDisk(hareTestDB), m)
+	db, err := New(m, WithDisk(hareTestDB))
 	if err != nil {
 		t.Error(err)
 	}

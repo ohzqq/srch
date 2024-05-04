@@ -8,17 +8,49 @@ import (
 	"github.com/ohzqq/hare/datastores/store"
 )
 
-type Opt func(*DB)
+type Opt func(*DB) error
 
 func WithUID(uid string) Opt {
-	return func(db *DB) {
+	return func(db *DB) error {
 		db.UID = uid
+		return nil
 	}
 }
 
 func WithName(name string) Opt {
-	return func(db *DB) {
+	return func(db *DB) error {
 		db.Name = name
+		return nil
+	}
+}
+
+func WithDisk(path string) Opt {
+	return func(db *DB) error {
+		ds, err := NewDisk(path)
+		if err != nil {
+			return err
+		}
+		h, err := hare.New(ds)
+		if err != nil {
+			return err
+		}
+		db.Database = h
+		return nil
+	}
+}
+
+func WithURL(uri string, d []byte) Opt {
+	return func(db *DB) error {
+		ds, err := NewNet(uri, d)
+		if err != nil {
+			return err
+		}
+		h, err := hare.New(ds)
+		if err != nil {
+			return err
+		}
+		db.Database = h
+		return nil
 	}
 }
 
@@ -46,6 +78,10 @@ func NewDisk(path string) (*disk.Disk, error) {
 		}
 	}
 	return ds, nil
+}
+
+func InitMem() (hare.Datastorage, error) {
+	return NewMem()
 }
 
 func NewMem() (*ram.Ram, error) {

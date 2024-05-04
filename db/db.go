@@ -18,36 +18,41 @@ type DB struct {
 
 type InitData func() (hare.Datastorage, error)
 
-func New(init InitData, mapping doc.Mapping, opts ...Opt) (*DB, error) {
-	ds, err := init()
-	if err != nil {
-		return nil, err
-	}
-	hdb, err := hare.New(ds)
-	if err != nil {
-		return nil, err
-	}
+func New(mapping doc.Mapping, opts ...Opt) (*DB, error) {
 	db := &DB{
-		Database: hdb,
-		Name:     "index",
-		UID:      "id",
-		mapping:  mapping,
+		Name:    "index",
+		UID:     "id",
+		mapping: mapping,
 	}
+
+	for _, opt := range opts {
+		err := opt(db)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if db.Database == nil {
+		ds, err := NewMem()
+		if err != nil {
+			return nil, err
+		}
+		db.Database, err = hare.New(ds)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return db, nil
 }
 
-func NewDB(ds hare.Datastorage, mapping doc.Mapping, opts ...Opt) (*DB, error) {
-	hdb, err := hare.New(ds)
+func (db *DB) Init(ds hare.Datastorage) error {
+	h, err := hare.New(ds)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	db := &DB{
-		Database: hdb,
-		Name:     "index",
-		UID:      "id",
-		mapping:  mapping,
-	}
-	return db, nil
+	db.Database = h
+	return nil
 }
 
 func (db *DB) Batch(data []map[string]any) error {
