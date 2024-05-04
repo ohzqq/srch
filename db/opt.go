@@ -1,7 +1,6 @@
 package db
 
 import (
-	"github.com/ohzqq/hare"
 	"github.com/ohzqq/hare/datastores/disk"
 	"github.com/ohzqq/hare/datastores/net"
 	"github.com/ohzqq/hare/datastores/ram"
@@ -30,12 +29,7 @@ func WithDisk(path string) Opt {
 		if err != nil {
 			return err
 		}
-		h, err := hare.New(ds)
-		if err != nil {
-			return err
-		}
-		db.Database = h
-		return nil
+		return db.Init(ds)
 	}
 }
 
@@ -45,24 +39,20 @@ func WithURL(uri string, d []byte) Opt {
 		if err != nil {
 			return err
 		}
-		h, err := hare.New(ds)
+		return db.Init(ds)
+	}
+}
+
+func WithData(d []byte) Opt {
+	return func(db *DB) error {
+		m := map[string][]byte{
+			"index": d,
+		}
+		ds, err := ram.New(m)
 		if err != nil {
 			return err
 		}
-		db.Database = h
-		return nil
-	}
-}
-
-func InitDisk(path string) InitData {
-	return func() (hare.Datastorage, error) {
-		return NewDisk(path)
-	}
-}
-
-func InitNet(uri string, d []byte) InitData {
-	return func() (hare.Datastorage, error) {
-		return NewNet(uri, d)
+		return db.Init(ds)
 	}
 }
 
@@ -78,10 +68,6 @@ func NewDisk(path string) (*disk.Disk, error) {
 		}
 	}
 	return ds, nil
-}
-
-func InitMem() (hare.Datastorage, error) {
-	return NewMem()
 }
 
 func NewMem() (*ram.Ram, error) {

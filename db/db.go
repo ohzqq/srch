@@ -10,6 +10,7 @@ import (
 
 type DB struct {
 	*hare.Database
+	ds hare.Datastorage
 
 	Name    string
 	UID     string
@@ -37,7 +38,7 @@ func New(mapping doc.Mapping, opts ...Opt) (*DB, error) {
 		if err != nil {
 			return nil, err
 		}
-		db.Database, err = hare.New(ds)
+		err = db.Init(ds)
 		if err != nil {
 			return nil, err
 		}
@@ -97,11 +98,6 @@ func (db *DB) FindAll() ([]*doc.Doc, error) {
 }
 
 func (db *DB) Insert(data map[string]any) error {
-	//var id int
-	//if i, ok := data[db.UID]; ok {
-	//id = cast.ToInt(i)
-	//}
-
 	doc := db.NewDoc(data)
 
 	_, err := db.Database.Insert("index", doc)

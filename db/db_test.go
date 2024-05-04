@@ -183,20 +183,34 @@ func TestNewRamDB(t *testing.T) {
 	params := testParams()
 	m := doc.NewMappingFromParams(params)
 
-	db, err := New(m)
+	//data, err := newData()
+	//if err != nil {
+	//t.Error(err)
+	//}
+
+	data, err := os.ReadFile(`../testdata/ndbooks.ndjson`)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	db, err := New(m, WithData(data))
 	if err != nil {
 		t.Error(err)
 	}
 
-	data, err := newData()
+	ids, err := db.IDs("index")
 	if err != nil {
 		t.Error(err)
 	}
 
-	err = db.Batch(data)
-	if err != nil {
-		t.Error(err)
+	if len(ids) != 7251 {
+		t.Errorf("got %v, want %v\n", len(ids), 7251)
 	}
+
+	//err = db.Batch(data)
+	//if err != nil {
+	//t.Error(err)
+	//}
 }
 
 func TestNewNet(t *testing.T) {
