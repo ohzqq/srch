@@ -8,8 +8,8 @@ import (
 	"testing"
 
 	"github.com/ohzqq/hare"
-	"github.com/ohzqq/hare/datastores/net"
 	"github.com/ohzqq/hare/datastores/ram"
+	"github.com/ohzqq/hare/datastores/store"
 	"github.com/ohzqq/srch/data"
 	"github.com/ohzqq/srch/doc"
 	"github.com/ohzqq/srch/param"
@@ -178,15 +178,13 @@ func TestFindRec(t *testing.T) {
 	//}
 }
 
-func TestInsertRecordsRam(t *testing.T) {
+func TestNewRamDB(t *testing.T) {
 	//t.SkipNow()
 
-	d, err := os.ReadFile(`../testdata/ndbooks.ndjson`)
-	if err != nil {
-		t.Fatal(err)
+	mem := &ram.Ram{
+		Store: store.New(),
 	}
-
-	mem, err := net.New("http://mxb.ca/search/index.json", d)
+	err := mem.CreateTable("index")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -199,18 +197,15 @@ func TestInsertRecordsRam(t *testing.T) {
 		t.Error(err)
 	}
 
-	total, err := db.IDs("index")
+	data, err := newData()
 	if err != nil {
 		t.Error(err)
 	}
-	if len(total) != 7251 {
-		t.Errorf("got %v, wanted %v\n", len(total), 7251)
-	}
 
-	//err = db.Batch(data)
-	//if err != nil {
-	//t.Error(err)
-	//}
+	err = db.Batch(data)
+	if err != nil {
+		t.Error(err)
+	}
 }
 
 func TestNewNet(t *testing.T) {
