@@ -183,11 +183,6 @@ func TestNewRamDB(t *testing.T) {
 	params := testParams()
 	m := doc.NewMappingFromParams(params)
 
-	//data, err := newData()
-	//if err != nil {
-	//t.Error(err)
-	//}
-
 	data, err := os.ReadFile(`../testdata/ndbooks.ndjson`)
 	if err != nil {
 		t.Fatal(err)
