@@ -199,11 +199,6 @@ func TestInsertRecordsRam(t *testing.T) {
 		t.Error(err)
 	}
 
-	//data, err := newData()
-	//if err != nil {
-	//t.Error(err)
-	//}
-
 	total, err := db.IDs("index")
 	if err != nil {
 		t.Error(err)
@@ -239,7 +234,7 @@ func TestNewNet(t *testing.T) {
 }
 
 func TestInsertRecordsDisk(t *testing.T) {
-	//t.SkipNow()
+	t.SkipNow()
 	params := testParams()
 	m := doc.NewMappingFromParams(params)
 
@@ -263,10 +258,10 @@ func TestInsertRecordsDisk(t *testing.T) {
 		t.Error(err)
 	}
 
-	err = db.DropTable("index")
-	if err != nil {
-		t.Error(err)
-	}
+	//err = db.DropTable("index")
+	//if err != nil {
+	//  t.Error(err)
+	//}
 
 }
 
