@@ -210,11 +210,6 @@ func TestNewNet(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	//mem, err := NewNet("http://mxb.ca/search/index.json", d)
-	//if err != nil {
-	//  t.Fatal(err)
-	//}
-
 	params := testParams()
 	m := doc.NewMappingFromParams(params)
 
@@ -233,18 +228,24 @@ func TestNewNet(t *testing.T) {
 }
 
 func TestInsertRecordsDisk(t *testing.T) {
-	t.SkipNow()
+	//t.SkipNow()
 	params := testParams()
 	m := doc.NewMappingFromParams(params)
 
-	ds, err := NewDisk(hareTestDB)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	db, err := NewDB(ds, m)
+	db, err := New(InitDisk(hareTestDB), m)
 	if err != nil {
 		t.Error(err)
+	}
+
+	if db.TableExists("index") {
+		err = db.DropTable("index")
+		if err != nil {
+			t.Error(err)
+		}
+		err = db.CreateTable("index")
+		if err != nil {
+			t.Error(err)
+		}
 	}
 
 	data, err := newData()
@@ -256,12 +257,6 @@ func TestInsertRecordsDisk(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-
-	//err = db.DropTable("index")
-	//if err != nil {
-	//  t.Error(err)
-	//}
-
 }
 
 func testParams() *param.Params {
