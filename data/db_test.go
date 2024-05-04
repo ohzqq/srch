@@ -78,35 +78,6 @@ func TestAllRecs(t *testing.T) {
 	}
 }
 
-func TestSearchDB(t *testing.T) {
-	params := testParams()
-	dsk, err := Open(hareTestDB)
-	if err != nil {
-		t.Error(err)
-	}
-
-	m := doc.NewMappingFromParams(params)
-	db, err := NewDB(dsk, m)
-	if err != nil {
-		t.Error(err)
-	}
-
-	//fmt.Printf("%#v\n", m)
-
-	//ids, err := db.Search("falling fish")
-	ids, err := db.Search("dragon omega")
-	if err != nil {
-		t.Error(err)
-	}
-
-	fmt.Printf("%#v\n", ids)
-	want := 140
-	if len(ids) > want {
-		//println(len(ids) > want)
-		t.Errorf("got %v results, expected %v\n", len(ids), want)
-	}
-}
-
 func TestSearchAllDB(t *testing.T) {
 	tests := []map[string][]string{
 		map[string][]string{
@@ -138,13 +109,24 @@ func TestSearchAllDB(t *testing.T) {
 		},
 	}
 
+	want := []int{
+		74,
+		97,
+		1,
+		185,
+		328,
+		23,
+		200,
+		345,
+		23,
+	}
+
 	dsk, err := Open(hareTestDB)
 	if err != nil {
 		t.Error(err)
 	}
 
-	for _, test := range tests {
-		//if i == 2 {
+	for i, test := range tests {
 		for kw, attrs := range test {
 			params := param.New()
 			params.SrchAttr = attrs
@@ -159,13 +141,10 @@ func TestSearchAllDB(t *testing.T) {
 			if err != nil {
 				t.Error(err)
 			}
-			//fmt.Printf("%#v\n", ids)
-			if kw == "dragon omega" {
-				fmt.Printf("kw %s, attrs %v: %#v\n", kw, attrs, ids)
-				//  fmt.Printf("kw %s, attrs %v: %#v\n", kw, attrs, len(ids[0]))
+			if res := len(ids); res != want[i] {
+				fmt.Printf("kw %s, attrs %v: %#v\n", kw, attrs, res)
+				t.Errorf("got %v results, wanted %v\n", res, want[i])
 			}
-
-			//}
 		}
 	}
 }

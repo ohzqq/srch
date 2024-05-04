@@ -95,7 +95,6 @@ func (d *Doc) SearchAllFields(kw string) bool {
 
 func (d *Doc) Search(name string, ana analyzer.Analyzer, kw string) int {
 	toks := ana.Tokenize(kw)
-	//println(len(toks))
 	var found []bool
 	for _, tok := range toks {
 		found = append(found, d.SearchField(name, tok))
@@ -123,30 +122,6 @@ func (d *Doc) SearchField(name string, tok string) bool {
 		if f.TestString(tok) {
 			return true
 		}
-	}
-	return false
-}
-
-func (d *Doc) SearchFacets(kw string) []int {
-	var ids []int
-	for n, _ := range d.Keyword {
-		toks := analyzer.Keyword.Tokenize(kw)
-		var w []int
-		for _, tok := range toks {
-			if d.SearchFacet(n, tok) {
-				w = append(w, d.ID)
-			}
-		}
-		if len(w) == len(toks) {
-			ids = append(ids, d.ID)
-		}
-	}
-	return ids
-}
-
-func (d *Doc) SearchFacet(name string, kw string) bool {
-	if f, ok := d.Keyword[name]; ok {
-		return f.TestString(kw)
 	}
 	return false
 }
