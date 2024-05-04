@@ -8,6 +8,7 @@ import (
 
 	"github.com/ohzqq/hare"
 	"github.com/ohzqq/hare/datastores/ram"
+	"github.com/ohzqq/srch/data"
 	"github.com/ohzqq/srch/doc"
 	"github.com/ohzqq/srch/param"
 )
@@ -17,7 +18,7 @@ const hareTestDB = `testdata/hare`
 func TestMemHare(t *testing.T) {
 	tp := filepath.Join(hareTestDB, "index.json")
 
-	data := New("file", tp)
+	data := data.New("file", tp)
 	d, err := data.Docs()
 	if err != nil {
 		t.Error(err)
@@ -38,7 +39,9 @@ func TestMemHare(t *testing.T) {
 		t.Error(err)
 	}
 
-	fmt.Printf("%v\n", len(ids))
+	if len(ids) != 7251 {
+		t.Errorf("got %v, wanted %v\n", len(ids), 7251)
+	}
 
 }
 
@@ -188,7 +191,7 @@ func TestInsertRecordsRam(t *testing.T) {
 		t.Error(err)
 	}
 
-	err = db.Batch(data.data)
+	err = db.Batch(data)
 	if err != nil {
 		t.Error(err)
 	}
@@ -213,7 +216,7 @@ func TestInsertRecordsDisk(t *testing.T) {
 		t.Error(err)
 	}
 
-	err = db.Batch(data.data)
+	err = db.Batch(data)
 	if err != nil {
 		t.Error(err)
 	}
@@ -233,4 +236,15 @@ func testParams() *param.Params {
 	params.SrchAttr = []string{"title", "comments", "tags"}
 	params.Facets = []string{"tags"}
 	return params
+}
+
+func newData() ([]map[string]any, error) {
+	d := data.New("file", `../testdata/ndbooks.ndjson`)
+
+	recs, err := d.Decode()
+	if err != nil {
+		return nil, err
+	}
+
+	return recs, err
 }
