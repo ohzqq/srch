@@ -1,4 +1,4 @@
-package doc
+package db
 
 import (
 	"github.com/ohzqq/srch/analyzer"

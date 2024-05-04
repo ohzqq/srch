@@ -1,4 +1,4 @@
-package doc
+package db
 
 import (
 	"github.com/bits-and-blooms/bloom/v3"

@@ -1,26 +1,16 @@
-package doc
+package db
 
 import (
 	"slices"
 	"testing"
 
 	"github.com/ohzqq/srch/analyzer"
-	"github.com/ohzqq/srch/param"
 )
 
 var testMapping = map[analyzer.Analyzer][]string{
 	analyzer.Standard: []string{"comments", "tags"},
 	analyzer.Simple:   []string{"title"},
 	analyzer.Keyword:  []string{"tags", "authors", "series", "narrators"},
-}
-
-func testParams() *param.Params {
-	params := param.New()
-	//params.SrchAttr = []string{"title"}
-	//params.SrchAttr = []string{"comments"}
-	params.SrchAttr = []string{"title", "comments", "tags"}
-	params.Facets = []string{"tags", "authors", "series", "narrators"}
-	return params
 }
 
 func TestNewMapping(t *testing.T) {
