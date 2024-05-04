@@ -211,8 +211,9 @@ func TestNewRamDB(t *testing.T) {
 func TestInsertRamDB(t *testing.T) {
 	//t.SkipNow()
 
-	params := testParams()
-	m := doc.NewMappingFromParams(params)
+	//params := testParams()
+	//m := doc.NewMappingFromParams(params)
+	m := doc.DefaultMapping()
 
 	data, err := os.ReadFile(`../testdata/ndbooks.ndjson`)
 	if err != nil {
