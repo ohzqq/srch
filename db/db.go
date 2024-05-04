@@ -16,11 +16,6 @@ type DB struct {
 	mapping doc.Mapping
 }
 
-type Src interface {
-	Insert(doc ...*doc.Doc) error
-	Find(id ...int) ([]*doc.Doc, error)
-}
-
 func New(ds hare.Datastorage, mapping doc.Mapping, opts ...Opt) (*DB, error) {
 	hdb, err := hare.New(ds)
 	if err != nil {

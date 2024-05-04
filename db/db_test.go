@@ -49,7 +49,7 @@ func TestMemHare(t *testing.T) {
 func TestAllRecs(t *testing.T) {
 	//t.SkipNow()
 	params := testParams()
-	dsk, err := NewDiskDB(hareTestDB)
+	dsk, err := NewDisk(hareTestDB)
 	if err != nil {
 		t.Error(err)
 	}
@@ -125,7 +125,7 @@ func TestSearchDB(t *testing.T) {
 		23,
 	}
 
-	dsk, err := NewDiskDB(hareTestDB)
+	dsk, err := NewDisk(hareTestDB)
 	if err != nil {
 		t.Error(err)
 	}
@@ -156,7 +156,7 @@ func TestSearchDB(t *testing.T) {
 func TestFindRec(t *testing.T) {
 	//t.SkipNow()
 	params := testParams()
-	dsk, err := NewDiskDB(hareTestDB)
+	dsk, err := NewDisk(hareTestDB)
 	if err != nil {
 		t.Error(err)
 	}
@@ -215,7 +215,15 @@ func TestNewNet(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	total, err := mem.IDs("index")
+	params := testParams()
+	m := doc.NewMappingFromParams(params)
+
+	db, err := New(mem, m)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	total, err := db.IDs("index")
 	if err != nil {
 		t.Error(err)
 	}
@@ -229,7 +237,7 @@ func TestInsertRecordsDisk(t *testing.T) {
 	params := testParams()
 	m := doc.NewMappingFromParams(params)
 
-	ds, err := NewDS(hareTestDB)
+	ds, err := NewDisk(hareTestDB)
 	if err != nil {
 		t.Fatal(err)
 	}
