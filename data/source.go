@@ -21,14 +21,6 @@ const (
 	JSON   = `application/json`
 )
 
-type Doc interface {
-	GetID() int
-}
-
-type Source struct {
-	docs []Doc
-}
-
 type Data struct {
 	Path  string
 	Route string
