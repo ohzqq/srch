@@ -9,7 +9,6 @@ import (
 
 	"github.com/ohzqq/hare"
 	"github.com/ohzqq/hare/datastores/ram"
-	"github.com/ohzqq/hare/datastores/store"
 	"github.com/ohzqq/srch/data"
 	"github.com/ohzqq/srch/doc"
 	"github.com/ohzqq/srch/param"
@@ -50,7 +49,7 @@ func TestMemHare(t *testing.T) {
 func TestAllRecs(t *testing.T) {
 	//t.SkipNow()
 	params := testParams()
-	dsk, err := Open(hareTestDB)
+	dsk, err := NewDiskDB(hareTestDB)
 	if err != nil {
 		t.Error(err)
 	}
@@ -69,11 +68,11 @@ func TestAllRecs(t *testing.T) {
 	}
 
 	m := doc.NewMappingFromParams(params)
-	db, err := NewDB(dsk, m)
+	db, err := New(dsk, m)
 	if err != nil {
 		t.Error(err)
 	}
-	res, err := db.Src.Find(-1)
+	res, err := db.Find(-1)
 	if err != nil {
 		t.Error(err)
 	}
@@ -126,7 +125,7 @@ func TestSearchDB(t *testing.T) {
 		23,
 	}
 
-	dsk, err := Open(hareTestDB)
+	dsk, err := NewDiskDB(hareTestDB)
 	if err != nil {
 		t.Error(err)
 	}
@@ -137,7 +136,7 @@ func TestSearchDB(t *testing.T) {
 			params.SrchAttr = attrs
 
 			m := doc.NewMappingFromParams(params)
-			db, err := NewDB(dsk, m)
+			db, err := New(dsk, m)
 			if err != nil {
 				t.Error(err)
 			}
@@ -157,18 +156,18 @@ func TestSearchDB(t *testing.T) {
 func TestFindRec(t *testing.T) {
 	//t.SkipNow()
 	params := testParams()
-	dsk, err := Open(hareTestDB)
+	dsk, err := NewDiskDB(hareTestDB)
 	if err != nil {
 		t.Error(err)
 	}
 
 	m := doc.NewMappingFromParams(params)
-	db, err := NewDB(dsk, m)
+	db, err := New(dsk, m)
 	if err != nil {
 		t.Fatal(err)
 	}
 	find := 1832
-	_, err = db.Src.Find(find)
+	_, err = db.Find(find)
 	if err != nil {
 		t.Error(err)
 	}
@@ -181,10 +180,7 @@ func TestFindRec(t *testing.T) {
 func TestNewRamDB(t *testing.T) {
 	//t.SkipNow()
 
-	mem := &ram.Ram{
-		Store: store.New(),
-	}
-	err := mem.CreateTable("index")
+	mem, err := NewMem()
 	if err != nil {
 		t.Fatal(err)
 	}

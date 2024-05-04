@@ -25,8 +25,22 @@ func NewDisk(path string) (*Disk, error) {
 	}, nil
 }
 
+func NewDiskDB(path string) (*disk.Disk, error) {
+	ds, err := OpenDS(path)
+	if err != nil {
+		return nil, err
+	}
+	if !ds.TableExists("index") {
+		err = ds.CreateTable("index")
+		if err != nil {
+			return nil, err
+		}
+	}
+	return ds, nil
+}
+
 func NewDS(path string) (hare.Datastorage, error) {
-	ds, err := disk.New(path, ".json")
+	ds, err := OpenDS(path)
 	if err != nil {
 		return nil, err
 	}
@@ -35,6 +49,10 @@ func NewDS(path string) (hare.Datastorage, error) {
 		return nil, err
 	}
 	return ds, nil
+}
+
+func OpenDS(path string) (*disk.Disk, error) {
+	return disk.New(path, ".json")
 }
 
 func Open(path string) (*Disk, error) {
