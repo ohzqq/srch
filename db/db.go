@@ -16,7 +16,27 @@ type DB struct {
 	mapping doc.Mapping
 }
 
-func New(ds hare.Datastorage, mapping doc.Mapping, opts ...Opt) (*DB, error) {
+type InitData func() (hare.Datastorage, error)
+
+func New(init InitData, mapping doc.Mapping, opts ...Opt) (*DB, error) {
+	ds, err := init()
+	if err != nil {
+		return nil, err
+	}
+	hdb, err := hare.New(ds)
+	if err != nil {
+		return nil, err
+	}
+	db := &DB{
+		Database: hdb,
+		Name:     "index",
+		UID:      "id",
+		mapping:  mapping,
+	}
+	return db, nil
+}
+
+func NewDB(ds hare.Datastorage, mapping doc.Mapping, opts ...Opt) (*DB, error) {
 	hdb, err := hare.New(ds)
 	if err != nil {
 		return nil, err

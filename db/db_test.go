@@ -68,7 +68,7 @@ func TestAllRecs(t *testing.T) {
 	}
 
 	m := doc.NewMappingFromParams(params)
-	db, err := New(dsk, m)
+	db, err := NewDB(dsk, m)
 	if err != nil {
 		t.Error(err)
 	}
@@ -136,7 +136,7 @@ func TestSearchDB(t *testing.T) {
 			params.SrchAttr = attrs
 
 			m := doc.NewMappingFromParams(params)
-			db, err := New(dsk, m)
+			db, err := NewDB(dsk, m)
 			if err != nil {
 				t.Error(err)
 			}
@@ -162,7 +162,7 @@ func TestFindRec(t *testing.T) {
 	}
 
 	m := doc.NewMappingFromParams(params)
-	db, err := New(dsk, m)
+	db, err := NewDB(dsk, m)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -188,7 +188,7 @@ func TestNewRamDB(t *testing.T) {
 	params := testParams()
 	m := doc.NewMappingFromParams(params)
 
-	db, err := New(mem, m)
+	db, err := NewDB(mem, m)
 	if err != nil {
 		t.Error(err)
 	}
@@ -210,15 +210,15 @@ func TestNewNet(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	mem, err := NewNet("http://mxb.ca/search/index.json", d)
-	if err != nil {
-		t.Fatal(err)
-	}
+	//mem, err := NewNet("http://mxb.ca/search/index.json", d)
+	//if err != nil {
+	//  t.Fatal(err)
+	//}
 
 	params := testParams()
 	m := doc.NewMappingFromParams(params)
 
-	db, err := New(mem, m)
+	db, err := New(InitNet("http://mxb.ca/search/index.json", d), m)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -242,7 +242,7 @@ func TestInsertRecordsDisk(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	db, err := New(ds, m)
+	db, err := NewDB(ds, m)
 	if err != nil {
 		t.Error(err)
 	}

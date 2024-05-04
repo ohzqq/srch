@@ -1,6 +1,7 @@
 package db
 
 import (
+	"github.com/ohzqq/hare"
 	"github.com/ohzqq/hare/datastores/disk"
 	"github.com/ohzqq/hare/datastores/net"
 	"github.com/ohzqq/hare/datastores/ram"
@@ -18,6 +19,18 @@ func WithUID(uid string) Opt {
 func WithName(name string) Opt {
 	return func(db *DB) {
 		db.Name = name
+	}
+}
+
+func InitDisk(path string) InitData {
+	return func() (hare.Datastorage, error) {
+		return NewDisk(path)
+	}
+}
+
+func InitNet(uri string, d []byte) InitData {
+	return func() (hare.Datastorage, error) {
+		return NewNet(uri, d)
 	}
 }
 
