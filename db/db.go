@@ -10,14 +10,11 @@ import (
 
 type DB struct {
 	*hare.Database
-	ds hare.Datastorage
 
 	Name    string
 	UID     string
 	mapping doc.Mapping
 }
-
-type InitData func() (hare.Datastorage, error)
 
 func New(mapping doc.Mapping, opts ...Opt) (*DB, error) {
 	db := &DB{

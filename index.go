@@ -9,6 +9,7 @@ import (
 
 	"github.com/RoaringBitmap/roaring"
 	"github.com/ohzqq/srch/data"
+	"github.com/ohzqq/srch/db"
 	"github.com/ohzqq/srch/fuzz"
 	"github.com/ohzqq/srch/param"
 	"github.com/samber/lo"
@@ -31,6 +32,7 @@ type Searcher interface {
 type Index struct {
 	Indexer
 	*data.Data
+	DB *db.DB
 
 	Docs   []map[string]any
 	res    *roaring.Bitmap
