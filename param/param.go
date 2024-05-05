@@ -388,20 +388,19 @@ func unmarshalFilter(dec string) ([]any, error) {
 }
 
 func parseSrchAttr(vals url.Values) []string {
-	if !vals.Has(SrchAttr.Query()) {
-		return []string{"*"}
-	}
-	v := GetQueryStringSlice(SrchAttr.Query(), vals)
-	switch len(v) {
-	case 0:
-		return []string{"*"}
-	case 1:
-		if v[0] == "" {
+	if vals.Has(SrchAttr.Query()) {
+		v := GetQueryStringSlice(SrchAttr.Query(), vals)
+		switch len(v) {
+		case 0:
 			return []string{"*"}
+		case 1:
+			if v[0] == "" {
+				return []string{"*"}
+			}
+			fallthrough
+		default:
+			return v
 		}
-		fallthrough
-	default:
-		return v
 	}
 	return []string{"*"}
 }
