@@ -1,6 +1,7 @@
 package db
 
 import (
+	"github.com/ohzqq/hare"
 	"github.com/ohzqq/hare/datastores/disk"
 	"github.com/ohzqq/hare/datastores/net"
 	"github.com/ohzqq/hare/datastores/ram"
@@ -47,6 +48,18 @@ func WithData(d []byte) Opt {
 		}
 		return db.Init(ds)
 	}
+}
+
+func NewDiskStore(path string) (hare.Datastorage, error) {
+	return NewDisk(path)
+}
+
+func NewRamStore(path string) (hare.Datastorage, error) {
+	return NewMem()
+}
+
+func NewNetStore(path string, d []byte) (hare.Datastorage, error) {
+	return NewNet(path, d)
 }
 
 func NewDisk(path string) (*disk.Disk, error) {

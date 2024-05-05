@@ -26,13 +26,28 @@ type Mapping struct {
 	Mapping doc.Mapping
 }
 
-func New(mapping doc.Mapping, opts ...Opt) (*DB, error) {
-	db := &DB{
+func Open(ds hare.Datastorage) (*DB, error) {
+	db := new()
+
+	err := db.Init(ds)
+	if err != nil {
+		return nil, err
+	}
+
+	return db, nil
+}
+
+func new() *DB {
+	return &DB{
 		Name: "index",
 		Mapping: &Mapping{
-			Mapping: mapping,
+			Mapping: doc.DefaultMapping(),
 		},
 	}
+}
+
+func New(mapping doc.Mapping, opts ...Opt) (*DB, error) {
+	db := new()
 
 	for _, opt := range opts {
 		err := opt(db)
@@ -51,6 +66,8 @@ func New(mapping doc.Mapping, opts ...Opt) (*DB, error) {
 			return nil, err
 		}
 	}
+
+	db.Database.Insert("index-settings", db.Mapping)
 
 	return db, nil
 }
@@ -169,4 +186,16 @@ func (db *DB) Search(kw string) ([]int, error) {
 	}
 	ids := cast.ToIntSlice(res.ToArray())
 	return ids, nil
+}
+
+func (m *Mapping) SetID(id int) {
+	m.ID = id
+}
+
+func (m *Mapping) GetID() int {
+	return m.ID
+}
+
+func (m *Mapping) AfterFind(_ *hare.Database) error {
+	return nil
 }
