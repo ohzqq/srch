@@ -9,13 +9,6 @@ import (
 
 type Opt func(*DB) error
 
-func WithUID(uid string) Opt {
-	return func(db *DB) error {
-		db.UID = uid
-		return nil
-	}
-}
-
 func WithName(name string) Opt {
 	return func(db *DB) error {
 		db.Name = name

@@ -17,7 +17,6 @@ type DB struct {
 	*hare.Database
 
 	Name    string
-	UID     string
 	ids     []int
 	Mapping doc.Mapping
 }
@@ -25,7 +24,6 @@ type DB struct {
 func New(mapping doc.Mapping, opts ...Opt) (*DB, error) {
 	db := &DB{
 		Name:    "index",
-		UID:     "id",
 		Mapping: mapping,
 	}
 
