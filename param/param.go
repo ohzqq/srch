@@ -46,6 +46,8 @@ type Params struct {
 	SortFacetsBy string   `query:"sortFacetsBy,omitempty" json:"sortFacetsBy,omitempty" mapstructure:"sort_facets_by"`
 	MaxFacetVals int      `query:"maxValuesPerFacet,omitempty" json:"maxValuesPerFacet,omitempty" mapstructure:"max_values_per_facet"`
 
+	IndexName string `query:"index,omitempty" json:"index,omitempty" mapstructure:"index"`
+
 	// Data
 	Format string `json:"-" mapstructure:"format"`
 	Path   string `json:"-" mapstructure:"path"`
@@ -63,9 +65,10 @@ var (
 // New initializes a Params structure with a non-nil URL
 func New() *Params {
 	return &Params{
-		URL:   &url.URL{},
-		Other: make(url.Values),
-		UID:   "id",
+		URL:      &url.URL{},
+		Other:    make(url.Values),
+		UID:      "id",
+		SrchAttr: []string{"*"},
 	}
 }
 
@@ -383,7 +386,15 @@ func parseSrchAttr(vals url.Values) []string {
 		return []string{"*"}
 	}
 	v := GetQueryStringSlice(SrchAttr.Query(), vals)
-	if len(v) > 0 {
+	switch len(v) {
+	case 0:
+		return []string{"*"}
+	case 1:
+		if v[0] == "" {
+			return []string{"*"}
+		}
+		fallthrough
+	default:
 		return v
 	}
 	return []string{"*"}

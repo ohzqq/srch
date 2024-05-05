@@ -2,6 +2,8 @@ package idx
 
 import (
 	"testing"
+
+	"github.com/ohzqq/srch/param"
 )
 
 const (
@@ -23,15 +25,18 @@ func TestNewDB(t *testing.T) {
 }
 
 func TestOpenIdx(t *testing.T) {
-	for _, test := range paramTests {
+	for i, test := range paramTests {
 		idx, err := Open(test.query)
 		if err != nil {
 			t.Fatal(err)
 		}
 		err = checkIdxName(idx, "index")
 		if err != nil {
-			t.Fatal(err)
+			t.Error(err)
 		}
-		err = checkSrchAttr(idx)
+		err = checkAttrs(param.SrchAttr.String(), idx.Params.SrchAttr, test.want.SrchAttr)
+		if err != nil {
+			t.Errorf("\nparams: %v\ntest num %v: %v\n", test.query, i, err)
+		}
 	}
 }

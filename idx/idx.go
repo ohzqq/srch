@@ -24,11 +24,11 @@ func New() *Idx {
 
 func Open(settings string) (*Idx, error) {
 	idx := New()
-	var err error
-	idx.Params, err = param.Parse(settings)
+	params, err := param.Parse(settings)
 	if err != nil {
 		return nil, fmt.Errorf("new index param parsing err: %w\n", err)
 	}
+	idx.Params = params
 
 	return idx, nil
 }

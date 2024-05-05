@@ -4,17 +4,19 @@ import (
 	"fmt"
 	"net/url"
 	"slices"
+
+	"github.com/ohzqq/srch/param"
 )
 
 type paramTest struct {
 	query string
-	want  *Params
+	want  *param.Params
 }
 
 var paramTests = []paramTest{
 	paramTest{
 		query: ``,
-		want: &Params{
+		want: &param.Params{
 			Other:        url.Values{},
 			SrchAttr:     []string{"*"},
 			FacetAttr:    []string{""},
@@ -32,12 +34,12 @@ var paramTests = []paramTest{
 			FacetFilters: []any{""},
 			SortFacetsBy: "",
 			UID:          "",
-			Index:        "index",
+			IndexName:    "index",
 		},
 	},
 	paramTest{
 		query: `?searchableAttributes=`,
-		want: &Params{
+		want: &param.Params{
 			Other:        url.Values{},
 			SrchAttr:     []string{"*"},
 			FacetAttr:    []string{""},
@@ -55,12 +57,12 @@ var paramTests = []paramTest{
 			FacetFilters: []any{""},
 			SortFacetsBy: "",
 			UID:          "",
-			Index:        "index",
+			IndexName:    "index",
 		},
 	},
 	paramTest{
 		query: `?searchableAttributes=title`,
-		want: &Params{
+		want: &param.Params{
 			Other:        url.Values{},
 			SrchAttr:     []string{"title"},
 			FacetAttr:    []string{""},
@@ -78,12 +80,12 @@ var paramTests = []paramTest{
 			FacetFilters: []any{""},
 			SortFacetsBy: "",
 			UID:          "",
-			Index:        "index",
+			IndexName:    "index",
 		},
 	},
 	paramTest{
-		query: `?searchableAttributes=title&dataDir=../testdata/hare`,
-		want: &Params{
+		query: `?searchableAttributes=title&dataDir=testdata/hare`,
+		want: &param.Params{
 			Other:        url.Values{},
 			SrchAttr:     []string{"title"},
 			FacetAttr:    []string{""},
@@ -101,12 +103,12 @@ var paramTests = []paramTest{
 			FacetFilters: []any{""},
 			SortFacetsBy: "",
 			UID:          "",
-			Index:        "index",
+			IndexName:    "index",
 		},
 	},
 	paramTest{
 		query: `?attributesForFaceting=tags,authors,series,narrators`,
-		want: &Params{
+		want: &param.Params{
 			Other:        url.Values{},
 			SrchAttr:     []string{"*"},
 			FacetAttr:    []string{"tags", "authors", "series", "narrators"},
@@ -124,12 +126,12 @@ var paramTests = []paramTest{
 			FacetFilters: []any{""},
 			SortFacetsBy: "",
 			UID:          "",
-			Index:        "index",
+			IndexName:    "index",
 		},
 	},
 	paramTest{
-		query: `?attributesForFaceting=tags,authors,series,narrators&dataDir=../testdata/hare`,
-		want: &Params{
+		query: `?attributesForFaceting=tags,authors,series,narrators&dataDir=testdata/hare`,
+		want: &param.Params{
 			Other:        url.Values{},
 			SrchAttr:     []string{"*"},
 			FacetAttr:    []string{"tags", "authors", "series", "narrators"},
@@ -147,12 +149,12 @@ var paramTests = []paramTest{
 			FacetFilters: []any{""},
 			SortFacetsBy: "",
 			UID:          "",
-			Index:        "index",
+			IndexName:    "index",
 		},
 	},
 	paramTest{
 		query: `?searchableAttributes=title&attributesForFaceting=tags,authors,series,narrators`,
-		want: &Params{
+		want: &param.Params{
 			Other:        url.Values{},
 			SrchAttr:     []string{"title"},
 			FacetAttr:    []string{"tags", "authors", "series", "narrators"},
@@ -170,12 +172,12 @@ var paramTests = []paramTest{
 			FacetFilters: []any{""},
 			SortFacetsBy: "",
 			UID:          "",
-			Index:        "index",
+			IndexName:    "index",
 		},
 	},
 	paramTest{
-		query: `?searchableAttributes=title&attributesForFaceting=tags,authors,series,narrators&dataDir=../testdata/hare`,
-		want: &Params{
+		query: `?searchableAttributes=title&attributesForFaceting=tags,authors,series,narrators&dataDir=testdata/hare`,
+		want: &param.Params{
 			Other:        url.Values{},
 			SrchAttr:     []string{"title"},
 			FacetAttr:    []string{"tags", "authors", "series", "narrators"},
@@ -193,7 +195,7 @@ var paramTests = []paramTest{
 			FacetFilters: []any{""},
 			SortFacetsBy: "",
 			UID:          "",
-			Index:        "index",
+			IndexName:    "index",
 		},
 	},
 }
@@ -207,7 +209,7 @@ func checkIdxName(idx *Idx, want string) error {
 
 func checkAttrs(field string, attrs []string, want []string) error {
 	if !slices.Equal(attrs, want) {
-		return fmt.Errorf("for %v got %#v, wanted %#v\n", field, attrs, idx)
+		return fmt.Errorf("for %v got %#v, wanted %#v\n", field, attrs, want)
 	}
 	return nil
 }
