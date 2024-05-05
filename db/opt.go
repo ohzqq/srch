@@ -60,6 +60,12 @@ func NewDisk(path string) (*disk.Disk, error) {
 			return nil, err
 		}
 	}
+	if !ds.TableExists("index-settings") {
+		err = ds.CreateTable("index-settings")
+		if err != nil {
+			return nil, err
+		}
+	}
 	return ds, nil
 }
 
@@ -68,6 +74,11 @@ func NewMem() (*ram.Ram, error) {
 		Store: store.New(),
 	}
 	err := r.CreateTable("index")
+	if err != nil {
+		return nil, err
+	}
+
+	err = r.CreateTable("index-settings")
 	if err != nil {
 		return nil, err
 	}

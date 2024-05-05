@@ -16,15 +16,22 @@ import (
 type DB struct {
 	*hare.Database
 
-	Name    string
-	ids     []int
+	Name string
+	ids  []int
+	*Mapping
+}
+
+type Mapping struct {
+	ID      int
 	Mapping doc.Mapping
 }
 
 func New(mapping doc.Mapping, opts ...Opt) (*DB, error) {
 	db := &DB{
-		Name:    "index",
-		Mapping: mapping,
+		Name: "index",
+		Mapping: &Mapping{
+			Mapping: mapping,
+		},
 	}
 
 	for _, opt := range opts {
@@ -127,7 +134,7 @@ func (db *DB) FindAll() ([]*doc.Doc, error) {
 
 func (db *DB) InsertDoc(data map[string]any) error {
 	doc := doc.New()
-	for ana, attrs := range db.Mapping {
+	for ana, attrs := range db.Mapping.Mapping {
 		for field, val := range data {
 			if ana == analyzer.Simple && slices.Equal(attrs, []string{"*"}) {
 				doc.AddField(ana, field, val)
@@ -150,7 +157,7 @@ func (db *DB) Search(kw string) ([]int, error) {
 	}
 
 	res := roaring.New()
-	for ana, attrs := range db.Mapping {
+	for ana, attrs := range db.Mapping.Mapping {
 		for _, attr := range attrs {
 			for _, doc := range docs {
 				id := doc.Search(attr, ana, kw)

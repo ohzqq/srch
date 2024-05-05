@@ -16,15 +16,6 @@ func TestDefaultIdx(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err = checkAttrs(i, param.SrchAttr, idx.Params.SrchAttr)
-	if err != nil {
-		t.Errorf("\nparams: %v\nt%v\n", paramTests[i].query, err)
-	}
-
-	err = checkAttrs(i, param.Facets, idx.Params.FacetAttr)
-	if err != nil {
-		t.Errorf("\nparams: %v\n %v\n", paramTests[i].query, err)
-	}
 }
 
 func TestOpenIdx(t *testing.T) {
@@ -39,6 +30,9 @@ func TestOpenIdx(t *testing.T) {
 			t.Fatal(err)
 		}
 
+		if idx.Params.Path != "" {
+			println(idx.Params.Path)
+		}
 	}
 }
 

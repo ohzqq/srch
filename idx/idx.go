@@ -29,6 +29,5 @@ func Open(settings string) (*Idx, error) {
 		return nil, fmt.Errorf("new index param parsing err: %w\n", err)
 	}
 	idx.Params = params
-
 	return idx, nil
 }
