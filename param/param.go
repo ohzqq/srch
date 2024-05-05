@@ -152,6 +152,10 @@ func (s *Params) Set(v url.Values) error {
 		case FacetAttr:
 			//s.FacetAttr = parseFacetAttr(v)
 			s.FacetAttr = GetQueryStringSlice(key.Query(), v)
+
+			if v.Has(Facets.Query()) {
+				s.FacetAttr = GetQueryStringSlice(Facets.Query(), v)
+			}
 		case SortAttr:
 			s.SortAttr = GetQueryStringSlice(key.Query(), v)
 		case DefaultField:

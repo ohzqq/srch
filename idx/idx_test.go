@@ -6,17 +6,7 @@ import (
 	"github.com/ohzqq/srch/param"
 )
 
-const (
-	facetParamStr   = `facets=tags,authors,series,narrators`
-	facetParamSlice = `facets=tags&facets=authors&facets=series&facets=narrators`
-	srchAttrParam   = "searchableAttributes=title"
-	queryParam      = `query=fish`
-	sortParam       = `sortBy=title&order=desc`
-	filterParam     = `facetFilters=["authors:amy lane", ["tags:romance", "tags:-dnr"]]`
-	uidParam        = `uid=id`
-)
-
-func TestNewDB(t *testing.T) {
+func TestDefaultIdx(t *testing.T) {
 	idx := New()
 	err := checkIdxName(idx, "index")
 	if err != nil {
@@ -30,7 +20,7 @@ func TestNewDB(t *testing.T) {
 		t.Errorf("\nparams: %v\ntest num %v: %v\n", paramTests[i].query, i, err)
 	}
 
-	err = checkAttrs(param.FacetAttr.String(), idx.Params.FacetAttr, paramTests[i].want.FacetAttr)
+	err = checkAttrs(param.Facets.String(), idx.Params.FacetAttr, paramTests[i].want.FacetAttr)
 	if err != nil {
 		t.Errorf("\nparams: %v\ntest num %v: %v\n", paramTests[i].query, i, err)
 	}
@@ -56,5 +46,11 @@ func TestOpenIdx(t *testing.T) {
 		if err != nil {
 			t.Errorf("\nparams: %v\ntest num %v: %v\n", test.query, i, err)
 		}
+	}
+}
+
+func TestParams(t *testing.T) {
+	for _, test := range testQuerySettings {
+		println(test)
 	}
 }
