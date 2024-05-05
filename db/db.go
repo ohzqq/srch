@@ -70,9 +70,17 @@ func (db *DB) Init(ds hare.Datastorage) error {
 	return nil
 }
 
-func (db *DB) BatchInsert(m *doc.Mapping, data []map[string]any) error {
-	for _, d := range data {
-		err := db.InsertDoc(m, d)
+func (db *DB) Batch(d []byte) error {
+	r := bytes.NewReader(d)
+	dec := json.NewDecoder(r)
+	for {
+		doc := &doc.Doc{}
+		if err := dec.Decode(doc); err == io.EOF {
+			break
+		} else if err != nil {
+			return err
+		}
+		err := db.Insert(doc)
 		if err != nil {
 			return err
 		}
@@ -80,21 +88,12 @@ func (db *DB) BatchInsert(m *doc.Mapping, data []map[string]any) error {
 	return nil
 }
 
-func (db *DB) Batch(dm *doc.Mapping, d []byte) error {
-	r := bytes.NewReader(d)
-	dec := json.NewDecoder(r)
-	for {
-		m := make(map[string]any)
-		if err := dec.Decode(&m); err == io.EOF {
-			break
-		} else if err != nil {
-			return err
-		}
-		err := db.InsertDoc(dm, m)
-		if err != nil {
-			return err
-		}
+func (db *DB) Insert(doc *doc.Doc) error {
+	id, err := db.Database.Insert(db.Name, doc)
+	if err != nil {
+		return err
 	}
+	db.ids = append(db.ids, id)
 	return nil
 }
 

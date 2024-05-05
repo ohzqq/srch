@@ -100,7 +100,7 @@ func TestFindRec(t *testing.T) {
 func TestNewRamDB(t *testing.T) {
 	//t.SkipNow()
 
-	data, err := os.ReadFile(`../testdata/ndbooks.ndjson`)
+	data, err := os.ReadFile(filepath.Join(hareTestDB, "index.json"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -123,7 +123,7 @@ func TestNewRamDB(t *testing.T) {
 func TestInsertRamDB(t *testing.T) {
 	//t.SkipNow()
 
-	data, err := os.ReadFile(`../testdata/ndbooks.ndjson`)
+	data, err := os.ReadFile(filepath.Join(hareTestDB, "index.json"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -133,7 +133,7 @@ func TestInsertRamDB(t *testing.T) {
 		t.Error(err)
 	}
 
-	err = db.Batch(testMapping(), data)
+	err = db.Batch(data)
 	if err != nil {
 		t.Error(err)
 	}
@@ -150,7 +150,7 @@ func TestInsertRamDB(t *testing.T) {
 }
 
 func TestNewNet(t *testing.T) {
-	d, err := os.ReadFile(`../testdata/ndbooks.ndjson`)
+	d, err := os.ReadFile(filepath.Join(hareTestDB, "index.json"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -187,12 +187,12 @@ func TestInsertRecordsDisk(t *testing.T) {
 		}
 	}
 
-	data, err := newData()
+	data, err := os.ReadFile(filepath.Join(hareTestDB, "index.json"))
 	if err != nil {
 		t.Error(err)
 	}
 
-	err = db.BatchInsert(testMapping(), data)
+	err = db.Batch(data)
 	if err != nil {
 		t.Error(err)
 	}
