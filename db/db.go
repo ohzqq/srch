@@ -4,10 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"io"
-	"slices"
 
 	"github.com/ohzqq/hare"
-	"github.com/ohzqq/srch/analyzer"
 	"github.com/ohzqq/srch/doc"
 )
 
@@ -80,7 +78,7 @@ func (db *DB) Batch(d []byte) error {
 		} else if err != nil {
 			return err
 		}
-		err := db.Insert(doc)
+		err := db.Insert(db.Name, doc)
 		if err != nil {
 			return err
 		}
@@ -88,23 +86,14 @@ func (db *DB) Batch(d []byte) error {
 	return nil
 }
 
-func (db *DB) Insert(doc *doc.Doc) error {
-	id, err := db.Database.Insert(db.Name, doc)
+func (db *DB) Insert(name string, doc *doc.Doc) error {
+	id, err := db.Database.Insert(name, doc)
 	if err != nil {
 		return err
 	}
 	db.ids = append(db.ids, id)
 	return nil
 }
-
-//func (idx *DB) Insert(d []byte) error {
-//  doc := make(map[string]any)
-//  err := json.Unmarshal(d, &doc)
-//  if err != nil {
-//    return err
-//  }
-//  return idx.InsertDoc(doc)
-//}
 
 func (db *DB) Find(ids ...int) ([]*doc.Doc, error) {
 	var docs []*doc.Doc
@@ -136,42 +125,3 @@ func (db *DB) FindAll() ([]*doc.Doc, error) {
 	}
 	return db.Find(ids...)
 }
-
-func (db *DB) InsertDoc(m *doc.Mapping, data map[string]any) error {
-	doc := doc.New()
-	for ana, attrs := range m.Mapping {
-		for field, val := range data {
-			if ana == analyzer.Simple && slices.Equal(attrs, []string{"*"}) {
-				doc.AddField(ana, field, val)
-			}
-			doc.AddField(ana, field, val)
-		}
-	}
-	id, err := db.Database.Insert(db.Name, doc)
-	if err != nil {
-		return err
-	}
-	db.ids = append(db.ids, id)
-	return nil
-}
-
-//func (db *DB) Search(kw string) ([]int, error) {
-//  docs, err := db.Find(-1)
-//  if err != nil {
-//    return nil, err
-//  }
-
-//  res := roaring.New()
-//  for ana, attrs := range db.Mapping.Mapping {
-//    for _, doc := range docs {
-//      for _, attr := range attrs {
-//        id := doc.Search(attr, ana, kw)
-//        if id != -1 {
-//          res.AddInt(id)
-//        }
-//      }
-//    }
-//  }
-//  ids := cast.ToIntSlice(res.ToArray())
-//  return ids, nil
-//}

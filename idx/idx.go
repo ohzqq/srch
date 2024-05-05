@@ -1,8 +1,13 @@
 package idx
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"io"
+	"slices"
 
+	"github.com/ohzqq/srch/analyzer"
 	"github.com/ohzqq/srch/db"
 	"github.com/ohzqq/srch/doc"
 	"github.com/ohzqq/srch/param"
@@ -54,6 +59,41 @@ func Open(settings string) (*Idx, error) {
 		}
 	}
 	return idx, nil
+}
+
+func (db *Idx) Batch(d []byte) error {
+	r := bytes.NewReader(d)
+	dec := json.NewDecoder(r)
+	for {
+		m := make(map[string]any)
+		if err := dec.Decode(&m); err == io.EOF {
+			break
+		} else if err != nil {
+			return err
+		}
+		err := db.InsertDoc(m)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (db *Idx) InsertDoc(data map[string]any) error {
+	doc := doc.New()
+	for ana, attrs := range db.Mapping.Mapping {
+		for field, val := range data {
+			if ana == analyzer.Simple && slices.Equal(attrs, []string{"*"}) {
+				doc.AddField(ana, field, val)
+			}
+			doc.AddField(ana, field, val)
+		}
+	}
+	err := db.DB.Insert(db.Params.IndexName, doc)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func NewMappingFromParams(params *param.Params) *doc.Mapping {

@@ -187,7 +187,7 @@ func TestInsertRecordsDisk(t *testing.T) {
 		}
 	}
 
-	data, err := os.ReadFile(filepath.Join(hareTestDB, "index.json"))
+	data, err := os.ReadFile("/home/mxb/code/srch/param/testdata/hare/index.json")
 	if err != nil {
 		t.Error(err)
 	}
