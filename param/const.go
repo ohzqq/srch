@@ -42,6 +42,7 @@ const (
 	Blv   // blv
 	Dir   // dir
 	File  // file
+	Index // index
 )
 
 const (
@@ -82,6 +83,7 @@ var SettingParams = []Param{
 	UID,
 	DefaultField,
 	Format,
+	Index,
 }
 
 var SearchParams = []Param{

@@ -1,6 +1,8 @@
 package idx
 
-import "testing"
+import (
+	"testing"
+)
 
 const (
 	facetParamStr   = `facets=tags,authors,series,narrators`
@@ -14,17 +16,22 @@ const (
 
 func TestNewDB(t *testing.T) {
 	idx := New()
-	if idx.Name != "index" {
-		t.Error("idx.Name isn't index")
+	err := checkIdxName(idx, "index")
+	if err != nil {
+		t.Fatal(err)
 	}
 }
 
 func TestOpenIdx(t *testing.T) {
-	idx, err := Open(srchAttrParam)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if idx.Name != "index" {
-		t.Error("idx.Name isn't index")
+	for _, test := range paramTests {
+		idx, err := Open(test.query)
+		if err != nil {
+			t.Fatal(err)
+		}
+		err = checkIdxName(idx, "index")
+		if err != nil {
+			t.Fatal(err)
+		}
+		err = checkSrchAttr(idx)
 	}
 }

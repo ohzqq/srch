@@ -33,11 +33,12 @@ func _() {
 	_ = x[Blv-22]
 	_ = x[Dir-23]
 	_ = x[File-24]
+	_ = x[Index-25]
 }
 
-const _Param_name = "hitsattributesToRetrievepagehitsPerPagesortFacetValuesBymaxValuesPerFacetqueryfacetsfiltersfacetFiltersnbHitsnbPagesortByordersearchableAttributesattributesForFacetingsortableAttributespathformattitleuidrouteblvdirfile"
+const _Param_name = "hitsattributesToRetrievepagehitsPerPagesortFacetValuesBymaxValuesPerFacetqueryfacetsfiltersfacetFiltersnbHitsnbPagesortByordersearchableAttributesattributesForFacetingsortableAttributespathformattitleuidrouteblvdirfileindex"
 
-var _Param_index = [...]uint8{0, 4, 24, 28, 39, 56, 73, 78, 84, 91, 103, 109, 115, 121, 126, 146, 167, 185, 189, 195, 200, 203, 208, 211, 214, 218}
+var _Param_index = [...]uint8{0, 4, 24, 28, 39, 56, 73, 78, 84, 91, 103, 109, 115, 121, 126, 146, 167, 185, 189, 195, 200, 203, 208, 211, 214, 218, 223}
 
 func (i Param) String() string {
 	if i < 0 || i >= Param(len(_Param_index)-1) {
