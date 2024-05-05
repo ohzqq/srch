@@ -1,10 +1,6 @@
 package db
 
 import (
-	"bytes"
-	"encoding/json"
-	"io"
-
 	"github.com/ohzqq/hare"
 	"github.com/ohzqq/srch/doc"
 )
@@ -12,9 +8,7 @@ import (
 type DB struct {
 	*hare.Database
 
-	Name   string
 	Tables []string
-	ids    []int
 }
 
 func Open(ds hare.Datastorage) (*DB, error) {
@@ -29,9 +23,7 @@ func Open(ds hare.Datastorage) (*DB, error) {
 }
 
 func new() *DB {
-	return &DB{
-		Name: "index",
-	}
+	return &DB{}
 }
 
 func New(opts ...Opt) (*DB, error) {
@@ -65,33 +57,6 @@ func (db *DB) Init(ds hare.Datastorage) error {
 	}
 	db.Tables = ds.TableNames()
 	db.Database = h
-	return nil
-}
-
-func (db *DB) Batch(name string, d []byte) error {
-	r := bytes.NewReader(d)
-	dec := json.NewDecoder(r)
-	for {
-		doc := &doc.Doc{}
-		if err := dec.Decode(doc); err == io.EOF {
-			break
-		} else if err != nil {
-			return err
-		}
-		err := db.Insert(name, doc)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (db *DB) Insert(name string, doc *doc.Doc) error {
-	id, err := db.Database.Insert(name, doc)
-	if err != nil {
-		return err
-	}
-	db.ids = append(db.ids, id)
 	return nil
 }
 

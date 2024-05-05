@@ -1,6 +1,9 @@
 package db
 
 import (
+	"bytes"
+	"encoding/json"
+	"io"
 	"os"
 	"path/filepath"
 	"slices"
@@ -123,17 +126,12 @@ func TestNewRamDB(t *testing.T) {
 func TestInsertRamDB(t *testing.T) {
 	//t.SkipNow()
 
-	data, err := os.ReadFile(filepath.Join(hareTestDB, "index.json"))
-	if err != nil {
-		t.Fatal(err)
-	}
-
 	db, err := New()
 	if err != nil {
 		t.Error(err)
 	}
 
-	err = db.Batch("index", data)
+	err = batchInsert(db)
 	if err != nil {
 		t.Error(err)
 	}
@@ -146,7 +144,6 @@ func TestInsertRamDB(t *testing.T) {
 	if len(ids) != 7251 {
 		t.Errorf("got %v, want %v\n", len(ids), 7251)
 	}
-
 }
 
 func TestNewNet(t *testing.T) {
@@ -187,15 +184,11 @@ func TestInsertRecordsDisk(t *testing.T) {
 		}
 	}
 
-	data, err := os.ReadFile("/home/mxb/code/srch/param/testdata/hare/index.json")
+	err = batchInsert(db)
 	if err != nil {
 		t.Error(err)
 	}
 
-	err = db.Batch("index", data)
-	if err != nil {
-		t.Error(err)
-	}
 }
 
 func testMapping() *doc.Mapping {
@@ -224,4 +217,28 @@ func newData() ([]map[string]any, error) {
 	}
 
 	return recs, err
+}
+
+func batchInsert(db *DB) error {
+	data, err := os.ReadFile("/home/mxb/code/srch/param/testdata/hare/index.json")
+	if err != nil {
+		return err
+	}
+
+	r := bytes.NewReader(data)
+	dec := json.NewDecoder(r)
+	for {
+		doc := &doc.Doc{}
+		if err := dec.Decode(doc); err == io.EOF {
+			break
+		} else if err != nil {
+			return err
+		}
+		_, err := db.Insert("index", doc)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

@@ -10,13 +10,6 @@ import (
 
 type Opt func(*DB) error
 
-func WithName(name string) Opt {
-	return func(db *DB) error {
-		db.Name = name
-		return nil
-	}
-}
-
 func WithDisk(path string) Opt {
 	return func(db *DB) error {
 		ds, err := NewDisk(path)
