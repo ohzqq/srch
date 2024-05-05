@@ -17,7 +17,9 @@ type Idx struct {
 func New() *Idx {
 	db, _ := db.New()
 
-	db.Database.Insert("index-settings", doc.DefaultMapping())
+	m := doc.DefaultMapping()
+
+	db.Database.Insert("index-settings", m)
 	return &Idx{
 		Params:  param.New(),
 		DB:      db,
