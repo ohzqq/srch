@@ -47,7 +47,6 @@ func TestMemHare(t *testing.T) {
 
 func TestAllRecs(t *testing.T) {
 	//t.SkipNow()
-	params := testParams()
 	dsk, err := NewDisk(hareTestDB)
 	if err != nil {
 		t.Error(err)
@@ -66,8 +65,7 @@ func TestAllRecs(t *testing.T) {
 		i++
 	}
 
-	m := doc.NewMappingFromParams(params)
-	db, err := New(m, WithDisk(hareTestDB))
+	db, err := New(WithDisk(hareTestDB))
 	if err != nil {
 		t.Error(err)
 	}
@@ -81,85 +79,10 @@ func TestAllRecs(t *testing.T) {
 	}
 }
 
-func TestSearchDB(t *testing.T) {
-	tests := []map[string][]string{
-		map[string][]string{
-			"dragon": []string{"title"},
-		},
-		map[string][]string{
-			"omega": []string{"title"},
-		},
-		map[string][]string{
-			"dragon omega": []string{"title"},
-		},
-		map[string][]string{
-			"dragon": []string{"comments"},
-		},
-		map[string][]string{
-			"omega": []string{"comments"},
-		},
-		map[string][]string{
-			"dragon omega": []string{"comments"},
-		},
-		map[string][]string{
-			"dragon": []string{"title", "comments"},
-		},
-		map[string][]string{
-			"omega": []string{"title", "comments"},
-		},
-		map[string][]string{
-			"dragon omega": []string{"title", "comments"},
-		},
-	}
-
-	want := []int{
-		74,
-		97,
-		1,
-		185,
-		328,
-		23,
-		200,
-		345,
-		23,
-	}
-	dsk, err := NewDiskStore(hareTestDB)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	for i, test := range tests {
-		for kw, attrs := range test {
-			params := param.New()
-			params.SrchAttr = attrs
-
-			m := doc.NewMappingFromParams(params)
-			db, err := New(m)
-			if err != nil {
-				t.Error(err)
-			}
-			err = db.Init(dsk)
-			if err != nil {
-				t.Fatal(err)
-			}
-
-			ids, err := db.Search(kw)
-			if err != nil {
-				t.Error(err)
-			}
-			if res := len(ids); res != want[i] {
-				t.Errorf("kw %s, attrs %v: got %v results, wanted %v\n", kw, attrs, res, want[i])
-			}
-		}
-	}
-}
-
 func TestFindRec(t *testing.T) {
 	//t.SkipNow()
-	params := testParams()
-	m := doc.NewMappingFromParams(params)
 
-	db, err := New(m, WithDisk(hareTestDB))
+	db, err := New(WithDisk(hareTestDB))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -177,15 +100,12 @@ func TestFindRec(t *testing.T) {
 func TestNewRamDB(t *testing.T) {
 	//t.SkipNow()
 
-	params := testParams()
-	m := doc.NewMappingFromParams(params)
-
 	data, err := os.ReadFile(`../testdata/ndbooks.ndjson`)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	db, err := New(m, WithData(data))
+	db, err := New(WithData(data))
 	if err != nil {
 		t.Error(err)
 	}
@@ -198,31 +118,22 @@ func TestNewRamDB(t *testing.T) {
 	if len(ids) != 7251 {
 		t.Errorf("got %v, want %v\n", len(ids), 7251)
 	}
-
-	//err = db.Batch(data)
-	//if err != nil {
-	//t.Error(err)
-	//}
 }
 
 func TestInsertRamDB(t *testing.T) {
 	//t.SkipNow()
-
-	//params := testParams()
-	//m := doc.NewMappingFromParams(params)
-	m := doc.DefaultMapping()
 
 	data, err := os.ReadFile(`../testdata/ndbooks.ndjson`)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	db, err := New(m)
+	db, err := New()
 	if err != nil {
 		t.Error(err)
 	}
 
-	err = db.Batch(data)
+	err = db.Batch(testMapping(), data)
 	if err != nil {
 		t.Error(err)
 	}
@@ -244,10 +155,7 @@ func TestNewNet(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	params := testParams()
-	m := doc.NewMappingFromParams(params)
-
-	db, err := New(m, WithURL("http://mxb.ca/search/index.json", d))
+	db, err := New(WithURL("http://mxb.ca/search/index.json", d))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -263,10 +171,7 @@ func TestNewNet(t *testing.T) {
 
 func TestInsertRecordsDisk(t *testing.T) {
 	//t.SkipNow()
-	params := testParams()
-	m := doc.NewMappingFromParams(params)
-
-	db, err := New(m, WithDisk(hareTestDB))
+	db, err := New(WithDisk(hareTestDB))
 	if err != nil {
 		t.Error(err)
 	}
@@ -287,10 +192,17 @@ func TestInsertRecordsDisk(t *testing.T) {
 		t.Error(err)
 	}
 
-	err = db.BatchInsert(data)
+	err = db.BatchInsert(testMapping(), data)
 	if err != nil {
 		t.Error(err)
 	}
+}
+
+func testMapping() *doc.Mapping {
+	m := doc.NewMapping()
+	m.AddFulltext("title", "comments", "tags")
+	m.AddKeywords("tags")
+	return m
 }
 
 func testParams() *param.Params {

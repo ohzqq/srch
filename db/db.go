@@ -6,11 +6,9 @@ import (
 	"io"
 	"slices"
 
-	"github.com/RoaringBitmap/roaring"
 	"github.com/ohzqq/hare"
 	"github.com/ohzqq/srch/analyzer"
 	"github.com/ohzqq/srch/doc"
-	"github.com/spf13/cast"
 )
 
 type DB struct {
@@ -19,7 +17,6 @@ type DB struct {
 	Name   string
 	Tables []string
 	ids    []int
-	*doc.Mapping
 }
 
 func Open(ds hare.Datastorage) (*DB, error) {
@@ -30,26 +27,17 @@ func Open(ds hare.Datastorage) (*DB, error) {
 		return nil, err
 	}
 
-	if db.TableExists("index-settings") {
-		err := db.Database.Find("index-settings", 0, db.Mapping)
-		if err != nil {
-			return nil, err
-		}
-	}
-
 	return db, nil
 }
 
 func new() *DB {
 	return &DB{
-		Name:    "index",
-		Mapping: doc.DefaultMapping(),
+		Name: "index",
 	}
 }
 
-func New(mapping *doc.Mapping, opts ...Opt) (*DB, error) {
+func New(opts ...Opt) (*DB, error) {
 	db := new()
-	db.Mapping = mapping
 
 	for _, opt := range opts {
 		err := opt(db)
@@ -69,8 +57,6 @@ func New(mapping *doc.Mapping, opts ...Opt) (*DB, error) {
 		}
 	}
 
-	db.Database.Insert("index-settings", db.Mapping)
-
 	return db, nil
 }
 
@@ -84,9 +70,9 @@ func (db *DB) Init(ds hare.Datastorage) error {
 	return nil
 }
 
-func (db *DB) BatchInsert(data []map[string]any) error {
+func (db *DB) BatchInsert(m *doc.Mapping, data []map[string]any) error {
 	for _, d := range data {
-		err := db.InsertDoc(d)
+		err := db.InsertDoc(m, d)
 		if err != nil {
 			return err
 		}
@@ -94,7 +80,7 @@ func (db *DB) BatchInsert(data []map[string]any) error {
 	return nil
 }
 
-func (db *DB) Batch(d []byte) error {
+func (db *DB) Batch(dm *doc.Mapping, d []byte) error {
 	r := bytes.NewReader(d)
 	dec := json.NewDecoder(r)
 	for {
@@ -104,7 +90,7 @@ func (db *DB) Batch(d []byte) error {
 		} else if err != nil {
 			return err
 		}
-		err := db.InsertDoc(m)
+		err := db.InsertDoc(dm, m)
 		if err != nil {
 			return err
 		}
@@ -112,14 +98,14 @@ func (db *DB) Batch(d []byte) error {
 	return nil
 }
 
-func (idx *DB) Insert(d []byte) error {
-	doc := make(map[string]any)
-	err := json.Unmarshal(d, &doc)
-	if err != nil {
-		return err
-	}
-	return idx.InsertDoc(doc)
-}
+//func (idx *DB) Insert(d []byte) error {
+//  doc := make(map[string]any)
+//  err := json.Unmarshal(d, &doc)
+//  if err != nil {
+//    return err
+//  }
+//  return idx.InsertDoc(doc)
+//}
 
 func (db *DB) Find(ids ...int) ([]*doc.Doc, error) {
 	var docs []*doc.Doc
@@ -152,9 +138,9 @@ func (db *DB) FindAll() ([]*doc.Doc, error) {
 	return db.Find(ids...)
 }
 
-func (db *DB) InsertDoc(data map[string]any) error {
+func (db *DB) InsertDoc(m *doc.Mapping, data map[string]any) error {
 	doc := doc.New()
-	for ana, attrs := range db.Mapping.Mapping {
+	for ana, attrs := range m.Mapping {
 		for field, val := range data {
 			if ana == analyzer.Simple && slices.Equal(attrs, []string{"*"}) {
 				doc.AddField(ana, field, val)
@@ -170,23 +156,23 @@ func (db *DB) InsertDoc(data map[string]any) error {
 	return nil
 }
 
-func (db *DB) Search(kw string) ([]int, error) {
-	docs, err := db.Find(-1)
-	if err != nil {
-		return nil, err
-	}
+//func (db *DB) Search(kw string) ([]int, error) {
+//  docs, err := db.Find(-1)
+//  if err != nil {
+//    return nil, err
+//  }
 
-	res := roaring.New()
-	for ana, attrs := range db.Mapping.Mapping {
-		for _, doc := range docs {
-			for _, attr := range attrs {
-				id := doc.Search(attr, ana, kw)
-				if id != -1 {
-					res.AddInt(id)
-				}
-			}
-		}
-	}
-	ids := cast.ToIntSlice(res.ToArray())
-	return ids, nil
-}
+//  res := roaring.New()
+//  for ana, attrs := range db.Mapping.Mapping {
+//    for _, doc := range docs {
+//      for _, attr := range attrs {
+//        id := doc.Search(attr, ana, kw)
+//        if id != -1 {
+//          res.AddInt(id)
+//        }
+//      }
+//    }
+//  }
+//  ids := cast.ToIntSlice(res.ToArray())
+//  return ids, nil
+//}

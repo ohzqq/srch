@@ -3,7 +3,6 @@ package doc
 import (
 	"github.com/ohzqq/hare"
 	"github.com/ohzqq/srch/analyzer"
-	"github.com/ohzqq/srch/param"
 )
 
 type Mapping struct {
@@ -21,20 +20,6 @@ func NewMapping() *Mapping {
 func DefaultMapping() *Mapping {
 	m := NewMapping()
 	m.AddSimple("*")
-	return m
-}
-
-func NewMappingFromParams(params *param.Params) *Mapping {
-	m := NewMapping()
-
-	for _, attr := range params.SrchAttr {
-		m.AddFulltext(attr)
-	}
-
-	for _, attr := range params.Facets {
-		m.AddKeywords(attr)
-	}
-
 	return m
 }
 

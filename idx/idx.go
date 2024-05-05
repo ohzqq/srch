@@ -15,12 +15,13 @@ type Idx struct {
 }
 
 func New() *Idx {
-	m := doc.DefaultMapping()
-	db, _ := db.New(m)
+	db, _ := db.New()
+
+	db.Database.Insert("index-settings", doc.DefaultMapping())
 	return &Idx{
 		Params:  param.New(),
 		DB:      db,
-		Mapping: doc.DefaultMapping(),
+		Mapping: m,
 	}
 }
 
@@ -44,15 +45,15 @@ func Open(settings string) (*Idx, error) {
 		}
 	}
 
-	if idx.DB.TableExists("index-settings") {
-		err := idx.DB.Database.Find("index-settings", 0, idx.Mapping)
+	if idx.DB.TableExists(idx.Params.IndexName + "-settings") {
+		err := idx.DB.Database.Find(idx.Params.IndexName+"-settings", 0, idx.Mapping)
 		if err != nil {
 			return nil, err
 		}
 	}
-
 	return idx, nil
 }
+
 func NewMappingFromParams(params *param.Params) *doc.Mapping {
 	m := doc.NewMapping()
 
