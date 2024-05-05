@@ -388,7 +388,7 @@ func unmarshalFilter(dec string) ([]any, error) {
 }
 
 func parseSrchAttr(vals url.Values) []string {
-	attrs := []string{"*"}
+	var attrs []string
 	if vals.Has(SrchAttr.Query()) {
 		attrs = GetQueryStringSlice(SrchAttr.Query(), vals)
 	}
