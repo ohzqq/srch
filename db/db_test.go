@@ -125,12 +125,27 @@ func TestSearchDB(t *testing.T) {
 		23,
 	}
 
-	ds, err := NewDiskStore(hareTestDB)
-	if err != nil {
-		t.Fatal(err)
-	}
+	//ds, err := NewDiskStore(hareTestDB)
+	//if err != nil {
+	//t.Fatal(err)
+	//}
 
-	db, err := Open(ds)
+	//db, err := Open(ds)
+	//if err != nil {
+	//t.Fatal(err)
+	//}
+
+	//tables := ds.TableNames()
+	//slices.Sort(tables)
+	//slices.Sort(db.Tables)
+	//if !slices.Equal(db.Tables, tables) {
+	//t.Errorf("got %v, wanted %v\n", db.Tables, tables)
+	//}
+
+	//fmt.Printf("mapping %#v\n", db.Mapping)
+
+	m := doc.NewMappingFromParams(testParams())
+	db, err := New(m, WithDisk(hareTestDB))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -139,16 +154,6 @@ func TestSearchDB(t *testing.T) {
 		for kw, attrs := range test {
 			params := param.New()
 			params.SrchAttr = attrs
-
-			//m := doc.NewMappingFromParams(params)
-			//db, err := New(m)
-			//if err != nil {
-			//t.Error(err)
-			//}
-			//err = db.Init(dsk)
-			//if err != nil {
-			//t.Fatal(err)
-			//}
 
 			ids, err := db.Search(kw)
 			if err != nil {

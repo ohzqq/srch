@@ -16,8 +16,9 @@ import (
 type DB struct {
 	*hare.Database
 
-	Name string
-	ids  []int
+	Name   string
+	Tables []string
+	ids    []int
 	*Mapping
 }
 
@@ -55,6 +56,7 @@ func new() *DB {
 
 func New(mapping doc.Mapping, opts ...Opt) (*DB, error) {
 	db := new()
+	db.Mapping.Mapping = mapping
 
 	for _, opt := range opts {
 		err := opt(db)
@@ -84,6 +86,7 @@ func (db *DB) Init(ds hare.Datastorage) error {
 	if err != nil {
 		return err
 	}
+	db.Tables = ds.TableNames()
 	db.Database = h
 	return nil
 }
@@ -182,8 +185,8 @@ func (db *DB) Search(kw string) ([]int, error) {
 
 	res := roaring.New()
 	for ana, attrs := range db.Mapping.Mapping {
-		for _, attr := range attrs {
-			for _, doc := range docs {
+		for _, doc := range docs {
+			for _, attr := range attrs {
 				id := doc.Search(attr, ana, kw)
 				if id != -1 {
 					res.AddInt(id)

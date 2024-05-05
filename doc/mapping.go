@@ -13,7 +13,7 @@ func NewMapping() Mapping {
 
 func DefaultMapping() Mapping {
 	m := NewMapping()
-	m.AddSimple("*")
+	//m.AddSimple("*")
 	return m
 }
 

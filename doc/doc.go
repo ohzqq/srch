@@ -117,10 +117,13 @@ func (d *Doc) Search(name string, ana analyzer.Analyzer, kw string) int {
 	toks := ana.Tokenize(kw)
 	var found []bool
 	for _, tok := range toks {
-		found = append(found, d.SearchField(name, tok))
+		f := d.SearchField(name, tok)
+		found = append(found, f)
 	}
+
 	if f := lo.Uniq(found); len(f) == 1 {
 		if f[0] {
+			//fmt.Printf("field %s: found %v\n", name, found)
 			return d.GetID()
 		}
 	}
