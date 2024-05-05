@@ -10,6 +10,7 @@ import (
 
 type Idx struct {
 	*db.DB
+	*doc.Mapping
 	Params *param.Params
 }
 
@@ -17,8 +18,9 @@ func New() *Idx {
 	m := doc.DefaultMapping()
 	db, _ := db.New(m)
 	return &Idx{
-		Params: param.New(),
-		DB:     db,
+		Params:  param.New(),
+		DB:      db,
+		Mapping: doc.DefaultMapping(),
 	}
 }
 
@@ -37,6 +39,13 @@ func Open(settings string) (*Idx, error) {
 		}
 
 		idx.DB, err = db.Open(ds)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if idx.DB.TableExists("index-settings") {
+		err := idx.DB.Database.Find("index-settings", 0, idx.Mapping)
 		if err != nil {
 			return nil, err
 		}
