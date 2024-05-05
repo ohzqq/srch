@@ -388,22 +388,23 @@ func unmarshalFilter(dec string) ([]any, error) {
 }
 
 func parseSrchAttr(vals url.Values) []string {
-	var attrs []string
+	attrs := []string{"*"}
 	if vals.Has(SrchAttr.Query()) {
-		attrs = GetQueryStringSlice(SrchAttr.Query(), vals)
-	}
+		v := GetQueryStringSlice(SrchAttr.Query(), vals)
 
-	switch len(attrs) {
-	case 0:
-		return []string{"*"}
-	case 1:
-		if attrs[0] == "" {
-			return []string{"*"}
+		switch len(v) {
+		case 0:
+			return attrs
+		case 1:
+			if v[0] == "" {
+				return attrs
+			}
+			fallthrough
+		default:
+			return v
 		}
-		fallthrough
-	default:
-		return attrs
 	}
+	return attrs
 }
 
 func parseFacetAttr(vals url.Values) []string {
