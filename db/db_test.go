@@ -1,7 +1,6 @@
 package db
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"slices"
@@ -148,7 +147,7 @@ func TestSearchDB(t *testing.T) {
 	//if err != nil {
 	//t.Fatal(err)
 	//}
-	dsk, err := NewDisk(hareTestDB)
+	dsk, err := NewDiskStore(hareTestDB)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -173,8 +172,7 @@ func TestSearchDB(t *testing.T) {
 				t.Error(err)
 			}
 			if res := len(ids); res != want[i] {
-				fmt.Printf("kw %s, attrs %v: %#v\n", kw, attrs, res)
-				t.Errorf("got %v results, wanted %v\n", res, want[i])
+				t.Errorf("kw %s, attrs %v: got %v results, wanted %v\n", kw, attrs, res, want[i])
 			}
 		}
 	}
