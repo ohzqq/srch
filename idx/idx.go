@@ -32,6 +32,16 @@ func New() *Idx {
 	}
 }
 
+func Configure(settings string) *Idx {
+	idx := New()
+	params, err := param.Parse(settings)
+	if err != nil {
+		return idx
+	}
+	idx.Params = params
+	return idx
+}
+
 func Open(settings string) (*Idx, error) {
 	idx := New()
 	params, err := param.Parse(settings)
@@ -71,7 +81,7 @@ func (db *Idx) Batch(d []byte) error {
 		} else if err != nil {
 			return err
 		}
-		err := db.InsertDoc(m)
+		err := db.Index(m)
 		if err != nil {
 			return err
 		}
@@ -79,9 +89,9 @@ func (db *Idx) Batch(d []byte) error {
 	return nil
 }
 
-func (db *Idx) InsertDoc(data map[string]any) error {
+func (idx *Idx) Index(data map[string]any) error {
 	doc := doc.New()
-	for ana, attrs := range db.Mapping.Mapping {
+	for ana, attrs := range idx.Mapping.Mapping {
 		for field, val := range data {
 			if ana == analyzer.Simple && slices.Equal(attrs, []string{"*"}) {
 				doc.AddField(ana, field, val)
@@ -89,7 +99,7 @@ func (db *Idx) InsertDoc(data map[string]any) error {
 			doc.AddField(ana, field, val)
 		}
 	}
-	err := db.DB.Insert(db.Params.IndexName, doc)
+	_, err := idx.DB.Insert(idx.Params.IndexName, doc)
 	if err != nil {
 		return err
 	}
