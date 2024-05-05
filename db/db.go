@@ -22,8 +22,8 @@ type DB struct {
 }
 
 type Mapping struct {
-	ID      int
-	Mapping doc.Mapping
+	ID      int         `json:"id"`
+	Mapping doc.Mapping `json:"mapping"`
 }
 
 func Open(ds hare.Datastorage) (*DB, error) {
@@ -32,6 +32,13 @@ func Open(ds hare.Datastorage) (*DB, error) {
 	err := db.Init(ds)
 	if err != nil {
 		return nil, err
+	}
+
+	if db.TableExists("index-settings") {
+		err := db.Database.Find("index-settings", 0, db.Mapping)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return db, nil
