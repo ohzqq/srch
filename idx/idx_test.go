@@ -51,6 +51,7 @@ func TestParams(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
+
 		err = checkIdxName(params.IndexName, "index")
 		if err != nil {
 			t.Error(err)
@@ -62,6 +63,11 @@ func TestParams(t *testing.T) {
 		}
 
 		err = checkAttrs(param.FacetAttr.String(), params.FacetAttr, test.want.FacetAttr)
+		if err != nil {
+			t.Errorf("\nparams: %v\ntest num %v: %v\n", test.query, i, err)
+		}
+
+		err = checkAttrs(param.Facets.String(), params.Facets, test.want.Facets)
 		if err != nil {
 			t.Errorf("\nparams: %v\ntest num %v: %v\n", test.query, i, err)
 		}
