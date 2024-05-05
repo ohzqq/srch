@@ -69,7 +69,6 @@ func New() *Params {
 		Other:     make(url.Values),
 		UID:       "id",
 		SrchAttr:  []string{"*"},
-		FacetAttr: []string{""},
 		IndexName: "index",
 	}
 }
@@ -352,7 +351,7 @@ func GetQueryInt(key string, vals url.Values) int {
 
 func GetQueryStringSlice(key string, q url.Values) []string {
 	if !q.Has(key) {
-		return []string{""}
+		return []string{}
 	}
 	var vals []string
 	for _, val := range q[key] {
