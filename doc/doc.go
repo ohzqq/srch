@@ -14,7 +14,6 @@ type Doc struct {
 	Keyword  map[string]*bloom.BloomFilter `json:"attributesForFaceting"`
 	Simple   map[string]*bloom.BloomFilter `json:"attributesForFaceting"`
 	ID       int                           `json:"id"`
-	Mapping  Mapping                       `json:"-"`
 }
 
 func New() *Doc {
@@ -22,13 +21,7 @@ func New() *Doc {
 		Standard: make(map[string]*bloom.BloomFilter),
 		Keyword:  make(map[string]*bloom.BloomFilter),
 		Simple:   make(map[string]*bloom.BloomFilter),
-		Mapping:  NewMapping(),
 	}
-}
-
-func (d *Doc) SetMapping(m Mapping) *Doc {
-	d.Mapping = m
-	return d
 }
 
 func (doc *Doc) AddField(ana analyzer.Analyzer, attr string, val any) {
@@ -51,8 +44,8 @@ func (doc *Doc) AddField(ana analyzer.Analyzer, attr string, val any) {
 	}
 }
 
-func (doc *Doc) SetData(data map[string]any) *Doc {
-	for ana, attrs := range doc.Mapping {
+func (doc *Doc) SetData(m *Mapping, data map[string]any) *Doc {
+	for ana, attrs := range m.Mapping {
 		for _, attr := range attrs {
 			if val, ok := data[attr]; ok {
 				str := cast.ToString(val)

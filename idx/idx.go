@@ -3,7 +3,6 @@ package idx
 import (
 	"fmt"
 
-	"github.com/ohzqq/srch/analyzer"
 	"github.com/ohzqq/srch/db"
 	"github.com/ohzqq/srch/doc"
 	"github.com/ohzqq/srch/param"
@@ -24,7 +23,6 @@ func New() *Idx {
 }
 
 func Open(settings string) (*Idx, error) {
-	//idx := &Idx{}
 	idx := New()
 	params, err := param.Parse(settings)
 	if err != nil {
@@ -37,6 +35,7 @@ func Open(settings string) (*Idx, error) {
 		if err != nil {
 			return nil, err
 		}
+
 		idx.DB, err = db.Open(ds)
 		if err != nil {
 			return nil, err
@@ -45,20 +44,15 @@ func Open(settings string) (*Idx, error) {
 
 	return idx, nil
 }
-
-func NewMappingFromParams(params *param.Params) doc.Mapping {
-	m := make(doc.Mapping)
+func NewMappingFromParams(params *param.Params) *doc.Mapping {
+	m := doc.NewMapping()
 
 	for _, attr := range params.SrchAttr {
-		m[analyzer.Standard] = append(m[analyzer.Standard], attr)
+		m.AddFulltext(attr)
 	}
 
-	for _, attr := range params.FacetAttr {
-		m[analyzer.Keyword] = append(m[analyzer.Keyword], attr)
-	}
-
-	if m == nil {
-		return doc.DefaultMapping()
+	for _, attr := range params.Facets {
+		m.AddKeywords(attr)
 	}
 
 	return m

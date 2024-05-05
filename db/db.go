@@ -19,12 +19,7 @@ type DB struct {
 	Name   string
 	Tables []string
 	ids    []int
-	*Mapping
-}
-
-type Mapping struct {
-	ID      int         `json:"id"`
-	Mapping doc.Mapping `json:"mapping"`
+	*doc.Mapping
 }
 
 func Open(ds hare.Datastorage) (*DB, error) {
@@ -47,16 +42,14 @@ func Open(ds hare.Datastorage) (*DB, error) {
 
 func new() *DB {
 	return &DB{
-		Name: "index",
-		Mapping: &Mapping{
-			Mapping: doc.DefaultMapping(),
-		},
+		Name:    "index",
+		Mapping: doc.DefaultMapping(),
 	}
 }
 
-func New(mapping doc.Mapping, opts ...Opt) (*DB, error) {
+func New(mapping *doc.Mapping, opts ...Opt) (*DB, error) {
 	db := new()
-	db.Mapping.Mapping = mapping
+	db.Mapping = mapping
 
 	for _, opt := range opts {
 		err := opt(db)
@@ -196,16 +189,4 @@ func (db *DB) Search(kw string) ([]int, error) {
 	}
 	ids := cast.ToIntSlice(res.ToArray())
 	return ids, nil
-}
-
-func (m *Mapping) SetID(id int) {
-	m.ID = id
-}
-
-func (m *Mapping) GetID() int {
-	return m.ID
-}
-
-func (m *Mapping) AfterFind(_ *hare.Database) error {
-	return nil
 }

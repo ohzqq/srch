@@ -31,7 +31,7 @@ const (
 	testDataFile   = `testdata/nddata/ndbooks.ndjson`
 	testDataDir    = `/testdata/hare`
 	testBlvPath    = `testdata/poot.bleve`
-	testHareDskDir = `/home/mxb/code/srch/param/testdata/hare`
+	testHareDskDir = `/home/mxb/code/srch/testdata/hare`
 	testHareURL    = `/testdata/hare`
 )
 
