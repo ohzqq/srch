@@ -108,42 +108,6 @@ func (p Params) Search() url.Values {
 	return vals
 }
 
-// Index returns a url.Values with only index setting params
-func (p Params) Index() url.Values {
-	vals := make(url.Values)
-	for _, key := range SettingParams {
-		q := p.URL.Query()
-		if q.Has(key.Query()) {
-			vals[key.Query()] = q[key.Query()]
-		}
-	}
-	return vals
-}
-
-// SettingsToQuery returns a map with all keys converted to camelcase
-func SettingsToQuery(settings map[string]any) map[string]any {
-	for key, val := range settings {
-		settings[flect.Camelize(key)] = val
-	}
-	return settings
-}
-
-// QueryToSettings returns a map with all keys converted to snakecase
-func QueryToSettings(settings map[string]any) map[string]any {
-	q := make(map[string]any)
-	for key, val := range settings {
-		q[flect.Underscore(key)] = val
-	}
-	return q
-}
-
-// DecodeSnakeMap decodes a map with snakecase keys to Params
-func DecodeSnakeMap(settings map[string]any) (*Params, error) {
-	p := New()
-	err := mapstructure.Decode(QueryToSettings(settings), p)
-	return p, err
-}
-
 func (s *Params) Set(v url.Values) error {
 	for _, key := range SettingParams {
 		switch key {
@@ -165,6 +129,10 @@ func (s *Params) Set(v url.Values) error {
 		case Format:
 			if v.Has(key.Query()) {
 				s.Format = v.Get(key.Query())
+			}
+		case Path:
+			if v.Has(key.Query()) {
+				s.Path = v.Get(key.Query())
 			}
 		}
 	}
@@ -327,6 +295,42 @@ func (p *Params) Encode() string {
 func (p *Params) String() string {
 	p.URL.RawQuery = p.Encode()
 	return p.URL.String()
+}
+
+// Index returns a url.Values with only index setting params
+func (p Params) Index() url.Values {
+	vals := make(url.Values)
+	for _, key := range SettingParams {
+		q := p.URL.Query()
+		if q.Has(key.Query()) {
+			vals[key.Query()] = q[key.Query()]
+		}
+	}
+	return vals
+}
+
+// SettingsToQuery returns a map with all keys converted to camelcase
+func SettingsToQuery(settings map[string]any) map[string]any {
+	for key, val := range settings {
+		settings[flect.Camelize(key)] = val
+	}
+	return settings
+}
+
+// QueryToSettings returns a map with all keys converted to snakecase
+func QueryToSettings(settings map[string]any) map[string]any {
+	q := make(map[string]any)
+	for key, val := range settings {
+		q[flect.Underscore(key)] = val
+	}
+	return q
+}
+
+// DecodeSnakeMap decodes a map with snakecase keys to Params
+func DecodeSnakeMap(settings map[string]any) (*Params, error) {
+	p := New()
+	err := mapstructure.Decode(QueryToSettings(settings), p)
+	return p, err
 }
 
 // ParseQueryString parses an encoded filter string.

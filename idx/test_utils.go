@@ -137,6 +137,7 @@ var paramTests = []paramTest{
 			SortFacetsBy: "",
 			UID:          "",
 			IndexName:    "index",
+			Path:         testDataDir,
 		},
 	},
 	paramTest{
@@ -183,6 +184,7 @@ var paramTests = []paramTest{
 			SortFacetsBy: "",
 			UID:          "",
 			IndexName:    "index",
+			Path:         testDataDir,
 		},
 	},
 	paramTest{
@@ -229,6 +231,7 @@ var paramTests = []paramTest{
 			SortFacetsBy: "",
 			UID:          "",
 			IndexName:    "index",
+			Path:         testDataDir,
 		},
 	},
 }
@@ -236,6 +239,14 @@ var paramTests = []paramTest{
 func checkIdxName(got, want string) error {
 	if got != want {
 		return fmt.Errorf("index name is %v, wanted %v\n", got, want)
+	}
+	return nil
+}
+
+func checkDataPath(num int, got string) error {
+	want := paramTests[num].want.Path
+	if got != want {
+		return fmt.Errorf("test num %v: index path is %v, wanted %v\n", num, got, want)
 	}
 	return nil
 }

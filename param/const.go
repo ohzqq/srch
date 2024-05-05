@@ -84,6 +84,7 @@ var SettingParams = []Param{
 	DefaultField,
 	Format,
 	Index,
+	Path,
 }
 
 var SearchParams = []Param{
@@ -102,7 +103,6 @@ var SearchParams = []Param{
 	Filters,
 	FacetFilters,
 	Route,
-	Path,
 }
 
 var Routes = []Param{

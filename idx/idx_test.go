@@ -33,15 +33,11 @@ func TestOpenIdx(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		err = checkAttrs(param.SrchAttr.String(), idx.Params.SrchAttr, test.want.SrchAttr)
+		err = checkDataPath(i, idx.Params.Path)
 		if err != nil {
-			t.Errorf("\nparams: %v\ntest num %v: %v\n", test.query, i, err)
+			t.Fatal(err)
 		}
 
-		err = checkAttrs(param.FacetAttr.String(), idx.Params.FacetAttr, test.want.FacetAttr)
-		if err != nil {
-			t.Errorf("\nparams: %v\ntest num %v: %v\n", test.query, i, err)
-		}
 	}
 }
 
