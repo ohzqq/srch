@@ -68,7 +68,7 @@ func (db *DB) Init(ds hare.Datastorage) error {
 	return nil
 }
 
-func (db *DB) Batch(d []byte) error {
+func (db *DB) Batch(name string, d []byte) error {
 	r := bytes.NewReader(d)
 	dec := json.NewDecoder(r)
 	for {
@@ -78,7 +78,7 @@ func (db *DB) Batch(d []byte) error {
 		} else if err != nil {
 			return err
 		}
-		err := db.Insert(db.Name, doc)
+		err := db.Insert(name, doc)
 		if err != nil {
 			return err
 		}
@@ -95,20 +95,20 @@ func (db *DB) Insert(name string, doc *doc.Doc) error {
 	return nil
 }
 
-func (db *DB) Find(ids ...int) ([]*doc.Doc, error) {
+func (db *DB) Find(name string, ids ...int) ([]*doc.Doc, error) {
 	var docs []*doc.Doc
 	switch len(ids) {
 	case 0:
 		return docs, nil
 	case 1:
 		if ids[0] == -1 {
-			return db.FindAll()
+			return db.FindAll(name)
 		}
 		fallthrough
 	default:
 		for _, id := range ids {
 			doc := &doc.Doc{}
-			err := db.Database.Find(db.Name, id, doc)
+			err := db.Database.Find(name, id, doc)
 			if err != nil {
 				return nil, err
 			}
@@ -118,10 +118,10 @@ func (db *DB) Find(ids ...int) ([]*doc.Doc, error) {
 	}
 }
 
-func (db *DB) FindAll() ([]*doc.Doc, error) {
-	ids, err := db.IDs(db.Name)
+func (db *DB) FindAll(name string) ([]*doc.Doc, error) {
+	ids, err := db.IDs(name)
 	if err != nil {
 		return nil, err
 	}
-	return db.Find(ids...)
+	return db.Find(name, ids...)
 }

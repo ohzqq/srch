@@ -69,7 +69,7 @@ func TestAllRecs(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	res, err := db.Find(-1)
+	res, err := db.Find("index", -1)
 	if err != nil {
 		t.Error(err)
 	}
@@ -87,7 +87,7 @@ func TestFindRec(t *testing.T) {
 		t.Fatal(err)
 	}
 	find := 1832
-	_, err = db.Find(find)
+	_, err = db.Find("index", find)
 	if err != nil {
 		t.Error(err)
 	}
@@ -133,7 +133,7 @@ func TestInsertRamDB(t *testing.T) {
 		t.Error(err)
 	}
 
-	err = db.Batch(data)
+	err = db.Batch("index", data)
 	if err != nil {
 		t.Error(err)
 	}
@@ -192,7 +192,7 @@ func TestInsertRecordsDisk(t *testing.T) {
 		t.Error(err)
 	}
 
-	err = db.Batch(data)
+	err = db.Batch("index", data)
 	if err != nil {
 		t.Error(err)
 	}
