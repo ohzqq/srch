@@ -123,30 +123,6 @@ func TestSearchDB(t *testing.T) {
 		345,
 		23,
 	}
-	//ds, err := NewDiskStore(hareTestDB)
-	//if err != nil {
-	//t.Fatal(err)
-	//}
-
-	//db, err := Open(ds)
-	//if err != nil {
-	//t.Fatal(err)
-	//}
-
-	//tables := ds.TableNames()
-	//slices.Sort(tables)
-	//slices.Sort(db.Tables)
-	//if !slices.Equal(db.Tables, tables) {
-	//t.Errorf("got %v, wanted %v\n", db.Tables, tables)
-	//}
-
-	//fmt.Printf("mapping %#v\n", db.Mapping)
-
-	//m := doc.NewMappingFromParams(testParams())
-	//db, err := New(m, WithDisk(hareTestDB))
-	//if err != nil {
-	//t.Fatal(err)
-	//}
 	dsk, err := NewDiskStore(hareTestDB)
 	if err != nil {
 		t.Fatal(err)

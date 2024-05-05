@@ -29,7 +29,7 @@ const (
 
 const (
 	testDataFile   = `testdata/nddata/ndbooks.ndjson`
-	testDataDir    = `testdata/data-dir`
+	testDataDir    = `/testdata/hare`
 	testBlvPath    = `testdata/poot.bleve`
 	testHareDskDir = `/home/mxb/code/srch/param/testdata/hare`
 	testHareURL    = `/testdata/hare`
@@ -137,7 +137,7 @@ var paramTests = []paramTest{
 			SortFacetsBy: "",
 			UID:          "",
 			IndexName:    "index",
-			Path:         testDataDir,
+			Path:         testHareDskDir,
 		},
 	},
 	paramTest{
@@ -184,7 +184,7 @@ var paramTests = []paramTest{
 			SortFacetsBy: "",
 			UID:          "",
 			IndexName:    "index",
-			Path:         testDataDir,
+			Path:         testHareDskDir,
 		},
 	},
 	paramTest{
@@ -231,7 +231,7 @@ var paramTests = []paramTest{
 			SortFacetsBy: "",
 			UID:          "",
 			IndexName:    "index",
-			Path:         testDataDir,
+			Path:         testHareDskDir,
 		},
 	},
 }
@@ -269,7 +269,7 @@ func checkAttrs(num int, field param.Param, attrs []string) error {
 }
 
 func dirRoute(params ...string) string {
-	params = append(params, "path="+testDataDir)
+	params = append(params, "path="+testHareDskDir)
 	return mkURL(param.Dir.String(), params...)
 }
 
