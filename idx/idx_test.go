@@ -38,5 +38,10 @@ func TestOpenIdx(t *testing.T) {
 		if err != nil {
 			t.Errorf("\nparams: %v\ntest num %v: %v\n", test.query, i, err)
 		}
+
+		err = checkAttrs(param.FacetAttr.String(), idx.Params.FacetAttr, test.want.FacetAttr)
+		if err != nil {
+			t.Errorf("\nparams: %v\ntest num %v: %v\n", test.query, i, err)
+		}
 	}
 }

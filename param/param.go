@@ -345,15 +345,16 @@ func GetQueryInt(key string, vals url.Values) int {
 }
 
 func GetQueryStringSlice(key string, q url.Values) []string {
+	if !q.Has(key) {
+		return []string{""}
+	}
 	var vals []string
-	if q.Has(key) {
-		for _, val := range q[key] {
-			if val == "" {
-				break
-			}
-			for _, v := range strings.Split(val, ",") {
-				vals = append(vals, v)
-			}
+	for _, val := range q[key] {
+		if val == "" {
+			break
+		}
+		for _, v := range strings.Split(val, ",") {
+			vals = append(vals, v)
 		}
 	}
 	return vals
