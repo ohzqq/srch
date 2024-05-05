@@ -70,6 +70,7 @@ func New() *Params {
 		UID:       "id",
 		SrchAttr:  []string{"*"},
 		FacetAttr: []string{""},
+		IndexName: "index",
 	}
 }
 

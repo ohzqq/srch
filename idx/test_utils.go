@@ -233,9 +233,9 @@ var paramTests = []paramTest{
 	},
 }
 
-func checkIdxName(idx *Idx, want string) error {
-	if idx.Name != want {
-		return fmt.Errorf("index name is %v, wanted %v\n", idx.Name, want)
+func checkIdxName(got, want string) error {
+	if got != want {
+		return fmt.Errorf("index name is %v, wanted %v\n", got, want)
 	}
 	return nil
 }

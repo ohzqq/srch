@@ -8,7 +8,7 @@ import (
 
 func TestDefaultIdx(t *testing.T) {
 	idx := New()
-	err := checkIdxName(idx, "index")
+	err := checkIdxName(idx.Name, "index")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -32,10 +32,6 @@ func TestOpenIdx(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		err = checkIdxName(idx, "index")
-		if err != nil {
-			t.Error(err)
-		}
 
 		err = checkAttrs(param.SrchAttr.String(), idx.Params.SrchAttr, test.want.SrchAttr)
 		if err != nil {
@@ -50,7 +46,24 @@ func TestOpenIdx(t *testing.T) {
 }
 
 func TestParams(t *testing.T) {
-	for _, test := range testQuerySettings {
-		println(test)
+	for i, test := range paramTests {
+		params, err := param.Parse(test.query)
+		if err != nil {
+			t.Fatal(err)
+		}
+		err = checkIdxName(params.IndexName, "index")
+		if err != nil {
+			t.Error(err)
+		}
+
+		err = checkAttrs(param.SrchAttr.String(), params.SrchAttr, test.want.SrchAttr)
+		if err != nil {
+			t.Errorf("\nparams: %v\ntest num %v: %v\n", test.query, i, err)
+		}
+
+		err = checkAttrs(param.FacetAttr.String(), params.FacetAttr, test.want.FacetAttr)
+		if err != nil {
+			t.Errorf("\nparams: %v\ntest num %v: %v\n", test.query, i, err)
+		}
 	}
 }
