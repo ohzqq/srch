@@ -8,21 +8,22 @@ import (
 
 func TestDefaultIdx(t *testing.T) {
 	idx := New()
-	err := checkIdxName(idx.Name, "index")
+
+	i := 0
+
+	err := checkIdxName(i, idx.Name)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	i := 0
-
-	err = checkAttrs(param.SrchAttr.String(), idx.Params.SrchAttr, paramTests[i].want.SrchAttr)
+	err = checkAttrs(i, param.SrchAttr, idx.Params.SrchAttr)
 	if err != nil {
-		t.Errorf("\nparams: %v\ntest num %v: %v\n", paramTests[i].query, i, err)
+		t.Errorf("\nparams: %v\nt%v\n", paramTests[i].query, err)
 	}
 
-	err = checkAttrs(param.Facets.String(), idx.Params.FacetAttr, paramTests[i].want.FacetAttr)
+	err = checkAttrs(i, param.Facets, idx.Params.FacetAttr)
 	if err != nil {
-		t.Errorf("\nparams: %v\ntest num %v: %v\n", paramTests[i].query, i, err)
+		t.Errorf("\nparams: %v\n %v\n", paramTests[i].query, err)
 	}
 }
 
@@ -33,7 +34,7 @@ func TestOpenIdx(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		err = checkDataPath(i, idx.Params.Path)
+		err = checkIdxPath(i, idx.Params.Path)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -48,24 +49,24 @@ func TestParams(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		err = checkIdxName(params.IndexName, "index")
+		err = checkIdxName(i, params.IndexName)
 		if err != nil {
 			t.Error(err)
 		}
 
-		err = checkAttrs(param.SrchAttr.String(), params.SrchAttr, test.want.SrchAttr)
+		err = checkAttrs(i, param.SrchAttr, params.SrchAttr)
 		if err != nil {
-			t.Errorf("\nparams: %v\ntest num %v: %v\n", test.query, i, err)
+			t.Errorf("\nparams: %v\n%v\n", test.query, err)
 		}
 
-		err = checkAttrs(param.FacetAttr.String(), params.FacetAttr, test.want.FacetAttr)
+		err = checkAttrs(i, param.Facets, params.Facets)
 		if err != nil {
-			t.Errorf("\nparams: %v\ntest num %v: %v\n", test.query, i, err)
+			t.Errorf("\nparams: %v\n%v\n", test.query, err)
 		}
 
-		err = checkAttrs(param.Facets.String(), params.Facets, test.want.Facets)
+		err = checkAttrs(i, param.FacetAttr, params.FacetAttr)
 		if err != nil {
-			t.Errorf("\nparams: %v\ntest num %v: %v\n", test.query, i, err)
+			t.Errorf("\nparams: %v\n%v\n", test.query, err)
 		}
 	}
 }

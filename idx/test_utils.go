@@ -236,14 +236,15 @@ var paramTests = []paramTest{
 	},
 }
 
-func checkIdxName(got, want string) error {
+func checkIdxName(num int, got string) error {
+	want := paramTests[num].want.IndexName
 	if got != want {
-		return fmt.Errorf("index name is %v, wanted %v\n", got, want)
+		return fmt.Errorf("test num %v: index name is %v, wanted %v\n", num, got, want)
 	}
 	return nil
 }
 
-func checkDataPath(num int, got string) error {
+func checkIdxPath(num int, got string) error {
 	want := paramTests[num].want.Path
 	if got != want {
 		return fmt.Errorf("test num %v: index path is %v, wanted %v\n", num, got, want)
@@ -251,9 +252,18 @@ func checkDataPath(num int, got string) error {
 	return nil
 }
 
-func checkAttrs(field string, attrs []string, want []string) error {
+func checkAttrs(num int, field param.Param, attrs []string) error {
+	var want []string
+	switch field {
+	case param.SrchAttr:
+		want = paramTests[num].want.SrchAttr
+	case param.Facets:
+		want = paramTests[num].want.Facets
+	case param.FacetAttr:
+		want = paramTests[num].want.FacetAttr
+	}
 	if !slices.Equal(attrs, want) {
-		return fmt.Errorf("for %v got %#v, wanted %#v\n", field, attrs, want)
+		return fmt.Errorf("test num %v: for %v got %#v, wanted %#v\n", num, field, attrs, want)
 	}
 	return nil
 }
