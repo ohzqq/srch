@@ -65,10 +65,11 @@ var (
 // New initializes a Params structure with a non-nil URL
 func New() *Params {
 	return &Params{
-		URL:      &url.URL{},
-		Other:    make(url.Values),
-		UID:      "id",
-		SrchAttr: []string{"*"},
+		URL:       &url.URL{},
+		Other:     make(url.Values),
+		UID:       "id",
+		SrchAttr:  []string{"*"},
+		FacetAttr: []string{""},
 	}
 }
 
