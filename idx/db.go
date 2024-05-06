@@ -28,7 +28,6 @@ func NewRam(params *param.Params) (*db.DB, error) {
 	}
 
 	if !db.TableExists(params.IndexName) {
-
 		err = db.CreateTable(params.IndexName)
 		if err != nil {
 			return nil, err
@@ -39,26 +38,6 @@ func NewRam(params *param.Params) (*db.DB, error) {
 		if err != nil {
 			return nil, err
 		}
-	}
-
-	return db, nil
-}
-
-func NewNet(params *param.Params) (*db.DB, error) {
-	db, err := db.New(db.WithRam)
-	if err != nil {
-		return nil, err
-	}
-
-	err = db.CreateTable(params.IndexName)
-	if err != nil {
-		return nil, err
-	}
-
-	m := NewMappingFromParams(params)
-	_, err = db.CfgTable(params.IndexName, m)
-	if err != nil {
-		return nil, err
 	}
 
 	return db, nil

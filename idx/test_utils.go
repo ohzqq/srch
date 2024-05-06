@@ -44,6 +44,7 @@ var testQuerySettings = []string{
 	dirRoute(facetParamSlice),
 	mkURL("", srchAttrParam, facetParamStr),
 	dirRoute(srchAttrParam, facetParamStr),
+	fileRoute(srchAttrParam, facetParamStr),
 }
 
 var paramTests = []paramTest{
@@ -232,6 +233,30 @@ var paramTests = []paramTest{
 			UID:          "",
 			IndexName:    "index",
 			Path:         testHareDskDir,
+		},
+	},
+	paramTest{
+		query: testQuerySettings[8],
+		want: &param.Params{
+			Other:        url.Values{},
+			SrchAttr:     []string{"title"},
+			FacetAttr:    []string{"tags", "authors", "series", "narrators"},
+			SortAttr:     []string{},
+			DefaultField: "",
+			Hits:         0,
+			RtrvAttr:     []string{},
+			Page:         0,
+			HitsPerPage:  0,
+			Query:        "",
+			SortBy:       "",
+			Order:        "",
+			Facets:       []string{"tags", "authors", "series", "narrators"},
+			Filters:      "",
+			FacetFilters: []any{},
+			SortFacetsBy: "",
+			UID:          "",
+			IndexName:    "ndbooks",
+			Path:         testDataFile,
 		},
 	},
 }

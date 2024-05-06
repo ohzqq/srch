@@ -37,7 +37,7 @@ func TestOpenIdx(t *testing.T) {
 			}
 
 			if len(ids) != 7251 {
-				t.Errorf("got %v, wanted %v\n", len(ids), 7251)
+				t.Errorf("test no %v: got %v, wanted %v\n", i, len(ids), 7251)
 			}
 		}
 	}

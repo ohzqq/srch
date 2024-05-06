@@ -52,7 +52,6 @@ func Init(settings string) *Idx {
 func Open(settings string) (*Idx, error) {
 	idx := Init(settings)
 
-	//var ds hare.Datastorage
 	var err error
 	if idx.Params.Has(param.Path) {
 		if ext := filepath.Ext(idx.Params.Path); ext != "" {
@@ -81,6 +80,14 @@ func (idx *Idx) createTable(params *param.Params) error {
 		return err
 	}
 	return nil
+}
+
+func (idx *Idx) storageType() string {
+	ext := filepath.Ext(idx.Params.Path)
+	if ext == "" {
+		return "disk"
+	}
+	return "ram"
 }
 
 func (idx *Idx) getDocMapping(params *param.Params) doc.Mapping {
