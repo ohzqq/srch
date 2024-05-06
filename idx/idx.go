@@ -18,21 +18,33 @@ type Idx struct {
 	Params *param.Params
 }
 
-func New() *Idx {
+func New(params string, data DataInit) (*Idx, error) {
+	idx := Init(params)
+
+	ds, err := data()
+	if err != nil {
+		return idx, err
+	}
+
+	err = idx.DB.Init(ds)
+	if err != nil {
+		return nil, err
+	}
+
+	return idx, nil
+}
+
+func NewIdx() *Idx {
 	db, _ := db.New()
-
-	m := doc.DefaultMapping()
-
-	db.Database.Insert("index-settings", m)
 	return &Idx{
 		Params:  param.New(),
 		DB:      db,
-		Mapping: m,
+		Mapping: doc.DefaultMapping(),
 	}
 }
 
 func Init(settings string) *Idx {
-	idx := New()
+	idx := NewIdx()
 	params, err := param.Parse(settings)
 	if err != nil {
 		return idx

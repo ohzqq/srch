@@ -3,75 +3,51 @@ package idx
 import (
 	"github.com/ohzqq/hare"
 	"github.com/ohzqq/hare/datastores/disk"
-	"github.com/ohzqq/hare/datastores/net"
 	"github.com/ohzqq/hare/datastores/ram"
 	"github.com/ohzqq/hare/datastores/store"
+	"github.com/ohzqq/srch/db"
 )
 
-type Data interface {
-	New(string) (Data, error)
-	Open(string) (Data, error)
-	hare.Datastorage
+type Data struct {
+	*db.DB
+	Tables map[string]string
 }
 
-type Opt func(*DB) error
-
-func NewDisk(path string) Opt {
-	return func(db *DB) error {
-		ds, err := NewDiskStorage(path)
-		if err != nil {
-			return err
-		}
-		return db.Init(ds)
+func NewData(opts ...db.Opt) (*Data, error) {
+	db, err := db.New(opts...)
+	if err != nil {
+		return nil, err
 	}
+	return &Data{
+		DB: db,
+		Tables: map[string]string{
+			"index": "",
+		},
+	}, nil
 }
 
-func WithDisk(path string) Opt {
-	return func(db *DB) error {
-		ds, err := OpenDisk(path)
-		if err != nil {
-			return err
-		}
-		return db.Init(ds)
-	}
+func (d *Data) CreateTable(name string) error {
 }
 
-func WithURL(uri string, d []byte) Opt {
-	return func(db *DB) error {
-		ds, err := NewNet(uri, d)
-		if err != nil {
-			return err
-		}
-		return db.Init(ds)
-	}
-}
+type DataInit func() (hare.Datastorage, error)
 
-func WithData(d []byte) Opt {
-	return func(db *DB) error {
-		m := map[string][]byte{
-			"index": d,
-		}
-		ds, err := ram.New(m)
-		if err != nil {
-			return err
-		}
-		return db.Init(ds)
-	}
-}
-
-func NewDiskStore(path string) (hare.Datastorage, error) {
+func NewDisk(path string) (hare.Datastorage, error) {
 	return NewDiskStorage(path)
 }
 
-func NewRamStore(path string) (hare.Datastorage, error) {
-	return NewMem()
+func OpenDisk(path string) (hare.Datastorage, error) {
+	return OpenDiskStorage(path)
 }
 
-func NewNetStore(path string, d []byte) (hare.Datastorage, error) {
-	return NewNet(path, d)
+func NewRam(name string) (hare.Datastorage, error) {
+	return NewMemStorage(name)
 }
 
-func OpenDisk(path string) (*disk.Disk, error) {
+func NewNet(name string) (hare.Datastorage, error) {
+	return NewMemStorage(name)
+}
+
+func OpenDiskStorage(path string) (*disk.Disk, error) {
 	ds, err := disk.New(path, ".json")
 	if err != nil {
 		return nil, err
@@ -99,24 +75,28 @@ func NewDiskStorage(path string) (*disk.Disk, error) {
 	return ds, nil
 }
 
-func NewMem() (*ram.Ram, error) {
+func NewMemStorage(name string) (*ram.Ram, error) {
 	r := &ram.Ram{
 		Store: store.New(),
 	}
-	err := r.CreateTable("index")
+
+	err := r.CreateTable(name)
 	if err != nil {
 		return nil, err
 	}
 
-	err = r.CreateTable("index-settings")
+	err = r.CreateTable(name + "-settings")
 	if err != nil {
 		return nil, err
 	}
 	return r, nil
 }
 
-func NewNet(uri string, d []byte) (*net.Net, error) {
-	ds, err := net.New(uri, d)
+func NewNetStorage(d []byte) (*ram.Ram, error) {
+	m := map[string][]byte{
+		"index": d,
+	}
+	ds, err := ram.New(m)
 	if err != nil {
 		return nil, err
 	}

@@ -7,7 +7,7 @@ import (
 )
 
 func TestDefaultIdx(t *testing.T) {
-	idx := New()
+	idx := NewIdx()
 
 	i := 0
 
