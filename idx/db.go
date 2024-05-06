@@ -18,15 +18,19 @@ func NewData(opts ...db.Opt) (*Data, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Data{
-		DB: db,
-		Tables: map[string]string{
-			"index": "",
-		},
-	}, nil
+	data := &Data{
+		DB:     db,
+		Tables: make(map[string]string),
+	}
+	for _, t := range db.Tables {
+		data.Tables[t] = ""
+	}
+	return data, nil
 }
 
-func (d *Data) CreateTable(name string) error {
+func (d *Data) New(path string) error {
+
+	return nil
 }
 
 type DataInit func() (hare.Datastorage, error)
