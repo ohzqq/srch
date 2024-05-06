@@ -168,7 +168,11 @@ func TestNewNet(t *testing.T) {
 
 func TestInsertRecordsDisk(t *testing.T) {
 	//t.SkipNow()
-	db, err := New(WithDisk(hareTestDB))
+	m := testMapping()
+	db, err := New(
+		WithDisk(hareTestDB),
+		WithDefaultCfg("index", m),
+	)
 	if err != nil {
 		t.Error(err)
 	}
@@ -178,6 +182,7 @@ func TestInsertRecordsDisk(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
+
 		err = db.CreateTable("index")
 		if err != nil {
 			t.Error(err)
@@ -191,7 +196,7 @@ func TestInsertRecordsDisk(t *testing.T) {
 
 }
 
-func testMapping() *doc.Mapping {
+func testMapping() doc.Mapping {
 	m := doc.NewMapping()
 	m.AddFulltext("title", "comments", "tags")
 	m.AddKeywords("tags")

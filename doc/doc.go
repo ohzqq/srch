@@ -44,8 +44,8 @@ func (doc *Doc) AddField(ana analyzer.Analyzer, attr string, val any) {
 	}
 }
 
-func (doc *Doc) SetData(m *Mapping, data map[string]any) *Doc {
-	for ana, attrs := range m.Mapping {
+func (doc *Doc) SetData(m Mapping, data map[string]any) *Doc {
+	for ana, attrs := range m {
 		for _, attr := range attrs {
 			if val, ok := data[attr]; ok {
 				str := cast.ToString(val)

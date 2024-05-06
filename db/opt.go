@@ -6,6 +6,7 @@ import (
 	"github.com/ohzqq/hare/datastores/net"
 	"github.com/ohzqq/hare/datastores/ram"
 	"github.com/ohzqq/hare/datastores/store"
+	"github.com/ohzqq/srch/doc"
 )
 
 type Opt func(*DB) error
@@ -40,6 +41,18 @@ func WithURL(uri string, d []byte) Opt {
 	}
 }
 
+func WithRam(db *DB) error {
+	ds, err := NewMem()
+	if err != nil {
+		return err
+	}
+	err = db.Init(ds)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func WithData(d []byte) Opt {
 	return func(db *DB) error {
 		m := map[string][]byte{
@@ -50,6 +63,19 @@ func WithData(d []byte) Opt {
 			return err
 		}
 		return db.Init(ds)
+	}
+}
+
+func WithDefaultCfg(tbl string, m doc.Mapping) Opt {
+	return func(db *DB) error {
+		if db.TableExists(settingsTbl) {
+			cfg := NewCfg(tbl, m)
+			err := db.Update(settingsTbl, cfg)
+			if err != nil {
+				return err
+			}
+		}
+		return nil
 	}
 }
 
