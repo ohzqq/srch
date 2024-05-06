@@ -1,12 +1,6 @@
 package idx
 
 import (
-	"encoding/json"
-
-	"github.com/ohzqq/hare"
-	"github.com/ohzqq/hare/datastores/disk"
-	"github.com/ohzqq/hare/datastores/ram"
-	"github.com/ohzqq/hare/datastores/store"
 	"github.com/ohzqq/srch/db"
 	"github.com/ohzqq/srch/param"
 )
@@ -17,102 +11,55 @@ func WithURL(uri string) db.Opt {
 	}
 }
 
-type DataInit func() (hare.Datastorage, error)
+type InitDB func() (*db.DB, error)
 
-func NewDisk(path string) (hare.Datastorage, error) {
-	return NewDiskStorage(path)
+func NewDisk(params *param.Params) (*db.DB, error) {
+	return db.New(db.NewDisk(params.Path))
 }
 
-func OpenDisk(path string) (hare.Datastorage, error) {
-	return OpenDiskStorage(path)
+func OpenDisk(params *param.Params) (*db.DB, error) {
+	return db.New(db.WithDisk(params.Path))
 }
 
-func NewRam(name string) (hare.Datastorage, error) {
-	return NewMemStorage(name)
-}
-
-func NewNet(name string) (hare.Datastorage, error) {
-	return NewMemStorage(name)
-}
-
-func OpenDiskStorage(path string) (*disk.Disk, error) {
-	ds, err := disk.New(path, ".json")
+func NewRam(params *param.Params) (*db.DB, error) {
+	db, err := db.New(db.WithRam)
 	if err != nil {
 		return nil, err
 	}
-	return ds, nil
-}
 
-func NewDiskStorage(path string) (*disk.Disk, error) {
-	ds, err := disk.New(path, ".json")
-	if err != nil {
-		return nil, err
-	}
-	if !ds.TableExists("index") {
-		err = ds.CreateTable("index")
+	if !db.TableExists(params.IndexName) {
+
+		err = db.CreateTable(params.IndexName)
+		if err != nil {
+			return nil, err
+		}
+
+		m := NewMappingFromParams(params)
+		_, err = db.CfgTable(params.IndexName, m)
 		if err != nil {
 			return nil, err
 		}
 	}
-	if !ds.TableExists("index-settings") {
-		err = ds.CreateTable("index-settings")
-		if err != nil {
-			return nil, err
-		}
-	}
-	return ds, nil
+
+	return db, nil
 }
 
-func NewMemStorage(name string) (*ram.Ram, error) {
-	r := &ram.Ram{
-		Store: store.New(),
-	}
-
-	err := r.CreateTable(name)
+func NewNet(params *param.Params) (*db.DB, error) {
+	db, err := db.New(db.WithRam)
 	if err != nil {
 		return nil, err
 	}
 
-	err = r.CreateTable(name + "-settings")
-	if err != nil {
-		return nil, err
-	}
-	return r, nil
-}
-
-func NewNetStorage(uri string) (*ram.Ram, error) {
-	params, err := param.Parse(uri)
-	if err != nil {
-		return nil, err
-	}
-
-	if !params.Has(param.IndexName) {
-		params.IndexName = "index"
-	}
-
-	r := &ram.Ram{
-		Store: store.New(),
-	}
-
-	err = r.CreateTable(params.IndexName)
-	if err != nil {
-		return nil, err
-	}
-
-	err = r.CreateTable(params.IndexName + "-settings")
+	err = db.CreateTable(params.IndexName)
 	if err != nil {
 		return nil, err
 	}
 
 	m := NewMappingFromParams(params)
-	d, err := json.Marshal(m)
-	if err != nil {
-		return nil, err
-	}
-	err = r.InsertRec(params.IndexName, 1, d)
+	_, err = db.CfgTable(params.IndexName, m)
 	if err != nil {
 		return nil, err
 	}
 
-	return r, nil
+	return db, nil
 }

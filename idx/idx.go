@@ -6,9 +6,7 @@ import (
 	"io"
 	"path/filepath"
 	"slices"
-	"strings"
 
-	"github.com/ohzqq/hare"
 	"github.com/ohzqq/srch/analyzer"
 	"github.com/ohzqq/srch/db"
 	"github.com/ohzqq/srch/doc"
@@ -20,18 +18,14 @@ type Idx struct {
 	Params *param.Params
 }
 
-func New(params string, data DataInit) (*Idx, error) {
+func New(params string, data InitDB) (*Idx, error) {
 	idx := Init(params)
 
-	ds, err := data()
+	db, err := data()
 	if err != nil {
 		return idx, err
 	}
-
-	err = idx.DB.Init(ds)
-	if err != nil {
-		return nil, err
-	}
+	idx.DB = db
 
 	return idx, nil
 }
@@ -58,23 +52,16 @@ func Init(settings string) *Idx {
 func Open(settings string) (*Idx, error) {
 	idx := Init(settings)
 
-	var ds hare.Datastorage
+	//var ds hare.Datastorage
 	var err error
 	if idx.Params.Has(param.Path) {
 		if ext := filepath.Ext(idx.Params.Path); ext != "" {
-			tbl := strings.TrimSuffix(idx.Params.Path, ext)
-			if !idx.DB.TableExists(tbl) {
-				err := idx.createTable(idx.Params)
-				if err != nil {
-					return nil, err
-				}
-			}
-		} else {
-			ds, err = db.NewDiskStore(idx.Params.Path)
+			idx.DB, err = NewRam(idx.Params)
 			if err != nil {
 				return nil, err
 			}
-			idx.DB, err = db.Open(ds)
+		} else {
+			idx.DB, err = OpenDisk(idx.Params)
 			if err != nil {
 				return nil, err
 			}
@@ -88,12 +75,19 @@ func (idx *Idx) createTable(params *param.Params) error {
 	if err != nil {
 		return err
 	}
-	m := NewMappingFromParams(params)
+	m := idx.getDocMapping(params)
 	_, err = idx.DB.CfgTable(params.IndexName, m)
 	if err != nil {
 		return err
 	}
 	return nil
+}
+
+func (idx *Idx) getDocMapping(params *param.Params) doc.Mapping {
+	if !params.Has(param.SrchAttr) && !params.Has(param.FacetAttr) {
+		return doc.DefaultMapping()
+	}
+	return NewMappingFromParams(params)
 }
 
 func (db *Idx) Batch(d []byte) error {
@@ -133,13 +127,17 @@ func (idx *Idx) Index(data map[string]any) error {
 }
 
 func NewMappingFromParams(params *param.Params) doc.Mapping {
+	if !params.Has(param.SrchAttr) && !params.Has(param.FacetAttr) {
+		return doc.DefaultMapping()
+	}
+
 	m := doc.NewMapping()
 
 	for _, attr := range params.SrchAttr {
 		m.AddFulltext(attr)
 	}
 
-	for _, attr := range params.Facets {
+	for _, attr := range params.FacetAttr {
 		m.AddKeywords(attr)
 	}
 
