@@ -11,25 +11,6 @@ import (
 	"github.com/ohzqq/srch/param"
 )
 
-type Data struct {
-	*db.DB
-}
-
-func NewData(path string, opts ...db.Opt) (*Data, error) {
-	db, err := db.New(opts...)
-	if err != nil {
-		return nil, err
-	}
-	data := &Data{
-		DB: db,
-	}
-	return data, nil
-}
-
-func (d *Data) New(path string) error {
-	return nil
-}
-
 func WithURL(uri string) db.Opt {
 	return func(db *db.DB) error {
 		return nil
