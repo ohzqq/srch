@@ -97,6 +97,15 @@ func (db *DB) CfgTable(name string, m doc.Mapping) (*Cfg, error) {
 	return cfg, err
 }
 
+func (db *DB) GetCfg(tbl string) *Cfg {
+	for _, cfg := range db.Tables {
+		if cfg.Table == tbl {
+			return cfg
+		}
+	}
+	return DefaultCfg()
+}
+
 func (db *DB) getCfg() ([]*Cfg, error) {
 	tbls, err := db.IDs(settingsTbl)
 	if err != nil {
