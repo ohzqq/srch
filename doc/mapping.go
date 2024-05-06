@@ -12,7 +12,7 @@ type Mapping struct {
 
 func NewMapping() *Mapping {
 	return &Mapping{
-		ID:      0,
+		ID:      1,
 		Mapping: make(map[analyzer.Analyzer][]string),
 	}
 }

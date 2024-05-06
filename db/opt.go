@@ -6,6 +6,7 @@ import (
 	"github.com/ohzqq/hare/datastores/net"
 	"github.com/ohzqq/hare/datastores/ram"
 	"github.com/ohzqq/hare/datastores/store"
+	"github.com/ohzqq/srch/doc"
 )
 
 type Opt func(*DB) error
@@ -50,6 +51,18 @@ func WithData(d []byte) Opt {
 			return err
 		}
 		return db.Init(ds)
+	}
+}
+
+func WithDefaultMapping(m *doc.Mapping) Opt {
+	return func(db *DB) error {
+		if db.TableExists(settingsTbl) {
+			err := db.Update(settingsTbl, m)
+			if err != nil {
+				return err
+			}
+		}
+		return nil
 	}
 }
 

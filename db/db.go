@@ -5,29 +5,19 @@ import (
 	"github.com/ohzqq/srch/doc"
 )
 
+const (
+	settingsTbl = "_settings"
+)
+
 type DB struct {
 	*hare.Database
 
+	//Tables map[string]*doc.Mapping
 	Tables []string
 }
 
-func Open(ds hare.Datastorage) (*DB, error) {
-	db := new()
-
-	err := db.Init(ds)
-	if err != nil {
-		return nil, err
-	}
-
-	return db, nil
-}
-
-func new() *DB {
-	return &DB{}
-}
-
 func New(opts ...Opt) (*DB, error) {
-	db := new()
+	db := &DB{}
 
 	for _, opt := range opts {
 		err := opt(db)
@@ -45,6 +35,28 @@ func New(opts ...Opt) (*DB, error) {
 		if err != nil {
 			return nil, err
 		}
+	}
+
+	if !db.TableExists(settingsTbl) {
+		err := db.CreateTable(settingsTbl)
+		if err != nil {
+			return nil, err
+		}
+		_, err = db.Insert(settingsTbl, doc.DefaultMapping())
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return db, nil
+}
+
+func Open(ds hare.Datastorage) (*DB, error) {
+	db := &DB{}
+
+	err := db.Init(ds)
+	if err != nil {
+		return nil, err
 	}
 
 	return db, nil
