@@ -45,7 +45,7 @@ func TestOpenIdx(t *testing.T) {
 
 func TestConfigureIdx(t *testing.T) {
 	for i, test := range paramTests {
-		idx := Configure(test.query)
+		idx := Init(test.query)
 
 		err := checkIdxName(i, idx.Params.IndexName)
 		if err != nil {

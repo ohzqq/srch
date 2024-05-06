@@ -3,7 +3,6 @@ package idx
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io"
 	"slices"
 
@@ -32,7 +31,7 @@ func New() *Idx {
 	}
 }
 
-func Configure(settings string) *Idx {
+func Init(settings string) *Idx {
 	idx := New()
 	params, err := param.Parse(settings)
 	if err != nil {
@@ -43,12 +42,7 @@ func Configure(settings string) *Idx {
 }
 
 func Open(settings string) (*Idx, error) {
-	idx := New()
-	params, err := param.Parse(settings)
-	if err != nil {
-		return nil, fmt.Errorf("new index param parsing err: %w\n", err)
-	}
-	idx.Params = params
+	idx := Init(settings)
 
 	if idx.Params.Path != "" {
 		ds, err := db.NewDiskStore(idx.Params.Path)

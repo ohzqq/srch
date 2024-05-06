@@ -50,7 +50,7 @@ func TestMemHare(t *testing.T) {
 
 func TestAllRecs(t *testing.T) {
 	//t.SkipNow()
-	dsk, err := NewDisk(hareTestDB)
+	dsk, err := NewDiskStorage(hareTestDB)
 	if err != nil {
 		t.Error(err)
 	}

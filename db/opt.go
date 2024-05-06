@@ -10,9 +10,19 @@ import (
 
 type Opt func(*DB) error
 
+func NewDisk(path string) Opt {
+	return func(db *DB) error {
+		ds, err := NewDiskStorage(path)
+		if err != nil {
+			return err
+		}
+		return db.Init(ds)
+	}
+}
+
 func WithDisk(path string) Opt {
 	return func(db *DB) error {
-		ds, err := NewDisk(path)
+		ds, err := OpenDisk(path)
 		if err != nil {
 			return err
 		}
@@ -44,7 +54,7 @@ func WithData(d []byte) Opt {
 }
 
 func NewDiskStore(path string) (hare.Datastorage, error) {
-	return NewDisk(path)
+	return NewDiskStorage(path)
 }
 
 func NewRamStore(path string) (hare.Datastorage, error) {
@@ -55,7 +65,15 @@ func NewNetStore(path string, d []byte) (hare.Datastorage, error) {
 	return NewNet(path, d)
 }
 
-func NewDisk(path string) (*disk.Disk, error) {
+func OpenDisk(path string) (*disk.Disk, error) {
+	ds, err := disk.New(path, ".json")
+	if err != nil {
+		return nil, err
+	}
+	return ds, nil
+}
+
+func NewDiskStorage(path string) (*disk.Disk, error) {
 	ds, err := disk.New(path, ".json")
 	if err != nil {
 		return nil, err
@@ -84,7 +102,7 @@ func NewMem() (*ram.Ram, error) {
 		return nil, err
 	}
 
-	err = r.CreateTable("indexsettings")
+	err = r.CreateTable("index-settings")
 	if err != nil {
 		return nil, err
 	}
