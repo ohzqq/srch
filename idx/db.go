@@ -1,8 +1,7 @@
 package idx
 
 import (
-	"path/filepath"
-	"strings"
+	"encoding/json"
 
 	"github.com/ohzqq/hare"
 	"github.com/ohzqq/hare/datastores/disk"
@@ -39,6 +38,7 @@ func (d *Data) New(path string) error {
 
 func WithURL(uri string) db.Opt {
 	return func(db *db.DB) error {
+		return nil
 	}
 }
 
@@ -106,29 +106,38 @@ func NewMemStorage(name string) (*ram.Ram, error) {
 }
 
 func NewNetStorage(uri string) (*ram.Ram, error) {
-	params, err := param.Parse(settings)
+	params, err := param.Parse(uri)
 	if err != nil {
-		return idx
+		return nil, err
 	}
 
-	tableName := filepath.Base(u.Path)
-	tableName = strings.TrimSuffix(tableName, filepath.Ext(u.Path))
+	if !params.Has(param.IndexName) {
+		params.IndexName = "index"
+	}
 
 	r := &ram.Ram{
 		Store: store.New(),
 	}
 
-	err := r.CreateTable(tableName)
+	err = r.CreateTable(params.IndexName)
 	if err != nil {
 		return nil, err
 	}
 
-	err = r.CreateTable(tableName + "-settings")
+	err = r.CreateTable(params.IndexName + "-settings")
 	if err != nil {
 		return nil, err
 	}
 
-	m := NewMappingFromParams()
+	m := NewMappingFromParams(params)
+	d, err := json.Marshal(m)
+	if err != nil {
+		return nil, err
+	}
+	err = r.InsertRec(params.IndexName, 1, d)
+	if err != nil {
+		return nil, err
+	}
 
 	return r, nil
 }

@@ -126,28 +126,34 @@ func (s *Params) Set(v url.Values) error {
 			s.DefaultField = v.Get(key.Query())
 		case UID:
 			s.UID = v.Get(key.Query())
-		case IndexName:
-			s.IndexName = v.Get(key.Query())
 		case Format:
 			if v.Has(key.Query()) {
 				s.Format = v.Get(key.Query())
 			}
+		case IndexName:
+			s.IndexName = v.Get(key.Query())
 		case Path:
 			if v.Has(key.Query()) {
-				s.Path = v.Get(key.Query())
+				path := v.Get(key.Query())
+				if ext := filepath.Ext(path); ext != "" {
+					s.IndexName = path
+				}
+				s.Path = path
 			}
 		}
 	}
 	for _, key := range SearchParams {
 		switch key {
+		case IndexName:
+			s.IndexName = v.Get(key.Query())
 		case Path:
-			//if v.Has(key.Query()) {
-			path := v.Get(key.Query())
-			if !filepath.IsAbs(path) {
-				path, _ = filepath.Abs(path)
+			if v.Has(key.Query()) {
+				path := v.Get(key.Query())
+				if ext := filepath.Ext(path); ext != "" {
+					s.IndexName = strings.TrimSuffix(path, ext)
+				}
+				s.Path = path
 			}
-			s.Path = path
-			//}
 		case SortFacetsBy:
 			s.SortFacetsBy = v.Get(key.Query())
 		case Facets:

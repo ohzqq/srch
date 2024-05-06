@@ -101,11 +101,6 @@ func NewMem() (*ram.Ram, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	err = r.CreateTable("index-settings")
-	if err != nil {
-		return nil, err
-	}
 	return r, nil
 }
 

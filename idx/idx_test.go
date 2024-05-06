@@ -22,7 +22,7 @@ func TestOpenIdx(t *testing.T) {
 	for i, test := range paramTests {
 		idx, err := Open(test.query)
 		if err != nil {
-			t.Fatal(err)
+			t.Fatalf("test no %v: %v\n", i, err)
 		}
 
 		err = checkIdxPath(i, idx.Params.Path)

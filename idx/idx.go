@@ -3,9 +3,13 @@ package idx
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
+	"path/filepath"
 	"slices"
+	"strings"
 
+	"github.com/ohzqq/hare"
 	"github.com/ohzqq/srch/analyzer"
 	"github.com/ohzqq/srch/db"
 	"github.com/ohzqq/srch/doc"
@@ -50,28 +54,52 @@ func Init(settings string) *Idx {
 		return idx
 	}
 	idx.Params = params
+
+	idx.Mapping = NewMappingFromParams(params)
+
 	return idx
 }
 
 func Open(settings string) (*Idx, error) {
 	idx := Init(settings)
 
-	if idx.Params.Path != "" {
-		ds, err := db.NewDiskStore(idx.Params.Path)
-		if err != nil {
-			return nil, err
-		}
-
-		idx.DB, err = db.Open(ds)
-		if err != nil {
-			return nil, err
+	var ds hare.Datastorage
+	var err error
+	if idx.Params.Has(param.Path) {
+		if ext := filepath.Ext(idx.Params.Path); ext != "" {
+			tbl := strings.TrimSuffix(idx.Params.Path, ext)
+			if !idx.DB.TableExists(tbl) {
+				err = idx.DB.CreateTable(idx.Params.IndexName)
+				if err != nil {
+					return nil, err
+				}
+			}
+		} else {
+			ds, err = db.NewDiskStore(idx.Params.Path)
+			if err != nil {
+				return nil, err
+			}
+			idx.DB, err = db.Open(ds)
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
 
-	if idx.DB.TableExists(idx.Params.IndexName + "-settings") {
-		err := idx.DB.Database.Find(idx.Params.IndexName+"-settings", 0, idx.Mapping)
+	if !idx.DB.TableExists(idx.Params.IndexName + "-settings") {
+		err = idx.DB.CreateTable(idx.Params.IndexName + "-settings")
 		if err != nil {
 			return nil, err
+		}
+
+		_, err = idx.DB.Insert(idx.Params.IndexName, idx.Mapping)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		err := idx.DB.Database.Find(idx.Params.IndexName+"-settings", 1, idx.Mapping)
+		if err != nil {
+			return nil, fmt.Errorf("can't find settings for %s with error: %w", idx.Params.IndexName, err)
 		}
 	}
 	return idx, nil
