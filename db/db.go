@@ -1,6 +1,8 @@
 package db
 
 import (
+	"fmt"
+
 	"github.com/ohzqq/hare"
 	"github.com/ohzqq/srch/doc"
 )
@@ -12,8 +14,7 @@ const (
 type DB struct {
 	*hare.Database
 
-	//Tables map[string]*doc.Mapping
-	Tables []string
+	Tables []*Cfg
 }
 
 func New(opts ...Opt) (*DB, error) {
@@ -22,7 +23,7 @@ func New(opts ...Opt) (*DB, error) {
 	for _, opt := range opts {
 		err := opt(db)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("option error: err %w\n", err)
 		}
 	}
 
@@ -32,17 +33,6 @@ func New(opts ...Opt) (*DB, error) {
 			return nil, err
 		}
 		err = db.Init(ds)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	if !db.TableExists(settingsTbl) {
-		err := db.CreateTable(settingsTbl)
-		if err != nil {
-			return nil, err
-		}
-		_, err = db.Insert(settingsTbl, doc.DefaultMapping())
 		if err != nil {
 			return nil, err
 		}
@@ -67,9 +57,51 @@ func (db *DB) Init(ds hare.Datastorage) error {
 	if err != nil {
 		return err
 	}
-	db.Tables = ds.TableNames()
 	db.Database = h
+
+	if !db.TableExists(settingsTbl) {
+		err := db.CreateTable(settingsTbl)
+		if err != nil {
+			return err
+		}
+		_, err = db.Insert(settingsTbl, DefaultCfg())
+		if err != nil {
+			return err
+		}
+	}
+
+	tbls, err := h.IDs(settingsTbl)
+	if err != nil {
+		return err
+	}
+	for _, tbl := range tbls {
+		cfg := &Cfg{}
+		err := db.Database.Find(settingsTbl, tbl, cfg)
+		if err != nil {
+			return err
+		}
+		db.Tables = append(db.Tables, cfg)
+	}
+
 	return nil
+}
+
+func (db *DB) CfgTable(name string, m doc.Mapping) (*Cfg, error) {
+	if !db.TableExists(settingsTbl) {
+		err := db.CreateTable(settingsTbl)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	cfg := NewCfg(name, m)
+	if name == "index" {
+		err := db.Update(settingsTbl, cfg)
+		return cfg, err
+	}
+
+	_, err := db.Insert(settingsTbl, cfg)
+	return cfg, err
 }
 
 func (db *DB) Find(name string, ids ...int) ([]*doc.Doc, error) {
@@ -93,6 +125,14 @@ func (db *DB) Find(name string, ids ...int) ([]*doc.Doc, error) {
 		}
 		return docs, nil
 	}
+}
+
+func (db *DB) Count(tbl string) int {
+	ids, err := db.IDs(tbl)
+	if err != nil {
+		return 0
+	}
+	return len(ids)
 }
 
 func (db *DB) FindAll(name string) ([]*doc.Doc, error) {

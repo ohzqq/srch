@@ -191,7 +191,7 @@ func TestInsertRecordsDisk(t *testing.T) {
 
 }
 
-func testMapping() *doc.Mapping {
+func testMapping() doc.Mapping {
 	m := doc.NewMapping()
 	m.AddFulltext("title", "comments", "tags")
 	m.AddKeywords("tags")

@@ -54,10 +54,11 @@ func WithData(d []byte) Opt {
 	}
 }
 
-func WithDefaultMapping(m *doc.Mapping) Opt {
+func WithDefaultCfg(tbl string, m doc.Mapping) Opt {
 	return func(db *DB) error {
 		if db.TableExists(settingsTbl) {
-			err := db.Update(settingsTbl, m)
+			cfg := NewCfg(tbl, m)
+			err := db.Update(settingsTbl, cfg)
 			if err != nil {
 				return err
 			}
