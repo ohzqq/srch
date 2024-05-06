@@ -52,8 +52,6 @@ func Init(settings string) *Idx {
 	}
 	idx.Params = params
 
-	//idx.Mapping = NewMappingFromParams(params)
-
 	return idx
 }
 
@@ -66,7 +64,7 @@ func Open(settings string) (*Idx, error) {
 		if ext := filepath.Ext(idx.Params.Path); ext != "" {
 			tbl := strings.TrimSuffix(idx.Params.Path, ext)
 			if !idx.DB.TableExists(tbl) {
-				err = idx.DB.CreateTable(idx.Params.IndexName)
+				err := idx.createTable(idx.Params)
 				if err != nil {
 					return nil, err
 				}
@@ -82,8 +80,20 @@ func Open(settings string) (*Idx, error) {
 			}
 		}
 	}
-
 	return idx, nil
+}
+
+func (idx *Idx) createTable(params *param.Params) error {
+	err := idx.DB.CreateTable(params.IndexName)
+	if err != nil {
+		return err
+	}
+	m := NewMappingFromParams(params)
+	_, err = idx.DB.CfgTable(params.IndexName, m)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (db *Idx) Batch(d []byte) error {
