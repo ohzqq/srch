@@ -13,7 +13,6 @@ import (
 
 type Data struct {
 	*db.DB
-	Tables map[string]string
 }
 
 func NewData(path string, opts ...db.Opt) (*Data, error) {
@@ -22,17 +21,12 @@ func NewData(path string, opts ...db.Opt) (*Data, error) {
 		return nil, err
 	}
 	data := &Data{
-		DB:     db,
-		Tables: make(map[string]string),
-	}
-	for _, t := range db.Tables {
-		data.Tables[t] = path
+		DB: db,
 	}
 	return data, nil
 }
 
 func (d *Data) New(path string) error {
-
 	return nil
 }
 

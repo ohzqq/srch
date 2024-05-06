@@ -3,7 +3,6 @@ package idx
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io"
 	"path/filepath"
 	"slices"
@@ -18,7 +17,6 @@ import (
 
 type Idx struct {
 	*db.DB
-	*doc.Mapping
 	Params *param.Params
 }
 
@@ -41,9 +39,8 @@ func New(params string, data DataInit) (*Idx, error) {
 func NewIdx() *Idx {
 	db, _ := db.New()
 	return &Idx{
-		Params:  param.New(),
-		DB:      db,
-		Mapping: doc.DefaultMapping(),
+		Params: param.New(),
+		DB:     db,
 	}
 }
 
@@ -55,7 +52,7 @@ func Init(settings string) *Idx {
 	}
 	idx.Params = params
 
-	idx.Mapping = NewMappingFromParams(params)
+	//idx.Mapping = NewMappingFromParams(params)
 
 	return idx
 }
@@ -86,22 +83,6 @@ func Open(settings string) (*Idx, error) {
 		}
 	}
 
-	if !idx.DB.TableExists(idx.Params.IndexName + "-settings") {
-		err = idx.DB.CreateTable(idx.Params.IndexName + "-settings")
-		if err != nil {
-			return nil, err
-		}
-
-		_, err = idx.DB.Insert(idx.Params.IndexName, idx.Mapping)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		err := idx.DB.Database.Find(idx.Params.IndexName+"-settings", 1, idx.Mapping)
-		if err != nil {
-			return nil, fmt.Errorf("can't find settings for %s with error: %w", idx.Params.IndexName, err)
-		}
-	}
 	return idx, nil
 }
 
@@ -124,8 +105,9 @@ func (db *Idx) Batch(d []byte) error {
 }
 
 func (idx *Idx) Index(data map[string]any) error {
+	cfg := idx.DB.GetCfg(idx.Params.IndexName)
 	doc := doc.New()
-	for ana, attrs := range idx.Mapping.Mapping {
+	for ana, attrs := range cfg.Mapping {
 		for field, val := range data {
 			if ana == analyzer.Simple && slices.Equal(attrs, []string{"*"}) {
 				doc.AddField(ana, field, val)
@@ -140,7 +122,7 @@ func (idx *Idx) Index(data map[string]any) error {
 	return nil
 }
 
-func NewMappingFromParams(params *param.Params) *doc.Mapping {
+func NewMappingFromParams(params *param.Params) doc.Mapping {
 	m := doc.NewMapping()
 
 	for _, attr := range params.SrchAttr {
