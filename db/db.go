@@ -59,13 +59,9 @@ func (db *DB) Init(ds hare.Datastorage) error {
 		}
 	}
 
-	cfgs, err := db.getCfg()
+	err = db.getAllCfg()
 	if err != nil {
 		return err
-	}
-
-	for _, cfg := range cfgs {
-		db.Tables = append(db.Tables, cfg)
 	}
 
 	return nil
@@ -81,19 +77,15 @@ func (db *DB) CfgTable(name string, m doc.Mapping) (*Cfg, error) {
 
 	cfg := NewCfg(name, m)
 
-	cfgs, err := db.getCfg()
-	if err != nil {
-		return nil, err
-	}
-
-	for _, c := range cfgs {
-		if c.Table == name {
+	for i, tbl := range db.Tables {
+		if tbl.Table == name {
+			db.Tables[i] = cfg
 			err := db.Update(settingsTbl, cfg)
 			return cfg, err
 		}
 	}
 
-	_, err = db.Insert(settingsTbl, cfg)
+	_, err := db.Insert(settingsTbl, cfg)
 	return cfg, err
 }
 
@@ -106,22 +98,22 @@ func (db *DB) GetCfg(tbl string) *Cfg {
 	return DefaultCfg()
 }
 
-func (db *DB) getCfg() ([]*Cfg, error) {
+func (db *DB) getAllCfg() error {
 	tbls, err := db.IDs(settingsTbl)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	var cfgs []*Cfg
-	for _, tbl := range tbls {
+	db.Tables = make([]*Cfg, len(tbls))
+	for i, tbl := range tbls {
 		cfg := &Cfg{}
 		err := db.Database.Find(settingsTbl, tbl, cfg)
 		if err != nil {
-			return nil, err
+			return err
 		}
-		cfgs = append(cfgs, cfg)
+		db.Tables[i] = cfg
 	}
-	return cfgs, nil
+	return nil
 }
 
 func (db *DB) Find(name string, ids ...int) ([]*doc.Doc, error) {
