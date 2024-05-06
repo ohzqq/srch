@@ -41,6 +41,18 @@ func WithURL(uri string, d []byte) Opt {
 	}
 }
 
+func WithRam(db *DB) error {
+	ds, err := NewMem()
+	if err != nil {
+		return err
+	}
+	err = db.Init(ds)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func WithData(d []byte) Opt {
 	return func(db *DB) error {
 		m := map[string][]byte{

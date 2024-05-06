@@ -28,14 +28,7 @@ func New(opts ...Opt) (*DB, error) {
 	}
 
 	if db.Database == nil {
-		ds, err := NewMem()
-		if err != nil {
-			return nil, err
-		}
-		err = db.Init(ds)
-		if err != nil {
-			return nil, err
-		}
+		return New(WithRam)
 	}
 
 	return db, nil
@@ -60,26 +53,18 @@ func (db *DB) Init(ds hare.Datastorage) error {
 	db.Database = h
 
 	if !db.TableExists(settingsTbl) {
-		err := db.CreateTable(settingsTbl)
-		if err != nil {
-			return err
-		}
-		_, err = db.Insert(settingsTbl, DefaultCfg())
+		_, err := db.CfgTable("index", doc.DefaultMapping())
 		if err != nil {
 			return err
 		}
 	}
 
-	tbls, err := h.IDs(settingsTbl)
+	cfgs, err := db.getCfg()
 	if err != nil {
 		return err
 	}
-	for _, tbl := range tbls {
-		cfg := &Cfg{}
-		err := db.Database.Find(settingsTbl, tbl, cfg)
-		if err != nil {
-			return err
-		}
+
+	for _, cfg := range cfgs {
 		db.Tables = append(db.Tables, cfg)
 	}
 
@@ -95,13 +80,39 @@ func (db *DB) CfgTable(name string, m doc.Mapping) (*Cfg, error) {
 	}
 
 	cfg := NewCfg(name, m)
-	if name == "index" {
-		err := db.Update(settingsTbl, cfg)
-		return cfg, err
+
+	cfgs, err := db.getCfg()
+	if err != nil {
+		return nil, err
 	}
 
-	_, err := db.Insert(settingsTbl, cfg)
+	for _, c := range cfgs {
+		if c.Table == name {
+			err := db.Update(settingsTbl, cfg)
+			return cfg, err
+		}
+	}
+
+	_, err = db.Insert(settingsTbl, cfg)
 	return cfg, err
+}
+
+func (db *DB) getCfg() ([]*Cfg, error) {
+	tbls, err := db.IDs(settingsTbl)
+	if err != nil {
+		return nil, err
+	}
+
+	var cfgs []*Cfg
+	for _, tbl := range tbls {
+		cfg := &Cfg{}
+		err := db.Database.Find(settingsTbl, tbl, cfg)
+		if err != nil {
+			return nil, err
+		}
+		cfgs = append(cfgs, cfg)
+	}
+	return cfgs, nil
 }
 
 func (db *DB) Find(name string, ids ...int) ([]*doc.Doc, error) {
