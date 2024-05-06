@@ -126,6 +126,8 @@ func (s *Params) Set(v url.Values) error {
 			s.DefaultField = v.Get(key.Query())
 		case UID:
 			s.UID = v.Get(key.Query())
+		case IndexName:
+			s.IndexName = v.Get(key.Query())
 		case Format:
 			if v.Has(key.Query()) {
 				s.Format = v.Get(key.Query())
@@ -207,6 +209,8 @@ func (s *Params) Has(key Param) bool {
 		return s.Format != ""
 	case UID:
 		return s.UID != ""
+	case IndexName:
+		return s.IndexName != ""
 	case SortFacetsBy:
 		return s.SortFacetsBy != ""
 	case Facets:
@@ -245,6 +249,8 @@ func (s *Params) Values() url.Values {
 			vals.Set(key.Query(), s.DefaultField)
 		case UID:
 			vals.Set(key.Query(), s.UID)
+		case IndexName:
+			vals.Set(key.Query(), s.IndexName)
 		case Format:
 			vals.Set(key.Query(), s.Format)
 		}

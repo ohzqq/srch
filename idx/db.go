@@ -1,11 +1,15 @@
 package idx
 
 import (
+	"path/filepath"
+	"strings"
+
 	"github.com/ohzqq/hare"
 	"github.com/ohzqq/hare/datastores/disk"
 	"github.com/ohzqq/hare/datastores/ram"
 	"github.com/ohzqq/hare/datastores/store"
 	"github.com/ohzqq/srch/db"
+	"github.com/ohzqq/srch/param"
 )
 
 type Data struct {
@@ -13,7 +17,7 @@ type Data struct {
 	Tables map[string]string
 }
 
-func NewData(opts ...db.Opt) (*Data, error) {
+func NewData(path string, opts ...db.Opt) (*Data, error) {
 	db, err := db.New(opts...)
 	if err != nil {
 		return nil, err
@@ -23,7 +27,7 @@ func NewData(opts ...db.Opt) (*Data, error) {
 		Tables: make(map[string]string),
 	}
 	for _, t := range db.Tables {
-		data.Tables[t] = ""
+		data.Tables[t] = path
 	}
 	return data, nil
 }
@@ -31,6 +35,11 @@ func NewData(opts ...db.Opt) (*Data, error) {
 func (d *Data) New(path string) error {
 
 	return nil
+}
+
+func WithURL(uri string) db.Opt {
+	return func(db *db.DB) error {
+	}
 }
 
 type DataInit func() (hare.Datastorage, error)
@@ -96,13 +105,30 @@ func NewMemStorage(name string) (*ram.Ram, error) {
 	return r, nil
 }
 
-func NewNetStorage(d []byte) (*ram.Ram, error) {
-	m := map[string][]byte{
-		"index": d,
+func NewNetStorage(uri string) (*ram.Ram, error) {
+	params, err := param.Parse(settings)
+	if err != nil {
+		return idx
 	}
-	ds, err := ram.New(m)
+
+	tableName := filepath.Base(u.Path)
+	tableName = strings.TrimSuffix(tableName, filepath.Ext(u.Path))
+
+	r := &ram.Ram{
+		Store: store.New(),
+	}
+
+	err := r.CreateTable(tableName)
 	if err != nil {
 		return nil, err
 	}
-	return ds, nil
+
+	err = r.CreateTable(tableName + "-settings")
+	if err != nil {
+		return nil, err
+	}
+
+	m := NewMappingFromParams()
+
+	return r, nil
 }

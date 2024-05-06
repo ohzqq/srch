@@ -38,11 +38,12 @@ const (
 	UID          // uid
 
 	// file paths
-	Route // route
-	Blv   // blv
-	Dir   // dir
-	File  // file
-	Index // index
+	Route     // route
+	Blv       // blv
+	Dir       // dir
+	File      // file
+	Index     // index
+	IndexName // index
 )
 
 const (
