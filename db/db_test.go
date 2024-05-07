@@ -18,6 +18,69 @@ import (
 
 const hareTestDB = `testdata/hare`
 
+func TestNewDB(t *testing.T) {
+	cleanFiles(t)
+
+	db, err := New(NewDisk(hareTestDB))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if db.TableExists("index") {
+		err = db.DropTable("index")
+		if err != nil {
+			t.Error(err)
+		}
+
+		err = db.CreateTable("index")
+		if err != nil {
+			t.Error(err)
+		}
+	}
+}
+
+func TestInsertRecordsDisk(t *testing.T) {
+	//t.SkipNow()
+	//m := testMapping()
+	db, err := New(
+		WithDisk(hareTestDB),
+	)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if db.TableExists("index") {
+		err = db.DropTable("index")
+		if err != nil {
+			t.Error(err)
+		}
+
+		err = db.CreateTable("index")
+		if err != nil {
+			t.Error(err)
+		}
+	}
+
+	err = batchInsert(db)
+	if err != nil {
+		t.Error(err)
+	}
+}
+
+func TestOpenDB(t *testing.T) {
+	db, err := openDiskDB()
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := []string{
+		"_settings",
+		"index",
+	}
+	if !slices.Equal(db.TableNames(), want) {
+		t.Errorf("got %v tables, wanted %v\n", db.TableNames(), want)
+	}
+}
+
 func TestMemHare(t *testing.T) {
 	tp := filepath.Join(hareTestDB, "index.json")
 
@@ -185,35 +248,14 @@ func TestCfgTable(t *testing.T) {
 	}
 }
 
-func TestInsertRecordsDisk(t *testing.T) {
-	//t.SkipNow()
-	//m := testMapping()
+func TestCreateTable(t *testing.T) {
+}
+
+func openDiskDB() (*DB, error) {
 	db, err := New(
 		WithDisk(hareTestDB),
 	)
-	if err != nil {
-		t.Error(err)
-	}
-
-	if db.TableExists("index") {
-		err = db.DropTable("index")
-		if err != nil {
-			t.Error(err)
-		}
-
-		err = db.CreateTable("index")
-		if err != nil {
-			t.Error(err)
-		}
-	}
-
-	err = batchInsert(db)
-	if err != nil {
-		t.Error(err)
-	}
-}
-
-func TestCreateTable(t *testing.T) {
+	return db, err
 }
 
 func testMapping() doc.Mapping {
@@ -266,4 +308,19 @@ func batchInsert(db *DB) error {
 	}
 
 	return nil
+}
+
+func cleanFiles(t *testing.T) {
+	for _, f := range testFiles {
+		n := filepath.Join(hareTestDB, f)
+		err := os.Remove(n)
+		if err != nil {
+			t.Error(err)
+		}
+	}
+}
+
+var testFiles = []string{
+	"_settings.json",
+	"index.json",
 }

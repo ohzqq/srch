@@ -25,7 +25,7 @@ func New(opts ...Opt) (*DB, error) {
 	for _, opt := range opts {
 		err := opt.Func(db)
 		if err != nil {
-			return nil, fmt.Errorf("option %v error: err %w\n", opt.Name, err)
+			return nil, fmt.Errorf("option %v error: %w\n", opt.Name, err)
 		}
 	}
 
@@ -54,6 +54,14 @@ func (db *DB) Init(ds hare.Datastorage) error {
 	}
 	db.Database = h
 
+	tables := db.TableNames()
+	if len(tables) == 0 {
+		err := ds.CreateTable("index")
+		if err != nil {
+			return err
+		}
+	}
+
 	if !db.TableExists(settingsTbl) {
 		err := db.CreateTable(settingsTbl)
 		if err != nil {
@@ -72,18 +80,39 @@ func (db *DB) Init(ds hare.Datastorage) error {
 		return err
 	}
 
+	if len(ids) == 0 {
+		id, err := db.cfg.Insert(DefaultTable())
+		if err != nil {
+			return err
+		}
+		ids = append(ids, id)
+	}
+
+	//for _, name := range db.TableNames() {
+	//tbl, err := db.GetTable(name)
+	//if err != nil {
+	//return err
+	//}
+	//}
+	//fmt.Printf("%#v\n", ids)
+	if db.TableExists(settingsTbl) {
+		cfg := &Table{}
+		err := db.Database.Find(settingsTbl, 1, cfg)
+		return fmt.Errorf("tables %v\nsettings table exists %w\n", db.TableNames(), err)
+	}
+
 	for _, id := range ids {
 		cfg := &Table{}
-		err := db.cfg.Find(id, cfg)
+		err := db.Database.Find(settingsTbl, id, cfg)
 		if err != nil {
-			return fmt.Errorf("db init cfg error: %w\n", err)
+			return fmt.Errorf("db init cfg for table %v error: %w\n", settingsTbl, err)
 		}
 		tbl, err := db.GetTable(cfg.Name)
 		if err != nil {
 			return err
 		}
 		cfg.Table = tbl
-		fmt.Printf("%#v\n", cfg.Table)
+		//fmt.Printf("%#v\n", cfg.Table)
 		db.Tables[cfg.Name] = cfg
 	}
 

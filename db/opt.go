@@ -126,18 +126,7 @@ func NewDiskStorage(path string) (*disk.Disk, error) {
 	if err != nil {
 		return nil, err
 	}
-	if !ds.TableExists("index") {
-		err = ds.CreateTable("index")
-		if err != nil {
-			return nil, err
-		}
-	}
-	if !ds.TableExists("index-settings") {
-		err = ds.CreateTable("index-settings")
-		if err != nil {
-			return nil, err
-		}
-	}
+
 	return ds, nil
 }
 
