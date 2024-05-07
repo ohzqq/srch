@@ -5,32 +5,39 @@ import (
 	"github.com/ohzqq/srch/doc"
 )
 
-type Cfg struct {
-	ID      int         `json:"id"`
-	Table   string      `json:"table"`
-	Mapping doc.Mapping `json:"mapping"`
+type Table struct {
+	ID       int         `json:"id"`
+	CustomID string      `json:"customID,omitempty"`
+	Name     string      `json:"table"`
+	Mapping  doc.Mapping `json:"mapping"`
 }
 
-func NewCfg(tbl string, m doc.Mapping) *Cfg {
-	return &Cfg{
-		Table:   tbl,
-		Mapping: m,
-		ID:      1,
+func NewCfg(tbl string, m doc.Mapping, id string) *Table {
+	return &Table{
+		Name:     tbl,
+		Mapping:  m,
+		ID:       1,
+		CustomID: "",
 	}
 }
 
-func DefaultCfg() *Cfg {
-	return NewCfg("index", doc.DefaultMapping())
+func DefaultCfg() *Table {
+	return NewCfg("index", doc.DefaultMapping(), "")
 }
 
-func (c *Cfg) SetID(id int) {
+func (tbl *Table) WithCustomID(name string) *Table {
+	tbl.CustomID = name
+	return tbl
+}
+
+func (c *Table) SetID(id int) {
 	c.ID = id
 }
 
-func (c *Cfg) GetID() int {
+func (c *Table) GetID() int {
 	return c.ID
 }
 
-func (c *Cfg) AfterFind(_ *hare.Database) error {
+func (c *Table) AfterFind(_ *hare.Database) error {
 	return nil
 }

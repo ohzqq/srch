@@ -9,52 +9,73 @@ import (
 	"github.com/ohzqq/srch/doc"
 )
 
-type Opt func(*DB) error
+type Opt struct {
+	Func func(*DB) error
+	Name string
+}
 
 func NewDisk(path string) Opt {
-	return func(db *DB) error {
+	fn := func(db *DB) error {
 		ds, err := NewDiskStorage(path)
 		if err != nil {
 			return err
 		}
 		return db.Init(ds)
 	}
+	return Opt{
+		Name: "NewDisk",
+		Func: fn,
+	}
 }
 
 func WithDisk(path string) Opt {
-	return func(db *DB) error {
+	fn := func(db *DB) error {
 		ds, err := OpenDisk(path)
 		if err != nil {
 			return err
 		}
 		return db.Init(ds)
 	}
+	return Opt{
+		Name: "WithDisk",
+		Func: fn,
+	}
 }
 
 func WithURL(uri string, d []byte) Opt {
-	return func(db *DB) error {
+	fn := func(db *DB) error {
 		ds, err := NewNet(uri, d)
 		if err != nil {
 			return err
 		}
 		return db.Init(ds)
 	}
+	return Opt{
+		Name: "WithURL",
+		Func: fn,
+	}
 }
 
-func WithRam(db *DB) error {
-	ds, err := NewMem()
-	if err != nil {
-		return err
+func WithRam() Opt {
+	fn := func(db *DB) error {
+		ds, err := NewMem()
+		if err != nil {
+			return err
+		}
+		err = db.Init(ds)
+		if err != nil {
+			return err
+		}
+		return nil
 	}
-	err = db.Init(ds)
-	if err != nil {
-		return err
+	return Opt{
+		Name: "WithRam",
+		Func: fn,
 	}
-	return nil
 }
 
 func WithData(d []byte) Opt {
-	return func(db *DB) error {
+	fn := func(db *DB) error {
 		m := map[string][]byte{
 			"index": d,
 		}
@@ -64,18 +85,19 @@ func WithData(d []byte) Opt {
 		}
 		return db.Init(ds)
 	}
+	return Opt{
+		Name: "WithData",
+		Func: fn,
+	}
 }
 
-func WithDefaultCfg(tbl string, m doc.Mapping) Opt {
-	return func(db *DB) error {
-		if db.TableExists(settingsTbl) {
-			cfg := NewCfg(tbl, m)
-			err := db.Update(settingsTbl, cfg)
-			if err != nil {
-				return err
-			}
-		}
-		return nil
+func WithDefaultCfg(tbl string, m doc.Mapping, id string) Opt {
+	fn := func(db *DB) error {
+		return db.CfgTable(tbl, m, id)
+	}
+	return Opt{
+		Name: "WithDefaultCfg",
+		Func: fn,
 	}
 }
 

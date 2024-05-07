@@ -166,12 +166,27 @@ func TestNewNet(t *testing.T) {
 	}
 }
 
+func TestCfgTable(t *testing.T) {
+	m := testMapping()
+	db, err := New(
+		WithDisk(hareTestDB),
+		WithDefaultCfg("index", m, "id"),
+	)
+	if err != nil {
+		t.Error(err)
+	}
+
+	cfg := db.GetCfg("index")
+	if cfg.Name != "index" {
+		t.Errorf("wanted name %v, got %v\n", "index", cfg.Name)
+	}
+}
+
 func TestInsertRecordsDisk(t *testing.T) {
 	//t.SkipNow()
 	m := testMapping()
 	db, err := New(
 		WithDisk(hareTestDB),
-		WithDefaultCfg("index", m),
 	)
 	if err != nil {
 		t.Error(err)
@@ -193,7 +208,9 @@ func TestInsertRecordsDisk(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+}
 
+func TestCreateTable(t *testing.T) {
 }
 
 func testMapping() doc.Mapping {
@@ -205,7 +222,7 @@ func testMapping() doc.Mapping {
 
 func testParams() *param.Params {
 	params := param.New()
-	//params.UID = "id"
+	params.UID = "id"
 	//params.SrchAttr = []string{"title"}
 	//params.SrchAttr = []string{"comments"}
 	params.SrchAttr = []string{"title", "comments", "tags"}

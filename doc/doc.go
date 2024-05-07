@@ -13,7 +13,9 @@ type Doc struct {
 	Standard map[string]*bloom.BloomFilter `json:"searchableAttributes"`
 	Keyword  map[string]*bloom.BloomFilter `json:"attributesForFaceting"`
 	Simple   map[string]*bloom.BloomFilter `json:"attributesForFaceting"`
-	ID       int                           `json:"id"`
+	HID      int                           `json:"id"`
+	ID       int                           `json:"_id,omitempty"`
+	CustomID string                        `json:"-"`
 }
 
 func New() *Doc {
@@ -44,7 +46,15 @@ func (doc *Doc) AddField(ana analyzer.Analyzer, attr string, val any) {
 	}
 }
 
+func (doc *Doc) WithCustomID(f string) *Doc {
+	doc.CustomID = f
+	return doc
+}
+
 func (doc *Doc) SetData(m Mapping, data map[string]any) *Doc {
+	if id, ok := data[doc.CustomID]; ok {
+		doc.ID = cast.ToInt(id)
+	}
 	for ana, attrs := range m {
 		for _, attr := range attrs {
 			if val, ok := data[attr]; ok {
@@ -117,7 +127,7 @@ func (d *Doc) Search(name string, ana analyzer.Analyzer, kw string) int {
 	if f := lo.Uniq(found); len(f) == 1 {
 		if f[0] {
 			//fmt.Printf("field %s: found %v\n", name, found)
-			return d.GetID()
+			return d.ID
 		}
 	}
 	return -1
@@ -143,11 +153,11 @@ func (d *Doc) SearchField(name string, tok string) bool {
 }
 
 func (d *Doc) SetID(id int) {
-	d.ID = id
+	d.HID = id
 }
 
 func (d *Doc) GetID() int {
-	return d.ID
+	return d.HID
 }
 
 func (d *Doc) AfterFind(_ *hare.Database) error {
