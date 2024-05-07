@@ -13,12 +13,14 @@ const (
 
 type DB struct {
 	*hare.Database
-
-	Tables []*Table
+	cfg    *hare.Table
+	Tables map[string]*Table
 }
 
 func New(opts ...Opt) (*DB, error) {
-	db := &DB{}
+	db := &DB{
+		Tables: make(map[string]*Table),
+	}
 
 	for _, opt := range opts {
 		err := opt.Func(db)
@@ -52,22 +54,44 @@ func (db *DB) Init(ds hare.Datastorage) error {
 	}
 	db.Database = h
 
-	if db.TableExists(settingsTbl) {
-		err = db.getAllCfg()
+	if !db.TableExists(settingsTbl) {
+		err := db.CreateTable(settingsTbl)
 		if err != nil {
-			return fmt.Errorf("getAllCfg error: %w\n", err)
+			return err
 		}
-	} else {
-		err := db.CfgTable("index", doc.DefaultMapping(), "")
+	}
+
+	cfg, err := db.GetTable(settingsTbl)
+	if err != nil {
+		return err
+	}
+	db.cfg = cfg
+
+	ids, err := cfg.IDs()
+	if err != nil {
+		return err
+	}
+
+	for _, id := range ids {
+		cfg := &Table{}
+		err := db.cfg.Find(id, cfg)
 		if err != nil {
-			return fmt.Errorf("cfgTable error: %w\n", err)
+			return fmt.Errorf("db init cfg error: %w\n", err)
 		}
+		tbl, err := db.GetTable(cfg.Name)
+		if err != nil {
+			return err
+		}
+		cfg.Table = tbl
+		fmt.Printf("%#v\n", cfg.Table)
+		db.Tables[cfg.Name] = cfg
 	}
 
 	return nil
 }
 
 func (db *DB) CfgTable(name string, m doc.Mapping, id string) error {
+
 	if !db.TableExists(settingsTbl) {
 		err := db.CreateTable(settingsTbl)
 		if err != nil {
@@ -77,43 +101,39 @@ func (db *DB) CfgTable(name string, m doc.Mapping, id string) error {
 
 	cfg := NewCfg(name, m, id)
 
-	for i, tbl := range db.Tables {
-		if tbl.Name == name {
-			db.Tables[i] = cfg
-			err := db.Update(settingsTbl, cfg)
-			return err
+	if db.TableExists(name) {
+		err := db.cfg.Update(cfg)
+		if err != nil {
+			_, err := db.cfg.Insert(cfg)
+			if err != nil {
+				return err
+			}
+			tbl, err := db.GetTable(name)
+			if err != nil {
+				return err
+			}
+			cfg.Table = tbl
+			//return fmt.Errorf("update setting error: %w\n", err)
 		}
-	}
-
-	_, err := db.Insert(settingsTbl, cfg)
-	return err
-}
-
-func (db *DB) GetCfg(tbl string) *Table {
-	for _, cfg := range db.Tables {
-		if cfg.Name == tbl {
-			return cfg
-		}
-	}
-	return DefaultCfg()
-}
-
-func (db *DB) getAllCfg() error {
-	tbls, err := db.IDs(settingsTbl)
-	if err != nil {
+	} else {
+		_, err := db.cfg.Insert(cfg)
 		return err
 	}
-
-	db.Tables = make([]*Table, len(tbls))
-	for i, tbl := range tbls {
-		cfg := &Table{}
-		err := db.Database.Find(settingsTbl, tbl, cfg)
-		if err != nil {
-			return err
-		}
-		db.Tables[i] = cfg
-	}
+	db.Tables[name] = cfg
 	return nil
+}
+
+func (db *DB) GetCfg(name string) (*Table, error) {
+	if tbl, ok := db.Tables[name]; ok {
+		cfg := &Table{}
+		err := db.cfg.Find(tbl.GetID(), cfg)
+		if err != nil {
+			return nil, err
+		}
+		return cfg, nil
+	}
+
+	return DefaultTable(), nil
 }
 
 func (db *DB) Find(name string, ids ...int) ([]*doc.Doc, error) {

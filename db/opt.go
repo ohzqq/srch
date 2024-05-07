@@ -79,7 +79,7 @@ func WithData(d []byte) Opt {
 		m := map[string][]byte{
 			"index": d,
 		}
-		ds, err := ram.New(m)
+		ds, err := ram.NewWithTables(m)
 		if err != nil {
 			return err
 		}

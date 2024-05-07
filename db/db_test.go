@@ -27,7 +27,7 @@ func TestMemHare(t *testing.T) {
 		t.Error(err)
 	}
 
-	ds, err := ram.New(d)
+	ds, err := ram.NewWithTables(d)
 	if err != nil {
 		t.Error(err)
 	}
@@ -176,7 +176,10 @@ func TestCfgTable(t *testing.T) {
 		t.Error(err)
 	}
 
-	cfg := db.GetCfg("index")
+	cfg, err := db.GetCfg("index")
+	if err != nil {
+		t.Error(err)
+	}
 	if cfg.Name != "index" {
 		t.Errorf("wanted name %v, got %v\n", "index", cfg.Name)
 	}
@@ -184,7 +187,7 @@ func TestCfgTable(t *testing.T) {
 
 func TestInsertRecordsDisk(t *testing.T) {
 	//t.SkipNow()
-	m := testMapping()
+	//m := testMapping()
 	db, err := New(
 		WithDisk(hareTestDB),
 	)
