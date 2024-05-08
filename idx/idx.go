@@ -75,7 +75,7 @@ func (idx *Idx) createTable(params *param.Params) error {
 		return err
 	}
 	m := idx.getDocMapping(params)
-	_, err = idx.DB.CfgTable(params.IndexName, m)
+	err = idx.DB.CfgTable(params.IndexName, m, params.UID)
 	if err != nil {
 		return err
 	}
@@ -116,9 +116,12 @@ func (db *Idx) Batch(d []byte) error {
 }
 
 func (idx *Idx) Index(data map[string]any) error {
-	cfg := idx.DB.GetCfg(idx.Params.IndexName)
+	tbl, err := idx.DB.GetTable(idx.Params.IndexName)
+	if err != nil {
+		return err
+	}
 	doc := doc.New()
-	for ana, attrs := range cfg.Mapping {
+	for ana, attrs := range tbl.Mapping {
 		for field, val := range data {
 			if ana == analyzer.Simple && slices.Equal(attrs, []string{"*"}) {
 				doc.AddField(ana, field, val)
@@ -126,7 +129,7 @@ func (idx *Idx) Index(data map[string]any) error {
 			doc.AddField(ana, field, val)
 		}
 	}
-	_, err := idx.DB.Insert(idx.Params.IndexName, doc)
+	_, err = tbl.Insert(doc)
 	if err != nil {
 		return err
 	}

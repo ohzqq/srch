@@ -6,8 +6,12 @@ import (
 )
 
 func WithURL(uri string) db.Opt {
-	return func(db *db.DB) error {
+	fn := func(db *db.DB) error {
 		return nil
+	}
+	return db.Opt{
+		Name: "WithURL",
+		Func: fn,
 	}
 }
 
@@ -22,7 +26,7 @@ func OpenDisk(params *param.Params) (*db.DB, error) {
 }
 
 func NewRam(params *param.Params) (*db.DB, error) {
-	db, err := db.New(db.WithRam)
+	db, err := db.New(db.WithRam())
 	if err != nil {
 		return nil, err
 	}
@@ -34,7 +38,7 @@ func NewRam(params *param.Params) (*db.DB, error) {
 		}
 
 		m := NewMappingFromParams(params)
-		_, err = db.CfgTable(params.IndexName, m)
+		err = db.CfgTable(params.IndexName, m, params.UID)
 		if err != nil {
 			return nil, err
 		}
