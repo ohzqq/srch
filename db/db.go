@@ -122,7 +122,7 @@ func (db *DB) GetTable(name string) (*Table, error) {
 
 func (db *DB) findTable(id int) (*Table, error) {
 	tbl := &Table{}
-	err := db.cfg.Find(id, tbl)
+	err := db.cfg.Table.Find(id, tbl)
 	if err != nil {
 		if errors.Is(err, dberr.ErrNoTable) {
 			err = db.CreateTable(tbl.Name)

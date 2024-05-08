@@ -13,8 +13,8 @@ type Doc struct {
 	Standard map[string]*bloom.BloomFilter `json:"searchableAttributes"`
 	Keyword  map[string]*bloom.BloomFilter `json:"attributesForFaceting"`
 	Simple   map[string]*bloom.BloomFilter `json:"attributesForFaceting"`
-	HID      int                           `json:"id"`
-	ID       int                           `json:"_id,omitempty"`
+	HID      int                           `json:"_id"`
+	ID       int                           `json:"id,omitempty"`
 	CustomID string                        `json:"-"`
 }
 

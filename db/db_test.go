@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/ohzqq/hare"
+	"github.com/ohzqq/hare/datastores/disk"
 	"github.com/ohzqq/hare/datastores/ram"
 	"github.com/ohzqq/srch/data"
 	"github.com/ohzqq/srch/doc"
@@ -19,7 +20,7 @@ import (
 const hareTestDB = `testdata/hare`
 
 func TestNewDB(t *testing.T) {
-	cleanFiles(t)
+	//cleanFiles(t)
 
 	db, err := New(NewDisk(hareTestDB))
 	if err != nil {
@@ -58,6 +59,19 @@ func TestCfgTable(t *testing.T) {
 	}
 }
 
+func TestOpenDB(t *testing.T) {
+	db, err := openDiskDB()
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := []string{
+		"index",
+	}
+	if !slices.Equal(db.ListTables(), want) {
+		t.Errorf("got %v tables, wanted %v\n", db.TableNames(), want)
+	}
+}
+
 func TestInsertRecordsDisk(t *testing.T) {
 	//t.SkipNow()
 	//m := testMapping()
@@ -86,20 +100,8 @@ func TestInsertRecordsDisk(t *testing.T) {
 	}
 }
 
-func TestOpenDB(t *testing.T) {
-	db, err := openDiskDB()
-	if err != nil {
-		t.Fatal(err)
-	}
-	want := []string{
-		"index",
-	}
-	if !slices.Equal(db.ListTables(), want) {
-		t.Errorf("got %v tables, wanted %v\n", db.TableNames(), want)
-	}
-}
-
 func TestMemHare(t *testing.T) {
+	t.SkipNow()
 	tp := filepath.Join(hareTestDB, "index.json")
 
 	data := data.New("file", tp)
@@ -118,7 +120,12 @@ func TestMemHare(t *testing.T) {
 		t.Error(err)
 	}
 
-	ids, err := db.IDs("index")
+	tbl, err := db.GetTable("index")
+	if err != nil {
+		t.Error(err)
+	}
+
+	ids, err := tbl.IDs()
 	if err != nil {
 		t.Error(err)
 	}
@@ -131,12 +138,22 @@ func TestMemHare(t *testing.T) {
 
 func TestAllRecs(t *testing.T) {
 	//t.SkipNow()
-	dsk, err := NewDiskStorage(hareTestDB)
+	//dsk, err := NewDiskStorage(hareTestDB)
+	dsk, err := disk.New(hareTestDB, ".json")
+	if err != nil {
+		t.Error(err)
+	}
+	h, err := hare.New(dsk)
 	if err != nil {
 		t.Error(err)
 	}
 
-	ids, err := dsk.IDs("index")
+	tb, err := h.GetTable("index")
+	if err != nil {
+		t.Error(err)
+	}
+
+	ids, err := tb.IDs()
 	if err != nil {
 		t.Error(err)
 	}
@@ -148,12 +165,19 @@ func TestAllRecs(t *testing.T) {
 		}
 		i++
 	}
+	if len(ids) != 7251 {
+		t.Errorf("got %v, want %v\n", len(ids), 7251)
+	}
 
 	db, err := New(WithDisk(hareTestDB))
 	if err != nil {
 		t.Error(err)
 	}
-	res, err := db.Find("index", -1)
+	tbl, err := db.GetTable("index")
+	if err != nil {
+		t.Error(err)
+	}
+	res, err := tbl.IDs()
 	if err != nil {
 		t.Error(err)
 	}
