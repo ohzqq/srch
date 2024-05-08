@@ -135,21 +135,24 @@ func (db *DB) setCfg(setDefault bool) error {
 	return nil
 }
 
-func (db *DB) getTable(id int) (*Table, error) {
+func (db *DB) getTable(name string) (*Table, error) {
+	if tbl, ok := db.Tables[name]; ok {
+		return tbl, nil
+	}
+	return nil, fmt.Errorf("%s: %w\n", name, dberr.ErrNoTable)
+}
+
+func (db *DB) findTable(id int) error {
 	tbl := &Table{}
 	err := db.cfg.Find(id, tbl)
 	if err != nil {
 		if errors.Is(err, dberr.ErrNoTable) {
-			err := db.CreateTable(tbl.Name)
-			if err != nil {
-				return tbl, err
-			}
-			return db.getTable(id)
-		} else {
-			return tbl, err
+			err = db.CreateTable(tbl.Name)
+			return db.findTable(id)
 		}
 	}
-	return tbl, nil
+	db.Tables[tbl.Name] = tbl
+	return err
 }
 
 func (db *DB) getTables() error {
@@ -158,11 +161,10 @@ func (db *DB) getTables() error {
 		return fmt.Errorf("getting settings table IDs error: %w\n", err)
 	}
 	for _, id := range ids {
-		tbl, err := db.getTable(id)
+		err := db.findTable(id)
 		if err != nil {
 			return err
 		}
-		db.Tables[tbl.Name] = tbl
 	}
 	return nil
 }
@@ -173,48 +175,26 @@ func (db *DB) ListTables() []string {
 
 func (db *DB) CfgTable(name string, m doc.Mapping, id string) error {
 
-	if !db.TableExists(settingsTbl) {
-		err := db.CreateTable(settingsTbl)
+	cfg := NewCfg(name, m, id)
+
+	var err error
+	var tblID int
+	if db.TableExists(name) {
+		err = db.cfg.Update(cfg)
+		if err != nil {
+			tblID, err = db.cfg.Insert(cfg)
+			if err != nil {
+				return err
+			}
+		}
+	} else {
+		tblID, err = db.cfg.Insert(cfg)
 		if err != nil {
 			return err
 		}
 	}
 
-	cfg := NewCfg(name, m, id)
-
-	if db.TableExists(name) {
-		err := db.cfg.Update(cfg)
-		if err != nil {
-			_, err := db.cfg.Insert(cfg)
-			if err != nil {
-				return err
-			}
-			tbl, err := db.GetTable(name)
-			if err != nil {
-				return err
-			}
-			cfg.Table = tbl
-			//return fmt.Errorf("update setting error: %w\n", err)
-		}
-	} else {
-		_, err := db.cfg.Insert(cfg)
-		return err
-	}
-	db.Tables[name] = cfg
-	return nil
-}
-
-func (db *DB) GetCfg(name string) (*Table, error) {
-	if tbl, ok := db.Tables[name]; ok {
-		cfg := &Table{}
-		err := db.cfg.Find(tbl.GetID(), cfg)
-		if err != nil {
-			return nil, err
-		}
-		return cfg, nil
-	}
-
-	return DefaultTable(), nil
+	return db.findTable(tblID)
 }
 
 func (db *DB) Find(name string, ids ...int) ([]*doc.Doc, error) {

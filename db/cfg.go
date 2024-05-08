@@ -19,7 +19,7 @@ func NewCfg(tbl string, m doc.Mapping, id string) *Table {
 	return &Table{
 		Mapping:  m,
 		CustomID: id,
-		ID:       1,
+		ID:       0,
 		Name:     tbl,
 	}
 }

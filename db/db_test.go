@@ -39,6 +39,25 @@ func TestNewDB(t *testing.T) {
 	}
 }
 
+func TestCfgTable(t *testing.T) {
+	m := testMapping()
+	db, err := New(
+		WithDisk(hareTestDB),
+		WithDefaultCfg("index", m, "id"),
+	)
+	if err != nil {
+		t.Error(err)
+	}
+
+	cfg, err := db.getTable("index")
+	if err != nil {
+		t.Error(err)
+	}
+	if cfg.Name != "index" {
+		t.Errorf("wanted name %v, got %v\n", "index", cfg.Name)
+	}
+}
+
 func TestInsertRecordsDisk(t *testing.T) {
 	//t.SkipNow()
 	//m := testMapping()
@@ -225,25 +244,6 @@ func TestNewNet(t *testing.T) {
 	}
 	if len(total) != 7251 {
 		t.Errorf("got %v, wanted %v\n", len(total), 7251)
-	}
-}
-
-func TestCfgTable(t *testing.T) {
-	m := testMapping()
-	db, err := New(
-		WithDisk(hareTestDB),
-		WithDefaultCfg("index", m, "id"),
-	)
-	if err != nil {
-		t.Error(err)
-	}
-
-	cfg, err := db.GetCfg("index")
-	if err != nil {
-		t.Error(err)
-	}
-	if cfg.Name != "index" {
-		t.Errorf("wanted name %v, got %v\n", "index", cfg.Name)
 	}
 }
 
