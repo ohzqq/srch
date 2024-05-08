@@ -17,12 +17,12 @@ const (
 type DB struct {
 	*hare.Database
 	cfg    *Table
-	Tables map[string]*Table
+	Tables map[string]int
 }
 
 func New(opts ...Opt) (*DB, error) {
 	db := &DB{
-		Tables: make(map[string]*Table),
+		Tables: make(map[string]int),
 	}
 
 	for _, opt := range opts {
@@ -51,45 +51,23 @@ func Open(ds hare.Datastorage) (*DB, error) {
 }
 
 func (db *DB) Init(ds hare.Datastorage) error {
+	//step 1: initialize hare.DB
 	err := db.setDB(ds)
 	if err != nil {
 		return fmt.Errorf("db init error: %w\n", err)
 	}
 
+	//step 2: get the settings for all indexes
 	err = db.getCfg()
 	if err != nil {
 		return fmt.Errorf("db get settings error: %w\n", err)
 	}
 
+	//step 3: get all tables
 	err = db.getTables()
 	if err != nil {
 		return fmt.Errorf("get tables init: %w\n", err)
 	}
-
-	//tables := db.ListTables()
-	//fmt.Printf("tables list %v\n", tables)
-	//switch {
-	//case len(tables) == 1 && slices.Contains(tables, settingsTbl):
-	//  fallthrough
-	//case len(tables) == 0:
-	//  err := ds.CreateTable("index")
-	//  if err != nil {
-	//    return err
-	//  }
-	//}
-
-	//for _, name := range db.TableNames() {
-	//tbl, err := db.GetTable(name)
-	//if err != nil {
-	//return err
-	//}
-	//}
-	//fmt.Printf("%#v\n", ids)
-	//if db.TableExists(settingsTbl) {
-	//  cfg := &Table{}
-	//  err := db.Database.Find(settingsTbl, 1, cfg)
-	//  return fmt.Errorf("tables %v\nsettings table exists %w\n", db.TableNames(), err)
-	//}
 
 	return nil
 }
@@ -116,7 +94,7 @@ func (db *DB) getCfg() error {
 }
 
 func (db *DB) setCfg(setDefault bool) error {
-	cfg, err := db.GetTable(settingsTbl)
+	cfg, err := db.Database.GetTable(settingsTbl)
 	if err != nil {
 		return err
 	}
@@ -135,14 +113,14 @@ func (db *DB) setCfg(setDefault bool) error {
 	return nil
 }
 
-func (db *DB) getTable(name string) (*Table, error) {
+func (db *DB) GetTable(name string) (*Table, error) {
 	if tbl, ok := db.Tables[name]; ok {
-		return tbl, nil
+		return db.findTable(tbl)
 	}
-	return nil, fmt.Errorf("%s: %w\n", name, dberr.ErrNoTable)
+	return db.findTable(-1)
 }
 
-func (db *DB) findTable(id int) error {
+func (db *DB) findTable(id int) (*Table, error) {
 	tbl := &Table{}
 	err := db.cfg.Find(id, tbl)
 	if err != nil {
@@ -151,8 +129,8 @@ func (db *DB) findTable(id int) error {
 			return db.findTable(id)
 		}
 	}
-	db.Tables[tbl.Name] = tbl
-	return err
+	db.Tables[tbl.Name] = tbl.GetID()
+	return tbl, err
 }
 
 func (db *DB) getTables() error {
@@ -161,7 +139,7 @@ func (db *DB) getTables() error {
 		return fmt.Errorf("getting settings table IDs error: %w\n", err)
 	}
 	for _, id := range ids {
-		err := db.findTable(id)
+		_, err := db.findTable(id)
 		if err != nil {
 			return err
 		}
@@ -194,7 +172,9 @@ func (db *DB) CfgTable(name string, m doc.Mapping, id string) error {
 		}
 	}
 
-	return db.findTable(tblID)
+	db.Tables[name] = tblID
+
+	return nil
 }
 
 func (db *DB) Find(name string, ids ...int) ([]*doc.Doc, error) {

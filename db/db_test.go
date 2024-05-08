@@ -49,7 +49,7 @@ func TestCfgTable(t *testing.T) {
 		t.Error(err)
 	}
 
-	cfg, err := db.getTable("index")
+	cfg, err := db.GetTable("index")
 	if err != nil {
 		t.Error(err)
 	}
