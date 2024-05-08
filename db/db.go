@@ -178,7 +178,7 @@ func (db *DB) CfgTable(name string, m doc.Mapping, id string) error {
 	cfg := NewCfg(name, m, id)
 
 	var err error
-	var tblID int
+	tblID := 1
 	if db.TableExists(name) {
 		err = db.cfg.Update(cfg)
 		if err != nil {
