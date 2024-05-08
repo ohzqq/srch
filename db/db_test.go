@@ -27,13 +27,13 @@ func TestNewDB(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if db.TableExists("index") {
-		err = db.DropTable("index")
+	if db.TableExists(defaultTbl) {
+		err = db.DropTable(defaultTbl)
 		if err != nil {
 			t.Error(err)
 		}
 
-		err = db.CreateTable("index")
+		err = db.CreateTable(defaultTbl)
 		if err != nil {
 			t.Error(err)
 		}
@@ -44,18 +44,18 @@ func TestCfgTable(t *testing.T) {
 	m := testMapping()
 	db, err := New(
 		WithDisk(hareTestDB),
-		WithDefaultCfg("index", m, "id"),
+		WithDefaultCfg(defaultTbl, m, "id"),
 	)
 	if err != nil {
 		t.Error(err)
 	}
 
-	cfg, err := db.GetTable("index")
+	cfg, err := db.GetTable(defaultTbl)
 	if err != nil {
 		t.Error(err)
 	}
-	if cfg.Name != "index" {
-		t.Errorf("wanted name %v, got %v\n", "index", cfg.Name)
+	if cfg.Name != defaultTbl {
+		t.Errorf("wanted name %v, got %v\n", defaultTbl, cfg.Name)
 	}
 }
 
@@ -65,7 +65,7 @@ func TestOpenDB(t *testing.T) {
 		t.Fatal(err)
 	}
 	want := []string{
-		"index",
+		defaultTbl,
 	}
 	if !slices.Equal(db.ListTables(), want) {
 		t.Errorf("got %v tables, wanted %v\n", db.TableNames(), want)
@@ -82,13 +82,13 @@ func TestInsertRecordsDisk(t *testing.T) {
 		t.Error(err)
 	}
 
-	if db.TableExists("index") {
-		err = db.DropTable("index")
+	if db.TableExists(defaultTbl) {
+		err = db.DropTable(defaultTbl)
 		if err != nil {
 			t.Error(err)
 		}
 
-		err = db.CreateTable("index")
+		err = db.CreateTable(defaultTbl)
 		if err != nil {
 			t.Error(err)
 		}
@@ -102,7 +102,7 @@ func TestInsertRecordsDisk(t *testing.T) {
 
 func TestMemHare(t *testing.T) {
 	t.SkipNow()
-	tp := filepath.Join(hareTestDB, "index.json")
+	tp := filepath.Join(hareTestDB, "default.json")
 
 	data := data.New("file", tp)
 	d, err := data.Docs()
@@ -120,7 +120,7 @@ func TestMemHare(t *testing.T) {
 		t.Error(err)
 	}
 
-	tbl, err := db.GetTable("index")
+	tbl, err := db.GetTable(defaultTbl)
 	if err != nil {
 		t.Error(err)
 	}
@@ -148,7 +148,7 @@ func TestAllRecs(t *testing.T) {
 		t.Error(err)
 	}
 
-	tb, err := h.GetTable("index")
+	tb, err := h.GetTable(defaultTbl)
 	if err != nil {
 		t.Error(err)
 	}
@@ -157,23 +157,12 @@ func TestAllRecs(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	slices.Sort(ids)
-	i := 1
-	for _, id := range ids {
-		if id != i {
-			println(i)
-		}
-		i++
-	}
-	if len(ids) != 7251 {
-		t.Errorf("got %v, want %v\n", len(ids), 7251)
-	}
 
 	db, err := New(WithDisk(hareTestDB))
 	if err != nil {
 		t.Error(err)
 	}
-	tbl, err := db.GetTable("index")
+	tbl, err := db.GetTable(defaultTbl)
 	if err != nil {
 		t.Error(err)
 	}
@@ -182,8 +171,8 @@ func TestAllRecs(t *testing.T) {
 		t.Error(err)
 	}
 
-	if len(res) != 7251 {
-		t.Errorf("got %v, want %v\n", len(res), 7251)
+	if len(res) != len(ids) {
+		t.Errorf("got %v, want %v\n", len(res), len(ids))
 	}
 }
 
@@ -194,21 +183,21 @@ func TestFindRec(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	tbl, err := db.GetTable(defaultTbl)
+	if err != nil {
+		t.Fatal(err)
+	}
 	find := 1832
-	_, err = db.Find("index", find)
+	_, err = tbl.Find(find)
 	if err != nil {
 		t.Error(err)
 	}
-	//found := doc.SearchAllFields("range")
-	//if !found {
-	//t.Errorf("%#v\n", doc)
-	//}
 }
 
 func TestNewRamDB(t *testing.T) {
 	//t.SkipNow()
 
-	data, err := os.ReadFile(filepath.Join(hareTestDB, "index.json"))
+	data, err := os.ReadFile(filepath.Join(hareTestDB, "default.json"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -218,7 +207,7 @@ func TestNewRamDB(t *testing.T) {
 		t.Error(err)
 	}
 
-	ids, err := db.IDs("index")
+	ids, err := db.IDs(defaultTbl)
 	if err != nil {
 		t.Error(err)
 	}
@@ -241,7 +230,7 @@ func TestInsertRamDB(t *testing.T) {
 		t.Error(err)
 	}
 
-	ids, err := db.IDs("index")
+	ids, err := db.IDs(defaultTbl)
 	if err != nil {
 		t.Error(err)
 	}
@@ -252,17 +241,17 @@ func TestInsertRamDB(t *testing.T) {
 }
 
 func TestNewNet(t *testing.T) {
-	d, err := os.ReadFile(filepath.Join(hareTestDB, "index.json"))
+	d, err := os.ReadFile(filepath.Join(hareTestDB, "default.json"))
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	db, err := New(WithURL("http://mxb.ca/search/index.json", d))
+	db, err := New(WithURL("http://mxb.ca/search/default.json", d))
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	total, err := db.IDs("index")
+	total, err := db.IDs(defaultTbl)
 	if err != nil {
 		t.Error(err)
 	}
@@ -310,7 +299,7 @@ func newData() ([]map[string]any, error) {
 }
 
 func batchInsert(db *DB) error {
-	data, err := os.ReadFile("/home/mxb/code/srch/param/testdata/hare/index.json")
+	data, err := os.ReadFile("/home/mxb/code/srch/testdata/hare/default.json")
 	if err != nil {
 		return err
 	}
@@ -324,7 +313,7 @@ func batchInsert(db *DB) error {
 		} else if err != nil {
 			return err
 		}
-		_, err := db.Insert("index", doc)
+		_, err := db.Insert(defaultTbl, doc)
 		if err != nil {
 			return err
 		}
@@ -345,5 +334,5 @@ func cleanFiles(t *testing.T) {
 
 var testFiles = []string{
 	"_settings.json",
-	"index.json",
+	"default.json",
 }

@@ -12,6 +12,7 @@ import (
 
 const (
 	settingsTbl = "_settings"
+	defaultTbl  = "default"
 )
 
 type DB struct {
@@ -175,43 +176,4 @@ func (db *DB) CfgTable(name string, m doc.Mapping, id string) error {
 	db.Tables[name] = tblID
 
 	return nil
-}
-
-func (db *DB) Find(name string, ids ...int) ([]*doc.Doc, error) {
-	var docs []*doc.Doc
-	switch len(ids) {
-	case 0:
-		return docs, nil
-	case 1:
-		if ids[0] == -1 {
-			return db.FindAll(name)
-		}
-		fallthrough
-	default:
-		for _, id := range ids {
-			doc := &doc.Doc{}
-			err := db.Database.Find(name, id, doc)
-			if err != nil {
-				return nil, err
-			}
-			docs = append(docs, doc)
-		}
-		return docs, nil
-	}
-}
-
-func (db *DB) Count(tbl string) int {
-	ids, err := db.IDs(tbl)
-	if err != nil {
-		return 0
-	}
-	return len(ids)
-}
-
-func (db *DB) FindAll(name string) ([]*doc.Doc, error) {
-	ids, err := db.IDs(name)
-	if err != nil {
-		return nil, err
-	}
-	return db.Find(name, ids...)
 }

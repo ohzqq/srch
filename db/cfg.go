@@ -7,7 +7,6 @@ import (
 
 type Table struct {
 	*hare.Table `json:"-"`
-	//*hare.Database
 
 	ID       int         `json:"_id"`
 	Name     string      `json:"name"`
@@ -25,7 +24,7 @@ func NewCfg(tbl string, m doc.Mapping, id string) *Table {
 }
 
 func DefaultTable() *Table {
-	return NewCfg("index", doc.DefaultMapping(), "")
+	return NewCfg(defaultTbl, doc.DefaultMapping(), "")
 }
 
 func (tbl *Table) Find(ids ...int) ([]*doc.Doc, error) {
@@ -41,6 +40,7 @@ func (tbl *Table) Find(ids ...int) ([]*doc.Doc, error) {
 	default:
 		for _, id := range ids {
 			doc := &doc.Doc{}
+			doc.WithCustomID(tbl.CustomID)
 			err := tbl.Table.Find(id, doc)
 			if err != nil {
 				return nil, err
