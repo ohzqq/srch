@@ -69,7 +69,7 @@ func New() *Params {
 		Other:     make(url.Values),
 		UID:       "id",
 		SrchAttr:  []string{"*"},
-		IndexName: "index",
+		IndexName: "default",
 	}
 }
 

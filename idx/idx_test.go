@@ -6,6 +6,8 @@ import (
 	"github.com/ohzqq/srch/param"
 )
 
+const defTbl = "default"
+
 func TestDefaultIdx(t *testing.T) {
 	idx := NewIdx()
 
@@ -31,7 +33,7 @@ func TestOpenIdx(t *testing.T) {
 		}
 
 		if idx.Params.Path != "" {
-			ids, err := idx.DB.IDs("index")
+			ids, err := idx.DB.IDs(defTbl)
 			if err != nil {
 				t.Error(err)
 			}

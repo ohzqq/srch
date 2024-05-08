@@ -68,7 +68,7 @@ var paramTests = []paramTest{
 			FacetFilters: []any{},
 			SortFacetsBy: "",
 			UID:          "",
-			IndexName:    "index",
+			IndexName:    defTbl,
 		},
 	},
 	paramTest{
@@ -91,7 +91,7 @@ var paramTests = []paramTest{
 			FacetFilters: []any{},
 			SortFacetsBy: "",
 			UID:          "",
-			IndexName:    "index",
+			IndexName:    defTbl,
 		},
 	},
 	paramTest{
@@ -114,7 +114,7 @@ var paramTests = []paramTest{
 			FacetFilters: []any{},
 			SortFacetsBy: "",
 			UID:          "",
-			IndexName:    "index",
+			IndexName:    defTbl,
 		},
 	},
 	paramTest{
@@ -137,7 +137,7 @@ var paramTests = []paramTest{
 			FacetFilters: []any{},
 			SortFacetsBy: "",
 			UID:          "",
-			IndexName:    "index",
+			IndexName:    defTbl,
 			Path:         testHareDskDir,
 		},
 	},
@@ -161,7 +161,7 @@ var paramTests = []paramTest{
 			FacetFilters: []any{},
 			SortFacetsBy: "",
 			UID:          "",
-			IndexName:    "index",
+			IndexName:    defTbl,
 		},
 	},
 	paramTest{
@@ -184,7 +184,7 @@ var paramTests = []paramTest{
 			FacetFilters: []any{},
 			SortFacetsBy: "",
 			UID:          "",
-			IndexName:    "index",
+			IndexName:    defTbl,
 			Path:         testHareDskDir,
 		},
 	},
@@ -208,7 +208,7 @@ var paramTests = []paramTest{
 			FacetFilters: []any{},
 			SortFacetsBy: "",
 			UID:          "",
-			IndexName:    "index",
+			IndexName:    defTbl,
 		},
 	},
 	paramTest{
@@ -231,7 +231,7 @@ var paramTests = []paramTest{
 			FacetFilters: []any{},
 			SortFacetsBy: "",
 			UID:          "",
-			IndexName:    "index",
+			IndexName:    defTbl,
 			Path:         testHareDskDir,
 		},
 	},
@@ -304,7 +304,7 @@ func fileRoute(params ...string) string {
 }
 
 func hareURL(params ...string) string {
-	params = append(params, "path="+mkHarePath("index"))
+	params = append(params, "path="+mkHarePath(defTbl))
 	return mkURL(param.File.String(), params...)
 }
 
