@@ -73,10 +73,9 @@ func TestOpenDB(t *testing.T) {
 		t.Fatal(err)
 	}
 	want := []string{
-		"_settings",
 		"index",
 	}
-	if !slices.Equal(db.TableNames(), want) {
+	if !slices.Equal(db.ListTables(), want) {
 		t.Errorf("got %v tables, wanted %v\n", db.TableNames(), want)
 	}
 }

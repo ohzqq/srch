@@ -6,7 +6,8 @@ import (
 )
 
 type Table struct {
-	*hare.Table
+	*hare.Table `json:"-"`
+	//*hare.Database
 
 	ID       int         `json:"_id"`
 	Name     string      `json:"name"`
@@ -16,10 +17,10 @@ type Table struct {
 
 func NewCfg(tbl string, m doc.Mapping, id string) *Table {
 	return &Table{
-		Name:     tbl,
 		Mapping:  m,
 		CustomID: id,
 		ID:       1,
+		Name:     tbl,
 	}
 }
 
@@ -41,10 +42,12 @@ func (c *Table) GetID() int {
 }
 
 func (c *Table) AfterFind(db *hare.Database) error {
+	//println("after find")
 	tbl, err := db.GetTable(c.Name)
 	if err != nil {
 		return err
 	}
 	c.Table = tbl
+	//c.Database = db
 	return nil
 }

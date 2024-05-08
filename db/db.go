@@ -1,10 +1,13 @@
 package db
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/ohzqq/hare"
+	"github.com/ohzqq/hare/dberr"
 	"github.com/ohzqq/srch/doc"
+	"github.com/samber/lo"
 )
 
 const (
@@ -13,7 +16,7 @@ const (
 
 type DB struct {
 	*hare.Database
-	cfg    *hare.Table
+	cfg    *Table
 	Tables map[string]*Table
 }
 
@@ -48,45 +51,32 @@ func Open(ds hare.Datastorage) (*DB, error) {
 }
 
 func (db *DB) Init(ds hare.Datastorage) error {
-	h, err := hare.New(ds)
+	err := db.setDB(ds)
 	if err != nil {
 		return fmt.Errorf("db init error: %w\n", err)
 	}
-	db.Database = h
 
-	tables := db.TableNames()
-	if len(tables) == 0 {
-		err := ds.CreateTable("index")
-		if err != nil {
-			return err
-		}
-	}
-
-	if !db.TableExists(settingsTbl) {
-		err := db.CreateTable(settingsTbl)
-		if err != nil {
-			return err
-		}
-	}
-
-	cfg, err := db.GetTable(settingsTbl)
+	err = db.getCfg()
 	if err != nil {
-		return err
+		return fmt.Errorf("db get settings error: %w\n", err)
 	}
-	db.cfg = cfg
 
-	ids, err := cfg.IDs()
+	err = db.getTables()
 	if err != nil {
-		return err
+		return fmt.Errorf("get tables init: %w\n", err)
 	}
 
-	if len(ids) == 0 {
-		id, err := db.cfg.Insert(DefaultTable())
-		if err != nil {
-			return err
-		}
-		ids = append(ids, id)
-	}
+	//tables := db.ListTables()
+	//fmt.Printf("tables list %v\n", tables)
+	//switch {
+	//case len(tables) == 1 && slices.Contains(tables, settingsTbl):
+	//  fallthrough
+	//case len(tables) == 0:
+	//  err := ds.CreateTable("index")
+	//  if err != nil {
+	//    return err
+	//  }
+	//}
 
 	//for _, name := range db.TableNames() {
 	//tbl, err := db.GetTable(name)
@@ -95,28 +85,90 @@ func (db *DB) Init(ds hare.Datastorage) error {
 	//}
 	//}
 	//fmt.Printf("%#v\n", ids)
-	if db.TableExists(settingsTbl) {
-		cfg := &Table{}
-		err := db.Database.Find(settingsTbl, 1, cfg)
-		return fmt.Errorf("tables %v\nsettings table exists %w\n", db.TableNames(), err)
-	}
+	//if db.TableExists(settingsTbl) {
+	//  cfg := &Table{}
+	//  err := db.Database.Find(settingsTbl, 1, cfg)
+	//  return fmt.Errorf("tables %v\nsettings table exists %w\n", db.TableNames(), err)
+	//}
 
-	for _, id := range ids {
-		cfg := &Table{}
-		err := db.Database.Find(settingsTbl, id, cfg)
-		if err != nil {
-			return fmt.Errorf("db init cfg for table %v error: %w\n", settingsTbl, err)
-		}
-		tbl, err := db.GetTable(cfg.Name)
+	return nil
+}
+
+func (db *DB) setDB(ds hare.Datastorage) error {
+	h, err := hare.New(ds)
+	if err != nil {
+		return err
+	}
+	db.Database = h
+	return nil
+}
+
+func (db *DB) getCfg() error {
+	if !db.TableExists(settingsTbl) {
+		err := db.CreateTable(settingsTbl)
 		if err != nil {
 			return err
 		}
-		cfg.Table = tbl
-		//fmt.Printf("%#v\n", cfg.Table)
-		db.Tables[cfg.Name] = cfg
+		return db.setCfg(true)
+	}
+
+	return db.setCfg(false)
+}
+
+func (db *DB) setCfg(setDefault bool) error {
+	cfg, err := db.GetTable(settingsTbl)
+	if err != nil {
+		return err
+	}
+	db.cfg = &Table{
+		Table: cfg,
+		Name:  "_settings",
+	}
+
+	if setDefault {
+		_, err := db.cfg.Insert(DefaultTable())
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
+}
+
+func (db *DB) getTable(id int) (*Table, error) {
+	tbl := &Table{}
+	err := db.cfg.Find(id, tbl)
+	if err != nil {
+		if errors.Is(err, dberr.ErrNoTable) {
+			err := db.CreateTable(tbl.Name)
+			if err != nil {
+				return tbl, err
+			}
+			return db.getTable(id)
+		} else {
+			return tbl, err
+		}
+	}
+	return tbl, nil
+}
+
+func (db *DB) getTables() error {
+	ids, err := db.cfg.IDs()
+	if err != nil {
+		return fmt.Errorf("getting settings table IDs error: %w\n", err)
+	}
+	for _, id := range ids {
+		tbl, err := db.getTable(id)
+		if err != nil {
+			return err
+		}
+		db.Tables[tbl.Name] = tbl
+	}
+	return nil
+}
+
+func (db *DB) ListTables() []string {
+	return lo.Without(db.TableNames(), settingsTbl, "")
 }
 
 func (db *DB) CfgTable(name string, m doc.Mapping, id string) error {

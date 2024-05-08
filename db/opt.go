@@ -1,6 +1,8 @@
 package db
 
 import (
+	"fmt"
+
 	"github.com/ohzqq/hare"
 	"github.com/ohzqq/hare/datastores/disk"
 	"github.com/ohzqq/hare/datastores/net"
@@ -18,7 +20,7 @@ func NewDisk(path string) Opt {
 	fn := func(db *DB) error {
 		ds, err := NewDiskStorage(path)
 		if err != nil {
-			return err
+			return fmt.Errorf("new disk opt: %w\n", err)
 		}
 		return db.Init(ds)
 	}
