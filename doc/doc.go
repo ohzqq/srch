@@ -52,9 +52,6 @@ func (doc *Doc) WithCustomID(f string) *Doc {
 }
 
 func (doc *Doc) SetData(m Mapping, data map[string]any) *Doc {
-	if id, ok := data[doc.CustomID]; ok {
-		doc.ID = cast.ToInt(id)
-	}
 	for ana, attrs := range m {
 		for _, attr := range attrs {
 			if val, ok := data[attr]; ok {

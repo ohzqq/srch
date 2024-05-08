@@ -269,8 +269,8 @@ func openDiskDB() (*DB, error) {
 
 func testMapping() doc.Mapping {
 	m := doc.NewMapping()
-	m.AddFulltext("title", "comments", "tags")
-	m.AddKeywords("tags")
+	m.AddFulltext("title", "comments")
+	m.AddKeywords("tags", "authors", "narrators", "series")
 	return m
 }
 
@@ -279,8 +279,8 @@ func testParams() *param.Params {
 	params.UID = "id"
 	//params.SrchAttr = []string{"title"}
 	//params.SrchAttr = []string{"comments"}
-	params.SrchAttr = []string{"title", "comments", "tags"}
-	params.Facets = []string{"tags"}
+	params.SrchAttr = []string{"title", "comments"}
+	params.Facets = []string{"tags", "authors", "narrators", "series"}
 	return params
 }
 

@@ -1,8 +1,11 @@
 package idx
 
 import (
+	"os"
 	"testing"
 
+	"github.com/ohzqq/srch/db"
+	"github.com/ohzqq/srch/doc"
 	"github.com/ohzqq/srch/param"
 )
 
@@ -69,6 +72,46 @@ func TestConfigureIdx(t *testing.T) {
 			t.Errorf("\nparams: %v\n%v\n", test.query, err)
 		}
 	}
+}
+
+func TestBuildIdx(t *testing.T) {
+	data, err := os.ReadFile(testDataFile)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	params := param.New()
+	params.SrchAttr = []string{"title", "comments"}
+	params.FacetAttr = []string{"tags", "authors", "narrators", "series"}
+	params.Path = testHareDskDir
+
+	db, err := openDiskDB()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	idx := Init(params.String())
+	idx.DB = db
+
+	err = idx.Batch(data)
+	if err != nil {
+		t.Error(err)
+	}
+}
+
+func openDiskDB() (*db.DB, error) {
+	db, err := db.New(
+		db.WithDisk(testHareDskDir),
+		db.WithDefaultCfg("default", testMapping(), "id"),
+	)
+	return db, err
+}
+
+func testMapping() doc.Mapping {
+	m := doc.NewMapping()
+	m.AddFulltext("title", "comments")
+	m.AddKeywords("tags", "authors", "narrators", "series")
+	return m
 }
 
 //func TestSearchIdx(t *testing.T) {

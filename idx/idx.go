@@ -7,10 +7,10 @@ import (
 	"path/filepath"
 	"slices"
 
-	"github.com/ohzqq/srch/analyzer"
 	"github.com/ohzqq/srch/db"
 	"github.com/ohzqq/srch/doc"
 	"github.com/ohzqq/srch/param"
+	"github.com/spf13/cast"
 )
 
 type Idx struct {
@@ -120,13 +120,18 @@ func (idx *Idx) Index(data map[string]any) error {
 	if err != nil {
 		return err
 	}
-	doc := doc.New()
+	doc := doc.New().WithCustomID(idx.Params.UID)
 	for ana, attrs := range tbl.Mapping {
 		for field, val := range data {
-			if ana == analyzer.Simple && slices.Equal(attrs, []string{"*"}) {
+			if id, ok := data[doc.CustomID]; ok {
+				doc.ID = cast.ToInt(id)
+			}
+			//if ana == analyzer.Simple && slices.Equal(attrs, []string{"*"}) {
+			//  doc.AddField(ana, field, val)
+			//}
+			if slices.Contains(attrs, field) {
 				doc.AddField(ana, field, val)
 			}
-			doc.AddField(ana, field, val)
 		}
 	}
 	_, err = tbl.Insert(doc)

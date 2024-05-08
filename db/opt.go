@@ -79,7 +79,7 @@ func WithRam() Opt {
 func WithData(d []byte) Opt {
 	fn := func(db *DB) error {
 		m := map[string][]byte{
-			"index": d,
+			"default": d,
 		}
 		ds, err := ram.NewWithTables(m)
 		if err != nil {
