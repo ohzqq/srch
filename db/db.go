@@ -105,7 +105,7 @@ func (db *DB) setCfg(setDefault bool) error {
 	}
 
 	if setDefault {
-		_, err := db.cfg.Insert(DefaultTable())
+		_, err := db.cfg.Table.Insert(DefaultTable())
 		if err != nil {
 			return err
 		}
@@ -154,20 +154,20 @@ func (db *DB) ListTables() []string {
 
 func (db *DB) CfgTable(name string, m doc.Mapping, id string) error {
 
-	cfg := NewCfg(name, m, id)
+	cfg := NewTable(name, m, id)
 
 	var err error
 	tblID := 1
 	if db.TableExists(name) {
 		err = db.cfg.Update(cfg)
 		if err != nil {
-			tblID, err = db.cfg.Insert(cfg)
+			tblID, err = db.cfg.Table.Insert(cfg)
 			if err != nil {
 				return err
 			}
 		}
 	} else {
-		tblID, err = db.cfg.Insert(cfg)
+		tblID, err = db.cfg.Table.Insert(cfg)
 		if err != nil {
 			return err
 		}

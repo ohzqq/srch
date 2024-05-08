@@ -1,6 +1,10 @@
 package db
 
 import (
+	"bytes"
+	"encoding/json"
+	"io"
+
 	"github.com/ohzqq/hare"
 	"github.com/ohzqq/srch/doc"
 )
@@ -14,7 +18,7 @@ type Table struct {
 	Mapping  doc.Mapping `json:"mapping"`
 }
 
-func NewCfg(tbl string, m doc.Mapping, id string) *Table {
+func NewTable(tbl string, m doc.Mapping, id string) *Table {
 	return &Table{
 		Mapping:  m,
 		CustomID: id,
@@ -24,7 +28,7 @@ func NewCfg(tbl string, m doc.Mapping, id string) *Table {
 }
 
 func DefaultTable() *Table {
-	return NewCfg(defaultTbl, doc.DefaultMapping(), "")
+	return NewTable(defaultTbl, doc.DefaultMapping(), "")
 }
 
 func (tbl *Table) Find(ids ...int) ([]*doc.Doc, error) {
@@ -49,6 +53,24 @@ func (tbl *Table) Find(ids ...int) ([]*doc.Doc, error) {
 		}
 		return docs, nil
 	}
+}
+
+func (tbl *Table) Batch(d []byte) error {
+	r := bytes.NewReader(d)
+	dec := json.NewDecoder(r)
+	for {
+		doc := &doc.Doc{}
+		if err := dec.Decode(doc); err == io.EOF {
+			break
+		} else if err != nil {
+			return err
+		}
+		_, err := tbl.Table.Insert(doc)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (tbl *Table) FindAll() ([]*doc.Doc, error) {

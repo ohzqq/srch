@@ -1,9 +1,6 @@
 package db
 
 import (
-	"bytes"
-	"encoding/json"
-	"io"
 	"os"
 	"path/filepath"
 	"slices"
@@ -197,7 +194,7 @@ func TestFindRec(t *testing.T) {
 func TestNewRamDB(t *testing.T) {
 	//t.SkipNow()
 
-	data, err := os.ReadFile(filepath.Join(hareTestDB, "default.json"))
+	data, err := os.ReadFile("/home/mxb/code/srch/testdata/hare/default.json")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -304,19 +301,14 @@ func batchInsert(db *DB) error {
 		return err
 	}
 
-	r := bytes.NewReader(data)
-	dec := json.NewDecoder(r)
-	for {
-		doc := &doc.Doc{}
-		if err := dec.Decode(doc); err == io.EOF {
-			break
-		} else if err != nil {
-			return err
-		}
-		_, err := db.Insert(defaultTbl, doc)
-		if err != nil {
-			return err
-		}
+	tbl, err := db.GetTable(defaultTbl)
+	if err != nil {
+		return err
+	}
+
+	err = tbl.Batch(data)
+	if err != nil {
+		return err
 	}
 
 	return nil
