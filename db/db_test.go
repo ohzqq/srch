@@ -24,6 +24,12 @@ func TestNewDB(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	want := []string{"default"}
+
+	if !slices.Equal(db.ListTables(), want) {
+		t.Errorf("got %v tables, wanted %v\n", db.ListTables(), want)
+	}
+
 	if db.TableExists(defaultTbl) {
 		err = db.DropTable(defaultTbl)
 		if err != nil {

@@ -7,7 +7,7 @@ import (
 	"github.com/ohzqq/hare"
 	"github.com/ohzqq/hare/dberr"
 	"github.com/ohzqq/srch/doc"
-	"github.com/samber/lo"
+	"golang.org/x/exp/maps"
 )
 
 const (
@@ -64,12 +64,6 @@ func (db *DB) Init(ds hare.Datastorage) error {
 		return fmt.Errorf("db get settings error: %w\n", err)
 	}
 
-	//step 3: get all tables
-	err = db.getTables()
-	if err != nil {
-		return fmt.Errorf("get tables init: %w\n", err)
-	}
-
 	return nil
 }
 
@@ -83,35 +77,31 @@ func (db *DB) setDB(ds hare.Datastorage) error {
 }
 
 func (db *DB) getCfg() error {
-	if !db.TableExists(settingsTbl) {
-		err := db.CreateTable(settingsTbl)
+	//Create settings table if it doesn't exist
+	if !db.Database.TableExists(settingsTbl) {
+		err := db.Database.CreateTable(settingsTbl)
 		if err != nil {
-			return err
+			return fmt.Errorf("db.getCfg CreateTable error\n%w\n", err)
 		}
-		return db.setCfg(true)
+		_, err = db.Database.Insert(settingsTbl, DefaultTable())
+		if err != nil {
+			return fmt.Errorf("db.getCfg Insert error\n%w\n", err)
+		}
 	}
 
-	return db.setCfg(false)
-}
-
-func (db *DB) setCfg(setDefault bool) error {
-	cfg, err := db.Database.GetTable(settingsTbl)
+	//Get all table names and ids
+	ids, err := db.Database.IDs(settingsTbl)
 	if err != nil {
-		return err
+		return fmt.Errorf("db.getCfg IDs error\n%w\n", err)
 	}
-	db.cfg = &Table{
-		Table: cfg,
-		Name:  "_settings",
-	}
-
-	if setDefault {
-		_, err := db.cfg.Table.Insert(DefaultTable())
+	for _, id := range ids {
+		_, err := db.findTable(id)
 		if err != nil {
-			return err
+			return fmt.Errorf("db.getCfg findTable error\n%w\n", err)
 		}
 	}
-
 	return nil
+	//return db.setCfg(false)
 }
 
 func (db *DB) GetTable(name string) (*Table, error) {
@@ -123,33 +113,64 @@ func (db *DB) GetTable(name string) (*Table, error) {
 
 func (db *DB) findTable(id int) (*Table, error) {
 	tbl := &Table{}
-	err := db.cfg.Table.Find(id, tbl)
+	err := db.Database.Find(settingsTbl, id, tbl)
 	if err != nil {
-		if errors.Is(err, dberr.ErrNoTable) {
-			err = db.CreateTable(tbl.Name)
-			return db.findTable(id)
+		switch {
+		case errors.Is(err, dberr.ErrNoTable):
+			err := db.CreateTable(tbl.Name)
+			if err != nil && !errors.Is(err, dberr.ErrTableExists) {
+				return nil, fmt.Errorf("db.findTable create table error:\n%w: %v\n", err, tbl.Name)
+			}
+		default:
+			return nil, fmt.Errorf("db.findTable error:\n%w: %v\n", err, tbl.Name)
 		}
 	}
+
 	db.Tables[tbl.Name] = tbl.GetID()
-	return tbl, err
+
+	return tbl, nil
 }
 
-func (db *DB) getTables() error {
-	ids, err := db.cfg.IDs()
-	if err != nil {
-		return fmt.Errorf("getting settings table IDs error: %w\n", err)
-	}
-	for _, id := range ids {
-		_, err := db.findTable(id)
+func (db *DB) CreateTable(name string) error {
+	if !db.TableExists(name) {
+		err := db.Database.CreateTable(name + "-srch")
 		if err != nil {
 			return err
 		}
+		err = db.Database.CreateTable(name + "-idx")
+		if err != nil {
+			return err
+		}
+		return nil
 	}
-	return nil
+	return dberr.ErrTableExists
+}
+
+func (db *DB) DropTable(name string) error {
+	if db.TableExists(name) {
+		err := db.Database.DropTable(name + "-srch")
+		if err != nil {
+			return err
+		}
+		err = db.Database.DropTable(name + "-idx")
+		if err != nil {
+			return err
+		}
+		delete(db.Tables, name)
+		return nil
+	}
+	return dberr.ErrNoTable
 }
 
 func (db *DB) ListTables() []string {
-	return lo.Without(db.TableNames(), settingsTbl, "")
+	return maps.Keys(db.Tables)
+}
+
+func (db *DB) TableExists(name string) bool {
+	if _, ok := db.Tables[name]; ok {
+		return true
+	}
+	return false
 }
 
 func (db *DB) CfgTable(name string, m doc.Mapping, id string) error {
@@ -158,16 +179,16 @@ func (db *DB) CfgTable(name string, m doc.Mapping, id string) error {
 
 	var err error
 	tblID := 1
-	if db.TableExists(name) {
-		err = db.cfg.Update(cfg)
+	if db.Database.TableExists(name) {
+		err = db.Database.Update(settingsTbl, cfg)
 		if err != nil {
-			tblID, err = db.cfg.Table.Insert(cfg)
+			tblID, err = db.Database.Insert(settingsTbl, cfg)
 			if err != nil {
 				return err
 			}
 		}
 	} else {
-		tblID, err = db.cfg.Table.Insert(cfg)
+		tblID, err = db.Database.Insert(settingsTbl, cfg)
 		if err != nil {
 			return err
 		}
