@@ -3,10 +3,12 @@ package idx
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"io"
 	"path/filepath"
 	"slices"
 
+	"github.com/ohzqq/hare/dberr"
 	"github.com/ohzqq/srch/db"
 	"github.com/ohzqq/srch/doc"
 	"github.com/ohzqq/srch/param"
@@ -134,8 +136,8 @@ func (idx *Idx) Index(data map[string]any) error {
 			}
 		}
 	}
-	_, err = tbl.Insert(doc)
-	if err != nil {
+	err = tbl.Update(doc)
+	if err != nil && !errors.Is(err, dberr.ErrNoRecord) {
 		return err
 	}
 	return nil
