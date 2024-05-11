@@ -1,9 +1,8 @@
-package idx
+package data
 
 import (
 	"net/url"
 
-	"github.com/ohzqq/hare"
 	"github.com/ohzqq/srch/db"
 )
 
@@ -16,7 +15,7 @@ type Tbl struct {
 }
 
 type Mem struct {
-	*hare.Database
+	*db.DB
 }
 
 type Net struct {
