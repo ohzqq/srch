@@ -1,7 +1,18 @@
 package data
 
-import "github.com/ohzqq/srch/db"
+import (
+	"github.com/ohzqq/hare/datastores/store"
+)
 
 type Mem struct {
-	*db.DB
+	store *store.Store
+	Name  string
+}
+
+func NewMem(idx string) (*Mem, error) {
+	m := &Mem{
+		Name:  idx,
+		store: store.New(),
+	}
+	return m
 }

@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"slices"
 
+	"github.com/ohzqq/hare/datastores/store"
 	"github.com/ohzqq/hare/dberr"
 	"github.com/ohzqq/srch/db"
 	"github.com/ohzqq/srch/doc"
@@ -17,7 +18,7 @@ import (
 
 type Idx struct {
 	*db.DB
-	Data   Src
+	store  *store.Store
 	Params *param.Params
 }
 
