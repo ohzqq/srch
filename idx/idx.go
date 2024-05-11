@@ -17,6 +17,7 @@ import (
 
 type Idx struct {
 	*db.DB
+	Data   Src
 	Params *param.Params
 }
 
