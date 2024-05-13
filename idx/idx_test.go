@@ -36,7 +36,7 @@ func TestOpenIdx(t *testing.T) {
 		}
 
 		if idx.Params.Path != "" {
-			ids, err := idx.DB.IDs(defTbl)
+			ids, err := idx.Client.IDs(defTbl)
 			if err != nil {
 				t.Error(err)
 			}
@@ -91,7 +91,7 @@ func TestBuildIdx(t *testing.T) {
 	}
 
 	idx := Init(params.String())
-	idx.DB = db
+	idx.Client = db
 
 	err = idx.Batch(data)
 	if err != nil {
@@ -99,7 +99,7 @@ func TestBuildIdx(t *testing.T) {
 	}
 }
 
-func openDiskDB() (*db.DB, error) {
+func openDiskDB() (*db.Client, error) {
 	db, err := db.New(
 		db.WithDisk(testHareDskDir),
 		db.WithDefaultCfg("default", testMapping(), "id"),

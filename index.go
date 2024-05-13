@@ -32,7 +32,7 @@ type Searcher interface {
 type Index struct {
 	Indexer
 	*data.Data
-	DB *db.DB
+	DB *db.Client
 
 	Docs   []map[string]any
 	res    *roaring.Bitmap

@@ -17,7 +17,7 @@ import (
 )
 
 type Idx struct {
-	*db.DB
+	*db.Client
 	store  *store.Store
 	Params *param.Params
 }
@@ -29,7 +29,7 @@ func New(params string, data InitDB) (*Idx, error) {
 	if err != nil {
 		return idx, err
 	}
-	idx.DB = db
+	idx.Client = db
 
 	return idx, nil
 }
@@ -38,7 +38,7 @@ func NewIdx() *Idx {
 	db, _ := db.New()
 	return &Idx{
 		Params: param.New(),
-		DB:     db,
+		Client: db,
 	}
 }
 
@@ -59,12 +59,12 @@ func Open(settings string) (*Idx, error) {
 	var err error
 	if idx.Params.Has(param.Path) {
 		if ext := filepath.Ext(idx.Params.Path); ext != "" {
-			idx.DB, err = NewRam(idx.Params)
+			idx.Client, err = NewRam(idx.Params)
 			if err != nil {
 				return nil, err
 			}
 		} else {
-			idx.DB, err = OpenDisk(idx.Params)
+			idx.Client, err = OpenDisk(idx.Params)
 			if err != nil {
 				return nil, err
 			}
@@ -74,20 +74,20 @@ func Open(settings string) (*Idx, error) {
 }
 
 func (idx *Idx) createTable(params *param.Params) error {
-	err := idx.DB.CreateTable(params.IndexName)
+	err := idx.Client.CreateTable(params.IndexName)
 	if err != nil {
 		return err
 	}
 	m := idx.getDocMapping(params)
-	err = idx.DB.CfgTable(params.IndexName, m, params.UID)
+	err = idx.Client.CfgTable(params.IndexName, m, params.UID)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (idx *Idx) storageType() string {
-	ext := filepath.Ext(idx.Params.Path)
+func (client *Idx) storageType() string {
+	ext := filepath.Ext(client.Params.Path)
 	if ext == "" {
 		return "disk"
 	}
@@ -120,7 +120,7 @@ func (db *Idx) Batch(d []byte) error {
 }
 
 func (idx *Idx) Index(data map[string]any) error {
-	tbl, err := idx.DB.GetTable(idx.Params.IndexName)
+	tbl, err := idx.Client.GetTable(idx.Params.IndexName)
 	if err != nil {
 		return err
 	}

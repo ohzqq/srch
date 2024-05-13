@@ -3,10 +3,12 @@ package db
 import (
 	"errors"
 	"fmt"
+	"path/filepath"
 
 	"github.com/ohzqq/hare"
 	"github.com/ohzqq/hare/dberr"
 	"github.com/ohzqq/srch/doc"
+	"github.com/ohzqq/srch/param"
 	"golang.org/x/exp/maps"
 )
 
@@ -17,6 +19,8 @@ const (
 
 type Client struct {
 	*hare.Database
+	*param.Params
+
 	cfg    *Cfg
 	Tables map[string]int
 }
@@ -24,6 +28,7 @@ type Client struct {
 func New(opts ...Opt) (*Client, error) {
 	db := &Client{
 		Tables: make(map[string]int),
+		Params: param.New(),
 	}
 
 	for _, opt := range opts {
@@ -49,6 +54,15 @@ func Open(ds hare.Datastorage) (*Client, error) {
 	}
 
 	return db, nil
+}
+
+func (client *Client) ParseParams(settings string) error {
+	params, err := param.Parse(settings)
+	if err != nil {
+		return err
+	}
+	client.Params = params
+	return nil
 }
 
 func (db *Client) Init(ds hare.Datastorage) error {
@@ -146,6 +160,21 @@ func (db *Client) CreateTable(name string) error {
 	return dberr.ErrTableExists
 }
 
+func (client *Client) storageType() string {
+	ext := filepath.Ext(client.Params.Path)
+	if ext == "" {
+		return "disk"
+	}
+	return "ram"
+}
+
+func (client *Client) getDocMapping(params *param.Params) doc.Mapping {
+	if !params.Has(param.SrchAttr) && !params.Has(param.FacetAttr) {
+		return doc.DefaultMapping()
+	}
+	return NewMappingFromParams(params)
+}
+
 func (db *Client) DropTable(name string) error {
 	if db.TableExists(name) {
 		err := db.Database.DropTable(name + "-srch")
@@ -197,4 +226,22 @@ func (db *Client) CfgTable(name string, m doc.Mapping, id string) error {
 	db.Tables[name] = tblID
 
 	return nil
+}
+
+func NewMappingFromParams(params *param.Params) doc.Mapping {
+	if !params.Has(param.SrchAttr) && !params.Has(param.FacetAttr) {
+		return doc.DefaultMapping()
+	}
+
+	m := doc.NewMapping()
+
+	for _, attr := range params.SrchAttr {
+		m.AddFulltext(attr)
+	}
+
+	for _, attr := range params.FacetAttr {
+		m.AddKeywords(attr)
+	}
+
+	return m
 }

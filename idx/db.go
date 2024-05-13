@@ -6,7 +6,7 @@ import (
 )
 
 func WithURL(uri string) db.Opt {
-	fn := func(db *db.DB) error {
+	fn := func(db *db.Client) error {
 		return nil
 	}
 	return db.Opt{
@@ -15,17 +15,17 @@ func WithURL(uri string) db.Opt {
 	}
 }
 
-type InitDB func() (*db.DB, error)
+type InitDB func() (*db.Client, error)
 
-func NewDisk(params *param.Params) (*db.DB, error) {
+func NewDisk(params *param.Params) (*db.Client, error) {
 	return db.New(db.NewDisk(params.Path))
 }
 
-func OpenDisk(params *param.Params) (*db.DB, error) {
+func OpenDisk(params *param.Params) (*db.Client, error) {
 	return db.New(db.WithDisk(params.Path))
 }
 
-func NewRam(params *param.Params) (*db.DB, error) {
+func NewRam(params *param.Params) (*db.Client, error) {
 	db, err := db.New(db.WithRam())
 	if err != nil {
 		return nil, err
