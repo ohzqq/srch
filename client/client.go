@@ -118,7 +118,7 @@ func (db *Client) getCfg() error {
 	//return db.setCfg(false)
 }
 
-func (db *Client) GetTable(name string) (*Cfg, error) {
+func (db *Client) GetCfg(name string) (*Cfg, error) {
 	if tbl, ok := db.Tables[name]; ok {
 		return db.findTable(tbl)
 	}

@@ -186,7 +186,7 @@ func TestFindRec(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	tbl, err := db.GetTable(defaultTbl)
+	tbl, err := db.GetCfg(defaultTbl)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -307,7 +307,7 @@ func batchInsert(db *Client) error {
 		return err
 	}
 
-	tbl, err := db.GetTable(defaultTbl)
+	tbl, err := db.GetCfg(defaultTbl)
 	if err != nil {
 		return err
 	}
