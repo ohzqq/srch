@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/ohzqq/srch/db"
+	"github.com/ohzqq/srch/client"
 	"github.com/ohzqq/srch/doc"
 	"github.com/ohzqq/srch/param"
 )
@@ -99,10 +99,10 @@ func TestBuildIdx(t *testing.T) {
 	}
 }
 
-func openDiskDB() (*db.Client, error) {
-	db, err := db.New(
-		db.WithDisk(testHareDskDir),
-		db.WithDefaultCfg("default", testMapping(), "id"),
+func openDiskDB() (*client.Client, error) {
+	db, err := client.New(
+		client.WithDisk(testHareDskDir),
+		client.WithDefaultCfg("default", testMapping(), "id"),
 	)
 	return db, err
 }

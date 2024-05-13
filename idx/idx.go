@@ -10,14 +10,14 @@ import (
 
 	"github.com/ohzqq/hare/datastores/store"
 	"github.com/ohzqq/hare/dberr"
-	"github.com/ohzqq/srch/db"
+	"github.com/ohzqq/srch/client"
 	"github.com/ohzqq/srch/doc"
 	"github.com/ohzqq/srch/param"
 	"github.com/spf13/cast"
 )
 
 type Idx struct {
-	*db.Client
+	*client.Client
 	store  *store.Store
 	Params *param.Params
 }
@@ -35,7 +35,7 @@ func New(params string, data InitDB) (*Idx, error) {
 }
 
 func NewIdx() *Idx {
-	db, _ := db.New()
+	db, _ := client.New()
 	return &Idx{
 		Params: param.New(),
 		Client: db,

@@ -1,32 +1,32 @@
 package idx
 
 import (
-	"github.com/ohzqq/srch/db"
+	"github.com/ohzqq/srch/client"
 	"github.com/ohzqq/srch/param"
 )
 
-func WithURL(uri string) db.Opt {
-	fn := func(db *db.Client) error {
+func WithURL(uri string) client.Opt {
+	fn := func(client *client.Client) error {
 		return nil
 	}
-	return db.Opt{
+	return client.Opt{
 		Name: "WithURL",
 		Func: fn,
 	}
 }
 
-type InitDB func() (*db.Client, error)
+type InitDB func() (*client.Client, error)
 
-func NewDisk(params *param.Params) (*db.Client, error) {
-	return db.New(db.NewDisk(params.Path))
+func NewDisk(params *param.Params) (*client.Client, error) {
+	return client.New(client.NewDisk(params.Path))
 }
 
-func OpenDisk(params *param.Params) (*db.Client, error) {
-	return db.New(db.WithDisk(params.Path))
+func OpenDisk(params *param.Params) (*client.Client, error) {
+	return client.New(client.WithDisk(params.Path))
 }
 
-func NewRam(params *param.Params) (*db.Client, error) {
-	db, err := db.New(db.WithRam())
+func NewRam(params *param.Params) (*client.Client, error) {
+	db, err := client.New(client.WithRam())
 	if err != nil {
 		return nil, err
 	}
