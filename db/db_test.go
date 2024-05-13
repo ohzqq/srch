@@ -266,7 +266,7 @@ func TestNewNet(t *testing.T) {
 func TestCreateTable(t *testing.T) {
 }
 
-func openDiskDB() (*DB, error) {
+func openDiskDB() (*Client, error) {
 	db, err := New(
 		WithDisk(hareTestDB),
 	)
@@ -301,7 +301,7 @@ func newData() ([]map[string]any, error) {
 	return recs, err
 }
 
-func batchInsert(db *DB) error {
+func batchInsert(db *Client) error {
 	data, err := os.ReadFile("/home/mxb/code/srch/testdata/hare/default.json")
 	if err != nil {
 		return err

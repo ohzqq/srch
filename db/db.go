@@ -15,14 +15,14 @@ const (
 	defaultTbl  = "default"
 )
 
-type DB struct {
+type Client struct {
 	*hare.Database
-	cfg    *Table
+	cfg    *Cfg
 	Tables map[string]int
 }
 
-func New(opts ...Opt) (*DB, error) {
-	db := &DB{
+func New(opts ...Opt) (*Client, error) {
+	db := &Client{
 		Tables: make(map[string]int),
 	}
 
@@ -40,8 +40,8 @@ func New(opts ...Opt) (*DB, error) {
 	return db, nil
 }
 
-func Open(ds hare.Datastorage) (*DB, error) {
-	db := &DB{}
+func Open(ds hare.Datastorage) (*Client, error) {
+	db := &Client{}
 
 	err := db.Init(ds)
 	if err != nil {
@@ -51,7 +51,7 @@ func Open(ds hare.Datastorage) (*DB, error) {
 	return db, nil
 }
 
-func (db *DB) Init(ds hare.Datastorage) error {
+func (db *Client) Init(ds hare.Datastorage) error {
 	//step 1: initialize hare.DB
 	err := db.setDB(ds)
 	if err != nil {
@@ -67,7 +67,7 @@ func (db *DB) Init(ds hare.Datastorage) error {
 	return nil
 }
 
-func (db *DB) setDB(ds hare.Datastorage) error {
+func (db *Client) setDB(ds hare.Datastorage) error {
 	h, err := hare.New(ds)
 	if err != nil {
 		return err
@@ -76,14 +76,14 @@ func (db *DB) setDB(ds hare.Datastorage) error {
 	return nil
 }
 
-func (db *DB) getCfg() error {
+func (db *Client) getCfg() error {
 	//Create settings table if it doesn't exist
 	if !db.Database.TableExists(settingsTbl) {
 		err := db.Database.CreateTable(settingsTbl)
 		if err != nil {
 			return fmt.Errorf("db.getCfg CreateTable error\n%w\n", err)
 		}
-		_, err = db.Database.Insert(settingsTbl, DefaultTable())
+		_, err = db.Database.Insert(settingsTbl, DefaultCfg())
 		if err != nil {
 			return fmt.Errorf("db.getCfg Insert error\n%w\n", err)
 		}
@@ -104,15 +104,15 @@ func (db *DB) getCfg() error {
 	//return db.setCfg(false)
 }
 
-func (db *DB) GetTable(name string) (*Table, error) {
+func (db *Client) GetTable(name string) (*Cfg, error) {
 	if tbl, ok := db.Tables[name]; ok {
 		return db.findTable(tbl)
 	}
 	return db.findTable(-1)
 }
 
-func (db *DB) findTable(id int) (*Table, error) {
-	tbl := &Table{}
+func (db *Client) findTable(id int) (*Cfg, error) {
+	tbl := &Cfg{}
 	err := db.Database.Find(settingsTbl, id, tbl)
 	if err != nil {
 		switch {
@@ -131,7 +131,7 @@ func (db *DB) findTable(id int) (*Table, error) {
 	return tbl, nil
 }
 
-func (db *DB) CreateTable(name string) error {
+func (db *Client) CreateTable(name string) error {
 	if !db.TableExists(name) {
 		err := db.Database.CreateTable(name + "-srch")
 		if err != nil {
@@ -146,7 +146,7 @@ func (db *DB) CreateTable(name string) error {
 	return dberr.ErrTableExists
 }
 
-func (db *DB) DropTable(name string) error {
+func (db *Client) DropTable(name string) error {
 	if db.TableExists(name) {
 		err := db.Database.DropTable(name + "-srch")
 		if err != nil {
@@ -162,20 +162,20 @@ func (db *DB) DropTable(name string) error {
 	return dberr.ErrNoTable
 }
 
-func (db *DB) ListTables() []string {
+func (db *Client) ListTables() []string {
 	return maps.Keys(db.Tables)
 }
 
-func (db *DB) TableExists(name string) bool {
+func (db *Client) TableExists(name string) bool {
 	if _, ok := db.Tables[name]; ok {
 		return true
 	}
 	return false
 }
 
-func (db *DB) CfgTable(name string, m doc.Mapping, id string) error {
+func (db *Client) CfgTable(name string, m doc.Mapping, id string) error {
 
-	cfg := NewTable(name, m, id)
+	cfg := NewCfg(name, m, id)
 
 	var err error
 	tblID := 1

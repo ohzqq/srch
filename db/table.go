@@ -9,7 +9,7 @@ import (
 	"github.com/ohzqq/srch/doc"
 )
 
-type Table struct {
+type Cfg struct {
 	*hare.Table `json:"-"`
 
 	ID       int         `json:"_id"`
@@ -18,8 +18,8 @@ type Table struct {
 	Mapping  doc.Mapping `json:"mapping"`
 }
 
-func NewTable(tbl string, m doc.Mapping, id string) *Table {
-	return &Table{
+func NewCfg(tbl string, m doc.Mapping, id string) *Cfg {
+	return &Cfg{
 		Mapping:  m,
 		CustomID: id,
 		ID:       1,
@@ -27,11 +27,11 @@ func NewTable(tbl string, m doc.Mapping, id string) *Table {
 	}
 }
 
-func DefaultTable() *Table {
-	return NewTable(defaultTbl, doc.DefaultMapping(), "")
+func DefaultCfg() *Cfg {
+	return NewCfg(defaultTbl, doc.DefaultMapping(), "")
 }
 
-func (tbl *Table) Find(ids ...int) ([]*doc.Doc, error) {
+func (tbl *Cfg) Find(ids ...int) ([]*doc.Doc, error) {
 	var docs []*doc.Doc
 	switch len(ids) {
 	case 0:
@@ -55,7 +55,7 @@ func (tbl *Table) Find(ids ...int) ([]*doc.Doc, error) {
 	}
 }
 
-func (tbl *Table) Batch(d []byte) error {
+func (tbl *Cfg) Batch(d []byte) error {
 	r := bytes.NewReader(d)
 	dec := json.NewDecoder(r)
 	for {
@@ -73,7 +73,7 @@ func (tbl *Table) Batch(d []byte) error {
 	return nil
 }
 
-func (tbl *Table) FindAll() ([]*doc.Doc, error) {
+func (tbl *Cfg) FindAll() ([]*doc.Doc, error) {
 	ids, err := tbl.IDs()
 	if err != nil {
 		return nil, err
@@ -81,7 +81,7 @@ func (tbl *Table) FindAll() ([]*doc.Doc, error) {
 	return tbl.Find(ids...)
 }
 
-func (tbl *Table) Count() int {
+func (tbl *Cfg) Count() int {
 	ids, err := tbl.IDs()
 	if err != nil {
 		return 0
@@ -89,20 +89,20 @@ func (tbl *Table) Count() int {
 	return len(ids)
 }
 
-func (tbl *Table) WithCustomID(name string) *Table {
+func (tbl *Cfg) WithCustomID(name string) *Cfg {
 	tbl.CustomID = name
 	return tbl
 }
 
-func (c *Table) SetID(id int) {
+func (c *Cfg) SetID(id int) {
 	c.ID = id
 }
 
-func (c *Table) GetID() int {
+func (c *Cfg) GetID() int {
 	return c.ID
 }
 
-func (c *Table) AfterFind(db *hare.Database) error {
+func (c *Cfg) AfterFind(db *hare.Database) error {
 	//println("after find")
 	tbl, err := db.GetTable(c.Name)
 	if err != nil {

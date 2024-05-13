@@ -12,12 +12,12 @@ import (
 )
 
 type Opt struct {
-	Func func(*DB) error
+	Func func(*Client) error
 	Name string
 }
 
 func NewDisk(path string) Opt {
-	fn := func(db *DB) error {
+	fn := func(db *Client) error {
 		ds, err := NewDiskStorage(path)
 		if err != nil {
 			return fmt.Errorf("new disk opt: %w\n", err)
@@ -31,7 +31,7 @@ func NewDisk(path string) Opt {
 }
 
 func WithDisk(path string) Opt {
-	fn := func(db *DB) error {
+	fn := func(db *Client) error {
 		ds, err := OpenDisk(path)
 		if err != nil {
 			return err
@@ -45,7 +45,7 @@ func WithDisk(path string) Opt {
 }
 
 func WithURL(uri string, d []byte) Opt {
-	fn := func(db *DB) error {
+	fn := func(db *Client) error {
 		ds, err := NewNet(uri, d)
 		if err != nil {
 			return err
@@ -59,7 +59,7 @@ func WithURL(uri string, d []byte) Opt {
 }
 
 func WithRam() Opt {
-	fn := func(db *DB) error {
+	fn := func(db *Client) error {
 		ds, err := NewMem()
 		if err != nil {
 			return err
@@ -77,7 +77,7 @@ func WithRam() Opt {
 }
 
 func WithData(d []byte) Opt {
-	fn := func(db *DB) error {
+	fn := func(db *Client) error {
 		m := map[string][]byte{
 			"default": d,
 		}
@@ -94,7 +94,7 @@ func WithData(d []byte) Opt {
 }
 
 func WithDefaultCfg(tbl string, m doc.Mapping, id string) Opt {
-	fn := func(db *DB) error {
+	fn := func(db *Client) error {
 		return db.CfgTable(tbl, m, id)
 	}
 	return Opt{
