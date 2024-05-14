@@ -3,6 +3,7 @@ package index
 import (
 	"github.com/ohzqq/hare"
 	"github.com/ohzqq/srch/doc"
+	"github.com/ohzqq/srch/param"
 )
 
 type Cfg struct {
@@ -23,6 +24,33 @@ func NewCfg(tbl string, m doc.Mapping, id string) *Cfg {
 
 func DefaultCfg() *Cfg {
 	return NewCfg(defaultTbl, doc.DefaultMapping(), "")
+}
+
+func NewCfgFromParams(settings string) (*Cfg, error) {
+	params, err := param.Parse(settings)
+	if err != nil {
+		return nil, err
+	}
+	cfg := NewCfg(params.Index, NewMappingFromParams(params), params.UID)
+	return cfg, nil
+}
+
+func NewMappingFromParams(params *param.Params) doc.Mapping {
+	if !params.Has(param.SrchAttr) && !params.Has(param.FacetAttr) {
+		return doc.DefaultMapping()
+	}
+
+	m := doc.NewMapping()
+
+	for _, attr := range params.SrchAttr {
+		m.AddFulltext(attr)
+	}
+
+	for _, attr := range params.FacetAttr {
+		m.AddKeywords(attr)
+	}
+
+	return m
 }
 
 func (tbl *Cfg) WithCustomID(name string) *Cfg {

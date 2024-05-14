@@ -46,7 +46,7 @@ type Params struct {
 	SortFacetsBy string   `query:"sortFacetsBy,omitempty" json:"sortFacetsBy,omitempty" mapstructure:"sort_facets_by"`
 	MaxFacetVals int      `query:"maxValuesPerFacet,omitempty" json:"maxValuesPerFacet,omitempty" mapstructure:"max_values_per_facet"`
 
-	IndexName string `query:"index,omitempty" json:"index,omitempty" mapstructure:"index"`
+	Index string `query:"index,omitempty" json:"index,omitempty" mapstructure:"index"`
 
 	// Data
 	Format string `json:"-" mapstructure:"format"`
@@ -65,11 +65,11 @@ var (
 // New initializes a Params structure with a non-nil URL
 func New() *Params {
 	return &Params{
-		URL:       &url.URL{},
-		Other:     make(url.Values),
-		UID:       "id",
-		SrchAttr:  []string{"*"},
-		IndexName: "default",
+		URL:      &url.URL{},
+		Other:    make(url.Values),
+		UID:      "id",
+		SrchAttr: []string{"*"},
+		Index:    "default",
 	}
 }
 
@@ -131,12 +131,12 @@ func (s *Params) Set(v url.Values) error {
 				s.Format = v.Get(key.Query())
 			}
 		case IndexName:
-			s.IndexName = v.Get(key.Query())
+			s.Index = v.Get(key.Query())
 		case Path:
 			if v.Has(key.Query()) {
 				path := v.Get(key.Query())
 				if ext := filepath.Ext(path); ext != "" {
-					s.IndexName = path
+					s.Index = path
 				}
 				s.Path = path
 			}
@@ -145,12 +145,12 @@ func (s *Params) Set(v url.Values) error {
 	for _, key := range SearchParams {
 		switch key {
 		case IndexName:
-			s.IndexName = v.Get(key.Query())
+			s.Index = v.Get(key.Query())
 		case Path:
 			if v.Has(key.Query()) {
 				path := v.Get(key.Query())
 				if ext := filepath.Ext(path); ext != "" {
-					s.IndexName = strings.TrimSuffix(path, ext)
+					s.Index = strings.TrimSuffix(path, ext)
 				}
 				s.Path = path
 			}
@@ -216,7 +216,7 @@ func (s *Params) Has(key Param) bool {
 	case UID:
 		return s.UID != ""
 	case IndexName:
-		return s.IndexName != ""
+		return s.Index != ""
 	case SortFacetsBy:
 		return s.SortFacetsBy != ""
 	case Facets:
@@ -256,7 +256,7 @@ func (s *Params) Values() url.Values {
 		case UID:
 			vals.Set(key.Query(), s.UID)
 		case IndexName:
-			vals.Set(key.Query(), s.IndexName)
+			vals.Set(key.Query(), s.Index)
 		case Format:
 			vals.Set(key.Query(), s.Format)
 		}
@@ -310,7 +310,7 @@ func (p *Params) String() string {
 }
 
 // Index returns a url.Values with only index setting params
-func (p Params) Index() url.Values {
+func (p Params) Settings() url.Values {
 	vals := make(url.Values)
 	for _, key := range SettingParams {
 		q := p.URL.Query()

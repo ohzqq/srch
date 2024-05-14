@@ -47,7 +47,14 @@ func (client *Client) initDB() error {
 			return err
 		}
 	}
+	return nil
+}
 
+func (client *Client) SetCfg(cfg *Cfg) error {
+	_, err := client.Database.Insert(settingsTbl, cfg)
+	if err != nil {
+		return fmt.Errorf("db.getCfg Insert error\n%w\n", err)
+	}
 	return nil
 }
 
@@ -83,7 +90,7 @@ func (client *Client) Cfg() (*hare.Table, error) {
 		if err != nil {
 			return nil, fmt.Errorf("db.getCfg CreateTable error\n%w\n", err)
 		}
-		_, err = client.Database.Insert(settingsTbl, DefaultCfg())
+		err = client.SetCfg(DefaultCfg())
 		if err != nil {
 			return nil, fmt.Errorf("db.getCfg Insert error\n%w\n", err)
 		}
@@ -91,11 +98,7 @@ func (client *Client) Cfg() (*hare.Table, error) {
 	return client.Database.GetTable(settingsTbl)
 }
 
-//func (idx *Idx) GetCfg(name string) (*Cfg, error) {
-//  cfg := &Cfg{}
-//}
-
-func (client *Client) setDB(ds hare.Datastorage) error {
+func (client *Client) SetDatastorage(ds hare.Datastorage) error {
 	h, err := hare.New(ds)
 	if err != nil {
 		return err
@@ -108,5 +111,5 @@ func (client *Client) memDB() error {
 	r := &ram.Ram{
 		Store: store.New(),
 	}
-	return client.setDB(r)
+	return client.SetDatastorage(r)
 }
