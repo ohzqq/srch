@@ -6,6 +6,7 @@ import (
 	"github.com/ohzqq/hare"
 	"github.com/ohzqq/hare/datastores/ram"
 	"github.com/ohzqq/hare/datastores/store"
+	"github.com/ohzqq/hare/dberr"
 	"github.com/ohzqq/srch/param"
 )
 
@@ -18,7 +19,6 @@ type Idx struct {
 	*hare.Database
 	*param.Params
 
-	Cfg    *Cfg
 	Tables map[string]int
 }
 
@@ -54,7 +54,18 @@ func (idx *Idx) initDB() error {
 	return nil
 }
 
-func (db *Idx) Settings() (*Settings, error) {
+func (idx *Idx) GetCfg(name string) (*Cfg, error) {
+	s, err := idx.Cfg()
+	if err != nil {
+		return nil, err
+	}
+	if cfg, ok := s[name]; ok {
+		return cfg, nil
+	}
+	return nil, dberr.ErrNoTable
+}
+
+func (db *Idx) Cfg() (map[string]*Cfg, error) {
 	//Create settings table if it doesn't exist
 	if !db.Database.TableExists(settingsTbl) {
 		err := db.Database.CreateTable(settingsTbl)
@@ -80,16 +91,17 @@ func (db *Idx) Settings() (*Settings, error) {
 		return nil, err
 	}
 
+	tbls := make(map[string]*Cfg)
 	for _, id := range ids {
 		cfg := &Cfg{}
 		err := db.Database.Find(settingsTbl, id, cfg)
 		if err != nil {
 			return nil, err
 		}
-		s.Tables[cfg.Name] = cfg
+		tbls[cfg.Name] = cfg
 	}
 
-	return s, nil
+	return tbls, nil
 }
 
 //func (idx *Idx) GetCfg(name string) (*Cfg, error) {

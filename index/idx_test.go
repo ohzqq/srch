@@ -15,7 +15,7 @@ func TestSettings(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, err = idx.Settings()
+	_, err = idx.Cfg()
 	if err != nil {
 		t.Error(err)
 	}
@@ -31,17 +31,26 @@ func TestDefaultSettings(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	tbl, err := idx.Settings()
+	tbl, err := idx.Cfg()
 	if err != nil {
 		t.Error(err)
 	}
 
-	ids, err := tbl.IDs()
+	if len(tbl) != 1 {
+		t.Errorf("got %v, wanted %v\n", len(tbl), 1)
+	}
+}
+
+func TestGetCfg(t *testing.T) {
+	idx, err := New()
+	if err != nil {
+		t.Fatal(err)
+	}
+	cfg, err := idx.GetCfg(defaultTbl)
 	if err != nil {
 		t.Error(err)
 	}
-
-	if len(ids) != 1 {
-		t.Errorf("got %v, wanted %v\n", len(ids), 1)
+	if cfg.Name != defaultTbl {
+		t.Errorf("got %v, wanted %v\n", cfg.Name, defaultTbl)
 	}
 }

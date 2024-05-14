@@ -5,17 +5,6 @@ import (
 	"github.com/ohzqq/srch/doc"
 )
 
-type Settings struct {
-	*hare.Table
-	Tables map[string]*Cfg
-}
-
-func NewSettings() *Settings {
-	return &Settings{
-		Tables: make(map[string]*Cfg),
-	}
-}
-
 type Cfg struct {
 	ID       int         `json:"_id"`
 	Name     string      `json:"name"`
@@ -31,10 +20,6 @@ func NewCfg(tbl string, m doc.Mapping, id string) *Cfg {
 		Name:     tbl,
 	}
 }
-
-//func (cfg *Settings) Find(name string) (*Cfg, error) {
-//  cfg := &Cfg{}
-//}
 
 func DefaultCfg() *Cfg {
 	return NewCfg(defaultTbl, doc.DefaultMapping(), "")
