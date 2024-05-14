@@ -15,15 +15,13 @@ const (
 	defaultTbl  = "default"
 )
 
-type Idx struct {
+type Client struct {
 	*hare.Database
 	*param.Params
-
-	Tables map[string]int
 }
 
-func New(opts ...Opt) (*Idx, error) {
-	db := &Idx{
+func New(opts ...Opt) (*Client, error) {
+	db := &Client{
 		Tables: make(map[string]int),
 		Params: param.New(),
 	}
@@ -43,7 +41,7 @@ func New(opts ...Opt) (*Idx, error) {
 	return db, nil
 }
 
-func (idx *Idx) initDB() error {
+func (idx *Client) initDB() error {
 	if idx.Database == nil {
 		err := idx.memDB()
 		if err != nil {
@@ -54,7 +52,7 @@ func (idx *Idx) initDB() error {
 	return nil
 }
 
-func (idx *Idx) GetCfg(name string) (*Cfg, error) {
+func (idx *Client) GetCfg(name string) (*Cfg, error) {
 	s, err := idx.Cfg()
 	if err != nil {
 		return nil, err
@@ -65,7 +63,7 @@ func (idx *Idx) GetCfg(name string) (*Cfg, error) {
 	return nil, dberr.ErrNoTable
 }
 
-func (db *Idx) Cfg() (map[string]*Cfg, error) {
+func (db *Client) Cfg() (map[string]*Cfg, error) {
 	//Create settings table if it doesn't exist
 	if !db.Database.TableExists(settingsTbl) {
 		err := db.Database.CreateTable(settingsTbl)
@@ -108,7 +106,7 @@ func (db *Idx) Cfg() (map[string]*Cfg, error) {
 //  cfg := &Cfg{}
 //}
 
-func (db *Idx) setDB(ds hare.Datastorage) error {
+func (db *Client) setDB(ds hare.Datastorage) error {
 	h, err := hare.New(ds)
 	if err != nil {
 		return err
@@ -117,7 +115,7 @@ func (db *Idx) setDB(ds hare.Datastorage) error {
 	return nil
 }
 
-func (idx *Idx) memDB() error {
+func (idx *Client) memDB() error {
 	r := &ram.Ram{
 		Store: store.New(),
 	}
