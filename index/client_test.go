@@ -59,3 +59,17 @@ func TestGetCfg(t *testing.T) {
 		t.Errorf("got %v, wanted %v\n", cfg.Name, defaultTbl)
 	}
 }
+
+func TestGetIdx(t *testing.T) {
+	c, err := New()
+	if err != nil {
+		t.Fatal(err)
+	}
+	idx, err := c.GetIdx(defaultTbl)
+	if err != nil {
+		t.Error(err)
+	}
+	if idx.Name != defaultTbl {
+		t.Errorf("got %v, wanted %v\n", idx.Name, defaultTbl)
+	}
+}

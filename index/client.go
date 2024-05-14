@@ -7,7 +7,6 @@ import (
 	"github.com/ohzqq/hare/datastores/ram"
 	"github.com/ohzqq/hare/datastores/store"
 	"github.com/ohzqq/hare/dberr"
-	"github.com/ohzqq/srch/param"
 )
 
 const (
@@ -17,13 +16,10 @@ const (
 
 type Client struct {
 	*hare.Database
-	*param.Params
 }
 
 func New(opts ...Opt) (*Client, error) {
-	client := &Client{
-		Params: param.New(),
-	}
+	client := &Client{}
 
 	for _, opt := range opts {
 		err := opt(client)
@@ -48,6 +44,14 @@ func (client *Client) initDB() error {
 		}
 	}
 	return nil
+}
+
+func (client *Client) GetIdx(name string) (*Idx, error) {
+	cfg, err := client.GetCfg(name)
+	if err != nil {
+		return nil, err
+	}
+	return NewIdx(client.Database, cfg), nil
 }
 
 func (client *Client) SetCfg(cfg *Cfg) error {

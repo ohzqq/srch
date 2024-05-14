@@ -74,12 +74,12 @@ func Open(settings string) (*Idx, error) {
 }
 
 func (idx *Idx) createTable(params *param.Params) error {
-	err := idx.Client.CreateTable(params.IndexName)
+	err := idx.Client.CreateTable(params.Index)
 	if err != nil {
 		return err
 	}
 	m := idx.getDocMapping(params)
-	err = idx.Client.CfgTable(params.IndexName, m, params.UID)
+	err = idx.Client.CfgTable(params.Index, m, params.UID)
 	if err != nil {
 		return err
 	}
@@ -120,7 +120,7 @@ func (db *Idx) Batch(d []byte) error {
 }
 
 func (idx *Idx) Index(data map[string]any) error {
-	tbl, err := idx.Client.GetTable(idx.Params.IndexName)
+	tbl, err := idx.Client.GetTable(idx.Params.Index)
 	if err != nil {
 		return err
 	}
