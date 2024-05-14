@@ -36,8 +36,13 @@ func TestDefaultSettings(t *testing.T) {
 		t.Error(err)
 	}
 
-	if len(tbl) != 1 {
-		t.Errorf("got %v, wanted %v\n", len(tbl), 1)
+	ids, err := tbl.IDs()
+	if err != nil {
+		t.Error(err)
+	}
+
+	if len(ids) != 1 {
+		t.Errorf("got %v, wanted %v\n", len(ids), 1)
 	}
 }
 

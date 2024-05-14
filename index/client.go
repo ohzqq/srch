@@ -21,28 +21,28 @@ type Client struct {
 }
 
 func New(opts ...Opt) (*Client, error) {
-	db := &Client{
+	client := &Client{
 		Params: param.New(),
 	}
 
 	for _, opt := range opts {
-		err := opt(db)
+		err := opt(client)
 		if err != nil {
 			return nil, fmt.Errorf("option %v error: %w\n", opt, err)
 		}
 	}
 
-	err := db.initDB()
+	err := client.initDB()
 	if err != nil {
 		return nil, err
 	}
 
-	return db, nil
+	return client, nil
 }
 
-func (idx *Client) initDB() error {
-	if idx.Database == nil {
-		err := idx.memDB()
+func (client *Client) initDB() error {
+	if client.Database == nil {
+		err := client.memDB()
 		if err != nil {
 			return err
 		}
@@ -51,31 +51,8 @@ func (idx *Client) initDB() error {
 	return nil
 }
 
-func (idx *Client) GetCfg(name string) (*Cfg, error) {
-	s, err := idx.Cfg()
-	if err != nil {
-		return nil, err
-	}
-	if cfg, ok := s[name]; ok {
-		return cfg, nil
-	}
-	return nil, dberr.ErrNoTable
-}
-
-func (db *Client) Cfg() (map[string]*Cfg, error) {
-	//Create settings table if it doesn't exist
-	if !db.Database.TableExists(settingsTbl) {
-		err := db.Database.CreateTable(settingsTbl)
-		if err != nil {
-			return nil, fmt.Errorf("db.getCfg CreateTable error\n%w\n", err)
-		}
-		_, err = db.Database.Insert(settingsTbl, DefaultCfg())
-		if err != nil {
-			return nil, fmt.Errorf("db.getCfg Insert error\n%w\n", err)
-		}
-	}
-
-	tbl, err := db.Database.GetTable(settingsTbl)
+func (client *Client) GetCfg(name string) (*Cfg, error) {
+	tbl, err := client.Cfg()
 	if err != nil {
 		return nil, err
 	}
@@ -85,35 +62,51 @@ func (db *Client) Cfg() (map[string]*Cfg, error) {
 		return nil, err
 	}
 
-	tbls := make(map[string]*Cfg)
 	for _, id := range ids {
 		cfg := &Cfg{}
-		err := db.Database.Find(settingsTbl, id, cfg)
+		err := client.Database.Find(settingsTbl, id, cfg)
 		if err != nil {
 			return nil, err
 		}
-		tbls[cfg.Name] = cfg
+		if cfg.Name == name {
+			return cfg, nil
+		}
 	}
 
-	return tbls, nil
+	return nil, dberr.ErrNoTable
+}
+
+func (client *Client) Cfg() (*hare.Table, error) {
+	//Create settings table if it doesn't exist
+	if !client.Database.TableExists(settingsTbl) {
+		err := client.Database.CreateTable(settingsTbl)
+		if err != nil {
+			return nil, fmt.Errorf("db.getCfg CreateTable error\n%w\n", err)
+		}
+		_, err = client.Database.Insert(settingsTbl, DefaultCfg())
+		if err != nil {
+			return nil, fmt.Errorf("db.getCfg Insert error\n%w\n", err)
+		}
+	}
+	return client.Database.GetTable(settingsTbl)
 }
 
 //func (idx *Idx) GetCfg(name string) (*Cfg, error) {
 //  cfg := &Cfg{}
 //}
 
-func (db *Client) setDB(ds hare.Datastorage) error {
+func (client *Client) setDB(ds hare.Datastorage) error {
 	h, err := hare.New(ds)
 	if err != nil {
 		return err
 	}
-	db.Database = h
+	client.Database = h
 	return nil
 }
 
-func (idx *Client) memDB() error {
+func (client *Client) memDB() error {
 	r := &ram.Ram{
 		Store: store.New(),
 	}
-	return idx.setDB(r)
+	return client.setDB(r)
 }
