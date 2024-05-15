@@ -1,4 +1,4 @@
-package bind
+package param
 
 import (
 	"net/url"
