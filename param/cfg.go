@@ -18,7 +18,8 @@ type Cfg struct {
 
 func NewCfg() *Cfg {
 	return &Cfg{
-		Index: "default",
+		Index:    "default",
+		SrchAttr: []string{"*"},
 	}
 }
 

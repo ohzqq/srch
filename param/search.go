@@ -30,7 +30,9 @@ type Search struct {
 }
 
 func NewSearch() *Search {
-	return &Search{}
+	return &Search{
+		Index: "default",
+	}
 }
 
 func ParseSearch(q string) (*Search, error) {
@@ -56,7 +58,18 @@ func (s *Search) Decode(q string) error {
 }
 
 func (s *Search) Encode() (url.Values, error) {
-	return sp.Encode(s)
+	v, err := sp.Encode(s)
+	if err != nil {
+		return nil, err
+	}
+	if fltr := s.FacetFilters(); len(fltr) > 0 {
+		d, err := json.Marshal(fltr)
+		if err != nil {
+			return nil, err
+		}
+		v.Set(FacetFilters.String(), string(d))
+	}
+	return v, nil
 }
 
 func (s *Search) FacetFilters() []any {
