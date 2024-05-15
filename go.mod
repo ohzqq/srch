@@ -1,6 +1,6 @@
 module github.com/ohzqq/srch
 
-go 1.21.4
+go 1.22.2
 
 require (
 	github.com/RoaringBitmap/roaring v1.7.0
@@ -66,6 +66,7 @@ require (
 	github.com/muesli/reflow v0.3.0 // indirect
 	github.com/muesli/termenv v0.15.2 // indirect
 	github.com/ohzqq/hare v0.7.3 // indirect
+	github.com/ohzqq/sp v0.0.1 // indirect
 	github.com/pelletier/go-toml/v2 v2.1.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/rivo/uniseg v0.4.4 // indirect

@@ -5,7 +5,7 @@ import (
 	"slices"
 	"testing"
 
-	"github.com/sonh/qs"
+	"github.com/ohzqq/sp"
 )
 
 const urlq = `searchableAttributes=title&attributesForFaceting=tags,authors,series,narrators&index=default`
@@ -16,11 +16,10 @@ var testParams = &Params{
 	Index:     "default",
 }
 
-func TestBind(t *testing.T) {
+func TestUnmarshal(t *testing.T) {
 	q := parsed()
-	b := DefaultBinder{}
 	p := Params{}
-	err := b.BindQueryParams(q, &p)
+	err := sp.Decode(q, &p)
 	if err != nil {
 		t.Error(err)
 	}
@@ -38,24 +37,23 @@ func TestBind(t *testing.T) {
 	}
 }
 
-func TestUnmarshal(t *testing.T) {
-	enc := qs.NewEncoder()
-	v, err := enc.Values(testParams)
+func TestMarshal(t *testing.T) {
+	v, err := sp.Encode(testParams)
 	if err != nil {
 		t.Error(err)
 	}
 	//fmt.Printf("%#v\n", v)
 	sw := []string{"title"}
-	if !slices.Equal(v[SrchAttr.String()], sw) {
-		t.Errorf("got %v, expected %v\n", v[SrchAttr.String()], sw)
+	if !slices.Equal(v["searchableAttributes"], sw) {
+		t.Errorf("got %v, expected %v\n", v["searchableAttributes"], sw)
 	}
 	facets := []string{"tags", "authors", "series", "narrators"}
-	if !slices.Equal(v[FacetAttr.String()], facets) {
-		t.Errorf("got %v, expected %v\n", v[FacetAttr.String()], facets)
+	if !slices.Equal(v["attributesForFaceting"], facets) {
+		t.Errorf("got %v, expected %v\n", v["attributesForFaceting"], facets)
 	}
 	i := []string{"default"}
-	if !slices.Equal(v[Index.String()], i) {
-		t.Errorf("got %v, expected %v\n", v[Index.String()], i)
+	if !slices.Equal(v["index"], i) {
+		t.Errorf("got %v, expected %v\n", v["index"], i)
 	}
 }
 
