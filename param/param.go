@@ -163,7 +163,6 @@ func (s *Params) Set(v url.Values) error {
 		case FacetFilters:
 			if v.Has(key.Query()) {
 				fil := v.Get(key.Query())
-				fmt.Printf("facetFilters %s\n", fil)
 				f, err := unmarshalFilter(fil)
 				if err != nil {
 					return fmt.Errorf("failed to unmarshal filters %v\nerr: %w\n", fil, err)
@@ -381,28 +380,6 @@ func GetQueryStringSlice(key string, q url.Values) []string {
 	return vals
 }
 
-func ParseQueryStrings(q []string) []string {
-	var vals []string
-	for _, val := range q {
-		if val == "" {
-			break
-		}
-		for _, v := range strings.Split(val, ",") {
-			vals = append(vals, v)
-		}
-	}
-	return vals
-}
-
-func unmarshalFilter(dec string) ([]any, error) {
-	var f []any
-	err := json.Unmarshal([]byte(dec), &f)
-	if err != nil {
-		return nil, err
-	}
-	return f, nil
-}
-
 func parseSrchAttr(vals url.Values) []string {
 	attrs := []string{"*"}
 	if vals.Has(SrchAttr.Query()) {
@@ -421,6 +398,20 @@ func parseSrchAttr(vals url.Values) []string {
 		}
 	}
 	return attrs
+}
+
+func parseSrchAttrs(attrs []string) []string {
+	switch len(attrs) {
+	case 0:
+		return []string{"*"}
+	case 1:
+		if attrs[0] == "" {
+			return []string{"*"}
+		}
+		fallthrough
+	default:
+		return ParseQueryStrings(attrs)
+	}
 }
 
 func parseFacetAttr(vals url.Values) []string {
