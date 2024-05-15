@@ -21,37 +21,37 @@ func init() {
 
 // Params is a structure for search params
 type Params struct {
-	URL   *url.URL   `json:"-" mapstructure:"-"`
-	Other url.Values `json:"-" mapstructure:"-"`
+	URL   *url.URL   `json:"-" mapstructure:"-" qs:"url"`
+	Other url.Values `json:"-" mapstructure:"-" qs:"other"`
 
 	// Index Settings
-	SrchAttr     []string `query:"searchableAttributes,omitempty" json:"searchableAttributes,omitempty" mapstructure:"searchable_attributes"`
-	FacetAttr    []string `query:"attributesForFaceting,omitempty" json:"attributesForFaceting,omitempty" mapstructure:"attributes_for_faceting"`
-	SortAttr     []string `query:"sortableAttributes,omitempty" json:"sortableAttributes,omitempty" mapstructure:"sortable_attributes"`
-	DefaultField string   `query:"defaultField,omitempty" json:"defaultField,omitempty" mapstructure:"defaultField"`
-	UID          string   `query:"uid,omitempty" json:"uid,omitempty" mapstructure:"uid"`
+	SrchAttr     []string `query:"searchableAttributes" json:"searchableAttributes,omitempty" mapstructure:"searchable_attributes" qs:"searchableAttributes"`
+	FacetAttr    []string `query:"attributesForFaceting,omitempty" json:"attributesForFaceting,omitempty" mapstructure:"attributes_for_faceting" qs:"attributesForFaceting"`
+	SortAttr     []string `query:"sortableAttributes,omitempty" json:"sortableAttributes,omitempty" mapstructure:"sortable_attributes" qs:"sortableAttributes"`
+	DefaultField string   `query:"defaultField,omitempty" json:"defaultField,omitempty" mapstructure:"defaultField" qs:"defaultField"`
+	UID          string   `query:"uid,omitempty" json:"uid,omitempty" mapstructure:"uid" qs:"uid"`
 
 	// Search
-	Hits        int      `query:"hits,omitempty" json:"hits,omitempty" mapstructure:"hits"`
-	RtrvAttr    []string `query:"attributesToRetrieve,omitempty" json:"attributesToRetrieve,omitempty" mapstructure:"attributes_to_retrieve"`
-	Page        int      `query:"page,omitempty" json:"page,omitempty" mapstructure:"page"`
-	HitsPerPage int      `query:"hitsPerPage,omitempty" json:"hitsPerPage,omitempty" mapstructure:"hits_per_page"`
-	Query       string   `query:"query,omitempty" json:"query,omitempty" mapstructure:"query"`
-	SortBy      string   `query:"sortBy,omitempty" json:"sortBy,omitempty" mapstructure:"sort_by"`
-	Order       string   `query:"order,omitempty" json:"order,omitempty" mapstructure:"order"`
+	Hits        int      `query:"hits,omitempty" json:"hits,omitempty" mapstructure:"hits" qs:"hits"`
+	RtrvAttr    []string `query:"attributesToRetrieve,omitempty" json:"attributesToRetrieve,omitempty" mapstructure:"attributes_to_retrieve" qs:"attributesToRetrieve"`
+	Page        int      `query:"page,omitempty" json:"page,omitempty" mapstructure:"page" qs:"page"`
+	HitsPerPage int      `query:"hitsPerPage,omitempty" json:"hitsPerPage,omitempty" mapstructure:"hits_per_page" qs:"hitsPerPage"`
+	Query       string   `query:"query,omitempty" json:"query,omitempty" mapstructure:"query" qs:"query"`
+	SortBy      string   `query:"sortBy,omitempty" json:"sortBy,omitempty" mapstructure:"sort_by" qs:"sortBy"`
+	Order       string   `query:"order,omitempty" json:"order,omitempty" mapstructure:"order" qs:"order"`
 	// Facets
-	Facets       []string `query:"facets,omitempty" json:"facets,omitempty" mapstructure:"facets"`
-	Filters      string   `query:"filters,omitempty" json:"filters,omitempty" mapstructure:"filters"`
-	FacetFilters []any    `query:"facetFilters,omitempty" json:"facetFilters,omitempty" mapstructure:"facet_filters"`
-	SortFacetsBy string   `query:"sortFacetsBy,omitempty" json:"sortFacetsBy,omitempty" mapstructure:"sort_facets_by"`
-	MaxFacetVals int      `query:"maxValuesPerFacet,omitempty" json:"maxValuesPerFacet,omitempty" mapstructure:"max_values_per_facet"`
+	Facets       []string `query:"facets,omitempty" json:"facets,omitempty" mapstructure:"facets" qs:"facets"`
+	Filters      string   `query:"filters,omitempty" json:"filters,omitempty" mapstructure:"filters" qs:"filters"`
+	FacetFilters []any    `query:"facetFilters,omitempty" json:"facetFilters,omitempty" mapstructure:"facet_filters" qs:"facetFilters"`
+	SortFacetsBy string   `query:"sortFacetsBy,omitempty" json:"sortFacetsBy,omitempty" mapstructure:"sort_facets_by" qs:"sortFacetsBy"`
+	MaxFacetVals int      `query:"maxValuesPerFacet,omitempty" json:"maxValuesPerFacet,omitempty" mapstructure:"max_values_per_facet" qs:"maxValuesPerFacet,omitempty"`
 
-	Index string `query:"index,omitempty" json:"index,omitempty" mapstructure:"index"`
+	Index string `query:"index,omitempty" json:"index,omitempty" mapstructure:"index" qs:"index"`
 
 	// Data
-	Format string `json:"-" mapstructure:"format"`
-	Path   string `json:"-" mapstructure:"path"`
-	Route  string `json:"-" mapstructure:"route"`
+	Format string `json:"-" mapstructure:"format" qs:"format"`
+	Path   string `json:"-" mapstructure:"path" qs:"path"`
+	Route  string `json:"-" mapstructure:"route" qs:"route"`
 }
 
 var (

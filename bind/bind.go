@@ -6,7 +6,6 @@ package bind
 import (
 	"encoding"
 	"errors"
-	"net/http"
 	"net/url"
 	"reflect"
 	"strconv"
@@ -38,10 +37,7 @@ type bindMultipleUnmarshaler interface {
 
 // BindQueryParams binds query params to bindable object
 func (b *DefaultBinder) BindQueryParams(v url.Values, i interface{}) error {
-	if err := b.bindData(i, v, "qs"); err != nil {
-		return NewHTTPError(http.StatusBadRequest, err.Error()).SetInternal(err)
-	}
-	return nil
+	return b.bindData(i, v, "qs")
 }
 
 // Bind implements the `Binder#Bind` function.
@@ -88,6 +84,7 @@ func (b *DefaultBinder) bindData(destination interface{}, data map[string][]stri
 
 	// !struct
 	if typ.Kind() != reflect.Struct {
+		println("not a struct")
 		if tag == "qs" {
 			// incompatible type, data is probably to be found in the body
 			return nil
@@ -98,6 +95,7 @@ func (b *DefaultBinder) bindData(destination interface{}, data map[string][]stri
 	for i := 0; i < typ.NumField(); i++ {
 		typeField := typ.Field(i)
 		structField := val.Field(i)
+		//fmt.Printf("type %#v, struct %#v\n", typeField, structField)
 		if typeField.Anonymous {
 			if structField.Kind() == reflect.Ptr {
 				structField = structField.Elem()
@@ -108,6 +106,9 @@ func (b *DefaultBinder) bindData(destination interface{}, data map[string][]stri
 		}
 		structFieldKind := structField.Kind()
 		inputFieldName := typeField.Tag.Get(tag)
+		if b, _, ok := strings.Cut(inputFieldName, ","); ok {
+			inputFieldName = b
+		}
 		if typeField.Anonymous && structFieldKind == reflect.Struct && inputFieldName != "" {
 			// if anonymous struct with query/param/form tags, report an error
 			return errors.New("query/param/form tags are not allowed with anonymous struct field")
