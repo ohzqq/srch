@@ -1,6 +1,7 @@
 package param
 
 import (
+	"fmt"
 	"slices"
 	"testing"
 )
@@ -112,4 +113,27 @@ func TestDecodeCfg(t *testing.T) {
 			t.Errorf("test %v Path: got %#v, expected %#v\n", num, cfg.Path, test.Path)
 		}
 	}
+}
+
+func TestEncodeCfg(t *testing.T) {
+	for num, test := range cfgTests {
+		v, err := Encode(test.Cfg)
+		if err != nil {
+			t.Error(err)
+		}
+		if v.Encode() != test.query {
+			t.Errorf("test %v: got %v, wanted %v\n", num, v.Encode(), test.query)
+		}
+	}
+}
+
+func sliceTest(num, field any, got, want []string) error {
+	if !slices.Equal(got, want) {
+		return paramTestMsg(num, field, got, want)
+	}
+	return nil
+}
+
+func paramTestMsg(num, field, got, want any) error {
+	return fmt.Errorf("test %v, field %s\ngot %#v, wanted %#v\n", num, field, got, want)
 }
