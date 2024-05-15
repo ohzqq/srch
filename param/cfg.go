@@ -17,7 +17,9 @@ type Cfg struct {
 }
 
 func NewCfg() *Cfg {
-	return &Cfg{}
+	return &Cfg{
+		Index: "default",
+	}
 }
 
 func ParseCfg(q string) (*Cfg, error) {

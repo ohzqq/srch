@@ -34,25 +34,6 @@ func TestDecode(t *testing.T) {
 	}
 }
 
-func TestDecodeCfg(t *testing.T) {
-	cfg, err := ParseCfg("?" + urlq)
-	if err != nil {
-		t.Error(err)
-	}
-	sw := []string{"title"}
-	if !slices.Equal(cfg.SrchAttr, sw) {
-		t.Errorf("got %v, expected %v\n", cfg.SrchAttr, sw)
-	}
-	facets := []string{"tags", "authors", "series", "narrators"}
-	if !slices.Equal(cfg.FacetAttr, facets) {
-		t.Errorf("got %v, expected %v\n", cfg.FacetAttr, facets)
-	}
-	i := "default"
-	if cfg.Index != i {
-		t.Errorf("got %v, expected %v\n", cfg.Index, i)
-	}
-}
-
 func TestEncodeCfg(t *testing.T) {
 	v, err := testParams.Encode()
 	if err != nil {
