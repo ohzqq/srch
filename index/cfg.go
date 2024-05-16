@@ -7,23 +7,57 @@ import (
 )
 
 type Cfg struct {
-	ID       int         `json:"_id"`
-	Name     string      `json:"name"`
-	CustomID string      `json:"customID,omitempty"`
-	Mapping  doc.Mapping `json:"mapping"`
+	ID      int         `json:"_id"`
+	Mapping doc.Mapping `json:"mapping"`
+
+	*param.Cfg
 }
 
-func NewCfg(tbl string, m doc.Mapping, id string) *Cfg {
+func NewCfg() *Cfg {
 	return &Cfg{
-		Mapping:  m,
-		CustomID: id,
-		ID:       1,
-		Name:     tbl,
+		Cfg: param.NewCfg(),
 	}
 }
 
+func (cfg *Cfg) Parse(v any) error {
+	err := param.Decode(v, cfg.Cfg)
+	if err != nil {
+		return err
+	}
+
+	cfg.SetName(cfg.Index).
+		SetMapping(NewMappingFromParamCfg(cfg.Cfg)).
+		SetCustomID(cfg.UID)
+
+	return nil
+}
+
+func (cfg *Cfg) SetName(tbl string) *Cfg {
+	cfg.Index = tbl
+	return cfg
+}
+
+func (cfg *Cfg) SetMapping(m doc.Mapping) *Cfg {
+	cfg.Mapping = m
+	return cfg
+}
+
+func (cfg *Cfg) SetCustomID(id string) *Cfg {
+	cfg.UID = id
+	return cfg
+}
+
+func NewCfgTbl(tbl string, m doc.Mapping, id string) *Cfg {
+	return NewCfg().
+		SetMapping(m).
+		SetCustomID(id).
+		SetName(tbl)
+}
+
 func DefaultCfg() *Cfg {
-	return NewCfg(defaultTbl, doc.DefaultMapping(), "")
+	return NewCfg().
+		SetMapping(doc.DefaultMapping()).
+		SetName(defaultTbl)
 }
 
 func NewCfgFromParams(settings string) (*Cfg, error) {
@@ -31,8 +65,26 @@ func NewCfgFromParams(settings string) (*Cfg, error) {
 	if err != nil {
 		return nil, err
 	}
-	cfg := NewCfg(params.Index, NewMappingFromParams(params), params.UID)
+	cfg := NewCfgTbl(params.Index, NewMappingFromParams(params), params.UID)
 	return cfg, nil
+}
+
+func NewMappingFromParamCfg(cfg *param.Cfg) doc.Mapping {
+	if !cfg.HasSrchAttr() && !cfg.HasFacetAttr() {
+		return doc.DefaultMapping()
+	}
+
+	m := doc.NewMapping()
+
+	for _, attr := range cfg.SrchAttr {
+		m.AddFulltext(attr)
+	}
+
+	for _, attr := range cfg.FacetAttr {
+		m.AddKeywords(attr)
+	}
+
+	return m
 }
 
 func NewMappingFromParams(params *param.Params) doc.Mapping {
@@ -54,7 +106,7 @@ func NewMappingFromParams(params *param.Params) doc.Mapping {
 }
 
 func (tbl *Cfg) WithCustomID(name string) *Cfg {
-	tbl.CustomID = name
+	tbl.UID = name
 	return tbl
 }
 

@@ -46,3 +46,15 @@ func (cfg *Cfg) Decode(u url.Values) error {
 func (cfg *Cfg) Encode() (url.Values, error) {
 	return sp.Encode(cfg)
 }
+
+func (cfg *Cfg) HasSrchAttr() bool {
+	return len(cfg.SrchAttr) > 0
+}
+
+func (cfg *Cfg) HasFacetAttr() bool {
+	return len(cfg.FacetAttr) > 0
+}
+
+func (cfg *Cfg) HasSortAttr() bool {
+	return len(cfg.SortAttr) > 0
+}

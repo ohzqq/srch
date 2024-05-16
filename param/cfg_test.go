@@ -103,7 +103,7 @@ var cfgTests = []cfgTest{
 			FacetAttr: []string{"tags", "authors", "series", "narrators"},
 			Paramz: &Paramz{
 				Index: "default",
-				ID:    "id",
+				UID:   "id",
 			},
 		},
 	},
@@ -116,7 +116,7 @@ var cfgTests = []cfgTest{
 			FacetAttr: []string{"tags", "authors", "series", "narrators"},
 			SortAttr:  []string{"tags"},
 			Paramz: &Paramz{
-				ID:    "id",
+				UID:   "id",
 				Index: "audiobooks",
 				URI:   "file://../testdata/data-dir/audiobooks.json",
 			},
@@ -146,8 +146,8 @@ func TestDecodeCfgStr(t *testing.T) {
 		if cfg.Index != test.Index {
 			t.Errorf("test %v Index: got %#v, expected %#v\n", num, cfg.Index, test.Index)
 		}
-		if cfg.ID != test.ID {
-			t.Errorf("test %v ID: got %#v, expected %#v\n", num, cfg.ID, test.ID)
+		if cfg.UID != test.UID {
+			t.Errorf("test %v ID: got %#v, expected %#v\n", num, cfg.UID, test.UID)
 		}
 		if cfg.URI != test.URI {
 			t.Errorf("test %v Path: got %#v, expected %#v\n", num, cfg.URI, test.URI)
@@ -177,8 +177,8 @@ func TestDecodeCfgVals(t *testing.T) {
 		if cfg.Index != test.Index {
 			t.Errorf("test %v Index: got %#v, expected %#v\n", num, cfg.Index, test.Index)
 		}
-		if cfg.ID != test.ID {
-			t.Errorf("test %v ID: got %#v, expected %#v\n", num, cfg.ID, test.ID)
+		if cfg.UID != test.UID {
+			t.Errorf("test %v ID: got %#v, expected %#v\n", num, cfg.UID, test.UID)
 		}
 		if cfg.URI != test.URI {
 			t.Errorf("test %v Path: got %#v, expected %#v\n", num, cfg.URI, test.URI)

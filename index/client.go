@@ -7,6 +7,7 @@ import (
 	"github.com/ohzqq/hare/datastores/ram"
 	"github.com/ohzqq/hare/datastores/store"
 	"github.com/ohzqq/hare/dberr"
+	"github.com/ohzqq/srch/param"
 )
 
 const (
@@ -16,19 +17,20 @@ const (
 
 type Client struct {
 	*hare.Database
+	Params *param.Cfg
 }
 
-func New(opts ...Opt) (*Client, error) {
-	client := &Client{}
-
-	for _, opt := range opts {
-		err := opt(client)
-		if err != nil {
-			return nil, fmt.Errorf("option %v error: %w\n", opt, err)
-		}
+func New(settings any) (*Client, error) {
+	client := &Client{
+		Params: param.NewCfg(),
 	}
 
-	err := client.initDB()
+	err := param.Decode(settings, client.Params)
+	if err != nil {
+		return nil, err
+	}
+
+	err = client.initDB()
 	if err != nil {
 		return nil, err
 	}
@@ -79,7 +81,7 @@ func (client *Client) GetCfg(name string) (*Cfg, error) {
 		if err != nil {
 			return nil, err
 		}
-		if cfg.Name == name {
+		if cfg.Index == name {
 			return cfg, nil
 		}
 	}

@@ -3,14 +3,14 @@ package index
 import "testing"
 
 func TestDefaultIndex(t *testing.T) {
-	_, err := New()
+	_, err := New("")
 	if err != nil {
 		t.Error(err)
 	}
 }
 
 func TestSettings(t *testing.T) {
-	idx, err := New()
+	idx, err := New("")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -26,7 +26,7 @@ func TestSettings(t *testing.T) {
 }
 
 func TestDefaultSettings(t *testing.T) {
-	idx, err := New()
+	idx, err := New("")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -47,7 +47,7 @@ func TestDefaultSettings(t *testing.T) {
 }
 
 func TestGetCfg(t *testing.T) {
-	idx, err := New()
+	idx, err := New("")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -55,13 +55,13 @@ func TestGetCfg(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	if cfg.Name != defaultTbl {
-		t.Errorf("got %v, wanted %v\n", cfg.Name, defaultTbl)
+	if cfg.Index != defaultTbl {
+		t.Errorf("got %v, wanted %v\n", cfg.Index, defaultTbl)
 	}
 }
 
 func TestGetIdx(t *testing.T) {
-	c, err := New()
+	c, err := New("")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -69,7 +69,7 @@ func TestGetIdx(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	if idx.Name != defaultTbl {
-		t.Errorf("got %v, wanted %v\n", idx.Name, defaultTbl)
+	if idx.Index != defaultTbl {
+		t.Errorf("got %v, wanted %v\n", idx.Index, defaultTbl)
 	}
 }
