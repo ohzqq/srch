@@ -33,17 +33,7 @@ func NewSearch() *Search {
 	}
 }
 
-func ParseSearch(q string) (*Search, error) {
-	s := NewSearch()
-	err := s.Decode(q)
-	if err != nil {
-		return nil, err
-	}
-	return s, nil
-}
-
-func (s *Search) Decode(q string) error {
-	u := parseQuery(q)
+func (s *Search) Decode(u url.Values) error {
 	err := sp.Decode(u, s)
 	if err != nil {
 		return err

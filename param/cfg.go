@@ -23,17 +23,7 @@ func NewCfg() *Cfg {
 	}
 }
 
-func ParseCfg(q string) (*Cfg, error) {
-	cfg := NewCfg()
-	err := cfg.Decode(q)
-	if err != nil {
-		return nil, err
-	}
-	return cfg, nil
-}
-
-func (cfg *Cfg) Decode(q string) error {
-	u := parseQuery(q)
+func (cfg *Cfg) Decode(u url.Values) error {
 	err := sp.Decode(u, cfg)
 	if err != nil {
 		return err

@@ -7,22 +7,31 @@ import (
 )
 
 type QueryParam interface {
-	Decode(string) error
+	Decode(url.Values) error
 	Encode() (url.Values, error)
 }
 
 func Decode(q any, p QueryParam) error {
+	v, err := decodeQ(q)
+	if err != nil {
+		return err
+	}
+	return p.Decode(v)
+}
+
+func decodeQ(q any) (url.Values, error) {
 	switch v := q.(type) {
 	case string:
-		return p.Decode(v)
+		return parseQuery(v), nil
 	case map[string][]string:
-		return p.Decode(url.Values(v).Encode())
+		return url.Values(v), nil
+		//return p.Decode(url.Values(v).Encode())
 	case url.Values:
-		return p.Decode(v.Encode())
+		return v, nil
 	case *url.URL:
-		return p.Decode(v.Query().Encode())
+		return v.Query(), nil
 	default:
-		return errors.New("param must be of type: string, map[string][]string, url.Values, *url.URL")
+		return nil, errors.New("param must be of type: string, map[string][]string, url.Values, *url.URL")
 	}
 }
 
