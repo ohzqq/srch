@@ -88,7 +88,8 @@ var srchTests = []searchTest{
 
 func TestDecodeSearch(t *testing.T) {
 	for num, test := range srchTests {
-		sr, err := ParseSearch(test.query)
+		sr := NewSearch()
+		err := Decode(test.query, sr)
 		if err != nil {
 			t.Error(err)
 		}
