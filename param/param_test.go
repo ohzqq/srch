@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/url"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/samber/lo"
@@ -15,6 +16,24 @@ import (
 type paramTest struct {
 	query string
 	want  *Params
+}
+
+type pt struct {
+	query string
+}
+
+func (p pt) str() string {
+	return p.query
+}
+
+func (p pt) vals() url.Values {
+	v, _ := url.ParseQuery(strings.TrimPrefix(p.query, "?"))
+	return v
+}
+
+func (p pt) url() *url.URL {
+	u, _ := url.Parse(p.query)
+	return u
 }
 
 var paramTests = []paramTest{
