@@ -54,6 +54,7 @@ func (s *Search) Decode(q string) error {
 		return err
 	}
 	s.RtrvAttr = parseSrchAttrs(s.RtrvAttr)
+	s.Facets = ParseQueryStrings(s.Facets)
 	return nil
 }
 

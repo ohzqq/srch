@@ -94,14 +94,17 @@ func TestDecodeCfg(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-		if !slices.Equal(cfg.SrchAttr, test.SrchAttr) {
-			t.Errorf("test %v SrchAttr: got %#v, expected %#v\n", num, cfg.SrchAttr, test.SrchAttr)
+		err = sliceTest(num, "SrchAttr", cfg.SrchAttr, test.SrchAttr)
+		if err != nil {
+			t.Error(err)
 		}
-		if !slices.Equal(cfg.FacetAttr, test.FacetAttr) {
-			t.Errorf("test %v FacetAttr: got %#v, expected %#v\n", num, cfg.FacetAttr, test.FacetAttr)
+		err = sliceTest(num, "FacetAttr", cfg.FacetAttr, test.FacetAttr)
+		if err != nil {
+			t.Error(err)
 		}
-		if !slices.Equal(cfg.SortAttr, test.SortAttr) {
-			t.Errorf("test %v SortAttr: got %#v, expected %#v\n", num, cfg.SortAttr, test.SortAttr)
+		err = sliceTest(num, "SortAttr", cfg.SortAttr, test.SortAttr)
+		if err != nil {
+			t.Error(err)
 		}
 		if cfg.Index != test.Index {
 			t.Errorf("test %v Index: got %#v, expected %#v\n", num, cfg.Index, test.Index)
