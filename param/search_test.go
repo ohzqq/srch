@@ -72,8 +72,9 @@ var srchTests = []searchTest{
 		},
 	},
 	searchTest{
-		query: `??path=/home/mxb/code/srch/testdata/ndbooks.ndjson&query=fish&attributesToRetrieve=title,tags,authors&facets=tags,authors,series,narrators&page=3&sortBy=title&order=desc&facetFilters=["authors:amy lane", ["tags:romance", "tags:-dnr"]]`,
+		query: `?path=/home/mxb/code/srch/testdata/ndbooks.ndjson&query=fish&attributesToRetrieve=title,tags,authors&facets=tags,authors,series,narrators&page=3&sortBy=title&order=desc&facetFilters=["authors:amy lane", ["tags:romance", "tags:-dnr"]]`,
 		Search: &Search{
+			Path:      `/home/mxb/code/srch/testdata/ndbooks.ndjson`,
 			RtrvAttr:  []string{"title", "tags", "authors"},
 			Page:      3,
 			Query:     "fish",

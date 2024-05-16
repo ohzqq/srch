@@ -76,7 +76,7 @@ var cfgTests = []cfgTest{
 		},
 	},
 	cfgTest{
-		query: `?searchableAttributes=title&attributesForFaceting=tags,authors,series,narrators&sortableAttributes=tags&path=../testdata/data-dir/audiobooks.json&index=audiobooks&id=id`,
+		query: `searchableAttributes=title&attributesForFaceting=tags,authors,series,narrators&sortableAttributes=tags&path=../testdata/data-dir/audiobooks.json&index=audiobooks&id=id`,
 		Cfg: &Cfg{
 			SrchAttr:  []string{"title"},
 			FacetAttr: []string{"tags", "authors", "series", "narrators"},
@@ -88,9 +88,47 @@ var cfgTests = []cfgTest{
 	},
 }
 
-func TestDecodeCfg(t *testing.T) {
+func TestDecodeCfgStr(t *testing.T) {
 	for num, test := range cfgTests {
-		cfg, err := ParseCfg(test.query)
+		cfg := NewCfg()
+		err := Decode(test.query, cfg)
+		if err != nil {
+			t.Error(err)
+		}
+		err = sliceTest(num, "SrchAttr", cfg.SrchAttr, test.SrchAttr)
+		if err != nil {
+			t.Error(err)
+		}
+		err = sliceTest(num, "FacetAttr", cfg.FacetAttr, test.FacetAttr)
+		if err != nil {
+			t.Error(err)
+		}
+		err = sliceTest(num, "SortAttr", cfg.SortAttr, test.SortAttr)
+		if err != nil {
+			t.Error(err)
+		}
+		if cfg.Index != test.Index {
+			t.Errorf("test %v Index: got %#v, expected %#v\n", num, cfg.Index, test.Index)
+		}
+		if cfg.ID != test.ID {
+			t.Errorf("test %v ID: got %#v, expected %#v\n", num, cfg.ID, test.ID)
+		}
+		if cfg.Path != test.Path {
+			t.Errorf("test %v Path: got %#v, expected %#v\n", num, cfg.Path, test.Path)
+		}
+	}
+}
+
+func TestDecodeCfgVals(t *testing.T) {
+	for num, test := range cfgTests {
+		//q := strings.TrimPrefix(test.query, "?")
+		q := test.query
+		//v, err := url.ParseQuery(q)
+		//if err != nil {
+		//t.Fatal(err)
+		//}
+		cfg := NewCfg()
+		err := Decode(q, cfg)
 		if err != nil {
 			t.Error(err)
 		}

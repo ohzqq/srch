@@ -3,6 +3,7 @@ package param
 import (
 	"encoding/json"
 	"net/url"
+	"strings"
 
 	"github.com/ohzqq/sp"
 )
@@ -45,11 +46,12 @@ func ParseSearch(q string) (*Search, error) {
 }
 
 func (s *Search) Decode(q string) error {
-	u, err := url.Parse(q)
+	q = strings.TrimPrefix(q, "?")
+	u, err := url.ParseQuery(q)
 	if err != nil {
 		return err
 	}
-	err = sp.Decode(u.Query(), s)
+	err = sp.Decode(u, s)
 	if err != nil {
 		return err
 	}
