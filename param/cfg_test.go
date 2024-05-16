@@ -18,7 +18,9 @@ var cfgTests = []cfgTest{
 		},
 		Cfg: &Cfg{
 			SrchAttr: []string{"*"},
-			Index:    "default",
+			Paramz: &Paramz{
+				Index: "default",
+			},
 		},
 	},
 	cfgTest{
@@ -27,7 +29,9 @@ var cfgTests = []cfgTest{
 		},
 		Cfg: &Cfg{
 			SrchAttr: []string{"*"},
-			Index:    "default",
+			Paramz: &Paramz{
+				Index: "default",
+			},
 		},
 	},
 	cfgTest{
@@ -36,7 +40,9 @@ var cfgTests = []cfgTest{
 		},
 		Cfg: &Cfg{
 			SrchAttr: []string{"title"},
-			Index:    "default",
+			Paramz: &Paramz{
+				Index: "default",
+			},
 		},
 	},
 	cfgTest{
@@ -45,8 +51,10 @@ var cfgTests = []cfgTest{
 		},
 		Cfg: &Cfg{
 			SrchAttr: []string{"title"},
-			Index:    "default",
-			Path:     `file://../testdata/data-dir`,
+			Paramz: &Paramz{
+				Index: "default",
+				Path:  `file://../testdata/data-dir`,
+			},
 			SortAttr: []string{"tags"},
 		},
 	},
@@ -57,7 +65,9 @@ var cfgTests = []cfgTest{
 		Cfg: &Cfg{
 			SrchAttr:  []string{"*"},
 			FacetAttr: []string{"tags", "authors", "series", "narrators"},
-			Index:     "default",
+			Paramz: &Paramz{
+				Index: "default",
+			},
 		},
 	},
 	cfgTest{
@@ -67,7 +77,9 @@ var cfgTests = []cfgTest{
 		Cfg: &Cfg{
 			SrchAttr:  []string{"*"},
 			FacetAttr: []string{"tags", "authors", "series", "narrators"},
-			Index:     "default",
+			Paramz: &Paramz{
+				Index: "default",
+			},
 		},
 	},
 	cfgTest{
@@ -77,7 +89,9 @@ var cfgTests = []cfgTest{
 		Cfg: &Cfg{
 			SrchAttr:  []string{"title"},
 			FacetAttr: []string{"tags", "authors", "series", "narrators"},
-			Index:     "default",
+			Paramz: &Paramz{
+				Index: "default",
+			},
 		},
 	},
 	cfgTest{
@@ -87,8 +101,10 @@ var cfgTests = []cfgTest{
 		Cfg: &Cfg{
 			SrchAttr:  []string{"title"},
 			FacetAttr: []string{"tags", "authors", "series", "narrators"},
-			Index:     "default",
-			ID:        "id",
+			Paramz: &Paramz{
+				Index: "default",
+				ID:    "id",
+			},
 		},
 	},
 	cfgTest{
@@ -99,9 +115,11 @@ var cfgTests = []cfgTest{
 			SrchAttr:  []string{"title"},
 			FacetAttr: []string{"tags", "authors", "series", "narrators"},
 			SortAttr:  []string{"tags"},
-			ID:        "id",
-			Index:     "audiobooks",
-			Path:      "file://../testdata/data-dir/audiobooks.json",
+			Paramz: &Paramz{
+				ID:    "id",
+				Index: "audiobooks",
+				Path:  "file://../testdata/data-dir/audiobooks.json",
+			},
 		},
 	},
 }

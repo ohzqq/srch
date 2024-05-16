@@ -22,10 +22,10 @@ func Decode(q any, p QueryParam) error {
 func decodeQ(q any) (url.Values, error) {
 	switch v := q.(type) {
 	case string:
-		return parseQuery(v), nil
+		v = strings.TrimPrefix(v, "?")
+		return url.ParseQuery(v)
 	case map[string][]string:
 		return url.Values(v), nil
-		//return p.Decode(url.Values(v).Encode())
 	case url.Values:
 		return v, nil
 	case *url.URL:

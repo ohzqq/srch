@@ -11,14 +11,13 @@ type Cfg struct {
 	SrchAttr  []string `query:"searchableAttributes" json:"searchableAttributes,omitempty" mapstructure:"searchable_attributes" qs:"searchableAttributes,omitempty"`
 	FacetAttr []string `query:"attributesForFaceting,omitempty" json:"attributesForFaceting,omitempty" mapstructure:"attributes_for_faceting" qs:"attributesForFaceting,omitempty"`
 	SortAttr  []string `query:"sortableAttributes,omitempty" json:"sortableAttributes,omitempty" mapstructure:"sortable_attributes" qs:"sortableAttributes,omitempty"`
-	ID        string   `query:"id,omitempty" json:"id,omitempty" mapstructure:"id" qs:"id,omitempty"`
-	Index     string   `query:"index,omitempty" json:"index,omitempty" mapstructure:"index" qs:"index,omitempty"`
-	Path      string   `json:"-" mapstructure:"path" qs:"path,omitempty"`
+
+	*Paramz
 }
 
 func NewCfg() *Cfg {
 	return &Cfg{
-		Index:    "default",
+		Paramz:   defaultParams(),
 		SrchAttr: []string{"*"},
 	}
 }
@@ -34,6 +33,12 @@ func (cfg *Cfg) Decode(u url.Values) error {
 	}
 	if len(cfg.SortAttr) > 0 {
 		cfg.SortAttr = ParseQueryStrings(cfg.SortAttr)
+	}
+	if cfg.Path != "" {
+		cfg.URL, err = url.Parse(cfg.Path)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
