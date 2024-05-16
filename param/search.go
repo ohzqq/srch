@@ -24,14 +24,12 @@ type Search struct {
 	SortFacetsBy string   `query:"sortFacetsBy,omitempty" json:"sortFacetsBy,omitempty" mapstructure:"sort_facets_by" qs:"sortFacetsBy"`
 	MaxFacetVals int      `query:"maxValuesPerFacet,omitempty" json:"maxValuesPerFacet,omitempty" mapstructure:"max_values_per_facet" qs:"maxValuesPerFacet,omitempty"`
 
-	ID    string `query:"id,omitempty" json:"id,omitempty" mapstructure:"id" qs:"id"`
-	Index string `query:"index,omitempty" json:"index,omitempty" mapstructure:"index" qs:"index"`
-	Path  string `json:"-" mapstructure:"path" qs:"path"`
+	*Paramz
 }
 
 func NewSearch() *Search {
 	return &Search{
-		Index: "default",
+		Paramz: defaultParams(),
 	}
 }
 

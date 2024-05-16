@@ -54,6 +54,19 @@ type Params struct {
 	Route  string `json:"-" mapstructure:"route" qs:"route"`
 }
 
+type Paramz struct {
+	//*url.URL
+	Path  string `json:"-" mapstructure:"path" qs:"path"`
+	Index string `query:"index,omitempty" json:"index,omitempty" mapstructure:"index" qs:"index"`
+	ID    string `query:"id,omitempty" json:"id,omitempty" mapstructure:"id" qs:"id"`
+}
+
+func defaultParams() *Paramz {
+	return &Paramz{
+		Index: "default",
+	}
+}
+
 var (
 	blvPath    = regexp.MustCompile(`/?(blv)(.*)`)
 	filePath   = regexp.MustCompile(`/?(file)(.*)`)

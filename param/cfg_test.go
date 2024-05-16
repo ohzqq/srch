@@ -41,12 +41,12 @@ var cfgTests = []cfgTest{
 	},
 	cfgTest{
 		pt: pt{
-			query: `?searchableAttributes=title&path=../testdata/data-dir&sortableAttributes=tags`,
+			query: `?searchableAttributes=title&path=file://../testdata/data-dir&sortableAttributes=tags`,
 		},
 		Cfg: &Cfg{
 			SrchAttr: []string{"title"},
 			Index:    "default",
-			Path:     `../testdata/data-dir`,
+			Path:     `file://../testdata/data-dir`,
 			SortAttr: []string{"tags"},
 		},
 	},
@@ -93,7 +93,7 @@ var cfgTests = []cfgTest{
 	},
 	cfgTest{
 		pt: pt{
-			query: `searchableAttributes=title&attributesForFaceting=tags,authors,series,narrators&sortableAttributes=tags&path=../testdata/data-dir/audiobooks.json&index=audiobooks&id=id`,
+			query: `searchableAttributes=title&attributesForFaceting=tags,authors,series,narrators&sortableAttributes=tags&path=file://../testdata/data-dir/audiobooks.json&index=audiobooks&id=id`,
 		},
 		Cfg: &Cfg{
 			SrchAttr:  []string{"title"},
@@ -101,7 +101,7 @@ var cfgTests = []cfgTest{
 			SortAttr:  []string{"tags"},
 			ID:        "id",
 			Index:     "audiobooks",
-			Path:      "../testdata/data-dir/audiobooks.json",
+			Path:      "file://../testdata/data-dir/audiobooks.json",
 		},
 	},
 }
