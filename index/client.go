@@ -30,6 +30,11 @@ func New(settings any) (*Client, error) {
 		return nil, err
 	}
 
+	switch client.Params.Scheme {
+	case "file":
+	case "http", "https":
+	}
+
 	err = client.initDB()
 	if err != nil {
 		return nil, err

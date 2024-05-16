@@ -64,6 +64,7 @@ type Paramz struct {
 func defaultParams() *Paramz {
 	return &Paramz{
 		Index: "default",
+		URL:   &url.URL{},
 	}
 }
 
