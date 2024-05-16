@@ -2,7 +2,6 @@ package param
 
 import (
 	"net/url"
-	"strings"
 
 	"github.com/ohzqq/sp"
 )
@@ -34,12 +33,8 @@ func ParseCfg(q string) (*Cfg, error) {
 }
 
 func (cfg *Cfg) Decode(q string) error {
-	q = strings.TrimPrefix(q, "?")
-	u, err := url.ParseQuery(q)
-	if err != nil {
-		return err
-	}
-	err = sp.Decode(u, cfg)
+	u := parseQuery(q)
+	err := sp.Decode(u, cfg)
 	if err != nil {
 		return err
 	}

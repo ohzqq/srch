@@ -1,6 +1,10 @@
 package param
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/spf13/cast"
+)
 
 type searchTest struct {
 	query string
@@ -101,6 +105,32 @@ func TestDecodeSearch(t *testing.T) {
 		err = sliceTest(num, "Facets", sr.Facets, test.Facets)
 		if err != nil {
 			t.Error(err)
+		}
+		if num == 6 {
+			w := []any{"authors:amy lane"}
+			f := sr.FacetFilters()
+			for i, ff := range f {
+				if w[i] != ff {
+					t.Errorf("got %v filters, expected %v\n", ff, w[i])
+				}
+			}
+		}
+		if num == 7 {
+			w := []any{
+				"authors:amy lane",
+				[]any{"tags:romance", "tags:-dnr"},
+			}
+			f := sr.FacetFilters()
+			if len(f) != 2 {
+				t.Errorf("got %v filters, expected %v\n", len(f), 2)
+			}
+			if f[0] != w[0] {
+				t.Errorf("got %v filters, expected %v\n", f[0], w[0])
+			}
+			err = sliceTest(num, "filters", cast.ToStringSlice(f[1]), cast.ToStringSlice(w[1]))
+			if err != nil {
+				t.Error(err)
+			}
 		}
 		err = sliceTest(num, "FacetFltr", sr.FacetFltr, test.FacetFltr)
 		if err != nil {

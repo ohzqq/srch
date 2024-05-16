@@ -2,7 +2,9 @@ package param
 
 import (
 	"fmt"
+	"net/url"
 	"slices"
+	"strings"
 	"testing"
 )
 
@@ -121,14 +123,12 @@ func TestDecodeCfgStr(t *testing.T) {
 
 func TestDecodeCfgVals(t *testing.T) {
 	for num, test := range cfgTests {
-		//q := strings.TrimPrefix(test.query, "?")
-		q := test.query
-		//v, err := url.ParseQuery(q)
-		//if err != nil {
-		//t.Fatal(err)
-		//}
+		v, err := url.ParseQuery(strings.TrimPrefix(test.query, "?"))
+		if err != nil {
+			t.Fatal(err)
+		}
 		cfg := NewCfg()
-		err := Decode(q, cfg)
+		err = Decode(v, cfg)
 		if err != nil {
 			t.Error(err)
 		}
