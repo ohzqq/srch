@@ -2,41 +2,47 @@ package param
 
 import (
 	"fmt"
-	"net/url"
 	"slices"
-	"strings"
 	"testing"
 )
 
 type cfgTest struct {
-	query string
+	pt
 	*Cfg
 }
 
 var cfgTests = []cfgTest{
 	cfgTest{
-		query: ``,
+		pt: pt{
+			query: ``,
+		},
 		Cfg: &Cfg{
 			SrchAttr: []string{"*"},
 			Index:    "default",
 		},
 	},
 	cfgTest{
-		query: `?searchableAttributes=`,
+		pt: pt{
+			query: `?searchableAttributes=`,
+		},
 		Cfg: &Cfg{
 			SrchAttr: []string{"*"},
 			Index:    "default",
 		},
 	},
 	cfgTest{
-		query: `?searchableAttributes=title`,
+		pt: pt{
+			query: `?searchableAttributes=title`,
+		},
 		Cfg: &Cfg{
 			SrchAttr: []string{"title"},
 			Index:    "default",
 		},
 	},
 	cfgTest{
-		query: `?searchableAttributes=title&path=../testdata/data-dir&sortableAttributes=tags`,
+		pt: pt{
+			query: `?searchableAttributes=title&path=../testdata/data-dir&sortableAttributes=tags`,
+		},
 		Cfg: &Cfg{
 			SrchAttr: []string{"title"},
 			Index:    "default",
@@ -45,7 +51,9 @@ var cfgTests = []cfgTest{
 		},
 	},
 	cfgTest{
-		query: `?attributesForFaceting=tags,authors,series,narrators`,
+		pt: pt{
+			query: `?attributesForFaceting=tags,authors,series,narrators`,
+		},
 		Cfg: &Cfg{
 			SrchAttr:  []string{"*"},
 			FacetAttr: []string{"tags", "authors", "series", "narrators"},
@@ -53,7 +61,9 @@ var cfgTests = []cfgTest{
 		},
 	},
 	cfgTest{
-		query: `?attributesForFaceting=tags&attributesForFaceting=authors&attributesForFaceting=series&attributesForFaceting=narrators`,
+		pt: pt{
+			query: `?attributesForFaceting=tags&attributesForFaceting=authors&attributesForFaceting=series&attributesForFaceting=narrators`,
+		},
 		Cfg: &Cfg{
 			SrchAttr:  []string{"*"},
 			FacetAttr: []string{"tags", "authors", "series", "narrators"},
@@ -61,7 +71,9 @@ var cfgTests = []cfgTest{
 		},
 	},
 	cfgTest{
-		query: `?searchableAttributes=title&attributesForFaceting=tags,authors,series,narrators`,
+		pt: pt{
+			query: `?searchableAttributes=title&attributesForFaceting=tags,authors,series,narrators`,
+		},
 		Cfg: &Cfg{
 			SrchAttr:  []string{"title"},
 			FacetAttr: []string{"tags", "authors", "series", "narrators"},
@@ -69,7 +81,9 @@ var cfgTests = []cfgTest{
 		},
 	},
 	cfgTest{
-		query: `?searchableAttributes=title&attributesForFaceting=tags,authors,series,narrators&id=id`,
+		pt: pt{
+			query: `?searchableAttributes=title&attributesForFaceting=tags,authors,series,narrators&id=id`,
+		},
 		Cfg: &Cfg{
 			SrchAttr:  []string{"title"},
 			FacetAttr: []string{"tags", "authors", "series", "narrators"},
@@ -78,7 +92,9 @@ var cfgTests = []cfgTest{
 		},
 	},
 	cfgTest{
-		query: `searchableAttributes=title&attributesForFaceting=tags,authors,series,narrators&sortableAttributes=tags&path=../testdata/data-dir/audiobooks.json&index=audiobooks&id=id`,
+		pt: pt{
+			query: `searchableAttributes=title&attributesForFaceting=tags,authors,series,narrators&sortableAttributes=tags&path=../testdata/data-dir/audiobooks.json&index=audiobooks&id=id`,
+		},
 		Cfg: &Cfg{
 			SrchAttr:  []string{"title"},
 			FacetAttr: []string{"tags", "authors", "series", "narrators"},
@@ -123,12 +139,8 @@ func TestDecodeCfgStr(t *testing.T) {
 
 func TestDecodeCfgVals(t *testing.T) {
 	for num, test := range cfgTests {
-		v, err := url.ParseQuery(strings.TrimPrefix(test.query, "?"))
-		if err != nil {
-			t.Fatal(err)
-		}
 		cfg := NewCfg()
-		err = Decode(v, cfg)
+		err := Decode(test.vals(), cfg)
 		if err != nil {
 			t.Error(err)
 		}
