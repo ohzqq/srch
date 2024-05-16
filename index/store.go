@@ -16,7 +16,7 @@ import (
 var client = &http.Client{}
 
 func NewDatastorage(u *url.URL) (hare.Datastorage, error) {
-	ds, err := NewMemStore()
+	ds, err := NewMem()
 	if u == nil {
 		return ds, nil
 	}
@@ -31,7 +31,7 @@ func NewDatastorage(u *url.URL) (hare.Datastorage, error) {
 		if err != nil {
 			return nil, err
 		}
-		ds, err = NewNet(u.String(), body)
+		ds, err = NewNet(u.Path, body)
 		if err != nil {
 			return nil, err
 		}
@@ -41,21 +41,24 @@ func NewDatastorage(u *url.URL) (hare.Datastorage, error) {
 
 func Disk(path string) (*disk.Disk, error) {
 	p, file := filepath.Split(path)
-	if file == "" {
-		file = "_settings.json"
+
+	ext := ".json"
+	if e := filepath.Ext(file); e != "" {
+		ext = e
+		path = p
 	}
-	ds, err := disk.New(p, filepath.Ext(file))
+	ds, err := disk.New(path, ext)
 	if err != nil {
 		return nil, err
 	}
 	return ds, nil
 }
 
-func NewMemStore() (hare.Datastorage, error) {
-	return NewMem()
+func NewMem() (hare.Datastorage, error) {
+	return DefaultMem()
 }
 
-func NewMem() (*ram.Ram, error) {
+func DefaultMem() (*ram.Ram, error) {
 	r := &ram.Ram{
 		Store: store.New(),
 	}

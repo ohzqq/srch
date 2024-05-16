@@ -27,12 +27,12 @@ func New(settings any) (*Client, error) {
 
 	err := param.Decode(settings, client.Params)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("param decoding error: %w\n", err)
 	}
 
 	ds, err := NewDatastorage(client.Params.URL)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("new datastorage error: %w\n", err)
 	}
 
 	err = client.SetDatastorage(ds)
@@ -40,16 +40,26 @@ func New(settings any) (*Client, error) {
 		return nil, err
 	}
 
+	//err = client.initDB()
+	//if err != nil {
+	//return nil, err
+	//}
+
 	return client, nil
 }
 
 func (client *Client) initDB() error {
-	if client.Database == nil {
-		err := client.memDB()
+	if !client.Database.TableExists(settingsTbl) {
+		err := client.Database.CreateTable(settingsTbl)
 		if err != nil {
-			return err
+			return fmt.Errorf("db.getCfg CreateTable error\n%w\n", err)
 		}
+		//err = client.SetCfg(DefaultCfg())
+		//if err != nil {
+		//  return err
+		//}
 	}
+
 	return nil
 }
 

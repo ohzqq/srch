@@ -2,6 +2,7 @@ package param
 
 import (
 	"net/url"
+	"path/filepath"
 
 	"github.com/ohzqq/sp"
 )
@@ -38,6 +39,9 @@ func (cfg *Cfg) Decode(u url.Values) error {
 		cfg.URL, err = url.Parse(cfg.URI)
 		if err != nil {
 			return err
+		}
+		if cfg.URL.Scheme == "file" {
+			cfg.URL.Path = filepath.Join("/", cfg.URL.Host, cfg.URL.Path)
 		}
 	}
 	return nil

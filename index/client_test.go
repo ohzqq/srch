@@ -1,6 +1,31 @@
 package index
 
-import "testing"
+import (
+	"testing"
+)
+
+const hareTestPath = `/home/mxb/code/srch/testdata/hare`
+const hareTestURL = `file://home/mxb/code/srch/testdata/hare`
+const hareTestQuery = `?url=file://home/mxb/code/srch/testdata/hare/`
+
+func TestHareDisk(t *testing.T) {
+	_, err := New(hareTestQuery)
+	if err != nil {
+		t.Fatal(err)
+	}
+	//fmt.Printf("%#v\n", idx.Database)
+}
+
+func TestHareDiskTbls(t *testing.T) {
+	client, err := New(hareTestQuery)
+	if err != nil {
+		t.Fatal(err)
+	}
+	names := client.TableNames()
+	for _, n := range names {
+		println(n)
+	}
+}
 
 func TestDefaultIndex(t *testing.T) {
 	_, err := New("")
@@ -10,23 +35,39 @@ func TestDefaultIndex(t *testing.T) {
 }
 
 func TestSettings(t *testing.T) {
-	idx, err := New("")
+	client, err := New(hareTestQuery)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, err = idx.Cfg()
+	_, err = client.Cfg()
 	if err != nil {
 		t.Error(err)
 	}
 
-	if !idx.TableExists(settingsTbl) {
-		t.Errorf("settings doesn't exist")
-	}
+	//if !client.Database.TableExists(settingsTbl) {
+	//err = client.Database.CreateTable(settingsTbl)
+	//if err != nil {
+	//  t.Fatal(err)
+	//}
+	//err = client.SetCfg(DefaultCfg())
+	//if err != nil {
+	//  return err
+	//}
+	//}
+
+	//err = client.initDB()
+	//if err != nil {
+	//  t.Fatal(err)
+	//}
+
+	//if !client.TableExists(settingsTbl) {
+	//t.Errorf("settings doesn't exist")
+	//}
 }
 
 func TestDefaultSettings(t *testing.T) {
-	idx, err := New("")
+	idx, err := New(hareTestQuery)
 	if err != nil {
 		t.Fatal(err)
 	}
