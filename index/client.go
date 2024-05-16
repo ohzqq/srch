@@ -30,12 +30,12 @@ func New(settings any) (*Client, error) {
 		return nil, err
 	}
 
-	switch client.Params.Scheme {
-	case "file":
-	case "http", "https":
+	ds, err := NewDatastorage(client.Params.URL)
+	if err != nil {
+		return nil, err
 	}
 
-	err = client.initDB()
+	err = client.SetDatastorage(ds)
 	if err != nil {
 		return nil, err
 	}
