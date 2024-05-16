@@ -47,13 +47,13 @@ var cfgTests = []cfgTest{
 	},
 	cfgTest{
 		pt: pt{
-			query: `?searchableAttributes=title&path=file://../testdata/data-dir&sortableAttributes=tags`,
+			query: `?searchableAttributes=title&url=file://../testdata/data-dir&sortableAttributes=tags`,
 		},
 		Cfg: &Cfg{
 			SrchAttr: []string{"title"},
 			Paramz: &Paramz{
 				Index: "default",
-				Path:  `file://../testdata/data-dir`,
+				URI:   `file://../testdata/data-dir`,
 			},
 			SortAttr: []string{"tags"},
 		},
@@ -109,7 +109,7 @@ var cfgTests = []cfgTest{
 	},
 	cfgTest{
 		pt: pt{
-			query: `searchableAttributes=title&attributesForFaceting=tags,authors,series,narrators&sortableAttributes=tags&path=file://../testdata/data-dir/audiobooks.json&index=audiobooks&id=id`,
+			query: `searchableAttributes=title&attributesForFaceting=tags,authors,series,narrators&sortableAttributes=tags&url=file://../testdata/data-dir/audiobooks.json&index=audiobooks&id=id`,
 		},
 		Cfg: &Cfg{
 			SrchAttr:  []string{"title"},
@@ -118,7 +118,7 @@ var cfgTests = []cfgTest{
 			Paramz: &Paramz{
 				ID:    "id",
 				Index: "audiobooks",
-				Path:  "file://../testdata/data-dir/audiobooks.json",
+				URI:   "file://../testdata/data-dir/audiobooks.json",
 			},
 		},
 	},
@@ -149,8 +149,8 @@ func TestDecodeCfgStr(t *testing.T) {
 		if cfg.ID != test.ID {
 			t.Errorf("test %v ID: got %#v, expected %#v\n", num, cfg.ID, test.ID)
 		}
-		if cfg.Path != test.Path {
-			t.Errorf("test %v Path: got %#v, expected %#v\n", num, cfg.Path, test.Path)
+		if cfg.URI != test.URI {
+			t.Errorf("test %v Path: got %#v, expected %#v\n", num, cfg.URI, test.URI)
 		}
 	}
 }
@@ -180,8 +180,8 @@ func TestDecodeCfgVals(t *testing.T) {
 		if cfg.ID != test.ID {
 			t.Errorf("test %v ID: got %#v, expected %#v\n", num, cfg.ID, test.ID)
 		}
-		if cfg.Path != test.Path {
-			t.Errorf("test %v Path: got %#v, expected %#v\n", num, cfg.Path, test.Path)
+		if cfg.URI != test.URI {
+			t.Errorf("test %v Path: got %#v, expected %#v\n", num, cfg.URI, test.URI)
 		}
 	}
 }

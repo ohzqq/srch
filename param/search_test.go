@@ -1,7 +1,6 @@
 package param
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/spf13/cast"
@@ -26,19 +25,19 @@ var srchTests = []searchTest{
 	},
 	searchTest{
 		pt: pt{
-			query: `?path=file://home/mxb/code/srch/testdata/ndbooks.ndjson`,
+			query: `?url=file://home/mxb/code/srch/testdata/ndbooks.ndjson`,
 		},
 		Search: &Search{
 			RtrvAttr: []string{"*"},
 			Paramz: &Paramz{
 				Index: "default",
-				Path:  `file://home/mxb/code/srch/testdata/ndbooks.ndjson`,
+				URI:   `file://home/mxb/code/srch/testdata/ndbooks.ndjson`,
 			},
 		},
 	},
 	searchTest{
 		pt: pt{
-			query: `?path=file://home/mxb/code/srch/testdata/ndbooks.ndjson&query=fish`,
+			query: `?url=file://home/mxb/code/srch/testdata/ndbooks.ndjson&query=fish`,
 		},
 		Search: &Search{
 
@@ -46,53 +45,53 @@ var srchTests = []searchTest{
 			Query:    "fish",
 			Paramz: &Paramz{
 				Index: "default",
-				Path:  `file://home/mxb/code/srch/testdata/ndbooks.ndjson`,
+				URI:   `file://home/mxb/code/srch/testdata/ndbooks.ndjson`,
 			},
 		},
 	},
 	searchTest{
 		pt: pt{
-			query: `?path=file://home/mxb/code/srch/testdata/ndbooks.ndjson&query=fish&attributesToRetrieve=title,tags,authors`,
+			query: `?url=file://home/mxb/code/srch/testdata/ndbooks.ndjson&query=fish&attributesToRetrieve=title,tags,authors`,
 		},
 		Search: &Search{
 			Query:    "fish",
 			RtrvAttr: []string{"title", "tags", "authors"},
 			Paramz: &Paramz{
 				Index: "default",
-				Path:  `file://home/mxb/code/srch/testdata/ndbooks.ndjson`,
+				URI:   `file://home/mxb/code/srch/testdata/ndbooks.ndjson`,
 			},
 		},
 	},
 	searchTest{
 		pt: pt{
-			query: `?path=file://home/mxb/code/srch/testdata/ndbooks.ndjson&query=fish&attributesToRetrieve=title&attributesToRetrieve=tags&attributesToRetrieve=authors`,
+			query: `?url=file://home/mxb/code/srch/testdata/ndbooks.ndjson&query=fish&attributesToRetrieve=title&attributesToRetrieve=tags&attributesToRetrieve=authors`,
 		},
 		Search: &Search{
 			Query:    "fish",
 			RtrvAttr: []string{"title", "tags", "authors"},
 			Paramz: &Paramz{
 				Index: "default",
-				Path:  `file://home/mxb/code/srch/testdata/ndbooks.ndjson`,
+				URI:   `file://home/mxb/code/srch/testdata/ndbooks.ndjson`,
 			},
 		},
 	},
 	searchTest{
 		pt: pt{
-			query: `?path=file://home/mxb/code/srch/testdata/ndbooks.ndjson&query=fish&attributesToRetrieve=title,tags,authors&facets=tags,authors,series,narrators`,
+			query: `?url=file://home/mxb/code/srch/testdata/ndbooks.ndjson&query=fish&attributesToRetrieve=title,tags,authors&facets=tags,authors,series,narrators`,
 		},
 		Search: &Search{
 			Query:    "fish",
 			RtrvAttr: []string{"title", "tags", "authors"},
 			Facets:   []string{"tags", "authors", "series", "narrators"},
 			Paramz: &Paramz{
-				Path:  `file://home/mxb/code/srch/testdata/ndbooks.ndjson`,
+				URI:   `file://home/mxb/code/srch/testdata/ndbooks.ndjson`,
 				Index: "default",
 			},
 		},
 	},
 	searchTest{
 		pt: pt{
-			query: `?path=file://home/mxb/code/srch/testdata/ndbooks.ndjson&query=fish&attributesToRetrieve=title,tags,authors&facets=tags,authors,series,narrators&facetFilters=["authors:amy lane"]`,
+			query: `?url=file://home/mxb/code/srch/testdata/ndbooks.ndjson&query=fish&attributesToRetrieve=title,tags,authors&facets=tags,authors,series,narrators&facetFilters=["authors:amy lane"]`,
 		},
 		Search: &Search{
 			Query:     "fish",
@@ -101,13 +100,13 @@ var srchTests = []searchTest{
 			FacetFltr: []string{"[\"authors:amy lane\"]"},
 			Paramz: &Paramz{
 				Index: "default",
-				Path:  `file://home/mxb/code/srch/testdata/ndbooks.ndjson`,
+				URI:   `file://home/mxb/code/srch/testdata/ndbooks.ndjson`,
 			},
 		},
 	},
 	searchTest{
 		pt: pt{
-			query: `?path=file://home/mxb/code/srch/testdata/ndbooks.ndjson&query=fish&attributesToRetrieve=title,tags,authors&facets=tags,authors,series,narrators&page=3&sortBy=title&order=desc&facetFilters=["authors:amy lane", ["tags:romance", "tags:-dnr"]]&index=audiobooks`,
+			query: `?url=https://home/mxb/code/srch/testdata/ndbooks.ndjson&query=fish&attributesToRetrieve=title,tags,authors&facets=tags,authors,series,narrators&page=3&sortBy=title&order=desc&facetFilters=["authors:amy lane", ["tags:romance", "tags:-dnr"]]&index=audiobooks`,
 		},
 		Search: &Search{
 			RtrvAttr:  []string{"title", "tags", "authors"},
@@ -118,7 +117,7 @@ var srchTests = []searchTest{
 			Facets:    []string{"tags", "authors", "series", "narrators"},
 			FacetFltr: []string{"[\"authors:amy lane\", [\"tags:romance\", \"tags:-dnr\"]]"},
 			Paramz: &Paramz{
-				Path:  `file://home/mxb/code/srch/testdata/ndbooks.ndjson`,
+				URI:   `https://home/mxb/code/srch/testdata/ndbooks.ndjson`,
 				Index: "audiobooks",
 			},
 		},
@@ -176,8 +175,8 @@ func TestDecodeSearchStr(t *testing.T) {
 		if sr.ID != test.ID {
 			t.Errorf("test %v ID: got %#v, expected %#v\n", num, sr.ID, test.ID)
 		}
-		if sr.Path != test.Path {
-			t.Errorf("test %v Path: got %#v, expected %#v\n", num, sr.Path, test.Path)
+		if sr.URI != test.URI {
+			t.Errorf("test %v Path: got %#v, expected %#v\n", num, sr.URI, test.URI)
 		}
 	}
 }
@@ -233,9 +232,8 @@ func TestDecodeSearchURL(t *testing.T) {
 		if sr.ID != test.ID {
 			t.Errorf("test %v ID: got %#v, expected %#v\n", num, sr.ID, test.ID)
 		}
-		if sr.Path != test.Path {
-			fmt.Printf("%#v\n", test.url().Query().Get("path"))
-			t.Errorf("test %v Path: got %#v, expected %#v\n", num, sr.Path, test.Path)
+		if sr.URI != test.URI {
+			t.Errorf("test %v Path: got %#v, expected %#v\n", num, sr.URI, test.URI)
 		}
 	}
 }

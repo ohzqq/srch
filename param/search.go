@@ -42,6 +42,12 @@ func (s *Search) Decode(u url.Values) error {
 	if len(s.Facets) > 0 {
 		s.Facets = ParseQueryStrings(s.Facets)
 	}
+	if s.URI != "" {
+		s.URL, err = url.Parse(s.URI)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 

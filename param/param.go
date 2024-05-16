@@ -55,10 +55,10 @@ type Params struct {
 }
 
 type Paramz struct {
-	Path  string `json:"-" mapstructure:"path" qs:"path"`
+	URI   string `json:"-" mapstructure:"path" qs:"url"`
 	Index string `query:"index,omitempty" json:"index,omitempty" mapstructure:"index" qs:"index"`
 	ID    string `query:"id,omitempty" json:"id,omitempty" mapstructure:"id" qs:"id"`
-	URL   *url.URL
+	*url.URL
 }
 
 func defaultParams() *Paramz {

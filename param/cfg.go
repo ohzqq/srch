@@ -34,8 +34,8 @@ func (cfg *Cfg) Decode(u url.Values) error {
 	if len(cfg.SortAttr) > 0 {
 		cfg.SortAttr = ParseQueryStrings(cfg.SortAttr)
 	}
-	if cfg.Path != "" {
-		cfg.URL, err = url.Parse(cfg.Path)
+	if cfg.URI != "" {
+		cfg.URL, err = url.Parse(cfg.URI)
 		if err != nil {
 			return err
 		}
