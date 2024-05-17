@@ -35,6 +35,8 @@ func NewDatastorage(u *url.URL) (hare.Datastorage, error) {
 		if err != nil {
 			return nil, err
 		}
+	case "":
+		return ds, nil
 	}
 	return ds, nil
 }

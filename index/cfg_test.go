@@ -6,16 +6,9 @@ import (
 	"github.com/ohzqq/srch/param"
 )
 
-type cfgTest struct {
-	params
-	*param.Cfg
-}
-
-var cfgTests = []cfgTest{
-	cfgTest{
-		params: params{
-			query: ``,
-		},
+var cfgTests = []test{
+	test{
+		query: ``,
 		Cfg: &param.Cfg{
 			SrchAttr: []string{"*"},
 			Paramz: &param.Paramz{
@@ -23,21 +16,8 @@ var cfgTests = []cfgTest{
 			},
 		},
 	},
-	cfgTest{
-		params: params{
-			query: `?searchableAttributes=`,
-		},
-		Cfg: &param.Cfg{
-			SrchAttr: []string{"*"},
-			Paramz: &param.Paramz{
-				Index: "default",
-			},
-		},
-	},
-	cfgTest{
-		params: params{
-			query: `?searchableAttributes=title`,
-		},
+	test{
+		query: `?searchableAttributes=title`,
 		Cfg: &param.Cfg{
 			SrchAttr: []string{"title"},
 			Paramz: &param.Paramz{
@@ -45,23 +25,19 @@ var cfgTests = []cfgTest{
 			},
 		},
 	},
-	cfgTest{
-		params: params{
-			query: `?searchableAttributes=title&url=file://../testdata/data-dir&sortableAttributes=tags`,
-		},
+	test{
+		query: `?searchableAttributes=title&url=file://home/mxb/code/srch/testdata/hare/&sortableAttributes=tags`,
 		Cfg: &param.Cfg{
 			SrchAttr: []string{"title"},
 			Paramz: &param.Paramz{
 				Index: "default",
-				URI:   `file://../testdata/data-dir`,
+				URI:   `file://home/mxb/code/srch/testdata/hare/`,
 			},
 			SortAttr: []string{"tags"},
 		},
 	},
-	cfgTest{
-		params: params{
-			query: `?attributesForFaceting=tags,authors,series,narrators`,
-		},
+	test{
+		query: `?attributesForFaceting=tags,authors,series,narrators`,
 		Cfg: &param.Cfg{
 			SrchAttr:  []string{"*"},
 			FacetAttr: []string{"tags", "authors", "series", "narrators"},
@@ -70,22 +46,8 @@ var cfgTests = []cfgTest{
 			},
 		},
 	},
-	cfgTest{
-		params: params{
-			query: `?attributesForFaceting=tags&attributesForFaceting=authors&attributesForFaceting=series&attributesForFaceting=narrators`,
-		},
-		Cfg: &param.Cfg{
-			SrchAttr:  []string{"*"},
-			FacetAttr: []string{"tags", "authors", "series", "narrators"},
-			Paramz: &param.Paramz{
-				Index: "default",
-			},
-		},
-	},
-	cfgTest{
-		params: params{
-			query: `?searchableAttributes=title&attributesForFaceting=tags,authors,series,narrators`,
-		},
+	test{
+		query: `?searchableAttributes=title&attributesForFaceting=tags,authors,series,narrators`,
 		Cfg: &param.Cfg{
 			SrchAttr:  []string{"title"},
 			FacetAttr: []string{"tags", "authors", "series", "narrators"},
@@ -94,10 +56,8 @@ var cfgTests = []cfgTest{
 			},
 		},
 	},
-	cfgTest{
-		params: params{
-			query: `?searchableAttributes=title&attributesForFaceting=tags,authors,series,narrators&id=id`,
-		},
+	test{
+		query: `?searchableAttributes=title&attributesForFaceting=tags,authors,series,narrators&uid=id`,
 		Cfg: &param.Cfg{
 			SrchAttr:  []string{"title"},
 			FacetAttr: []string{"tags", "authors", "series", "narrators"},
@@ -107,10 +67,8 @@ var cfgTests = []cfgTest{
 			},
 		},
 	},
-	cfgTest{
-		params: params{
-			query: `searchableAttributes=title&attributesForFaceting=tags,authors,series,narrators&sortableAttributes=tags&url=file://../testdata/data-dir/audiobooks.json&index=audiobooks&id=id`,
-		},
+	test{
+		query: `searchableAttributes=title&attributesForFaceting=tags,authors,series,narrators&sortableAttributes=tags&url=file://home/mxb/code/srch/testdata/hare/&index=audiobooks&uid=id`,
 		Cfg: &param.Cfg{
 			SrchAttr:  []string{"title"},
 			FacetAttr: []string{"tags", "authors", "series", "narrators"},
@@ -118,10 +76,22 @@ var cfgTests = []cfgTest{
 			Paramz: &param.Paramz{
 				UID:   "id",
 				Index: "audiobooks",
-				URI:   "file://../testdata/data-dir/audiobooks.json",
+				URI:   "file://home/mxb/code/srch/testdata/hare/",
 			},
 		},
 	},
+}
+
+func TestCfgClientParams(t *testing.T) {
+	for _, test := range cfgTests {
+		client, err := New(test.str())
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !client.TableExists(settingsTbl) {
+			t.Error(test.msg("_settings table doesn't exist"))
+		}
+	}
 }
 
 func TestSettings(t *testing.T) {

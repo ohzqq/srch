@@ -37,10 +37,30 @@ func New(settings any) (*Client, error) {
 
 	err = client.SetDatastorage(ds)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("new set datastorage error: %w\n", err)
+	}
+
+	err = client.init()
+	if err != nil {
+		return nil, fmt.Errorf("client init error: %w\n", err)
 	}
 
 	return client, nil
+}
+
+func (client *Client) init() error {
+	//Create settings table if it doesn't exist
+	if !client.Database.TableExists(settingsTbl) {
+		err := client.Database.CreateTable(settingsTbl)
+		if err != nil {
+			return fmt.Errorf("db.getCfg CreateTable error\n%w\n", err)
+		}
+		err = client.SetCfg(DefaultCfg())
+		if err != nil {
+			return fmt.Errorf("db.getCfg Insert error\n%w\n", err)
+		}
+	}
+	return nil
 }
 
 func (client *Client) GetIdx(name string) (*Idx, error) {
@@ -85,17 +105,6 @@ func (client *Client) GetCfg(name string) (*Cfg, error) {
 }
 
 func (client *Client) Cfg() (*hare.Table, error) {
-	//Create settings table if it doesn't exist
-	if !client.Database.TableExists(settingsTbl) {
-		err := client.Database.CreateTable(settingsTbl)
-		if err != nil {
-			return nil, fmt.Errorf("db.getCfg CreateTable error\n%w\n", err)
-		}
-		err = client.SetCfg(DefaultCfg())
-		if err != nil {
-			return nil, fmt.Errorf("db.getCfg Insert error\n%w\n", err)
-		}
-	}
 	return client.Database.GetTable(settingsTbl)
 }
 
