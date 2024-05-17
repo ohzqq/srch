@@ -68,14 +68,16 @@ var cfgTests = []test{
 		},
 	},
 	test{
+		//query: `searchableAttributes=title&attributesForFaceting=tags,authors,series,narrators&sortableAttributes=tags&url=file://home/mxb/code/srch/testdata/hare/&uid=id&index=audiobooks`,
 		query: `searchableAttributes=title&attributesForFaceting=tags,authors,series,narrators&sortableAttributes=tags&url=file://home/mxb/code/srch/testdata/hare/&uid=id`,
 		Cfg: &param.Cfg{
 			SrchAttr:  []string{"title"},
 			FacetAttr: []string{"tags", "authors", "series", "narrators"},
 			SortAttr:  []string{"tags"},
 			Paramz: &param.Paramz{
-				UID: "id",
-				URI: "file://home/mxb/code/srch/testdata/hare/",
+				UID:   "id",
+				Index: "default",
+				URI:   "file://home/mxb/code/srch/testdata/hare/",
 			},
 		},
 	},
@@ -94,7 +96,7 @@ func TestClientInit(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-		_, err = cfg.GetIdxCfg(client.Params.Index)
+		_, err = cfg.Find(client.Params.Index)
 		if err != nil {
 			t.Error(test.err(client.Params.Index, test.Cfg.Index, err))
 		}
@@ -137,7 +139,7 @@ func TestGetCfg(t *testing.T) {
 		t.Error(err)
 	}
 
-	idx, err := cfg.GetIdxCfg(defaultTbl)
+	idx, err := cfg.Find(defaultTbl)
 	if err != nil {
 		t.Error(err)
 	}
@@ -152,12 +154,12 @@ func TestDefaultSettings(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	tbl, err := idx.Cfg()
+	cfg, err := idx.Cfg()
 	if err != nil {
 		t.Error(err)
 	}
 
-	ids, err := tbl.IDs()
+	ids, err := cfg.tbl.IDs()
 	if err != nil {
 		t.Error(err)
 	}

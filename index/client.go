@@ -54,9 +54,14 @@ func (client *Client) init() error {
 		if err != nil {
 			return fmt.Errorf("db.getCfg CreateTable error\n%w\n", err)
 		}
-		err = client.SetIdxCfg(DefaultCfg())
+
+		cfg, err := client.Cfg()
 		if err != nil {
-			return fmt.Errorf("db.getCfg Insert error\n%w\n", err)
+			return err
+		}
+		err = cfg.Insert(NewCfgParams(client.Params))
+		if err != nil {
+			return fmt.Errorf("client.init cfg.Insert error\n%w\n", err)
 		}
 	}
 
@@ -78,19 +83,11 @@ func (client *Client) GetIdx(name string) (*Idx, error) {
 	if err != nil {
 		return nil, err
 	}
-	idx, err := cfg.GetIdxCfg(name)
+	idx, err := cfg.Find(name)
 	if err != nil {
 		return nil, err
 	}
 	return NewIdx(client.Database, idx), nil
-}
-
-func (client *Client) SetIdxCfg(cfg *IdxCfg) error {
-	_, err := client.Database.Insert(settingsTbl, cfg)
-	if err != nil {
-		return fmt.Errorf("db.getCfg Insert error\n%w\n", err)
-	}
-	return nil
 }
 
 func (client *Client) SetDatastorage(ds hare.Datastorage) error {

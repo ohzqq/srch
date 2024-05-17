@@ -23,6 +23,16 @@ func NewCfg() *IdxCfg {
 		SetName(defaultTbl)
 }
 
+func NewCfgParams(params *param.Cfg) *IdxCfg {
+	cfg := &IdxCfg{
+		Cfg: params,
+	}
+
+	return cfg.SetName(cfg.Index).
+		SetMapping(NewMappingFromParamCfg(cfg.Cfg)).
+		SetCustomID(cfg.UID)
+}
+
 func (cfg *IdxCfg) Parse(v any) error {
 	err := param.Decode(v, cfg.Cfg)
 	if err != nil {
