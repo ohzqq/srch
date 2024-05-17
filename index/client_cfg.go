@@ -1,8 +1,6 @@
 package index
 
 import (
-	"fmt"
-
 	"github.com/ohzqq/hare"
 	"github.com/ohzqq/hare/dberr"
 	"github.com/ohzqq/srch/param"
@@ -13,15 +11,11 @@ type ClientCfg struct {
 	*param.Cfg
 }
 
-func NewClientCfg(settings any) (*ClientCfg, error) {
+func NewClientCfg(params *param.Cfg) *ClientCfg {
 	cfg := &ClientCfg{
-		Cfg: param.NewCfg(),
+		Cfg: params,
 	}
-	err := param.Decode(settings, cfg)
-	if err != nil {
-		return nil, fmt.Errorf("param decoding error: %w\n", err)
-	}
-	return cfg, nil
+	return cfg
 }
 
 func (cfg *ClientCfg) GetIdxCfg(name string) (*IdxCfg, error) {

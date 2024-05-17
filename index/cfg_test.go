@@ -90,7 +90,11 @@ func TestClientInit(t *testing.T) {
 		if !client.TableExists(settingsTbl) {
 			t.Error(test.msg("_settings table doesn't exist"))
 		}
-		_, err = client.GetCfg(client.Params.Index)
+		cfg, err := client.Cfg()
+		if err != nil {
+			t.Error(err)
+		}
+		_, err = cfg.GetIdxCfg(client.Params.Index)
 		if err != nil {
 			t.Error(test.err(client.Params.Index, test.Cfg.Index, err))
 		}
@@ -123,16 +127,22 @@ func TestSettings(t *testing.T) {
 }
 
 func TestGetCfg(t *testing.T) {
-	idx, err := New("")
+	client, err := New("")
 	if err != nil {
 		t.Fatal(err)
 	}
-	cfg, err := idx.GetCfg(defaultTbl)
+
+	cfg, err := client.Cfg()
 	if err != nil {
 		t.Error(err)
 	}
-	if cfg.Index != defaultTbl {
-		t.Errorf("got %v, wanted %v\n", cfg.Index, defaultTbl)
+
+	idx, err := cfg.GetIdxCfg(defaultTbl)
+	if err != nil {
+		t.Error(err)
+	}
+	if idx.Index != defaultTbl {
+		t.Errorf("got %v, wanted %v\n", idx.Index, defaultTbl)
 	}
 }
 

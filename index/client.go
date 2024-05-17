@@ -17,7 +17,6 @@ const (
 type Client struct {
 	*hare.Database
 	Params *param.Cfg
-	cfg    *ClientCfg
 }
 
 func New(settings any) (*Client, error) {
@@ -25,13 +24,7 @@ func New(settings any) (*Client, error) {
 		Params: param.NewCfg(),
 	}
 
-	cfg, err := NewClientCfg(settings)
-	if err != nil {
-		return nil, fmt.Errorf("param decoding error: %w\n", err)
-	}
-	client.cfg = cfg
-
-	err = param.Decode(settings, client.Params)
+	err := param.Decode(settings, client.Params)
 	if err != nil {
 		return nil, fmt.Errorf("param decoding error: %w\n", err)
 	}
@@ -61,47 +54,43 @@ func (client *Client) init() error {
 		if err != nil {
 			return fmt.Errorf("db.getCfg CreateTable error\n%w\n", err)
 		}
-		err = client.SetCfg(DefaultCfg())
+		err = client.SetIdxCfg(DefaultCfg())
 		if err != nil {
 			return fmt.Errorf("db.getCfg Insert error\n%w\n", err)
 		}
 	}
 
-	cfg, err := client.Cfg()
-	if err != nil {
-		return err
-	}
-	client.cfg.SetTbl(cfg)
 	return nil
 }
 
-func (client *Client) GetIdx(name string) (*Idx, error) {
-	cfg, err := client.GetCfg(name)
+func (client *Client) Cfg() (*ClientCfg, error) {
+	cfg := NewClientCfg(client.Params)
+	tbl, err := client.Database.GetTable(settingsTbl)
 	if err != nil {
 		return nil, err
 	}
-	return NewIdx(client.Database, cfg), nil
+	cfg.SetTbl(tbl)
+	return cfg, nil
 }
 
-func (client *Client) SetCfg(cfg *IdxCfg) error {
+func (client *Client) GetIdx(name string) (*Idx, error) {
+	cfg, err := client.Cfg()
+	if err != nil {
+		return nil, err
+	}
+	idx, err := cfg.GetIdxCfg(name)
+	if err != nil {
+		return nil, err
+	}
+	return NewIdx(client.Database, idx), nil
+}
+
+func (client *Client) SetIdxCfg(cfg *IdxCfg) error {
 	_, err := client.Database.Insert(settingsTbl, cfg)
 	if err != nil {
 		return fmt.Errorf("db.getCfg Insert error\n%w\n", err)
 	}
 	return nil
-}
-
-func (client *Client) GetCfg(name string) (*IdxCfg, error) {
-	return client.cfg.GetIdxCfg(name)
-}
-
-func (client *Client) Cfg() (*hare.Table, error) {
-	tbl, err := client.Database.GetTable(settingsTbl)
-	if err != nil {
-		return nil, err
-	}
-	client.cfg.SetTbl(tbl)
-	return tbl, nil
 }
 
 func (client *Client) SetDatastorage(ds hare.Datastorage) error {
