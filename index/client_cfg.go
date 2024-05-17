@@ -28,6 +28,14 @@ func (cfg *ClientCfg) Insert(idx *IdxCfg) error {
 	return nil
 }
 
+func (cfg *ClientCfg) Update(idx *IdxCfg) error {
+	err := cfg.tbl.Update(idx)
+	if err != nil {
+		return fmt.Errorf("cfg.Insert error\n%w\n", err)
+	}
+	return nil
+}
+
 func (cfg *ClientCfg) Find(name string) (*IdxCfg, error) {
 	ids, err := cfg.tbl.IDs()
 	if err != nil {

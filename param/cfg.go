@@ -3,6 +3,7 @@ package param
 import (
 	"net/url"
 	"path/filepath"
+	"slices"
 
 	"github.com/ohzqq/sp"
 )
@@ -61,4 +62,23 @@ func (cfg *Cfg) HasFacetAttr() bool {
 
 func (cfg *Cfg) HasSortAttr() bool {
 	return len(cfg.SortAttr) > 0
+}
+
+func CfgEqual(old, cur *Cfg) bool {
+	if !slices.Equal(old.SrchAttr, cur.SrchAttr) {
+		return false
+	}
+	if !slices.Equal(old.FacetAttr, cur.FacetAttr) {
+		return false
+	}
+	if !slices.Equal(old.SortAttr, cur.SortAttr) {
+		return false
+	}
+	if old.Index != cur.Index {
+		return false
+	}
+	if old.UID != cur.UID {
+		return false
+	}
+	return true
 }

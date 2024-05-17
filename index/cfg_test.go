@@ -81,6 +81,19 @@ var cfgTests = []test{
 			},
 		},
 	},
+	test{
+		query: `searchableAttributes=title&attributesForFaceting=tags,authors,series&sortableAttributes=tags&url=file://home/mxb/code/srch/testdata/hare/&uid=id&index=audiobooks`,
+		Cfg: &param.Cfg{
+			SrchAttr:  []string{"title"},
+			FacetAttr: []string{"tags", "authors", "series", "narrators"},
+			SortAttr:  []string{"tags"},
+			Paramz: &param.Paramz{
+				UID:   "id",
+				Index: "audiobooks",
+				URI:   "file://home/mxb/code/srch/testdata/hare/",
+			},
+		},
+	},
 }
 
 func TestClientInit(t *testing.T) {

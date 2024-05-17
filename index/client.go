@@ -93,29 +93,41 @@ func (client *Client) GetIdx(name string) (*Idx, error) {
 }
 
 func (client *Client) findIdxCfg(name, create string) (*IdxCfg, error) {
-	cfg, err := client.Cfg()
+	clientCfg, err := client.Cfg()
 	if err != nil {
 		return nil, err
 	}
-	idx, err := cfg.Find(name)
-	if err != nil {
+
+	cur := NewCfgParams(client.Params)
+	idxCfg, err := clientCfg.Find(name)
+	if err == nil {
+		cur.SetID(idxCfg.GetID())
+	} else if err != nil {
 		switch {
 		case errors.Is(err, dberr.ErrNoTable):
-			var err error
 			switch create {
 			case "table":
-				err = client.Database.CreateTable(cfg.Index)
+				err = client.Database.CreateTable(clientCfg.Index)
 			case "cfg":
-				err = cfg.Insert(NewCfgParams(client.Params))
+				idxCfg = cur
+				err = clientCfg.Insert(cur)
 			}
 			if err != nil && !errors.Is(err, dberr.ErrTableExists) {
-				return nil, fmt.Errorf("client.GetIdxCfg create table error:\n%w: %v\n", err, cfg.Index)
+				return nil, fmt.Errorf("client.GetIdxCfg create table error:\n%w: %v\n", err, clientCfg.Index)
 			}
 		default:
-			return nil, fmt.Errorf("client.GetIdxCfg error:\n%w: %v\n", err, cfg.Index)
+			return nil, fmt.Errorf("client.GetIdxCfg error:\n%w: %v\n", err, clientCfg.Index)
 		}
 	}
-	return idx, nil
+
+	if !param.CfgEqual(idxCfg.Cfg, client.Params) {
+		err := clientCfg.Update(cur)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return idxCfg, nil
 }
 
 func (client *Client) SetDatastorage(ds hare.Datastorage) error {
