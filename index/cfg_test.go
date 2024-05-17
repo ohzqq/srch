@@ -68,15 +68,15 @@ var cfgTests = []test{
 		},
 	},
 	test{
-		//query: `searchableAttributes=title&attributesForFaceting=tags,authors,series,narrators&sortableAttributes=tags&url=file://home/mxb/code/srch/testdata/hare/&uid=id&index=audiobooks`,
-		query: `searchableAttributes=title&attributesForFaceting=tags,authors,series,narrators&sortableAttributes=tags&url=file://home/mxb/code/srch/testdata/hare/&uid=id`,
+		query: `searchableAttributes=title&attributesForFaceting=tags,authors,series,narrators&sortableAttributes=tags&url=file://home/mxb/code/srch/testdata/hare/&uid=id&index=audiobooks`,
+		//query: `searchableAttributes=title&attributesForFaceting=tags,authors,series,narrators&sortableAttributes=tags&url=file://home/mxb/code/srch/testdata/hare/&uid=id`,
 		Cfg: &param.Cfg{
 			SrchAttr:  []string{"title"},
 			FacetAttr: []string{"tags", "authors", "series", "narrators"},
 			SortAttr:  []string{"tags"},
 			Paramz: &param.Paramz{
 				UID:   "id",
-				Index: "default",
+				Index: "audiobooks",
 				URI:   "file://home/mxb/code/srch/testdata/hare/",
 			},
 		},
@@ -92,11 +92,7 @@ func TestClientInit(t *testing.T) {
 		if !client.TableExists(settingsTbl) {
 			t.Error(test.msg("_settings table doesn't exist"))
 		}
-		cfg, err := client.Cfg()
-		if err != nil {
-			t.Error(err)
-		}
-		_, err = cfg.Find(client.Params.Index)
+		_, err = client.GetIdxCfg(client.Params.Index)
 		if err != nil {
 			t.Error(test.err(client.Params.Index, test.Cfg.Index, err))
 		}

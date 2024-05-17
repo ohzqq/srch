@@ -1,11 +1,13 @@
 package index
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/ohzqq/hare"
 	"github.com/ohzqq/hare/datastores/ram"
 	"github.com/ohzqq/hare/datastores/store"
+	"github.com/ohzqq/hare/dberr"
 	"github.com/ohzqq/srch/param"
 )
 
@@ -78,16 +80,42 @@ func (client *Client) Cfg() (*ClientCfg, error) {
 	return cfg, nil
 }
 
+func (client *Client) GetIdxCfg(name string) (*IdxCfg, error) {
+	return client.findIdxCfg(name, "cfg")
+}
+
 func (client *Client) GetIdx(name string) (*Idx, error) {
+	idx, err := client.findIdxCfg(name, "table")
+	if err != nil {
+		return nil, err
+	}
+	return NewIdx(client.Database, idx), nil
+}
+
+func (client *Client) findIdxCfg(name, create string) (*IdxCfg, error) {
 	cfg, err := client.Cfg()
 	if err != nil {
 		return nil, err
 	}
 	idx, err := cfg.Find(name)
 	if err != nil {
-		return nil, err
+		switch {
+		case errors.Is(err, dberr.ErrNoTable):
+			var err error
+			switch create {
+			case "table":
+				err = client.Database.CreateTable(cfg.Index)
+			case "cfg":
+				err = cfg.Insert(NewCfgParams(client.Params))
+			}
+			if err != nil && !errors.Is(err, dberr.ErrTableExists) {
+				return nil, fmt.Errorf("client.GetIdxCfg create table error:\n%w: %v\n", err, cfg.Index)
+			}
+		default:
+			return nil, fmt.Errorf("client.GetIdxCfg error:\n%w: %v\n", err, cfg.Index)
+		}
 	}
-	return NewIdx(client.Database, idx), nil
+	return idx, nil
 }
 
 func (client *Client) SetDatastorage(ds hare.Datastorage) error {
