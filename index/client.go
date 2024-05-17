@@ -20,6 +20,10 @@ type Client struct {
 	Params *param.Cfg
 }
 
+type ClientCfg struct {
+	*param.Cfg
+}
+
 func New(settings any) (*Client, error) {
 	client := &Client{
 		Params: param.NewCfg(),
