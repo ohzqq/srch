@@ -44,26 +44,6 @@ func TestSettings(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-
-	//if !client.Database.TableExists(settingsTbl) {
-	//err = client.Database.CreateTable(settingsTbl)
-	//if err != nil {
-	//  t.Fatal(err)
-	//}
-	//err = client.SetCfg(DefaultCfg())
-	//if err != nil {
-	//  return err
-	//}
-	//}
-
-	//err = client.initDB()
-	//if err != nil {
-	//  t.Fatal(err)
-	//}
-
-	//if !client.TableExists(settingsTbl) {
-	//t.Errorf("settings doesn't exist")
-	//}
 }
 
 func TestDefaultSettings(t *testing.T) {
