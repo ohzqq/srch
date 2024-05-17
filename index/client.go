@@ -71,7 +71,7 @@ func (client *Client) GetIdx(name string) (*Idx, error) {
 	return NewIdx(client.Database, cfg), nil
 }
 
-func (client *Client) SetCfg(cfg *Cfg) error {
+func (client *Client) SetCfg(cfg *IdxCfg) error {
 	_, err := client.Database.Insert(settingsTbl, cfg)
 	if err != nil {
 		return fmt.Errorf("db.getCfg Insert error\n%w\n", err)
@@ -79,7 +79,7 @@ func (client *Client) SetCfg(cfg *Cfg) error {
 	return nil
 }
 
-func (client *Client) GetCfg(name string) (*Cfg, error) {
+func (client *Client) GetCfg(name string) (*IdxCfg, error) {
 	tbl, err := client.Cfg()
 	if err != nil {
 		return nil, err
@@ -91,7 +91,7 @@ func (client *Client) GetCfg(name string) (*Cfg, error) {
 	}
 
 	for _, id := range ids {
-		cfg := &Cfg{}
+		cfg := &IdxCfg{}
 		err := client.Database.Find(settingsTbl, id, cfg)
 		if err != nil {
 			return nil, err

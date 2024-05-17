@@ -6,20 +6,24 @@ import (
 	"github.com/ohzqq/srch/param"
 )
 
-type Cfg struct {
+type IdxCfg struct {
 	ID      int         `json:"_id"`
 	Mapping doc.Mapping `json:"mapping"`
 
 	*param.Cfg
 }
 
-func NewCfg() *Cfg {
-	return &Cfg{
+func NewCfg() *IdxCfg {
+	cfg := &IdxCfg{
 		Cfg: param.NewCfg(),
 	}
+
+	return cfg.
+		SetMapping(doc.DefaultMapping()).
+		SetName(defaultTbl)
 }
 
-func (cfg *Cfg) Parse(v any) error {
+func (cfg *IdxCfg) Parse(v any) error {
 	err := param.Decode(v, cfg.Cfg)
 	if err != nil {
 		return err
@@ -32,35 +36,35 @@ func (cfg *Cfg) Parse(v any) error {
 	return nil
 }
 
-func (cfg *Cfg) SetName(tbl string) *Cfg {
+func (cfg *IdxCfg) SetName(tbl string) *IdxCfg {
 	cfg.Index = tbl
 	return cfg
 }
 
-func (cfg *Cfg) SetMapping(m doc.Mapping) *Cfg {
+func (cfg *IdxCfg) SetMapping(m doc.Mapping) *IdxCfg {
 	cfg.Mapping = m
 	return cfg
 }
 
-func (cfg *Cfg) SetCustomID(id string) *Cfg {
+func (cfg *IdxCfg) SetCustomID(id string) *IdxCfg {
 	cfg.UID = id
 	return cfg
 }
 
-func NewCfgTbl(tbl string, m doc.Mapping, id string) *Cfg {
+func NewCfgTbl(tbl string, m doc.Mapping, id string) *IdxCfg {
 	return NewCfg().
 		SetMapping(m).
 		SetCustomID(id).
 		SetName(tbl)
 }
 
-func DefaultCfg() *Cfg {
+func DefaultCfg() *IdxCfg {
 	return NewCfg().
 		SetMapping(doc.DefaultMapping()).
 		SetName(defaultTbl)
 }
 
-func NewCfgFromParams(settings string) (*Cfg, error) {
+func NewCfgFromParams(settings string) (*IdxCfg, error) {
 	params, err := param.Parse(settings)
 	if err != nil {
 		return nil, err
@@ -105,20 +109,20 @@ func NewMappingFromParams(params *param.Params) doc.Mapping {
 	return m
 }
 
-func (tbl *Cfg) WithCustomID(name string) *Cfg {
+func (tbl *IdxCfg) WithCustomID(name string) *IdxCfg {
 	tbl.UID = name
 	return tbl
 }
 
-func (c *Cfg) SetID(id int) {
+func (c *IdxCfg) SetID(id int) {
 	c.ID = id
 }
 
-func (c *Cfg) GetID() int {
+func (c *IdxCfg) GetID() int {
 	return c.ID
 }
 
-func (c *Cfg) AfterFind(db *hare.Database) error {
+func (c *IdxCfg) AfterFind(db *hare.Database) error {
 	//println("after find")
 	return nil
 }

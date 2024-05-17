@@ -57,32 +57,31 @@ var cfgTests = []test{
 		},
 	},
 	test{
-		query: `?searchableAttributes=title&attributesForFaceting=tags,authors,series,narrators&uid=id`,
+		query: `?searchableAttributes=title&attributesForFaceting=tags,authors,series,narrators&uid=id&index=audiobooks`,
 		Cfg: &param.Cfg{
 			SrchAttr:  []string{"title"},
 			FacetAttr: []string{"tags", "authors", "series", "narrators"},
 			Paramz: &param.Paramz{
-				Index: "default",
+				Index: "audiobooks",
 				UID:   "id",
 			},
 		},
 	},
 	test{
-		query: `searchableAttributes=title&attributesForFaceting=tags,authors,series,narrators&sortableAttributes=tags&url=file://home/mxb/code/srch/testdata/hare/&index=audiobooks&uid=id`,
+		query: `searchableAttributes=title&attributesForFaceting=tags,authors,series,narrators&sortableAttributes=tags&url=file://home/mxb/code/srch/testdata/hare/&uid=id`,
 		Cfg: &param.Cfg{
 			SrchAttr:  []string{"title"},
 			FacetAttr: []string{"tags", "authors", "series", "narrators"},
 			SortAttr:  []string{"tags"},
 			Paramz: &param.Paramz{
-				UID:   "id",
-				Index: "audiobooks",
-				URI:   "file://home/mxb/code/srch/testdata/hare/",
+				UID: "id",
+				URI: "file://home/mxb/code/srch/testdata/hare/",
 			},
 		},
 	},
 }
 
-func TestCfgClientParams(t *testing.T) {
+func TestClientInit(t *testing.T) {
 	for _, test := range cfgTests {
 		client, err := New(test.str())
 		if err != nil {
@@ -91,8 +90,21 @@ func TestCfgClientParams(t *testing.T) {
 		if !client.TableExists(settingsTbl) {
 			t.Error(test.msg("_settings table doesn't exist"))
 		}
+		_, err = client.GetCfg(client.Params.Index)
+		if err != nil {
+			t.Error(test.err(client.Params.Index, test.Cfg.Index, err))
+		}
 	}
 }
+
+//func TestClientCfg(t *testing.T) {
+//  for _, test := range cfgTests {
+//    client, err := New(test.str())
+//    if err != nil {
+//      t.Fatal(err)
+//    }
+//  }
+//}
 
 func TestSettings(t *testing.T) {
 	client, err := New(hareTestQuery)

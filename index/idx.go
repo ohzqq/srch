@@ -4,12 +4,12 @@ import "github.com/ohzqq/hare"
 
 type Idx struct {
 	*hare.Database
-	*Cfg
+	*IdxCfg
 }
 
-func NewIdx(db *hare.Database, cfg *Cfg) *Idx {
+func NewIdx(db *hare.Database, cfg *IdxCfg) *Idx {
 	return &Idx{
 		Database: db,
-		Cfg:      cfg,
+		IdxCfg:   cfg,
 	}
 }

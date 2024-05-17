@@ -39,15 +39,15 @@ func (p test) url() *url.URL {
 	return u
 }
 
-func (p test) slice(got, want []string) error {
+func (p test) slice(got, want []string, err error) error {
 	if !slices.Equal(got, want) {
-		return p.err(got, want)
+		return p.err(got, want, err)
 	}
 	return nil
 }
 
-func (p test) err(got, want any) error {
-	return fmt.Errorf("query %v\ngot %#v, wanted %#v\n", p.str(), got, want)
+func (p test) err(got, want any, err error) error {
+	return fmt.Errorf("query %v\ngot %#v, wanted %#v\nerror: %w\n", p.str(), got, want, err)
 }
 
 func (t test) msg(msg any) error {
