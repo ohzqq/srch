@@ -98,17 +98,25 @@ func (client *Client) findIdxCfg(name, create string) (*IdxCfg, error) {
 		return nil, err
 	}
 
+	//get idx cfg from params
 	cur := NewCfgParams(client.Params)
+
+	//find existing cfg
 	idxCfg, err := clientCfg.Find(name)
 	if err == nil {
+		//if cfg is found, set cur.ID to cfg.ID
 		cur.SetID(idxCfg.GetID())
 	} else if err != nil {
 		switch {
 		case errors.Is(err, dberr.ErrNoTable):
+			//when getting the index, create table if it doesn't exist or insert cfg
+			//for the table if it doesn't exist.
 			switch create {
 			case "table":
 				err = client.Database.CreateTable(clientCfg.Index)
 			case "cfg":
+				//if inserting a new cfg to settings, set idxCfg to cur so that it isn't
+				//nil
 				idxCfg = cur
 				err = clientCfg.Insert(cur)
 			}
@@ -120,6 +128,8 @@ func (client *Client) findIdxCfg(name, create string) (*IdxCfg, error) {
 		}
 	}
 
+	//check to see if the provided client.Params are different from the database
+	//record, if so, update.
 	if !param.CfgEqual(idxCfg.Cfg, client.Params) {
 		err := clientCfg.Update(cur)
 		if err != nil {
