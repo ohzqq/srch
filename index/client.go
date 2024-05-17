@@ -6,7 +6,6 @@ import (
 	"github.com/ohzqq/hare"
 	"github.com/ohzqq/hare/datastores/ram"
 	"github.com/ohzqq/hare/datastores/store"
-	"github.com/ohzqq/hare/dberr"
 	"github.com/ohzqq/srch/param"
 )
 
@@ -18,10 +17,7 @@ const (
 type Client struct {
 	*hare.Database
 	Params *param.Cfg
-}
-
-type ClientCfg struct {
-	*param.Cfg
+	cfg    *ClientCfg
 }
 
 func New(settings any) (*Client, error) {
@@ -29,7 +25,13 @@ func New(settings any) (*Client, error) {
 		Params: param.NewCfg(),
 	}
 
-	err := param.Decode(settings, client.Params)
+	cfg, err := NewClientCfg(settings)
+	if err != nil {
+		return nil, fmt.Errorf("param decoding error: %w\n", err)
+	}
+	client.cfg = cfg
+
+	err = param.Decode(settings, client.Params)
 	if err != nil {
 		return nil, fmt.Errorf("param decoding error: %w\n", err)
 	}
@@ -64,6 +66,12 @@ func (client *Client) init() error {
 			return fmt.Errorf("db.getCfg Insert error\n%w\n", err)
 		}
 	}
+
+	cfg, err := client.Cfg()
+	if err != nil {
+		return err
+	}
+	client.cfg.SetTbl(cfg)
 	return nil
 }
 
@@ -84,32 +92,16 @@ func (client *Client) SetCfg(cfg *IdxCfg) error {
 }
 
 func (client *Client) GetCfg(name string) (*IdxCfg, error) {
-	tbl, err := client.Cfg()
-	if err != nil {
-		return nil, err
-	}
-
-	ids, err := tbl.IDs()
-	if err != nil {
-		return nil, err
-	}
-
-	for _, id := range ids {
-		cfg := &IdxCfg{}
-		err := client.Database.Find(settingsTbl, id, cfg)
-		if err != nil {
-			return nil, err
-		}
-		if cfg.Index == name {
-			return cfg, nil
-		}
-	}
-
-	return nil, dberr.ErrNoTable
+	return client.cfg.GetIdxCfg(name)
 }
 
 func (client *Client) Cfg() (*hare.Table, error) {
-	return client.Database.GetTable(settingsTbl)
+	tbl, err := client.Database.GetTable(settingsTbl)
+	if err != nil {
+		return nil, err
+	}
+	client.cfg.SetTbl(tbl)
+	return tbl, nil
 }
 
 func (client *Client) SetDatastorage(ds hare.Datastorage) error {
