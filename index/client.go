@@ -40,27 +40,7 @@ func New(settings any) (*Client, error) {
 		return nil, err
 	}
 
-	//err = client.initDB()
-	//if err != nil {
-	//return nil, err
-	//}
-
 	return client, nil
-}
-
-func (client *Client) initDB() error {
-	if !client.Database.TableExists(settingsTbl) {
-		err := client.Database.CreateTable(settingsTbl)
-		if err != nil {
-			return fmt.Errorf("db.getCfg CreateTable error\n%w\n", err)
-		}
-		//err = client.SetCfg(DefaultCfg())
-		//if err != nil {
-		//  return err
-		//}
-	}
-
-	return nil
 }
 
 func (client *Client) GetIdx(name string) (*Idx, error) {

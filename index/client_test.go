@@ -1,19 +1,15 @@
 package index
 
 import (
+	"slices"
 	"testing"
 )
-
-const hareTestPath = `/home/mxb/code/srch/testdata/hare`
-const hareTestURL = `file://home/mxb/code/srch/testdata/hare`
-const hareTestQuery = `?url=file://home/mxb/code/srch/testdata/hare/`
 
 func TestHareDisk(t *testing.T) {
 	_, err := New(hareTestQuery)
 	if err != nil {
 		t.Fatal(err)
 	}
-	//fmt.Printf("%#v\n", idx.Database)
 }
 
 func TestHareDiskTbls(t *testing.T) {
@@ -21,13 +17,14 @@ func TestHareDiskTbls(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	names := client.TableNames()
-	for _, n := range names {
-		println(n)
+	got := client.TableNames()
+	want := defTbls
+	if !slices.Equal(got, want) {
+		t.Errorf("got %v tables, wanted %v\n", got, want)
 	}
 }
 
-func TestDefaultIndex(t *testing.T) {
+func TestDefaultClient(t *testing.T) {
 	_, err := New("")
 	if err != nil {
 		t.Error(err)
