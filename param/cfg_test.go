@@ -23,6 +23,7 @@ var cfgTests = []cfgTest{
 			Client: &Client{
 				Index: "default",
 			},
+			Search: &Search{},
 		},
 	},
 	cfgTest{
@@ -36,6 +37,7 @@ var cfgTests = []cfgTest{
 			Client: &Client{
 				Index: "default",
 			},
+			Search: &Search{},
 		},
 	},
 	cfgTest{
@@ -49,26 +51,45 @@ var cfgTests = []cfgTest{
 			Client: &Client{
 				Index: "default",
 			},
+			Search: &Search{},
 		},
 	},
 	cfgTest{
 		pt: pt{
-			query: `?searchableAttributes=title&db=file://../testdata/data-dir&sortableAttributes=tags`,
+			query: `?searchableAttributes=title&db=file://../testdata/data-dir&sortableAttributes=tags&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson`,
 		},
 		Cfg: &Cfg{
 			Idx: &Idx{
 				SrchAttr: []string{"title"},
 				SortAttr: []string{"tags"},
+				Data:     `file://home/mxb/code/srch/testdata/ndbooks.ndjson`,
 			},
 			Client: &Client{
 				Index: "default",
 				DB:    `file://../testdata/data-dir`,
 			},
+			Search: &Search{},
 		},
 	},
 	cfgTest{
 		pt: pt{
-			query: `?attributesForFaceting=tags,authors,series,narrators`,
+			query: `?searchableAttributes=title&db=file://../testdata/data-dir&sortableAttributes=tags&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags,authors,series,narrators`,
+		},
+		Cfg: &Cfg{
+			Idx: &Idx{
+				SrchAttr: []string{"title"},
+				SortAttr: []string{"tags"},
+				Data:     `file://home/mxb/code/srch/testdata/ndbooks.ndjson`,
+			},
+			Client: &Client{
+				Index: "default",
+			},
+			Search: &Search{},
+		},
+	},
+	cfgTest{
+		pt: pt{
+			query: `?searchableAttributes=title&db=file://../testdata/data-dir&sortableAttributes=tags&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags&attributesForFaceting=authors&attributesForFaceting=series&attributesForFaceting=narrators`,
 		},
 		Cfg: &Cfg{
 			Idx: &Idx{
@@ -78,20 +99,7 @@ var cfgTests = []cfgTest{
 			Client: &Client{
 				Index: "default",
 			},
-		},
-	},
-	cfgTest{
-		pt: pt{
-			query: `?attributesForFaceting=tags&attributesForFaceting=authors&attributesForFaceting=series&attributesForFaceting=narrators`,
-		},
-		Cfg: &Cfg{
-			Idx: &Idx{
-				SrchAttr:  []string{"*"},
-				FacetAttr: []string{"tags", "authors", "series", "narrators"},
-			},
-			Client: &Client{
-				Index: "default",
-			},
+			Search: &Search{},
 		},
 	},
 	cfgTest{
@@ -106,6 +114,7 @@ var cfgTests = []cfgTest{
 			Client: &Client{
 				Index: "default",
 			},
+			Search: &Search{},
 		},
 	},
 	cfgTest{
@@ -121,6 +130,7 @@ var cfgTests = []cfgTest{
 				Index: "default",
 				UID:   "id",
 			},
+			Search: &Search{},
 		},
 	},
 	cfgTest{
@@ -138,6 +148,7 @@ var cfgTests = []cfgTest{
 				Index: "audiobooks",
 				DB:    "file://../testdata/data-dir/audiobooks.json",
 			},
+			Search: &Search{},
 		},
 	},
 }
@@ -161,14 +172,20 @@ func TestDecodeCfgStr(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-		if cfg.Client.Index != test.Client.Index {
-			t.Errorf("test %v Index: got %#v, expected %#v\n", num, cfg.Client.Index, test.Client.Index)
+		if cfg.IndexName() != test.IndexName() {
+			t.Errorf("test %v Index: got %#v, expected %#v\n", num, cfg.IndexName(), test.IndexName())
 		}
 		if cfg.Client.UID != test.Client.UID {
 			t.Errorf("test %v ID: got %#v, expected %#v\n", num, cfg.Client.UID, test.Client.UID)
 		}
-		if cfg.Idx.Data != test.Idx.Data {
-			t.Errorf("test %v Path: got %#v, expected %#v\n", num, cfg.Idx.Data, test.Idx.Data)
+		if cfg.DataURL().Path != test.DataURL().Path {
+			t.Errorf("test %v Path: got %#v, expected %#v\n", num, cfg.DataURL().Path, test.DataURL().Path)
+		}
+		if cfg.DB().Path != test.DB().Path {
+			t.Errorf("test %v Path: got %#v, expected %#v\n", num, cfg.DB().Path, test.DB().Path)
+		}
+		if cfg.SrchURL().Path != test.SrchURL().Path {
+			t.Errorf("test %v Path: got %#v, expected %#v\n", num, cfg.SrchURL().Path, test.SrchURL().Path)
 		}
 	}
 }
@@ -192,14 +209,20 @@ func TestDecodeCfgVals(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-		if cfg.Client.Index != test.Client.Index {
-			t.Errorf("test %v Index: got %#v, expected %#v\n", num, cfg.Client.Index, test.Client.Index)
+		if cfg.IndexName() != test.IndexName() {
+			t.Errorf("test %v Index: got %#v, expected %#v\n", num, cfg.IndexName(), test.IndexName())
 		}
 		if cfg.Client.UID != test.Client.UID {
 			t.Errorf("test %v ID: got %#v, expected %#v\n", num, cfg.Client.UID, test.Client.UID)
 		}
-		if cfg.Idx.Data != test.Idx.Data {
-			t.Errorf("test %v Path: got %#v, expected %#v\n", num, cfg.Idx.Data, test.Idx.Data)
+		if cfg.DataURL().Path != test.DataURL().Path {
+			t.Errorf("test %v Path: got %#v, expected %#v\n", num, cfg.DataURL().Path, test.DataURL().Path)
+		}
+		if cfg.DB().Path != test.DB().Path {
+			t.Errorf("test %v Path: got %#v, expected %#v\n", num, cfg.DB().Path, test.DB().Path)
+		}
+		if cfg.SrchURL().Path != test.SrchURL().Path {
+			t.Errorf("test %v Path: got %#v, expected %#v\n", num, cfg.SrchURL().Path, test.SrchURL().Path)
 		}
 	}
 }

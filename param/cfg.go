@@ -1,6 +1,9 @@
 package param
 
-import "net/url"
+import (
+	"encoding/json"
+	"net/url"
+)
 
 type Cfg struct {
 	Client *Client
@@ -63,6 +66,17 @@ func (cfg *Cfg) DataURL() *url.URL {
 	return u
 }
 
+func (cfg *Cfg) HasData() bool {
+	return cfg.Idx.Data != ""
+}
+
+func (cfg *Cfg) HasDB() bool {
+	return cfg.Client.DB != ""
+}
+func (cfg *Cfg) HasIdx() bool {
+	return cfg.Search.URI != ""
+}
+
 func (cfg *Cfg) HasSrchAttr() bool {
 	return len(cfg.Idx.SrchAttr) > 0
 }
@@ -73,4 +87,25 @@ func (cfg *Cfg) HasFacetAttr() bool {
 
 func (cfg *Cfg) HasSortAttr() bool {
 	return len(cfg.Idx.SortAttr) > 0
+}
+
+func (cfg *Cfg) Filters() []any {
+	if len(cfg.Search.FacetFltr) > 0 {
+		var fltr []any
+		err := json.Unmarshal([]byte(cfg.Search.FacetFltr[0]), &fltr)
+		if err != nil {
+			return []any{""}
+		}
+		return fltr
+	}
+	return []any{""}
+}
+
+func unmarshalFilter(dec string) ([]any, error) {
+	var f []any
+	err := json.Unmarshal([]byte(dec), &f)
+	if err != nil {
+		return nil, err
+	}
+	return f, nil
 }

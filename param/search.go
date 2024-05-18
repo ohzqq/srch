@@ -67,24 +67,3 @@ func (s *Search) Encode() (url.Values, error) {
 	}
 	return v, nil
 }
-
-func (s *Search) FacetFilters() []any {
-	if len(s.FacetFltr) > 0 {
-		var fltr []any
-		err := json.Unmarshal([]byte(s.FacetFltr[0]), &fltr)
-		if err != nil {
-			return []any{""}
-		}
-		return fltr
-	}
-	return []any{""}
-}
-
-func unmarshalFilter(dec string) ([]any, error) {
-	var f []any
-	err := json.Unmarshal([]byte(dec), &f)
-	if err != nil {
-		return nil, err
-	}
-	return f, nil
-}
