@@ -8,7 +8,7 @@ import (
 
 type cfgTest struct {
 	pt
-	*Idx
+	*Cfg
 }
 
 var cfgTests = []cfgTest{
@@ -16,8 +16,10 @@ var cfgTests = []cfgTest{
 		pt: pt{
 			query: ``,
 		},
-		Idx: &Idx{
-			SrchAttr: []string{"*"},
+		Cfg: &Cfg{
+			Idx: &Idx{
+				SrchAttr: []string{"*"},
+			},
 			Client: &Client{
 				Index: "default",
 			},
@@ -27,8 +29,10 @@ var cfgTests = []cfgTest{
 		pt: pt{
 			query: `?searchableAttributes=`,
 		},
-		Idx: &Idx{
-			SrchAttr: []string{"*"},
+		Cfg: &Cfg{
+			Idx: &Idx{
+				SrchAttr: []string{"*"},
+			},
 			Client: &Client{
 				Index: "default",
 			},
@@ -38,8 +42,10 @@ var cfgTests = []cfgTest{
 		pt: pt{
 			query: `?searchableAttributes=title`,
 		},
-		Idx: &Idx{
-			SrchAttr: []string{"title"},
+		Cfg: &Cfg{
+			Idx: &Idx{
+				SrchAttr: []string{"title"},
+			},
 			Client: &Client{
 				Index: "default",
 			},
@@ -49,22 +55,26 @@ var cfgTests = []cfgTest{
 		pt: pt{
 			query: `?searchableAttributes=title&url=file://../testdata/data-dir&sortableAttributes=tags`,
 		},
-		Idx: &Idx{
-			SrchAttr: []string{"title"},
+		Cfg: &Cfg{
+			Idx: &Idx{
+				SrchAttr: []string{"title"},
+				SortAttr: []string{"tags"},
+			},
 			Client: &Client{
 				Index: "default",
 				DB:    `file://../testdata/data-dir`,
 			},
-			SortAttr: []string{"tags"},
 		},
 	},
 	cfgTest{
 		pt: pt{
 			query: `?attributesForFaceting=tags,authors,series,narrators`,
 		},
-		Idx: &Idx{
-			SrchAttr:  []string{"*"},
-			FacetAttr: []string{"tags", "authors", "series", "narrators"},
+		Cfg: &Cfg{
+			Idx: &Idx{
+				SrchAttr:  []string{"*"},
+				FacetAttr: []string{"tags", "authors", "series", "narrators"},
+			},
 			Client: &Client{
 				Index: "default",
 			},
@@ -74,9 +84,11 @@ var cfgTests = []cfgTest{
 		pt: pt{
 			query: `?attributesForFaceting=tags&attributesForFaceting=authors&attributesForFaceting=series&attributesForFaceting=narrators`,
 		},
-		Idx: &Idx{
-			SrchAttr:  []string{"*"},
-			FacetAttr: []string{"tags", "authors", "series", "narrators"},
+		Cfg: &Cfg{
+			Idx: &Idx{
+				SrchAttr:  []string{"*"},
+				FacetAttr: []string{"tags", "authors", "series", "narrators"},
+			},
 			Client: &Client{
 				Index: "default",
 			},
@@ -86,9 +98,11 @@ var cfgTests = []cfgTest{
 		pt: pt{
 			query: `?searchableAttributes=title&attributesForFaceting=tags,authors,series,narrators`,
 		},
-		Idx: &Idx{
-			SrchAttr:  []string{"title"},
-			FacetAttr: []string{"tags", "authors", "series", "narrators"},
+		Cfg: &Cfg{
+			Idx: &Idx{
+				SrchAttr:  []string{"title"},
+				FacetAttr: []string{"tags", "authors", "series", "narrators"},
+			},
 			Client: &Client{
 				Index: "default",
 			},
@@ -98,9 +112,11 @@ var cfgTests = []cfgTest{
 		pt: pt{
 			query: `?searchableAttributes=title&attributesForFaceting=tags,authors,series,narrators&id=id`,
 		},
-		Idx: &Idx{
-			SrchAttr:  []string{"title"},
-			FacetAttr: []string{"tags", "authors", "series", "narrators"},
+		Cfg: &Cfg{
+			Idx: &Idx{
+				SrchAttr:  []string{"title"},
+				FacetAttr: []string{"tags", "authors", "series", "narrators"},
+			},
 			Client: &Client{
 				Index: "default",
 				UID:   "id",
@@ -111,10 +127,12 @@ var cfgTests = []cfgTest{
 		pt: pt{
 			query: `searchableAttributes=title&attributesForFaceting=tags,authors,series,narrators&sortableAttributes=tags&url=file://../testdata/data-dir/audiobooks.json&index=audiobooks&id=id`,
 		},
-		Idx: &Idx{
-			SrchAttr:  []string{"title"},
-			FacetAttr: []string{"tags", "authors", "series", "narrators"},
-			SortAttr:  []string{"tags"},
+		Cfg: &Cfg{
+			Idx: &Idx{
+				SrchAttr:  []string{"title"},
+				FacetAttr: []string{"tags", "authors", "series", "narrators"},
+				SortAttr:  []string{"tags"},
+			},
 			Client: &Client{
 				UID:   "id",
 				Index: "audiobooks",
@@ -126,62 +144,62 @@ var cfgTests = []cfgTest{
 
 func TestDecodeCfgStr(t *testing.T) {
 	for num, test := range cfgTests {
-		cfg := NewIdx()
-		err := Decode(test.query, cfg)
+		cfg := NewCfg()
+		err := cfg.Decode(test.query)
 		if err != nil {
 			t.Error(err)
 		}
-		err = sliceTest(num, "SrchAttr", cfg.SrchAttr, test.SrchAttr)
+		err = sliceTest(num, "SrchAttr", cfg.Idx.SrchAttr, test.Idx.SrchAttr)
 		if err != nil {
 			t.Error(err)
 		}
-		err = sliceTest(num, "FacetAttr", cfg.FacetAttr, test.FacetAttr)
+		err = sliceTest(num, "FacetAttr", cfg.Idx.FacetAttr, test.Idx.FacetAttr)
 		if err != nil {
 			t.Error(err)
 		}
-		err = sliceTest(num, "SortAttr", cfg.SortAttr, test.SortAttr)
+		err = sliceTest(num, "SortAttr", cfg.Idx.SortAttr, test.Idx.SortAttr)
 		if err != nil {
 			t.Error(err)
 		}
-		if cfg.Index != test.Index {
-			t.Errorf("test %v Index: got %#v, expected %#v\n", num, cfg.Index, test.Index)
+		if cfg.Client.Index != test.Client.Index {
+			t.Errorf("test %v Index: got %#v, expected %#v\n", num, cfg.Client.Index, test.Client.Index)
 		}
-		if cfg.UID != test.UID {
-			t.Errorf("test %v ID: got %#v, expected %#v\n", num, cfg.UID, test.UID)
+		if cfg.Client.UID != test.Client.UID {
+			t.Errorf("test %v ID: got %#v, expected %#v\n", num, cfg.Client.UID, test.Client.UID)
 		}
-		if cfg.URI != test.URI {
-			t.Errorf("test %v Path: got %#v, expected %#v\n", num, cfg.URI, test.URI)
+		if cfg.Idx.URI != test.Idx.URI {
+			t.Errorf("test %v Path: got %#v, expected %#v\n", num, cfg.Idx.URI, test.Idx.URI)
 		}
 	}
 }
 
 func TestDecodeCfgVals(t *testing.T) {
 	for num, test := range cfgTests {
-		cfg := NewIdx()
-		err := Decode(test.vals(), cfg)
+		cfg := NewCfg()
+		err := cfg.Decode(test.query)
 		if err != nil {
 			t.Error(err)
 		}
-		err = sliceTest(num, "SrchAttr", cfg.SrchAttr, test.SrchAttr)
+		err = sliceTest(num, "SrchAttr", cfg.Idx.SrchAttr, test.Idx.SrchAttr)
 		if err != nil {
 			t.Error(err)
 		}
-		err = sliceTest(num, "FacetAttr", cfg.FacetAttr, test.FacetAttr)
+		err = sliceTest(num, "FacetAttr", cfg.Idx.FacetAttr, test.Idx.FacetAttr)
 		if err != nil {
 			t.Error(err)
 		}
-		err = sliceTest(num, "SortAttr", cfg.SortAttr, test.SortAttr)
+		err = sliceTest(num, "SortAttr", cfg.Idx.SortAttr, test.Idx.SortAttr)
 		if err != nil {
 			t.Error(err)
 		}
-		if cfg.Index != test.Index {
-			t.Errorf("test %v Index: got %#v, expected %#v\n", num, cfg.Index, test.Index)
+		if cfg.Client.Index != test.Client.Index {
+			t.Errorf("test %v Index: got %#v, expected %#v\n", num, cfg.Client.Index, test.Client.Index)
 		}
-		if cfg.UID != test.UID {
-			t.Errorf("test %v ID: got %#v, expected %#v\n", num, cfg.UID, test.UID)
+		if cfg.Client.UID != test.Client.UID {
+			t.Errorf("test %v ID: got %#v, expected %#v\n", num, cfg.Client.UID, test.Client.UID)
 		}
-		if cfg.URI != test.URI {
-			t.Errorf("test %v Path: got %#v, expected %#v\n", num, cfg.URI, test.URI)
+		if cfg.Idx.URI != test.Idx.URI {
+			t.Errorf("test %v Path: got %#v, expected %#v\n", num, cfg.Idx.URI, test.Idx.URI)
 		}
 	}
 }

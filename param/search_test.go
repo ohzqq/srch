@@ -172,8 +172,8 @@ func TestDecodeSearchStr(t *testing.T) {
 		if sr.Index != test.Index {
 			t.Errorf("test %v Index: got %#v, expected %#v\n", num, sr.Index, test.Index)
 		}
-		if sr.ID != test.ID {
-			t.Errorf("test %v ID: got %#v, expected %#v\n", num, sr.ID, test.ID)
+		if sr.UID != test.UID {
+			t.Errorf("test %v ID: got %#v, expected %#v\n", num, sr.UID, test.UID)
 		}
 		if sr.URI != test.URI {
 			t.Errorf("test %v Path: got %#v, expected %#v\n", num, sr.URI, test.URI)
@@ -229,8 +229,8 @@ func TestDecodeSearchURL(t *testing.T) {
 		if sr.Index != test.Index {
 			t.Errorf("test %v Index: got %#v, expected %#v\n", num, sr.Index, test.Index)
 		}
-		if sr.ID != test.ID {
-			t.Errorf("test %v ID: got %#v, expected %#v\n", num, sr.ID, test.ID)
+		if sr.UID != test.UID {
+			t.Errorf("test %v ID: got %#v, expected %#v\n", num, sr.UID, test.UID)
 		}
 		if sr.URI != test.URI {
 			t.Errorf("test %v Path: got %#v, expected %#v\n", num, sr.URI, test.URI)
