@@ -53,7 +53,7 @@ var cfgTests = []cfgTest{
 	},
 	cfgTest{
 		pt: pt{
-			query: `?searchableAttributes=title&url=file://../testdata/data-dir&sortableAttributes=tags`,
+			query: `?searchableAttributes=title&db=../testdata/data-dir&sortableAttributes=tags`,
 		},
 		Cfg: &Cfg{
 			Idx: &Idx{
@@ -62,7 +62,7 @@ var cfgTests = []cfgTest{
 			},
 			Client: &Client{
 				Index: "default",
-				DB:    `file://../testdata/data-dir`,
+				DB:    `../testdata/data-dir`,
 			},
 		},
 	},
@@ -110,7 +110,7 @@ var cfgTests = []cfgTest{
 	},
 	cfgTest{
 		pt: pt{
-			query: `?searchableAttributes=title&attributesForFaceting=tags,authors,series,narrators&id=id`,
+			query: `?searchableAttributes=title&attributesForFaceting=tags,authors,series,narrators&uid=id`,
 		},
 		Cfg: &Cfg{
 			Idx: &Idx{
@@ -125,7 +125,7 @@ var cfgTests = []cfgTest{
 	},
 	cfgTest{
 		pt: pt{
-			query: `searchableAttributes=title&attributesForFaceting=tags,authors,series,narrators&sortableAttributes=tags&url=file://../testdata/data-dir/audiobooks.json&index=audiobooks&id=id`,
+			query: `searchableAttributes=title&attributesForFaceting=tags,authors,series,narrators&sortableAttributes=tags&db=../testdata/data-dir/audiobooks.json&index=audiobooks&uid=id`,
 		},
 		Cfg: &Cfg{
 			Idx: &Idx{
@@ -136,7 +136,7 @@ var cfgTests = []cfgTest{
 			Client: &Client{
 				UID:   "id",
 				Index: "audiobooks",
-				DB:    "file://../testdata/data-dir/audiobooks.json",
+				DB:    "../testdata/data-dir/audiobooks.json",
 			},
 		},
 	},

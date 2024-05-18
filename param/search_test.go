@@ -29,9 +29,9 @@ var srchTests = []searchTest{
 		},
 		Search: &Search{
 			RtrvAttr: []string{"*"},
+			URI:      `file://home/mxb/code/srch/testdata/ndbooks.ndjson`,
 			Client: &Client{
 				Index: "default",
-				DB:    `file://home/mxb/code/srch/testdata/ndbooks.ndjson`,
 			},
 		},
 	},
@@ -43,9 +43,9 @@ var srchTests = []searchTest{
 
 			RtrvAttr: []string{"*"},
 			Query:    "fish",
+			URI:      `file://home/mxb/code/srch/testdata/ndbooks.ndjson`,
 			Client: &Client{
 				Index: "default",
-				DB:    `file://home/mxb/code/srch/testdata/ndbooks.ndjson`,
 			},
 		},
 	},
@@ -55,10 +55,10 @@ var srchTests = []searchTest{
 		},
 		Search: &Search{
 			Query:    "fish",
+			URI:      `file://home/mxb/code/srch/testdata/ndbooks.ndjson`,
 			RtrvAttr: []string{"title", "tags", "authors"},
 			Client: &Client{
 				Index: "default",
-				DB:    `file://home/mxb/code/srch/testdata/ndbooks.ndjson`,
 			},
 		},
 	},
@@ -68,10 +68,10 @@ var srchTests = []searchTest{
 		},
 		Search: &Search{
 			Query:    "fish",
+			URI:      `file://home/mxb/code/srch/testdata/ndbooks.ndjson`,
 			RtrvAttr: []string{"title", "tags", "authors"},
 			Client: &Client{
 				Index: "default",
-				DB:    `file://home/mxb/code/srch/testdata/ndbooks.ndjson`,
 			},
 		},
 	},
@@ -83,8 +83,8 @@ var srchTests = []searchTest{
 			Query:    "fish",
 			RtrvAttr: []string{"title", "tags", "authors"},
 			Facets:   []string{"tags", "authors", "series", "narrators"},
+			URI:      `file://home/mxb/code/srch/testdata/ndbooks.ndjson`,
 			Client: &Client{
-				DB:    `file://home/mxb/code/srch/testdata/ndbooks.ndjson`,
 				Index: "default",
 			},
 		},
@@ -98,9 +98,9 @@ var srchTests = []searchTest{
 			RtrvAttr:  []string{"title", "tags", "authors"},
 			Facets:    []string{"tags", "authors", "series", "narrators"},
 			FacetFltr: []string{"[\"authors:amy lane\"]"},
+			URI:       `file://home/mxb/code/srch/testdata/ndbooks.ndjson`,
 			Client: &Client{
 				Index: "default",
-				DB:    `file://home/mxb/code/srch/testdata/ndbooks.ndjson`,
 			},
 		},
 	},
@@ -116,8 +116,8 @@ var srchTests = []searchTest{
 			Order:     "desc",
 			Facets:    []string{"tags", "authors", "series", "narrators"},
 			FacetFltr: []string{"[\"authors:amy lane\", [\"tags:romance\", \"tags:-dnr\"]]"},
+			URI:       `https://home/mxb/code/srch/testdata/ndbooks.ndjson`,
 			Client: &Client{
-				DB:    `https://home/mxb/code/srch/testdata/ndbooks.ndjson`,
 				Index: "audiobooks",
 			},
 		},
