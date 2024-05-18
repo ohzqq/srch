@@ -25,7 +25,7 @@ type Client struct {
 
 func New(settings any) (*Client, error) {
 	client := &Client{
-		Client: param.DefaultClient(),
+		Client: param.NewClient(),
 	}
 
 	err := param.Decode(settings, client.Client)
@@ -132,7 +132,7 @@ func (client *Client) findIdxCfg(name, create string) (*IdxCfg, error) {
 
 	//check to see if the provided client.Params are different from the database
 	//record, if so, update.
-	if !param.CfgEqual(idxCfg.Cfg, cur.Cfg) {
+	if !param.CfgEqual(idxCfg.Idx, cur.Idx) {
 		err := clientCfg.Update(cur)
 		if err != nil {
 			return nil, err

@@ -7,7 +7,7 @@ import (
 	"github.com/ohzqq/sp"
 )
 
-type Cfg struct {
+type Idx struct {
 	*url.URL `json:"-"`
 	*Client
 
@@ -18,14 +18,14 @@ type Cfg struct {
 	URI       string   `json:"-" mapstructure:"path" qs:"url"`
 }
 
-func NewCfg() *Cfg {
-	return &Cfg{
-		Client:   DefaultClient(),
+func NewIdx() *Idx {
+	return &Idx{
+		Client:   NewClient(),
 		SrchAttr: []string{"*"},
 	}
 }
 
-func (cfg *Cfg) Decode(u url.Values) error {
+func (cfg *Idx) Decode(u url.Values) error {
 	err := sp.Decode(u, cfg)
 	if err != nil {
 		return err
@@ -44,23 +44,23 @@ func (cfg *Cfg) Decode(u url.Values) error {
 	return nil
 }
 
-func (cfg *Cfg) Encode() (url.Values, error) {
+func (cfg *Idx) Encode() (url.Values, error) {
 	return sp.Encode(cfg)
 }
 
-func (cfg *Cfg) HasSrchAttr() bool {
+func (cfg *Idx) HasSrchAttr() bool {
 	return len(cfg.SrchAttr) > 0
 }
 
-func (cfg *Cfg) HasFacetAttr() bool {
+func (cfg *Idx) HasFacetAttr() bool {
 	return len(cfg.FacetAttr) > 0
 }
 
-func (cfg *Cfg) HasSortAttr() bool {
+func (cfg *Idx) HasSortAttr() bool {
 	return len(cfg.SortAttr) > 0
 }
 
-func CfgEqual(old, cur *Cfg) bool {
+func CfgEqual(old, cur *Idx) bool {
 	if !slices.Equal(old.SrchAttr, cur.SrchAttr) {
 		return false
 	}

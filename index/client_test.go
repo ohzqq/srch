@@ -8,7 +8,7 @@ import (
 
 func TestClientInit(t *testing.T) {
 	for _, test := range cfgTests {
-		cfg := param.DefaultClient()
+		cfg := param.NewClient()
 		err := param.Decode(test.str(), cfg)
 		if err != nil {
 			t.Error(err)

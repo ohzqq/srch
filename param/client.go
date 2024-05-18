@@ -14,7 +14,7 @@ type Client struct {
 	UID   string `query:"uid,omitempty" json:"uid,omitempty" mapstructure:"uid" qs:"uid"`
 }
 
-func DefaultClient() *Client {
+func NewClient() *Client {
 	return &Client{
 		Index: "default",
 		URL:   &url.URL{},

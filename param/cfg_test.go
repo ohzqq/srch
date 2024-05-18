@@ -8,7 +8,7 @@ import (
 
 type cfgTest struct {
 	pt
-	*Cfg
+	*Idx
 }
 
 var cfgTests = []cfgTest{
@@ -16,7 +16,7 @@ var cfgTests = []cfgTest{
 		pt: pt{
 			query: ``,
 		},
-		Cfg: &Cfg{
+		Idx: &Idx{
 			SrchAttr: []string{"*"},
 			Client: &Client{
 				Index: "default",
@@ -27,7 +27,7 @@ var cfgTests = []cfgTest{
 		pt: pt{
 			query: `?searchableAttributes=`,
 		},
-		Cfg: &Cfg{
+		Idx: &Idx{
 			SrchAttr: []string{"*"},
 			Client: &Client{
 				Index: "default",
@@ -38,7 +38,7 @@ var cfgTests = []cfgTest{
 		pt: pt{
 			query: `?searchableAttributes=title`,
 		},
-		Cfg: &Cfg{
+		Idx: &Idx{
 			SrchAttr: []string{"title"},
 			Client: &Client{
 				Index: "default",
@@ -49,11 +49,11 @@ var cfgTests = []cfgTest{
 		pt: pt{
 			query: `?searchableAttributes=title&url=file://../testdata/data-dir&sortableAttributes=tags`,
 		},
-		Cfg: &Cfg{
+		Idx: &Idx{
 			SrchAttr: []string{"title"},
 			Client: &Client{
 				Index: "default",
-				URI:   `file://../testdata/data-dir`,
+				DB:    `file://../testdata/data-dir`,
 			},
 			SortAttr: []string{"tags"},
 		},
@@ -62,7 +62,7 @@ var cfgTests = []cfgTest{
 		pt: pt{
 			query: `?attributesForFaceting=tags,authors,series,narrators`,
 		},
-		Cfg: &Cfg{
+		Idx: &Idx{
 			SrchAttr:  []string{"*"},
 			FacetAttr: []string{"tags", "authors", "series", "narrators"},
 			Client: &Client{
@@ -74,7 +74,7 @@ var cfgTests = []cfgTest{
 		pt: pt{
 			query: `?attributesForFaceting=tags&attributesForFaceting=authors&attributesForFaceting=series&attributesForFaceting=narrators`,
 		},
-		Cfg: &Cfg{
+		Idx: &Idx{
 			SrchAttr:  []string{"*"},
 			FacetAttr: []string{"tags", "authors", "series", "narrators"},
 			Client: &Client{
@@ -86,7 +86,7 @@ var cfgTests = []cfgTest{
 		pt: pt{
 			query: `?searchableAttributes=title&attributesForFaceting=tags,authors,series,narrators`,
 		},
-		Cfg: &Cfg{
+		Idx: &Idx{
 			SrchAttr:  []string{"title"},
 			FacetAttr: []string{"tags", "authors", "series", "narrators"},
 			Client: &Client{
@@ -98,7 +98,7 @@ var cfgTests = []cfgTest{
 		pt: pt{
 			query: `?searchableAttributes=title&attributesForFaceting=tags,authors,series,narrators&id=id`,
 		},
-		Cfg: &Cfg{
+		Idx: &Idx{
 			SrchAttr:  []string{"title"},
 			FacetAttr: []string{"tags", "authors", "series", "narrators"},
 			Client: &Client{
@@ -111,14 +111,14 @@ var cfgTests = []cfgTest{
 		pt: pt{
 			query: `searchableAttributes=title&attributesForFaceting=tags,authors,series,narrators&sortableAttributes=tags&url=file://../testdata/data-dir/audiobooks.json&index=audiobooks&id=id`,
 		},
-		Cfg: &Cfg{
+		Idx: &Idx{
 			SrchAttr:  []string{"title"},
 			FacetAttr: []string{"tags", "authors", "series", "narrators"},
 			SortAttr:  []string{"tags"},
 			Client: &Client{
 				UID:   "id",
 				Index: "audiobooks",
-				URI:   "file://../testdata/data-dir/audiobooks.json",
+				DB:    "file://../testdata/data-dir/audiobooks.json",
 			},
 		},
 	},
@@ -126,7 +126,7 @@ var cfgTests = []cfgTest{
 
 func TestDecodeCfgStr(t *testing.T) {
 	for num, test := range cfgTests {
-		cfg := NewCfg()
+		cfg := NewIdx()
 		err := Decode(test.query, cfg)
 		if err != nil {
 			t.Error(err)
@@ -157,7 +157,7 @@ func TestDecodeCfgStr(t *testing.T) {
 
 func TestDecodeCfgVals(t *testing.T) {
 	for num, test := range cfgTests {
-		cfg := NewCfg()
+		cfg := NewIdx()
 		err := Decode(test.vals(), cfg)
 		if err != nil {
 			t.Error(err)
@@ -189,7 +189,7 @@ func TestDecodeCfgVals(t *testing.T) {
 func TestEncodeCfg(t *testing.T) {
 	t.SkipNow()
 	for num, test := range cfgTests {
-		v, err := Encode(test.Cfg)
+		v, err := Encode(test.Idx)
 		if err != nil {
 			t.Error(err)
 		}

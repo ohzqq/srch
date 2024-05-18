@@ -31,7 +31,7 @@ var srchTests = []searchTest{
 			RtrvAttr: []string{"*"},
 			Client: &Client{
 				Index: "default",
-				URI:   `file://home/mxb/code/srch/testdata/ndbooks.ndjson`,
+				DB:    `file://home/mxb/code/srch/testdata/ndbooks.ndjson`,
 			},
 		},
 	},
@@ -45,7 +45,7 @@ var srchTests = []searchTest{
 			Query:    "fish",
 			Client: &Client{
 				Index: "default",
-				URI:   `file://home/mxb/code/srch/testdata/ndbooks.ndjson`,
+				DB:    `file://home/mxb/code/srch/testdata/ndbooks.ndjson`,
 			},
 		},
 	},
@@ -58,7 +58,7 @@ var srchTests = []searchTest{
 			RtrvAttr: []string{"title", "tags", "authors"},
 			Client: &Client{
 				Index: "default",
-				URI:   `file://home/mxb/code/srch/testdata/ndbooks.ndjson`,
+				DB:    `file://home/mxb/code/srch/testdata/ndbooks.ndjson`,
 			},
 		},
 	},
@@ -71,7 +71,7 @@ var srchTests = []searchTest{
 			RtrvAttr: []string{"title", "tags", "authors"},
 			Client: &Client{
 				Index: "default",
-				URI:   `file://home/mxb/code/srch/testdata/ndbooks.ndjson`,
+				DB:    `file://home/mxb/code/srch/testdata/ndbooks.ndjson`,
 			},
 		},
 	},
@@ -84,7 +84,7 @@ var srchTests = []searchTest{
 			RtrvAttr: []string{"title", "tags", "authors"},
 			Facets:   []string{"tags", "authors", "series", "narrators"},
 			Client: &Client{
-				URI:   `file://home/mxb/code/srch/testdata/ndbooks.ndjson`,
+				DB:    `file://home/mxb/code/srch/testdata/ndbooks.ndjson`,
 				Index: "default",
 			},
 		},
@@ -100,7 +100,7 @@ var srchTests = []searchTest{
 			FacetFltr: []string{"[\"authors:amy lane\"]"},
 			Client: &Client{
 				Index: "default",
-				URI:   `file://home/mxb/code/srch/testdata/ndbooks.ndjson`,
+				DB:    `file://home/mxb/code/srch/testdata/ndbooks.ndjson`,
 			},
 		},
 	},
@@ -117,7 +117,7 @@ var srchTests = []searchTest{
 			Facets:    []string{"tags", "authors", "series", "narrators"},
 			FacetFltr: []string{"[\"authors:amy lane\", [\"tags:romance\", \"tags:-dnr\"]]"},
 			Client: &Client{
-				URI:   `https://home/mxb/code/srch/testdata/ndbooks.ndjson`,
+				DB:    `https://home/mxb/code/srch/testdata/ndbooks.ndjson`,
 				Index: "audiobooks",
 			},
 		},

@@ -25,12 +25,13 @@ type Search struct {
 	MaxFacetVals int      `query:"maxValuesPerFacet,omitempty" json:"maxValuesPerFacet,omitempty" mapstructure:"max_values_per_facet" qs:"maxValuesPerFacet,omitempty"`
 	URI          string   `json:"-" mapstructure:"path" qs:"url"`
 
+	*url.URL `json:"-"`
 	*Client
 }
 
 func NewSearch() *Search {
 	return &Search{
-		Client: DefaultClient(),
+		Client: NewClient(),
 	}
 }
 

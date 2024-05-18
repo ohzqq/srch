@@ -19,7 +19,7 @@ var defTbls = []string{"_settings"}
 var cfgTests = []test{
 	test{
 		query: ``,
-		Cfg: &param.Cfg{
+		Cfg: &param.Idx{
 			SrchAttr: []string{"*"},
 			Client: &param.Client{
 				Index: "default",
@@ -28,7 +28,7 @@ var cfgTests = []test{
 	},
 	test{
 		query: `?searchableAttributes=title`,
-		Cfg: &param.Cfg{
+		Cfg: &param.Idx{
 			SrchAttr: []string{"title"},
 			Client: &param.Client{
 				Index: "default",
@@ -37,7 +37,7 @@ var cfgTests = []test{
 	},
 	test{
 		query: `?searchableAttributes=title&url=file://home/mxb/code/srch/testdata/hare/&sortableAttributes=tags`,
-		Cfg: &param.Cfg{
+		Cfg: &param.Idx{
 			SrchAttr: []string{"title"},
 			Client: &param.Client{
 				Index: "default",
@@ -48,7 +48,7 @@ var cfgTests = []test{
 	},
 	test{
 		query: `?attributesForFaceting=tags,authors,series,narrators`,
-		Cfg: &param.Cfg{
+		Cfg: &param.Idx{
 			SrchAttr:  []string{"*"},
 			FacetAttr: []string{"tags", "authors", "series", "narrators"},
 			Client: &param.Client{
@@ -58,7 +58,7 @@ var cfgTests = []test{
 	},
 	test{
 		query: `?searchableAttributes=title&attributesForFaceting=tags,authors,series,narrators`,
-		Cfg: &param.Cfg{
+		Cfg: &param.Idx{
 			SrchAttr:  []string{"title"},
 			FacetAttr: []string{"tags", "authors", "series", "narrators"},
 			Client: &param.Client{
@@ -68,7 +68,7 @@ var cfgTests = []test{
 	},
 	test{
 		query: `?searchableAttributes=title&attributesForFaceting=tags,authors,series,narrators&uid=id&index=audiobooks`,
-		Cfg: &param.Cfg{
+		Cfg: &param.Idx{
 			SrchAttr:  []string{"title"},
 			FacetAttr: []string{"tags", "authors", "series", "narrators"},
 			Client: &param.Client{
@@ -80,7 +80,7 @@ var cfgTests = []test{
 	test{
 		query: `searchableAttributes=title&attributesForFaceting=tags,authors,series,narrators&sortableAttributes=tags&db=/home/mxb/code/srch/testdata/hare/&uid=id&index=audiobooks`,
 		//query: `searchableAttributes=title&attributesForFaceting=tags,authors,series,narrators&sortableAttributes=tags&url=file://home/mxb/code/srch/testdata/hare/&uid=id`,
-		Cfg: &param.Cfg{
+		Cfg: &param.Idx{
 			SrchAttr:  []string{"title"},
 			FacetAttr: []string{"tags", "authors", "series", "narrators"},
 			SortAttr:  []string{"tags"},
@@ -93,7 +93,7 @@ var cfgTests = []test{
 	},
 	test{
 		query: `searchableAttributes=title&attributesForFaceting=tags,authors,series&sortableAttributes=tags&db=/home/mxb/code/srch/testdata/hare/&uid=id&index=audiobooks`,
-		Cfg: &param.Cfg{
+		Cfg: &param.Idx{
 			SrchAttr:  []string{"title"},
 			FacetAttr: []string{"tags", "authors", "series", "narrators"},
 			SortAttr:  []string{"tags"},
@@ -108,12 +108,12 @@ var cfgTests = []test{
 
 type params struct {
 	query string
-	Cfg   *param.Cfg
+	Cfg   *param.Idx
 }
 
 type test struct {
 	query string
-	Cfg   *param.Cfg
+	Cfg   *param.Idx
 }
 
 func (p test) str() string {

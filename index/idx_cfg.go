@@ -10,12 +10,12 @@ type IdxCfg struct {
 	ID      int         `json:"_id"`
 	Mapping doc.Mapping `json:"mapping"`
 
-	*param.Cfg
+	*param.Idx
 }
 
 func NewCfg() *IdxCfg {
 	cfg := &IdxCfg{
-		Cfg: param.NewCfg(),
+		Idx: param.NewIdx(),
 	}
 
 	return cfg.
@@ -23,24 +23,24 @@ func NewCfg() *IdxCfg {
 		SetName(defaultTbl)
 }
 
-func NewCfgParams(params *param.Cfg) *IdxCfg {
+func NewCfgParams(params *param.Idx) *IdxCfg {
 	cfg := &IdxCfg{
-		Cfg: params,
+		Idx: params,
 	}
 
 	return cfg.SetName(cfg.Index).
-		SetMapping(NewMappingFromParamCfg(cfg.Cfg)).
+		SetMapping(NewMappingFromParamCfg(cfg.Idx)).
 		SetCustomID(cfg.UID)
 }
 
 func (cfg *IdxCfg) Parse(v any) error {
-	err := param.Decode(v, cfg.Cfg)
+	err := param.Decode(v, cfg.Idx)
 	if err != nil {
 		return err
 	}
 
 	cfg.SetName(cfg.Index).
-		SetMapping(NewMappingFromParamCfg(cfg.Cfg)).
+		SetMapping(NewMappingFromParamCfg(cfg.Idx)).
 		SetCustomID(cfg.UID)
 
 	return nil
@@ -83,7 +83,7 @@ func NewCfgFromParams(settings string) (*IdxCfg, error) {
 	return cfg, nil
 }
 
-func NewMappingFromParamCfg(cfg *param.Cfg) doc.Mapping {
+func NewMappingFromParamCfg(cfg *param.Idx) doc.Mapping {
 	if !cfg.HasSrchAttr() && !cfg.HasFacetAttr() {
 		return doc.DefaultMapping()
 	}
