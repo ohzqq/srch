@@ -431,9 +431,6 @@ func parseURL(uri string) (*url.URL, error) {
 	if err != nil {
 		return u, err
 	}
-	if u.Scheme == "" {
-		u.Scheme = "file"
-	}
 	if u.Scheme == "file" {
 		u.Path = filepath.Join("/", u.Host, u.Path)
 	}
