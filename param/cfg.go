@@ -89,6 +89,10 @@ func (cfg *Cfg) HasSortAttr() bool {
 	return len(cfg.Idx.SortAttr) > 0
 }
 
+func (cfg *Cfg) HasFilters() bool {
+	return len(cfg.Search.FacetFltr) > 0
+}
+
 func (cfg *Cfg) Filters() []any {
 	if len(cfg.Search.FacetFltr) > 0 {
 		var fltr []any

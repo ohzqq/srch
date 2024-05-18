@@ -2,20 +2,14 @@ package param
 
 import (
 	"fmt"
+	"path/filepath"
 	"slices"
 	"testing"
 )
 
-type cfgTest struct {
-	pt
-	*Cfg
-}
-
 var cfgTests = []cfgTest{
 	cfgTest{
-		pt: pt{
-			query: ``,
-		},
+		query: ``,
 		Cfg: &Cfg{
 			Idx: &Idx{
 				SrchAttr: []string{"*"},
@@ -23,13 +17,13 @@ var cfgTests = []cfgTest{
 			Client: &Client{
 				Index: "default",
 			},
-			Search: &Search{},
+			Search: &Search{
+				RtrvAttr: []string{"*"},
+			},
 		},
 	},
 	cfgTest{
-		pt: pt{
-			query: `?searchableAttributes=`,
-		},
+		query: `?searchableAttributes=`,
 		Cfg: &Cfg{
 			Idx: &Idx{
 				SrchAttr: []string{"*"},
@@ -37,13 +31,13 @@ var cfgTests = []cfgTest{
 			Client: &Client{
 				Index: "default",
 			},
-			Search: &Search{},
+			Search: &Search{
+				RtrvAttr: []string{"*"},
+			},
 		},
 	},
 	cfgTest{
-		pt: pt{
-			query: `?searchableAttributes=title`,
-		},
+		query: `?searchableAttributes=title`,
 		Cfg: &Cfg{
 			Idx: &Idx{
 				SrchAttr: []string{"title"},
@@ -51,104 +45,205 @@ var cfgTests = []cfgTest{
 			Client: &Client{
 				Index: "default",
 			},
-			Search: &Search{},
+			Search: &Search{
+				RtrvAttr: []string{"*"},
+			},
 		},
 	},
 	cfgTest{
-		pt: pt{
-			query: `?searchableAttributes=title&db=file://../testdata/data-dir&sortableAttributes=tags&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson`,
-		},
-		Cfg: &Cfg{
-			Idx: &Idx{
-				SrchAttr: []string{"title"},
-				SortAttr: []string{"tags"},
-				Data:     `file://home/mxb/code/srch/testdata/ndbooks.ndjson`,
-			},
-			Client: &Client{
-				Index: "default",
-				DB:    `file://../testdata/data-dir`,
-			},
-			Search: &Search{},
-		},
-	},
-	cfgTest{
-		pt: pt{
-			query: `?searchableAttributes=title&db=file://../testdata/data-dir&sortableAttributes=tags&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags,authors,series,narrators`,
-		},
+		query: `?searchableAttributes=title&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=tags&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson`,
 		Cfg: &Cfg{
 			Idx: &Idx{
 				SrchAttr: []string{"title"},
 				SortAttr: []string{"tags"},
-				Data:     `file://home/mxb/code/srch/testdata/ndbooks.ndjson`,
+				Data:     dataTestURL,
 			},
 			Client: &Client{
 				Index: "default",
+				DB:    hareTestURL,
 			},
-			Search: &Search{},
+			Search: &Search{
+				RtrvAttr: []string{"*"},
+			},
 		},
 	},
 	cfgTest{
-		pt: pt{
-			query: `?searchableAttributes=title&db=file://../testdata/data-dir&sortableAttributes=tags&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags&attributesForFaceting=authors&attributesForFaceting=series&attributesForFaceting=narrators`,
-		},
-		Cfg: &Cfg{
-			Idx: &Idx{
-				SrchAttr:  []string{"*"},
-				FacetAttr: []string{"tags", "authors", "series", "narrators"},
-			},
-			Client: &Client{
-				Index: "default",
-			},
-			Search: &Search{},
-		},
-	},
-	cfgTest{
-		pt: pt{
-			query: `?searchableAttributes=title&attributesForFaceting=tags,authors,series,narrators`,
-		},
+		query: `?searchableAttributes=title&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=tags&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags,authors,series,narrators`,
 		Cfg: &Cfg{
 			Idx: &Idx{
 				SrchAttr:  []string{"title"},
-				FacetAttr: []string{"tags", "authors", "series", "narrators"},
-			},
-			Client: &Client{
-				Index: "default",
-			},
-			Search: &Search{},
-		},
-	},
-	cfgTest{
-		pt: pt{
-			query: `?searchableAttributes=title&attributesForFaceting=tags,authors,series,narrators&uid=id`,
-		},
-		Cfg: &Cfg{
-			Idx: &Idx{
-				SrchAttr:  []string{"title"},
-				FacetAttr: []string{"tags", "authors", "series", "narrators"},
-			},
-			Client: &Client{
-				Index: "default",
-				UID:   "id",
-			},
-			Search: &Search{},
-		},
-	},
-	cfgTest{
-		pt: pt{
-			query: `searchableAttributes=title&attributesForFaceting=tags,authors,series,narrators&sortableAttributes=tags&db=file://../testdata/data-dir/audiobooks.json&index=audiobooks&uid=id`,
-		},
-		Cfg: &Cfg{
-			Idx: &Idx{
-				SrchAttr:  []string{"title"},
-				FacetAttr: []string{"tags", "authors", "series", "narrators"},
 				SortAttr:  []string{"tags"},
+				FacetAttr: []string{"tags", "authors", "series", "narrators"},
+				Data:      dataTestURL,
 			},
 			Client: &Client{
-				UID:   "id",
-				Index: "audiobooks",
-				DB:    "file://../testdata/data-dir/audiobooks.json",
+				Index: "default",
+				DB:    hareTestURL,
 			},
-			Search: &Search{},
+			Search: &Search{
+				RtrvAttr: []string{"*"},
+			},
+		},
+	},
+	cfgTest{
+		query: `?searchableAttributes=title&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=tags&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags&attributesForFaceting=authors&attributesForFaceting=series&attributesForFaceting=narrators`,
+		Cfg: &Cfg{
+			Idx: &Idx{
+				SrchAttr:  []string{"title"},
+				SortAttr:  []string{"tags"},
+				FacetAttr: []string{"tags", "authors", "series", "narrators"},
+				Data:      dataTestURL,
+			},
+			Client: &Client{
+				Index: "default",
+				DB:    hareTestURL,
+			},
+			Search: &Search{
+				RtrvAttr: []string{"*"},
+			},
+		},
+	},
+	cfgTest{
+		query: `?searchableAttributes=title&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=tags&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags,authors,series,narrators&uid=id`,
+		Cfg: &Cfg{
+			Idx: &Idx{
+				SrchAttr:  []string{"title"},
+				SortAttr:  []string{"tags"},
+				FacetAttr: []string{"tags", "authors", "series", "narrators"},
+				Data:      dataTestURL,
+			},
+			Client: &Client{
+				Index: "default",
+				DB:    hareTestURL,
+				UID:   "id",
+			},
+			Search: &Search{
+				RtrvAttr: []string{"*"},
+			},
+		},
+	},
+	cfgTest{
+		query: `?searchableAttributes=title&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=tags&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags,authors,series,narrators&uid=id&index=audiobooks`,
+		Cfg: &Cfg{
+			Idx: &Idx{
+				SrchAttr:  []string{"title"},
+				SortAttr:  []string{"tags"},
+				FacetAttr: []string{"tags", "authors", "series", "narrators"},
+				Data:      dataTestURL,
+			},
+			Client: &Client{
+				Index: "audiobooks",
+				DB:    hareTestURL,
+				UID:   "id",
+			},
+			Search: &Search{
+				RtrvAttr: []string{"*"},
+			},
+		},
+	},
+	cfgTest{
+		query: `?searchableAttributes=title&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=tags&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags,authors,series,narrators&uid=id&index=audiobooks&attributesToRetrieve=title,tags,authors`,
+		Cfg: &Cfg{
+			Idx: &Idx{
+				SrchAttr:  []string{"title"},
+				SortAttr:  []string{"tags"},
+				FacetAttr: []string{"tags", "authors", "series", "narrators"},
+				Data:      dataTestURL,
+			},
+			Client: &Client{
+				Index: "audiobooks",
+				DB:    hareTestURL,
+				UID:   "id",
+			},
+			Search: &Search{
+				RtrvAttr: []string{"title", "tags", "authors"},
+			},
+		},
+	},
+	cfgTest{
+		query: `?searchableAttributes=title&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=tags&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags,authors,series,narrators&uid=id&index=audiobooks&attributesToRetrieve=title,tags,authors&facets=tags,authors,series,narrators`,
+		Cfg: &Cfg{
+			Idx: &Idx{
+				SrchAttr:  []string{"title"},
+				SortAttr:  []string{"tags"},
+				FacetAttr: []string{"tags", "authors", "series", "narrators"},
+				Data:      dataTestURL,
+			},
+			Client: &Client{
+				Index: "audiobooks",
+				DB:    hareTestURL,
+				UID:   "id",
+			},
+			Search: &Search{
+				RtrvAttr: []string{"title", "tags", "authors"},
+				Facets:   []string{"tags", "authors", "series", "narrators"},
+			},
+		},
+	},
+	cfgTest{
+		query: `?searchableAttributes=title&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=tags&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags,authors,series,narrators&uid=id&index=audiobooks&attributesToRetrieve=title,tags,authors&facets=tags,authors,series,narrators&query=fish`,
+		Cfg: &Cfg{
+			Idx: &Idx{
+				SrchAttr:  []string{"title"},
+				SortAttr:  []string{"tags"},
+				FacetAttr: []string{"tags", "authors", "series", "narrators"},
+				Data:      dataTestURL,
+			},
+			Client: &Client{
+				Index: "audiobooks",
+				DB:    hareTestURL,
+				UID:   "id",
+			},
+			Search: &Search{
+				RtrvAttr: []string{"title", "tags", "authors"},
+				Facets:   []string{"tags", "authors", "series", "narrators"},
+				Query:    "fish",
+			},
+		},
+	},
+	cfgTest{
+		query: `?searchableAttributes=title&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=tags&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags,authors,series,narrators&uid=id&index=audiobooks&attributesToRetrieve=title,tags,authors&facets=tags,authors,series,narrators&query=fish&facetFilters=["authors:amy lane"]`,
+		Cfg: &Cfg{
+			Idx: &Idx{
+				SrchAttr:  []string{"title"},
+				SortAttr:  []string{"tags"},
+				FacetAttr: []string{"tags", "authors", "series", "narrators"},
+				Data:      dataTestURL,
+			},
+			Client: &Client{
+				Index: "audiobooks",
+				DB:    hareTestURL,
+				UID:   "id",
+			},
+			Search: &Search{
+				RtrvAttr:  []string{"title", "tags", "authors"},
+				Facets:    []string{"tags", "authors", "series", "narrators"},
+				Query:     "fish",
+				FacetFltr: []string{"[\"authors:amy lane\"]"},
+			},
+		},
+	},
+	cfgTest{
+		query: `?searchableAttributes=title&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=tags&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags,authors,series,narrators&uid=id&index=audiobooks&attributesToRetrieve=title,tags,authors&facets=tags,authors,series,narrators&query=fish&facetFilters=["authors:amy lane", ["tags:romance", "tags:-dnr"]]&url=file://home/mxb/code/srch/testdata/hare/audiobooks.json`,
+		Cfg: &Cfg{
+			Idx: &Idx{
+				SrchAttr:  []string{"title"},
+				SortAttr:  []string{"tags"},
+				FacetAttr: []string{"tags", "authors", "series", "narrators"},
+				Data:      dataTestURL,
+			},
+			Client: &Client{
+				Index: "audiobooks",
+				DB:    hareTestURL,
+				UID:   "id",
+			},
+			Search: &Search{
+				RtrvAttr:  []string{"title", "tags", "authors"},
+				Facets:    []string{"tags", "authors", "series", "narrators"},
+				Query:     "fish",
+				FacetFltr: []string{"[\"authors:amy lane\", [\"tags:romance\", \"tags:-dnr\"]]"},
+				URI:       filepath.Join(hareTestURL, "audiobooks.json"),
+			},
 		},
 	},
 }
@@ -160,33 +255,11 @@ func TestDecodeCfgStr(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-		err = sliceTest(num, "SrchAttr", cfg.Idx.SrchAttr, test.Idx.SrchAttr)
-		if err != nil {
-			t.Error(err)
-		}
-		err = sliceTest(num, "FacetAttr", cfg.Idx.FacetAttr, test.Idx.FacetAttr)
-		if err != nil {
-			t.Error(err)
-		}
-		err = sliceTest(num, "SortAttr", cfg.Idx.SortAttr, test.Idx.SortAttr)
-		if err != nil {
-			t.Error(err)
-		}
-		if cfg.IndexName() != test.IndexName() {
-			t.Errorf("test %v Index: got %#v, expected %#v\n", num, cfg.IndexName(), test.IndexName())
-		}
-		if cfg.Client.UID != test.Client.UID {
-			t.Errorf("test %v ID: got %#v, expected %#v\n", num, cfg.Client.UID, test.Client.UID)
-		}
-		if cfg.DataURL().Path != test.DataURL().Path {
-			t.Errorf("test %v Path: got %#v, expected %#v\n", num, cfg.DataURL().Path, test.DataURL().Path)
-		}
-		if cfg.DB().Path != test.DB().Path {
-			t.Errorf("test %v Path: got %#v, expected %#v\n", num, cfg.DB().Path, test.DB().Path)
-		}
-		if cfg.SrchURL().Path != test.SrchURL().Path {
-			t.Errorf("test %v Path: got %#v, expected %#v\n", num, cfg.SrchURL().Path, test.SrchURL().Path)
-		}
+
+		testIdx(t, num, cfg.Idx, test.Idx)
+		testCfg(t, num, cfg, test.Cfg)
+		testSrch(t, num, cfg.Search, test.Search)
+
 	}
 }
 
@@ -197,18 +270,9 @@ func TestDecodeCfgVals(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-		err = sliceTest(num, "SrchAttr", cfg.Idx.SrchAttr, test.Idx.SrchAttr)
-		if err != nil {
-			t.Error(err)
-		}
-		err = sliceTest(num, "FacetAttr", cfg.Idx.FacetAttr, test.Idx.FacetAttr)
-		if err != nil {
-			t.Error(err)
-		}
-		err = sliceTest(num, "SortAttr", cfg.Idx.SortAttr, test.Idx.SortAttr)
-		if err != nil {
-			t.Error(err)
-		}
+
+		testIdx(t, num, cfg.Idx, test.Idx)
+
 		if cfg.IndexName() != test.IndexName() {
 			t.Errorf("test %v Index: got %#v, expected %#v\n", num, cfg.IndexName(), test.IndexName())
 		}

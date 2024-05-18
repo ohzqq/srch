@@ -37,10 +37,6 @@ func (cfg *Idx) Decode(u url.Values) error {
 	if len(cfg.SortAttr) > 0 {
 		cfg.SortAttr = ParseQueryStrings(cfg.SortAttr)
 	}
-	cfg.URL, err = parseURL(cfg.Data)
-	if err != nil {
-		return err
-	}
 	return nil
 }
 

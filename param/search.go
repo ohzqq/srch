@@ -1,7 +1,6 @@
 package param
 
 import (
-	"encoding/json"
 	"net/url"
 
 	"github.com/ohzqq/sp"
@@ -58,12 +57,13 @@ func (s *Search) Encode() (url.Values, error) {
 	if err != nil {
 		return nil, err
 	}
-	if fltr := s.FacetFilters(); len(fltr) > 0 {
-		d, err := json.Marshal(fltr)
-		if err != nil {
-			return nil, err
-		}
-		v.Set(FacetFilters.String(), string(d))
-	}
+	//if fltr := s.FacetFilters(); len(fltr) > 0 {
+	//  d, err := json.Marshal(fltr)
+	//  if err != nil {
+	//    return nil, err
+	//  }
+	//  v.Set(FacetFilters.String(), string(d))
+	//}
+
 	return v, nil
 }
