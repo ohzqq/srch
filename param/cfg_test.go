@@ -18,7 +18,7 @@ var cfgTests = []cfgTest{
 		},
 		Cfg: &Cfg{
 			SrchAttr: []string{"*"},
-			Paramz: &Paramz{
+			Client: &Client{
 				Index: "default",
 			},
 		},
@@ -29,7 +29,7 @@ var cfgTests = []cfgTest{
 		},
 		Cfg: &Cfg{
 			SrchAttr: []string{"*"},
-			Paramz: &Paramz{
+			Client: &Client{
 				Index: "default",
 			},
 		},
@@ -40,7 +40,7 @@ var cfgTests = []cfgTest{
 		},
 		Cfg: &Cfg{
 			SrchAttr: []string{"title"},
-			Paramz: &Paramz{
+			Client: &Client{
 				Index: "default",
 			},
 		},
@@ -51,7 +51,7 @@ var cfgTests = []cfgTest{
 		},
 		Cfg: &Cfg{
 			SrchAttr: []string{"title"},
-			Paramz: &Paramz{
+			Client: &Client{
 				Index: "default",
 				URI:   `file://../testdata/data-dir`,
 			},
@@ -65,7 +65,7 @@ var cfgTests = []cfgTest{
 		Cfg: &Cfg{
 			SrchAttr:  []string{"*"},
 			FacetAttr: []string{"tags", "authors", "series", "narrators"},
-			Paramz: &Paramz{
+			Client: &Client{
 				Index: "default",
 			},
 		},
@@ -77,7 +77,7 @@ var cfgTests = []cfgTest{
 		Cfg: &Cfg{
 			SrchAttr:  []string{"*"},
 			FacetAttr: []string{"tags", "authors", "series", "narrators"},
-			Paramz: &Paramz{
+			Client: &Client{
 				Index: "default",
 			},
 		},
@@ -89,7 +89,7 @@ var cfgTests = []cfgTest{
 		Cfg: &Cfg{
 			SrchAttr:  []string{"title"},
 			FacetAttr: []string{"tags", "authors", "series", "narrators"},
-			Paramz: &Paramz{
+			Client: &Client{
 				Index: "default",
 			},
 		},
@@ -101,7 +101,7 @@ var cfgTests = []cfgTest{
 		Cfg: &Cfg{
 			SrchAttr:  []string{"title"},
 			FacetAttr: []string{"tags", "authors", "series", "narrators"},
-			Paramz: &Paramz{
+			Client: &Client{
 				Index: "default",
 				UID:   "id",
 			},
@@ -115,7 +115,7 @@ var cfgTests = []cfgTest{
 			SrchAttr:  []string{"title"},
 			FacetAttr: []string{"tags", "authors", "series", "narrators"},
 			SortAttr:  []string{"tags"},
-			Paramz: &Paramz{
+			Client: &Client{
 				UID:   "id",
 				Index: "audiobooks",
 				URI:   "file://../testdata/data-dir/audiobooks.json",

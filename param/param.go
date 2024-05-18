@@ -54,15 +54,15 @@ type Params struct {
 	Route  string `json:"-" mapstructure:"route" qs:"route"`
 }
 
-type Paramz struct {
-	URI      string `json:"-" mapstructure:"path" qs:"url"`
+type Client struct {
+	DB       string `json:"-" mapstructure:"path" qs:"db"`
 	Index    string `query:"index,omitempty" json:"index,omitempty" mapstructure:"index" qs:"index"`
 	UID      string `query:"uid,omitempty" json:"uid,omitempty" mapstructure:"uid" qs:"uid"`
 	*url.URL `json:"-"`
 }
 
-func defaultParams() *Paramz {
-	return &Paramz{
+func defaultParams() *Client {
+	return &Client{
 		Index: "default",
 		URL:   &url.URL{},
 	}

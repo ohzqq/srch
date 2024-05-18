@@ -13,13 +13,14 @@ type Cfg struct {
 	SrchAttr  []string `query:"searchableAttributes" json:"searchableAttributes,omitempty" mapstructure:"searchable_attributes" qs:"searchableAttributes,omitempty"`
 	FacetAttr []string `query:"attributesForFaceting,omitempty" json:"attributesForFaceting,omitempty" mapstructure:"attributes_for_faceting" qs:"attributesForFaceting,omitempty"`
 	SortAttr  []string `query:"sortableAttributes,omitempty" json:"sortableAttributes,omitempty" mapstructure:"sortable_attributes" qs:"sortableAttributes,omitempty"`
+	URI       string   `json:"-" mapstructure:"path" qs:"url"`
 
-	*Paramz
+	*Client
 }
 
 func NewCfg() *Cfg {
 	return &Cfg{
-		Paramz:   defaultParams(),
+		Client:   defaultParams(),
 		SrchAttr: []string{"*"},
 	}
 }

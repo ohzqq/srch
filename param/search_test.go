@@ -18,7 +18,7 @@ var srchTests = []searchTest{
 		},
 		Search: &Search{
 			RtrvAttr: []string{"*"},
-			Paramz: &Paramz{
+			Client: &Client{
 				Index: "default",
 			},
 		},
@@ -29,7 +29,7 @@ var srchTests = []searchTest{
 		},
 		Search: &Search{
 			RtrvAttr: []string{"*"},
-			Paramz: &Paramz{
+			Client: &Client{
 				Index: "default",
 				URI:   `file://home/mxb/code/srch/testdata/ndbooks.ndjson`,
 			},
@@ -43,7 +43,7 @@ var srchTests = []searchTest{
 
 			RtrvAttr: []string{"*"},
 			Query:    "fish",
-			Paramz: &Paramz{
+			Client: &Client{
 				Index: "default",
 				URI:   `file://home/mxb/code/srch/testdata/ndbooks.ndjson`,
 			},
@@ -56,7 +56,7 @@ var srchTests = []searchTest{
 		Search: &Search{
 			Query:    "fish",
 			RtrvAttr: []string{"title", "tags", "authors"},
-			Paramz: &Paramz{
+			Client: &Client{
 				Index: "default",
 				URI:   `file://home/mxb/code/srch/testdata/ndbooks.ndjson`,
 			},
@@ -69,7 +69,7 @@ var srchTests = []searchTest{
 		Search: &Search{
 			Query:    "fish",
 			RtrvAttr: []string{"title", "tags", "authors"},
-			Paramz: &Paramz{
+			Client: &Client{
 				Index: "default",
 				URI:   `file://home/mxb/code/srch/testdata/ndbooks.ndjson`,
 			},
@@ -83,7 +83,7 @@ var srchTests = []searchTest{
 			Query:    "fish",
 			RtrvAttr: []string{"title", "tags", "authors"},
 			Facets:   []string{"tags", "authors", "series", "narrators"},
-			Paramz: &Paramz{
+			Client: &Client{
 				URI:   `file://home/mxb/code/srch/testdata/ndbooks.ndjson`,
 				Index: "default",
 			},
@@ -98,7 +98,7 @@ var srchTests = []searchTest{
 			RtrvAttr:  []string{"title", "tags", "authors"},
 			Facets:    []string{"tags", "authors", "series", "narrators"},
 			FacetFltr: []string{"[\"authors:amy lane\"]"},
-			Paramz: &Paramz{
+			Client: &Client{
 				Index: "default",
 				URI:   `file://home/mxb/code/srch/testdata/ndbooks.ndjson`,
 			},
@@ -116,7 +116,7 @@ var srchTests = []searchTest{
 			Order:     "desc",
 			Facets:    []string{"tags", "authors", "series", "narrators"},
 			FacetFltr: []string{"[\"authors:amy lane\", [\"tags:romance\", \"tags:-dnr\"]]"},
-			Paramz: &Paramz{
+			Client: &Client{
 				URI:   `https://home/mxb/code/srch/testdata/ndbooks.ndjson`,
 				Index: "audiobooks",
 			},
