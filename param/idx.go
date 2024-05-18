@@ -15,7 +15,7 @@ type Idx struct {
 	SrchAttr  []string `query:"searchableAttributes" json:"searchableAttributes,omitempty" mapstructure:"searchable_attributes" qs:"searchableAttributes,omitempty"`
 	FacetAttr []string `query:"attributesForFaceting,omitempty" json:"attributesForFaceting,omitempty" mapstructure:"attributes_for_faceting" qs:"attributesForFaceting,omitempty"`
 	SortAttr  []string `query:"sortableAttributes,omitempty" json:"sortableAttributes,omitempty" mapstructure:"sortable_attributes" qs:"sortableAttributes,omitempty"`
-	URI       string   `json:"-" mapstructure:"path" qs:"url"`
+	Data      string   `json:"-" mapstructure:"path" qs:"data"`
 }
 
 func NewIdx() *Idx {
@@ -37,7 +37,7 @@ func (cfg *Idx) Decode(u url.Values) error {
 	if len(cfg.SortAttr) > 0 {
 		cfg.SortAttr = ParseQueryStrings(cfg.SortAttr)
 	}
-	cfg.URL, err = parseURL(cfg.URI)
+	cfg.URL, err = parseURL(cfg.Data)
 	if err != nil {
 		return err
 	}
