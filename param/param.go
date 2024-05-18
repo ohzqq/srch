@@ -54,20 +54,6 @@ type Params struct {
 	Route  string `json:"-" mapstructure:"route" qs:"route"`
 }
 
-type Client struct {
-	DB       string `json:"-" mapstructure:"path" qs:"db"`
-	Index    string `query:"index,omitempty" json:"index,omitempty" mapstructure:"index" qs:"index"`
-	UID      string `query:"uid,omitempty" json:"uid,omitempty" mapstructure:"uid" qs:"uid"`
-	*url.URL `json:"-"`
-}
-
-func defaultParams() *Client {
-	return &Client{
-		Index: "default",
-		URL:   &url.URL{},
-	}
-}
-
 var (
 	blvPath    = regexp.MustCompile(`/?(blv)(.*)`)
 	filePath   = regexp.MustCompile(`/?(file)(.*)`)
@@ -433,4 +419,23 @@ func parseFacetAttr(vals url.Values) []string {
 		vals[FacetAttr.Query()] = GetQueryStringSlice(FacetAttr.Query(), vals)
 	}
 	return vals[FacetAttr.Query()]
+}
+
+func parseURL(uri string) (*url.URL, error) {
+	var err error
+	u := &url.URL{}
+	if uri == "" {
+		return u, nil
+	}
+	u, err = url.Parse(uri)
+	if err != nil {
+		return u, err
+	}
+	if u.Scheme == "" {
+		u.Scheme = "file"
+	}
+	if u.Scheme == "file" {
+		u.Path = filepath.Join("/", u.Host, u.Path)
+	}
+	return u, nil
 }

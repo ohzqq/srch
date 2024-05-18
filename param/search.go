@@ -30,7 +30,7 @@ type Search struct {
 
 func NewSearch() *Search {
 	return &Search{
-		Client: defaultParams(),
+		Client: DefaultClient(),
 	}
 }
 

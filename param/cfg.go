@@ -2,25 +2,25 @@ package param
 
 import (
 	"net/url"
-	"path/filepath"
 	"slices"
 
 	"github.com/ohzqq/sp"
 )
 
 type Cfg struct {
+	*url.URL `json:"-"`
+	*Client
+
 	// Index Settings
 	SrchAttr  []string `query:"searchableAttributes" json:"searchableAttributes,omitempty" mapstructure:"searchable_attributes" qs:"searchableAttributes,omitempty"`
 	FacetAttr []string `query:"attributesForFaceting,omitempty" json:"attributesForFaceting,omitempty" mapstructure:"attributes_for_faceting" qs:"attributesForFaceting,omitempty"`
 	SortAttr  []string `query:"sortableAttributes,omitempty" json:"sortableAttributes,omitempty" mapstructure:"sortable_attributes" qs:"sortableAttributes,omitempty"`
 	URI       string   `json:"-" mapstructure:"path" qs:"url"`
-
-	*Client
 }
 
 func NewCfg() *Cfg {
 	return &Cfg{
-		Client:   defaultParams(),
+		Client:   DefaultClient(),
 		SrchAttr: []string{"*"},
 	}
 }
@@ -37,14 +37,9 @@ func (cfg *Cfg) Decode(u url.Values) error {
 	if len(cfg.SortAttr) > 0 {
 		cfg.SortAttr = ParseQueryStrings(cfg.SortAttr)
 	}
-	if cfg.URI != "" {
-		cfg.URL, err = url.Parse(cfg.URI)
-		if err != nil {
-			return err
-		}
-		if cfg.URL.Scheme == "file" {
-			cfg.URL.Path = filepath.Join("/", cfg.URL.Host, cfg.URL.Path)
-		}
+	cfg.URL, err = parseURL(cfg.URI)
+	if err != nil {
+		return err
 	}
 	return nil
 }

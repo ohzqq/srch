@@ -96,12 +96,40 @@ var cfgTests = []test{
 	},
 }
 
+func TestClientInit(t *testing.T) {
+	for _, test := range cfgTests {
+		cfg := param.DefaultClient()
+		err := param.Decode(test.str(), cfg)
+		if err != nil {
+			t.Error(err)
+		}
+		if cfg.DB != "" {
+			if cfg.Path != hareTestPath {
+				t.Errorf("got %v, wanted %v\n", cfg.Path, hareTestPath)
+			}
+			if cfg.Scheme != "file" {
+				t.Errorf("got %v, wanted %v\n", cfg.Scheme, "file")
+			}
+		}
+	}
+}
+
 func TestClientInitStr(t *testing.T) {
 	for _, test := range cfgTests {
 		client, err := New(test.str())
 		if err != nil {
 			t.Fatal(err)
 		}
+
+		//if cfg.DB != "" {
+		//  if cfg.Path != hareTestPath {
+		//    t.Errorf("got %v, wanted %v\n", cfg.Path, hareTestPath)
+		//  }
+		//  if cfg.Scheme != "file" {
+		//    t.Errorf("got %v, wanted %v\n", cfg.Scheme, "file")
+		//  }
+		//}
+
 		if !client.TableExists(settingsTbl) {
 			t.Error(test.msg("_settings table doesn't exist"))
 		}
