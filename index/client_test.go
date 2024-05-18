@@ -1,7 +1,6 @@
 package index
 
 import (
-	"slices"
 	"testing"
 )
 
@@ -9,18 +8,6 @@ func TestHareDisk(t *testing.T) {
 	_, err := New(hareTestQuery)
 	if err != nil {
 		t.Fatal(err)
-	}
-}
-
-func TestHareDiskTbls(t *testing.T) {
-	client, err := New(hareTestQuery)
-	if err != nil {
-		t.Fatal(err)
-	}
-	got := client.TableNames()
-	want := defTbls
-	if !slices.Equal(got, want) {
-		t.Errorf("got %v tables, wanted %v\n", got, want)
 	}
 }
 

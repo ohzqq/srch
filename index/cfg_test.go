@@ -158,7 +158,7 @@ func TestGetCfg(t *testing.T) {
 }
 
 func TestDefaultSettings(t *testing.T) {
-	idx, err := New(hareTestQuery)
+	idx, err := New("")
 	if err != nil {
 		t.Fatal(err)
 	}
