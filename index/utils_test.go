@@ -2,6 +2,7 @@ package index
 
 import (
 	"fmt"
+	"log"
 	"net/url"
 	"slices"
 	"strings"
@@ -35,7 +36,10 @@ func (p test) vals() url.Values {
 }
 
 func (p test) url() *url.URL {
-	u, _ := url.Parse(p.query)
+	u, err := url.Parse(url.QueryEscape(p.query))
+	if err != nil {
+		log.Fatal(err)
+	}
 	return u
 }
 

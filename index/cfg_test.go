@@ -96,9 +96,41 @@ var cfgTests = []test{
 	},
 }
 
-func TestClientInit(t *testing.T) {
+func TestClientInitStr(t *testing.T) {
 	for _, test := range cfgTests {
 		client, err := New(test.str())
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !client.TableExists(settingsTbl) {
+			t.Error(test.msg("_settings table doesn't exist"))
+		}
+		_, err = client.GetIdxCfg(client.Params.Index)
+		if err != nil {
+			t.Error(test.err(client.Params.Index, test.Cfg.Index, err))
+		}
+	}
+}
+
+func TestClientInitURL(t *testing.T) {
+	for _, test := range cfgTests {
+		client, err := New(test.url())
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !client.TableExists(settingsTbl) {
+			t.Error(test.msg("_settings table doesn't exist"))
+		}
+		_, err = client.GetIdxCfg(client.Params.Index)
+		if err != nil {
+			t.Error(test.err(client.Params.Index, test.Cfg.Index, err))
+		}
+	}
+}
+
+func TestClientInitValues(t *testing.T) {
+	for _, test := range cfgTests {
+		client, err := New(test.vals())
 		if err != nil {
 			t.Fatal(err)
 		}
