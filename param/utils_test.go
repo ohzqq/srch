@@ -17,33 +17,35 @@ const (
 	idxTestFile = `file://home/mxb/code/srch/testdata/hare/audiobooks.json`
 )
 
+type queryTest string
+
 type cfgTest struct {
 	query string
 	*Cfg
 }
 
-func (p cfgTest) str() string {
-	return p.query
+func (p queryTest) str() string {
+	return string(p)
 }
 
-func (p cfgTest) vals() url.Values {
-	v, _ := url.ParseQuery(strings.TrimPrefix(p.query, "?"))
+func (p queryTest) vals() url.Values {
+	v, _ := url.ParseQuery(strings.TrimPrefix(p.str(), "?"))
 	return v
 }
 
-func (p cfgTest) url() *url.URL {
-	u, _ := url.Parse(p.query)
+func (p queryTest) url() *url.URL {
+	u, _ := url.Parse(p.str())
 	return u
 }
 
-func testSrch(t *testing.T, num int, got, want *Search) {
+func testSrch(t *testing.T, num queryTest, got, want *Search) {
 	err := sliceTest(num, "RtrvAttr", got.RtrvAttr, want.RtrvAttr)
 	if err != nil {
 		t.Error(err)
 	}
 }
 
-func testCfg(t *testing.T, num int, got, want *Cfg) {
+func testCfg(t *testing.T, num queryTest, got, want *Cfg) {
 	if got.IndexName() != want.IndexName() {
 		t.Errorf("test %v Index: got %#v, expected %#v\n", num, got.IndexName(), want.IndexName())
 	}
@@ -61,7 +63,7 @@ func testCfg(t *testing.T, num int, got, want *Cfg) {
 	}
 }
 
-func testIdx(t *testing.T, num int, got, want *Idx) {
+func testIdx(t *testing.T, num queryTest, got, want *Idx) {
 	err := sliceTest(num, "SrchAttr", got.SrchAttr, want.SrchAttr)
 	if err != nil {
 		t.Error(err)

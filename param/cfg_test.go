@@ -7,9 +7,8 @@ import (
 	"testing"
 )
 
-var cfgTests = []cfgTest{
-	cfgTest{
-		query: ``,
+var cfgTests = map[queryTest]cfgTest{
+	queryTest(``): cfgTest{
 		Cfg: &Cfg{
 			Idx: &Idx{
 				SrchAttr: []string{"*"},
@@ -22,8 +21,7 @@ var cfgTests = []cfgTest{
 			},
 		},
 	},
-	cfgTest{
-		query: `?searchableAttributes=`,
+	queryTest(`?searchableAttributes=`): cfgTest{
 		Cfg: &Cfg{
 			Idx: &Idx{
 				SrchAttr: []string{"*"},
@@ -36,8 +34,7 @@ var cfgTests = []cfgTest{
 			},
 		},
 	},
-	cfgTest{
-		query: `?searchableAttributes=title`,
+	queryTest(`?searchableAttributes=title`): cfgTest{
 		Cfg: &Cfg{
 			Idx: &Idx{
 				SrchAttr: []string{"title"},
@@ -50,8 +47,7 @@ var cfgTests = []cfgTest{
 			},
 		},
 	},
-	cfgTest{
-		query: `?searchableAttributes=title&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=tags&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson`,
+	queryTest(`?searchableAttributes=title&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=tags&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson`): cfgTest{
 		Cfg: &Cfg{
 			Idx: &Idx{
 				SrchAttr: []string{"title"},
@@ -67,8 +63,7 @@ var cfgTests = []cfgTest{
 			},
 		},
 	},
-	cfgTest{
-		query: `?searchableAttributes=title&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=tags&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags,authors,series,narrators`,
+	queryTest(`?searchableAttributes=title&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=tags&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags,authors,series,narrators`): cfgTest{
 		Cfg: &Cfg{
 			Idx: &Idx{
 				SrchAttr:  []string{"title"},
@@ -85,8 +80,7 @@ var cfgTests = []cfgTest{
 			},
 		},
 	},
-	cfgTest{
-		query: `?searchableAttributes=title&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=tags&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags&attributesForFaceting=authors&attributesForFaceting=series&attributesForFaceting=narrators`,
+	queryTest(`?searchableAttributes=title&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=tags&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags&attributesForFaceting=authors&attributesForFaceting=series&attributesForFaceting=narrators`): cfgTest{
 		Cfg: &Cfg{
 			Idx: &Idx{
 				SrchAttr:  []string{"title"},
@@ -103,8 +97,7 @@ var cfgTests = []cfgTest{
 			},
 		},
 	},
-	cfgTest{
-		query: `?searchableAttributes=title&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=tags&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags,authors,series,narrators&uid=id`,
+	queryTest(`?searchableAttributes=title&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=tags&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags,authors,series,narrators&uid=id`): cfgTest{
 		Cfg: &Cfg{
 			Idx: &Idx{
 				SrchAttr:  []string{"title"},
@@ -122,8 +115,7 @@ var cfgTests = []cfgTest{
 			},
 		},
 	},
-	cfgTest{
-		query: `?searchableAttributes=title&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=tags&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags,authors,series,narrators&uid=id&index=audiobooks`,
+	queryTest(`?searchableAttributes=title&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=tags&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags,authors,series,narrators&uid=id&index=audiobooks`): cfgTest{
 		Cfg: &Cfg{
 			Idx: &Idx{
 				SrchAttr:  []string{"title"},
@@ -141,8 +133,7 @@ var cfgTests = []cfgTest{
 			},
 		},
 	},
-	cfgTest{
-		query: `?searchableAttributes=title&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=tags&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags,authors,series,narrators&uid=id&index=audiobooks&attributesToRetrieve=title,tags,authors`,
+	queryTest(`?searchableAttributes=title&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=tags&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags,authors,series,narrators&uid=id&index=audiobooks&attributesToRetrieve=title,tags,authors`): cfgTest{
 		Cfg: &Cfg{
 			Idx: &Idx{
 				SrchAttr:  []string{"title"},
@@ -160,8 +151,7 @@ var cfgTests = []cfgTest{
 			},
 		},
 	},
-	cfgTest{
-		query: `?searchableAttributes=title&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=tags&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags,authors,series,narrators&uid=id&index=audiobooks&attributesToRetrieve=title,tags,authors&facets=tags,authors,series,narrators`,
+	queryTest(`?searchableAttributes=title&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=tags&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags,authors,series,narrators&uid=id&index=audiobooks&attributesToRetrieve=title,tags,authors&facets=tags,authors,series,narrators`): cfgTest{
 		Cfg: &Cfg{
 			Idx: &Idx{
 				SrchAttr:  []string{"title"},
@@ -180,8 +170,7 @@ var cfgTests = []cfgTest{
 			},
 		},
 	},
-	cfgTest{
-		query: `?searchableAttributes=title&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=tags&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags,authors,series,narrators&uid=id&index=audiobooks&attributesToRetrieve=title,tags,authors&facets=tags,authors,series,narrators&query=fish`,
+	queryTest(`?searchableAttributes=title&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=tags&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags,authors,series,narrators&uid=id&index=audiobooks&attributesToRetrieve=title,tags,authors&facets=tags,authors,series,narrators&query=fish`): cfgTest{
 		Cfg: &Cfg{
 			Idx: &Idx{
 				SrchAttr:  []string{"title"},
@@ -201,8 +190,7 @@ var cfgTests = []cfgTest{
 			},
 		},
 	},
-	cfgTest{
-		query: `?searchableAttributes=title&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=tags&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags,authors,series,narrators&uid=id&index=audiobooks&attributesToRetrieve=title,tags,authors&facets=tags,authors,series,narrators&query=fish&facetFilters=["authors:amy lane"]`,
+	queryTest(`?searchableAttributes=title&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=tags&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags,authors,series,narrators&uid=id&index=audiobooks&attributesToRetrieve=title,tags,authors&facets=tags,authors,series,narrators&query=fish&facetFilters=["authors:amy lane"]`): cfgTest{
 		Cfg: &Cfg{
 			Idx: &Idx{
 				SrchAttr:  []string{"title"},
@@ -223,8 +211,7 @@ var cfgTests = []cfgTest{
 			},
 		},
 	},
-	cfgTest{
-		query: `?searchableAttributes=title&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=tags&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags,authors,series,narrators&uid=id&index=audiobooks&attributesToRetrieve=title,tags,authors&facets=tags,authors,series,narrators&query=fish&facetFilters=["authors:amy lane", ["tags:romance", "tags:-dnr"]]&url=file://home/mxb/code/srch/testdata/hare/audiobooks.json`,
+	queryTest(`?searchableAttributes=title&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=tags&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags,authors,series,narrators&uid=id&index=audiobooks&attributesToRetrieve=title,tags,authors&facets=tags,authors,series,narrators&query=fish&facetFilters=["authors:amy lane", ["tags:romance", "tags:-dnr"]]&url=file://home/mxb/code/srch/testdata/hare/audiobooks.json`): cfgTest{
 		Cfg: &Cfg{
 			Idx: &Idx{
 				SrchAttr:  []string{"title"},
@@ -249,44 +236,44 @@ var cfgTests = []cfgTest{
 }
 
 func TestDecodeCfgStr(t *testing.T) {
-	for num, test := range cfgTests {
+	for query, test := range cfgTests {
 		cfg := NewCfg()
-		err := cfg.Decode(test.query)
+		err := cfg.Decode(query)
 		if err != nil {
 			t.Error(err)
 		}
 
-		testIdx(t, num, cfg.Idx, test.Idx)
-		testCfg(t, num, cfg, test.Cfg)
-		testSrch(t, num, cfg.Search, test.Search)
+		testIdx(t, query, cfg.Idx, test.Idx)
+		testCfg(t, query, cfg, test.Cfg)
+		testSrch(t, query, cfg.Search, test.Search)
 
 	}
 }
 
 func TestDecodeCfgVals(t *testing.T) {
-	for num, test := range cfgTests {
+	for query, test := range cfgTests {
 		cfg := NewCfg()
-		err := cfg.Decode(test.query)
+		err := cfg.Decode(query)
 		if err != nil {
 			t.Error(err)
 		}
 
-		testIdx(t, num, cfg.Idx, test.Idx)
+		testIdx(t, query, cfg.Idx, test.Idx)
 
 		if cfg.IndexName() != test.IndexName() {
-			t.Errorf("test %v Index: got %#v, expected %#v\n", num, cfg.IndexName(), test.IndexName())
+			t.Errorf("test %v Index: got %#v, expected %#v\n", query, cfg.IndexName(), test.IndexName())
 		}
 		if cfg.Client.UID != test.Client.UID {
-			t.Errorf("test %v ID: got %#v, expected %#v\n", num, cfg.Client.UID, test.Client.UID)
+			t.Errorf("test %v ID: got %#v, expected %#v\n", query, cfg.Client.UID, test.Client.UID)
 		}
 		if cfg.DataURL().Path != test.DataURL().Path {
-			t.Errorf("test %v Path: got %#v, expected %#v\n", num, cfg.DataURL().Path, test.DataURL().Path)
+			t.Errorf("test %v Path: got %#v, expected %#v\n", query, cfg.DataURL().Path, test.DataURL().Path)
 		}
 		if cfg.DB().Path != test.DB().Path {
-			t.Errorf("test %v Path: got %#v, expected %#v\n", num, cfg.DB().Path, test.DB().Path)
+			t.Errorf("test %v Path: got %#v, expected %#v\n", query, cfg.DB().Path, test.DB().Path)
 		}
 		if cfg.SrchURL().Path != test.SrchURL().Path {
-			t.Errorf("test %v Path: got %#v, expected %#v\n", num, cfg.SrchURL().Path, test.SrchURL().Path)
+			t.Errorf("test %v Path: got %#v, expected %#v\n", query, cfg.SrchURL().Path, test.SrchURL().Path)
 		}
 	}
 }
