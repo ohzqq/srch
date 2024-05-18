@@ -10,12 +10,12 @@ import (
 
 type ClientCfg struct {
 	tbl *hare.Table
-	*param.Cfg
+	*param.Client
 }
 
-func NewClientCfg(params *param.Cfg) *ClientCfg {
+func NewClientCfg(params *param.Client) *ClientCfg {
 	cfg := &ClientCfg{
-		Cfg: params,
+		Client: params,
 	}
 	return cfg
 }

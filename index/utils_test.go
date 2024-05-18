@@ -16,6 +16,96 @@ const hareTestQuery = `?url=file://home/mxb/code/srch/testdata/hare/`
 
 var defTbls = []string{"_settings"}
 
+var cfgTests = []test{
+	test{
+		query: ``,
+		Cfg: &param.Cfg{
+			SrchAttr: []string{"*"},
+			Client: &param.Client{
+				Index: "default",
+			},
+		},
+	},
+	test{
+		query: `?searchableAttributes=title`,
+		Cfg: &param.Cfg{
+			SrchAttr: []string{"title"},
+			Client: &param.Client{
+				Index: "default",
+			},
+		},
+	},
+	test{
+		query: `?searchableAttributes=title&url=file://home/mxb/code/srch/testdata/hare/&sortableAttributes=tags`,
+		Cfg: &param.Cfg{
+			SrchAttr: []string{"title"},
+			Client: &param.Client{
+				Index: "default",
+				DB:    `file://home/mxb/code/srch/testdata/hare/`,
+			},
+			SortAttr: []string{"tags"},
+		},
+	},
+	test{
+		query: `?attributesForFaceting=tags,authors,series,narrators`,
+		Cfg: &param.Cfg{
+			SrchAttr:  []string{"*"},
+			FacetAttr: []string{"tags", "authors", "series", "narrators"},
+			Client: &param.Client{
+				Index: "default",
+			},
+		},
+	},
+	test{
+		query: `?searchableAttributes=title&attributesForFaceting=tags,authors,series,narrators`,
+		Cfg: &param.Cfg{
+			SrchAttr:  []string{"title"},
+			FacetAttr: []string{"tags", "authors", "series", "narrators"},
+			Client: &param.Client{
+				Index: "default",
+			},
+		},
+	},
+	test{
+		query: `?searchableAttributes=title&attributesForFaceting=tags,authors,series,narrators&uid=id&index=audiobooks`,
+		Cfg: &param.Cfg{
+			SrchAttr:  []string{"title"},
+			FacetAttr: []string{"tags", "authors", "series", "narrators"},
+			Client: &param.Client{
+				Index: "audiobooks",
+				UID:   "id",
+			},
+		},
+	},
+	test{
+		query: `searchableAttributes=title&attributesForFaceting=tags,authors,series,narrators&sortableAttributes=tags&db=/home/mxb/code/srch/testdata/hare/&uid=id&index=audiobooks`,
+		//query: `searchableAttributes=title&attributesForFaceting=tags,authors,series,narrators&sortableAttributes=tags&url=file://home/mxb/code/srch/testdata/hare/&uid=id`,
+		Cfg: &param.Cfg{
+			SrchAttr:  []string{"title"},
+			FacetAttr: []string{"tags", "authors", "series", "narrators"},
+			SortAttr:  []string{"tags"},
+			Client: &param.Client{
+				UID:   "id",
+				Index: "audiobooks",
+				DB:    "/home/mxb/code/srch/testdata/hare/",
+			},
+		},
+	},
+	test{
+		query: `searchableAttributes=title&attributesForFaceting=tags,authors,series&sortableAttributes=tags&db=/home/mxb/code/srch/testdata/hare/&uid=id&index=audiobooks`,
+		Cfg: &param.Cfg{
+			SrchAttr:  []string{"title"},
+			FacetAttr: []string{"tags", "authors", "series", "narrators"},
+			SortAttr:  []string{"tags"},
+			Client: &param.Client{
+				UID:   "id",
+				Index: "audiobooks",
+				DB:    "/home/mxb/code/srch/testdata/hare/",
+			},
+		},
+	},
+}
+
 type params struct {
 	query string
 	Cfg   *param.Cfg

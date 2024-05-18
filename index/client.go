@@ -18,20 +18,22 @@ const (
 
 type Client struct {
 	*hare.Database
-	Params *param.Cfg
+	*param.Client
+
+	tbl *hare.Table
 }
 
 func New(settings any) (*Client, error) {
 	client := &Client{
-		Params: param.NewCfg(),
+		Client: param.DefaultClient(),
 	}
 
-	err := param.Decode(settings, client.Params)
+	err := param.Decode(settings, client.Client)
 	if err != nil {
 		return nil, fmt.Errorf("param decoding error: %w\n", err)
 	}
 
-	ds, err := NewDatastorage(client.Params.URL)
+	ds, err := NewDatastorage(client.Client.URL)
 	if err != nil {
 		return nil, fmt.Errorf("new datastorage error: %w\n", err)
 	}
@@ -57,27 +59,26 @@ func (client *Client) init() error {
 			return fmt.Errorf("db.getCfg CreateTable error\n%w\n", err)
 		}
 
-		cfg, err := client.Cfg()
-		if err != nil {
-			return err
-		}
-		err = cfg.Insert(NewCfgParams(client.Params))
-		if err != nil {
-			return fmt.Errorf("client.init cfg.Insert error\n%w\n", err)
-		}
+		//cfg, err := client.Cfg()
+		//if err != nil {
+		//return err
+		//}
+		//err = cfg.Insert(NewCfgParams(client.Params))
+		//if err != nil {
+		//return fmt.Errorf("client.init cfg.Insert error\n%w\n", err)
+		//}
 	}
 
 	return nil
 }
 
-func (client *Client) Cfg() (*ClientCfg, error) {
-	cfg := NewClientCfg(client.Params)
+func (client *Client) Cfg() (*Client, error) {
 	tbl, err := client.Database.GetTable(settingsTbl)
 	if err != nil {
 		return nil, err
 	}
-	cfg.SetTbl(tbl)
-	return cfg, nil
+	client.SetTbl(tbl)
+	return client, nil
 }
 
 func (client *Client) GetIdxCfg(name string) (*IdxCfg, error) {
@@ -99,7 +100,8 @@ func (client *Client) findIdxCfg(name, create string) (*IdxCfg, error) {
 	}
 
 	//get idx cfg from params
-	cur := NewCfgParams(client.Params)
+	//cur := NewCfgParams(client.Params)
+	cur := NewCfg()
 
 	//find existing cfg
 	idxCfg, err := clientCfg.Find(name)
@@ -130,7 +132,7 @@ func (client *Client) findIdxCfg(name, create string) (*IdxCfg, error) {
 
 	//check to see if the provided client.Params are different from the database
 	//record, if so, update.
-	if !param.CfgEqual(idxCfg.Cfg, client.Params) {
+	if !param.CfgEqual(idxCfg.Cfg, cur.Cfg) {
 		err := clientCfg.Update(cur)
 		if err != nil {
 			return nil, err
@@ -138,6 +140,66 @@ func (client *Client) findIdxCfg(name, create string) (*IdxCfg, error) {
 	}
 
 	return idxCfg, nil
+}
+
+func (cfg *Client) Insert(idx *IdxCfg) error {
+	_, err := cfg.tbl.Insert(idx)
+	if err != nil {
+		return fmt.Errorf("cfg.Insert error\n%w\n", err)
+	}
+	return nil
+}
+
+func (cfg *Client) Update(idx *IdxCfg) error {
+	err := cfg.tbl.Update(idx)
+	if err != nil {
+		return fmt.Errorf("cfg.Insert error\n%w\n", err)
+	}
+	return nil
+}
+
+func (cfg *Client) Find(name string) (*IdxCfg, error) {
+	ids, err := cfg.tbl.IDs()
+	if err != nil {
+		return nil, err
+	}
+
+	for _, id := range ids {
+		idx := &IdxCfg{}
+		err := cfg.tbl.Find(id, idx)
+		if err != nil {
+			return nil, err
+		}
+		if idx.Index == name {
+			return idx, nil
+		}
+	}
+
+	return nil, dberr.ErrNoTable
+}
+
+func (cfg *Client) Tables() ([]*IdxCfg, error) {
+	ids, err := cfg.tbl.IDs()
+	if err != nil {
+		return nil, err
+	}
+
+	tbls := make([]*IdxCfg, len(ids))
+
+	for i, id := range ids {
+		idx := &IdxCfg{}
+		err := cfg.tbl.Find(id, idx)
+		if err != nil {
+			return nil, err
+		}
+		tbls[i] = idx
+	}
+	return tbls, nil
+}
+
+func (cfg *Client) SetTbl(tbl *hare.Table) *Client {
+	cfg.tbl = tbl
+	return cfg
 }
 
 func (client *Client) SetDatastorage(ds hare.Datastorage) error {

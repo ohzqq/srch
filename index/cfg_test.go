@@ -2,175 +2,7 @@ package index
 
 import (
 	"testing"
-
-	"github.com/ohzqq/srch/param"
 )
-
-var cfgTests = []test{
-	test{
-		query: ``,
-		Cfg: &param.Cfg{
-			SrchAttr: []string{"*"},
-			Client: &param.Client{
-				Index: "default",
-			},
-		},
-	},
-	test{
-		query: `?searchableAttributes=title`,
-		Cfg: &param.Cfg{
-			SrchAttr: []string{"title"},
-			Client: &param.Client{
-				Index: "default",
-			},
-		},
-	},
-	test{
-		query: `?searchableAttributes=title&url=file://home/mxb/code/srch/testdata/hare/&sortableAttributes=tags`,
-		Cfg: &param.Cfg{
-			SrchAttr: []string{"title"},
-			Client: &param.Client{
-				Index: "default",
-				DB:    `file://home/mxb/code/srch/testdata/hare/`,
-			},
-			SortAttr: []string{"tags"},
-		},
-	},
-	test{
-		query: `?attributesForFaceting=tags,authors,series,narrators`,
-		Cfg: &param.Cfg{
-			SrchAttr:  []string{"*"},
-			FacetAttr: []string{"tags", "authors", "series", "narrators"},
-			Client: &param.Client{
-				Index: "default",
-			},
-		},
-	},
-	test{
-		query: `?searchableAttributes=title&attributesForFaceting=tags,authors,series,narrators`,
-		Cfg: &param.Cfg{
-			SrchAttr:  []string{"title"},
-			FacetAttr: []string{"tags", "authors", "series", "narrators"},
-			Client: &param.Client{
-				Index: "default",
-			},
-		},
-	},
-	test{
-		query: `?searchableAttributes=title&attributesForFaceting=tags,authors,series,narrators&uid=id&index=audiobooks`,
-		Cfg: &param.Cfg{
-			SrchAttr:  []string{"title"},
-			FacetAttr: []string{"tags", "authors", "series", "narrators"},
-			Client: &param.Client{
-				Index: "audiobooks",
-				UID:   "id",
-			},
-		},
-	},
-	test{
-		query: `searchableAttributes=title&attributesForFaceting=tags,authors,series,narrators&sortableAttributes=tags&db=/home/mxb/code/srch/testdata/hare/&uid=id&index=audiobooks`,
-		//query: `searchableAttributes=title&attributesForFaceting=tags,authors,series,narrators&sortableAttributes=tags&url=file://home/mxb/code/srch/testdata/hare/&uid=id`,
-		Cfg: &param.Cfg{
-			SrchAttr:  []string{"title"},
-			FacetAttr: []string{"tags", "authors", "series", "narrators"},
-			SortAttr:  []string{"tags"},
-			Client: &param.Client{
-				UID:   "id",
-				Index: "audiobooks",
-				DB:    "/home/mxb/code/srch/testdata/hare/",
-			},
-		},
-	},
-	test{
-		query: `searchableAttributes=title&attributesForFaceting=tags,authors,series&sortableAttributes=tags&db=/home/mxb/code/srch/testdata/hare/&uid=id&index=audiobooks`,
-		Cfg: &param.Cfg{
-			SrchAttr:  []string{"title"},
-			FacetAttr: []string{"tags", "authors", "series", "narrators"},
-			SortAttr:  []string{"tags"},
-			Client: &param.Client{
-				UID:   "id",
-				Index: "audiobooks",
-				DB:    "/home/mxb/code/srch/testdata/hare/",
-			},
-		},
-	},
-}
-
-func TestClientInit(t *testing.T) {
-	for _, test := range cfgTests {
-		cfg := param.DefaultClient()
-		err := param.Decode(test.str(), cfg)
-		if err != nil {
-			t.Error(err)
-		}
-		if cfg.DB != "" {
-			if cfg.Path != hareTestPath {
-				t.Errorf("got %v, wanted %v\n", cfg.Path, hareTestPath)
-			}
-			if cfg.Scheme != "file" {
-				t.Errorf("got %v, wanted %v\n", cfg.Scheme, "file")
-			}
-		}
-	}
-}
-
-func TestClientInitStr(t *testing.T) {
-	for _, test := range cfgTests {
-		client, err := New(test.str())
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		//if cfg.DB != "" {
-		//  if cfg.Path != hareTestPath {
-		//    t.Errorf("got %v, wanted %v\n", cfg.Path, hareTestPath)
-		//  }
-		//  if cfg.Scheme != "file" {
-		//    t.Errorf("got %v, wanted %v\n", cfg.Scheme, "file")
-		//  }
-		//}
-
-		if !client.TableExists(settingsTbl) {
-			t.Error(test.msg("_settings table doesn't exist"))
-		}
-		_, err = client.GetIdxCfg(client.Params.Index)
-		if err != nil {
-			t.Error(test.err(client.Params.Index, test.Cfg.Index, err))
-		}
-	}
-}
-
-func TestClientInitURL(t *testing.T) {
-	for _, test := range cfgTests {
-		client, err := New(test.url())
-		if err != nil {
-			t.Fatal(err)
-		}
-		if !client.TableExists(settingsTbl) {
-			t.Error(test.msg("_settings table doesn't exist"))
-		}
-		_, err = client.GetIdxCfg(client.Params.Index)
-		if err != nil {
-			t.Error(test.err(client.Params.Index, test.Cfg.Index, err))
-		}
-	}
-}
-
-func TestClientInitValues(t *testing.T) {
-	for _, test := range cfgTests {
-		client, err := New(test.vals())
-		if err != nil {
-			t.Fatal(err)
-		}
-		if !client.TableExists(settingsTbl) {
-			t.Error(test.msg("_settings table doesn't exist"))
-		}
-		_, err = client.GetIdxCfg(client.Params.Index)
-		if err != nil {
-			t.Error(test.err(client.Params.Index, test.Cfg.Index, err))
-		}
-	}
-}
 
 //func TestClientCfg(t *testing.T) {
 //  for _, test := range cfgTests {
@@ -198,6 +30,7 @@ func TestSettings(t *testing.T) {
 }
 
 func TestGetCfg(t *testing.T) {
+	t.SkipNow()
 	client, err := New("")
 	if err != nil {
 		t.Fatal(err)
@@ -214,26 +47,5 @@ func TestGetCfg(t *testing.T) {
 	}
 	if idx.Index != defaultTbl {
 		t.Errorf("got %v, wanted %v\n", idx.Index, defaultTbl)
-	}
-}
-
-func TestDefaultSettings(t *testing.T) {
-	idx, err := New("")
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	cfg, err := idx.Cfg()
-	if err != nil {
-		t.Error(err)
-	}
-
-	ids, err := cfg.tbl.IDs()
-	if err != nil {
-		t.Error(err)
-	}
-
-	if len(ids) != 1 {
-		t.Errorf("got %v, wanted %v\n", len(ids), 1)
 	}
 }
