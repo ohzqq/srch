@@ -167,8 +167,8 @@ func TestDecodeCfgStr(t *testing.T) {
 		if cfg.Client.UID != test.Client.UID {
 			t.Errorf("test %v ID: got %#v, expected %#v\n", num, cfg.Client.UID, test.Client.UID)
 		}
-		if cfg.Idx.URI != test.Idx.URI {
-			t.Errorf("test %v Path: got %#v, expected %#v\n", num, cfg.Idx.URI, test.Idx.URI)
+		if cfg.Idx.Data != test.Idx.Data {
+			t.Errorf("test %v Path: got %#v, expected %#v\n", num, cfg.Idx.Data, test.Idx.Data)
 		}
 	}
 }
@@ -198,8 +198,8 @@ func TestDecodeCfgVals(t *testing.T) {
 		if cfg.Client.UID != test.Client.UID {
 			t.Errorf("test %v ID: got %#v, expected %#v\n", num, cfg.Client.UID, test.Client.UID)
 		}
-		if cfg.Idx.URI != test.Idx.URI {
-			t.Errorf("test %v Path: got %#v, expected %#v\n", num, cfg.Idx.URI, test.Idx.URI)
+		if cfg.Idx.Data != test.Idx.Data {
+			t.Errorf("test %v Path: got %#v, expected %#v\n", num, cfg.Idx.Data, test.Idx.Data)
 		}
 	}
 }
