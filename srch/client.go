@@ -35,7 +35,7 @@ func NewClient(settings any) (*Client, error) {
 		return nil, fmt.Errorf("param decoding error: %w\n", err)
 	}
 
-	ds, err := NewDatastorage(client.Client.URL)
+	ds, err := NewDatastorage(client.URL)
 	if err != nil {
 		return nil, fmt.Errorf("new datastorage error: %w\n", err)
 	}
