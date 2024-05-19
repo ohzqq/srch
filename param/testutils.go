@@ -7,7 +7,6 @@ import (
 	"path/filepath"
 	"slices"
 	"strings"
-	"testing"
 )
 
 const (
@@ -65,6 +64,10 @@ func (ct CfgTest) Srch(got, want *Search) error {
 	if err != nil {
 		return err
 	}
+	err = ct.Slice("search.FacetFltr", got.FacetFltr, want.FacetFltr)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -101,50 +104,6 @@ func (ct CfgTest) Config(got, want *Cfg) error {
 		return ct.Err(ct.Msg("cfg.SrchURL().Path", got.SrchURL().Path, want.SrchURL().Path), errors.New("srch path doesn't match"))
 	}
 	return nil
-}
-
-func sliceErr(name string, err error) error {
-	return fmt.Errorf("slice: %v\nerror: %w\n", name, err)
-}
-
-func SrchTests(t *testing.T, num QueryStr, got, want *Search) {
-	err := sliceTest(num, "RtrvAttr", got.RtrvAttr, want.RtrvAttr)
-	if err != nil {
-		t.Error(err)
-	}
-}
-
-func CfgTests(t *testing.T, num QueryStr, got, want *Cfg) {
-	if got.IndexName() != want.IndexName() {
-		t.Errorf("test %v Index: got %#v, expected %#v\n", num, got.IndexName(), want.IndexName())
-	}
-	if got.Client.UID != want.Client.UID {
-		t.Errorf("test %v ID: got %#v, expected %#v\n", num, got.Client.UID, want.Client.UID)
-	}
-	if got.DataURL().Path != want.DataURL().Path {
-		t.Errorf("test %v Path: got %#v, expected %#v\n", num, got.DataURL().Path, want.DataURL().Path)
-	}
-	if got.DB().Path != want.DB().Path {
-		t.Errorf("test %v Path: got %#v, expected %#v\n", num, got.DB().Path, want.DB().Path)
-	}
-	if got.SrchURL().Path != want.SrchURL().Path {
-		t.Errorf("test %v Path: got %#v, expected %#v\n", num, got.SrchURL().Path, want.SrchURL().Path)
-	}
-}
-
-func IdxTests(t *testing.T, num QueryStr, got, want *Idx) {
-	err := sliceTest(num, "SrchAttr", got.SrchAttr, want.SrchAttr)
-	if err != nil {
-		t.Error(err)
-	}
-	err = sliceTest(num, "FacetAttr", got.FacetAttr, want.FacetAttr)
-	if err != nil {
-		t.Error(err)
-	}
-	err = sliceTest(num, "SortAttr", got.SortAttr, want.SortAttr)
-	if err != nil {
-		t.Error(err)
-	}
 }
 
 var TestQueryParams = []QueryStr{
