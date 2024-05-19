@@ -1,4 +1,4 @@
-package param
+package srch
 
 import (
 	"errors"

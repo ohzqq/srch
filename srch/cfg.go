@@ -1,8 +1,9 @@
-package param
+package srch
 
 import (
 	"encoding/json"
 	"net/url"
+	"path/filepath"
 )
 
 type Cfg struct {
@@ -112,4 +113,34 @@ func unmarshalFilter(dec string) ([]any, error) {
 		return nil, err
 	}
 	return f, nil
+}
+
+func parseURL(uri string) (*url.URL, error) {
+	var err error
+	u := &url.URL{}
+	if uri == "" {
+		return u, nil
+	}
+	u, err = url.Parse(uri)
+	if err != nil {
+		return u, err
+	}
+	if u.Scheme == "file" {
+		u.Path = filepath.Join("/", u.Host, u.Path)
+	}
+	return u, nil
+}
+
+func parseSrchAttrs(attrs []string) []string {
+	switch len(attrs) {
+	case 0:
+		return []string{"*"}
+	case 1:
+		if attrs[0] == "" {
+			return []string{"*"}
+		}
+		fallthrough
+	default:
+		return ParseQueryStrings(attrs)
+	}
 }
