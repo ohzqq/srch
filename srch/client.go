@@ -35,6 +35,16 @@ func NewClient(settings any) (*Client, error) {
 		return nil, fmt.Errorf("param decoding error: %w\n", err)
 	}
 
+	ds, err := NewDatastorage(client.Client.URL)
+	if err != nil {
+		return nil, fmt.Errorf("new datastorage error: %w\n", err)
+	}
+
+	err = client.SetDatastorage(ds)
+	if err != nil {
+		return nil, fmt.Errorf("new set datastorage error: %w\n", err)
+	}
+
 	return client, nil
 }
 
@@ -46,6 +56,15 @@ func (client *Client) init() error {
 			return fmt.Errorf("db.getCfg CreateTable error\n%w\n", err)
 		}
 	}
+	return nil
+}
+
+func (client *Client) SetDatastorage(ds hare.Datastorage) error {
+	h, err := hare.New(ds)
+	if err != nil {
+		return err
+	}
+	client.Database = h
 	return nil
 }
 
