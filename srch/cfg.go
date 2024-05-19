@@ -9,7 +9,7 @@ import (
 type Cfg struct {
 	Client *ClientCfg
 	Search *Search
-	Idx    *Idx
+	Idx    *IdxCfg
 }
 
 func NewCfg() *Cfg {

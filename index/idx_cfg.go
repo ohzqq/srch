@@ -2,13 +2,12 @@ package index
 
 import (
 	"github.com/ohzqq/hare"
-	"github.com/ohzqq/srch/doc"
 	"github.com/ohzqq/srch/param"
 )
 
 type IdxCfg struct {
-	ID      int         `json:"_id"`
-	Mapping doc.Mapping `json:"mapping"`
+	ID      int     `json:"_id"`
+	Mapping Mapping `json:"mapping"`
 
 	*param.Cfg
 }
@@ -19,7 +18,7 @@ func NewCfg() *IdxCfg {
 	}
 
 	return cfg.
-		SetMapping(doc.DefaultMapping()).
+		SetMapping(DefaultMapping()).
 		SetName(defaultTbl)
 }
 
@@ -51,7 +50,7 @@ func (cfg *IdxCfg) SetName(tbl string) *IdxCfg {
 	return cfg
 }
 
-func (cfg *IdxCfg) SetMapping(m doc.Mapping) *IdxCfg {
+func (cfg *IdxCfg) SetMapping(m Mapping) *IdxCfg {
 	cfg.Mapping = m
 	return cfg
 }
@@ -61,7 +60,7 @@ func (cfg *IdxCfg) SetCustomID(id string) *IdxCfg {
 	return cfg
 }
 
-func NewCfgTbl(tbl string, m doc.Mapping, id string) *IdxCfg {
+func NewCfgTbl(tbl string, m Mapping, id string) *IdxCfg {
 	return NewCfg().
 		SetMapping(m).
 		SetCustomID(id).
@@ -70,49 +69,22 @@ func NewCfgTbl(tbl string, m doc.Mapping, id string) *IdxCfg {
 
 func DefaultCfg() *IdxCfg {
 	return NewCfg().
-		SetMapping(doc.DefaultMapping()).
+		SetMapping(DefaultMapping()).
 		SetName(defaultTbl)
 }
 
-func NewCfgFromParams(settings string) (*IdxCfg, error) {
-	params, err := param.Parse(settings)
-	if err != nil {
-		return nil, err
-	}
-	cfg := NewCfgTbl(params.Index, NewMappingFromParams(params), params.UID)
-	return cfg, nil
-}
-
-func NewMappingFromParamCfg(cfg *param.Cfg) doc.Mapping {
+func NewMappingFromParamCfg(cfg *Cfg) Mapping {
 	if !cfg.HasSrchAttr() && !cfg.HasFacetAttr() {
-		return doc.DefaultMapping()
+		return DefaultMapping()
 	}
 
-	m := doc.NewMapping()
+	m := NewMapping()
 
 	for _, attr := range cfg.Idx.SrchAttr {
 		m.AddFulltext(attr)
 	}
 
 	for _, attr := range cfg.Idx.FacetAttr {
-		m.AddKeywords(attr)
-	}
-
-	return m
-}
-
-func NewMappingFromParams(params *param.Params) doc.Mapping {
-	if !params.Has(param.SrchAttr) && !params.Has(param.FacetAttr) {
-		return doc.DefaultMapping()
-	}
-
-	m := doc.NewMapping()
-
-	for _, attr := range params.SrchAttr {
-		m.AddFulltext(attr)
-	}
-
-	for _, attr := range params.FacetAttr {
 		m.AddKeywords(attr)
 	}
 
