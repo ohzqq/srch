@@ -7,8 +7,8 @@ import (
 )
 
 func TestClientInitStr(t *testing.T) {
-	for _, test := range param.ParamTests() {
-		client, err := New(test.String())
+	for query, test := range param.ParamTests() {
+		client, err := New(query.String())
 		if err != nil {
 			t.Fatal(err)
 		}
