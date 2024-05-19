@@ -5,7 +5,6 @@ import (
 	"net/url"
 
 	"github.com/ohzqq/hare"
-	"github.com/ohzqq/sp"
 )
 
 const (
@@ -16,7 +15,7 @@ const (
 type Client struct {
 	*hare.Database
 	*url.URL `json:"-"`
-	*ClientCfg
+	*Cfg
 
 	tbl *hare.Table
 }
@@ -24,9 +23,10 @@ type Client struct {
 func NewClient(settings any) (*Client, error) {
 	client := &Client{
 		URL: &url.URL{},
+		Cfg: NewCfg(),
 	}
 
-	err := Decode(settings, client)
+	err := client.Decode(settings)
 	if err != nil {
 		return nil, fmt.Errorf("param decoding error: %w\n", err)
 	}
@@ -49,7 +49,7 @@ func NewClient(settings any) (*Client, error) {
 	return client, nil
 }
 
-func (client *ClientCfg) init() error {
+func (client *Client) init() error {
 	//Create settings table if it doesn't exist
 	if !client.Database.TableExists(settingsTbl) {
 		err := client.Database.CreateTable(settingsTbl)
@@ -60,31 +60,11 @@ func (client *ClientCfg) init() error {
 	return nil
 }
 
-func (client *ClientCfg) SetDatastorage(ds hare.Datastorage) error {
+func (client *Client) SetDatastorage(ds hare.Datastorage) error {
 	h, err := hare.New(ds)
 	if err != nil {
 		return err
 	}
 	client.Database = h
 	return nil
-}
-
-func (client *ClientCfg) Decode(v url.Values) error {
-	err := sp.Decode(v, client)
-	if err != nil {
-		return err
-	}
-	client.URL, err = parseURL(client.DB)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (client *ClientCfg) Encode() (url.Values, error) {
-	v, err := sp.Encode(client)
-	if err != nil {
-		return nil, err
-	}
-	return v, nil
 }

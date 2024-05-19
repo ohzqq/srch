@@ -4,6 +4,7 @@ import (
 	"net/url"
 
 	"github.com/ohzqq/hare"
+	"github.com/ohzqq/sp"
 )
 
 type ClientCfg struct {
@@ -22,4 +23,24 @@ func NewClientCfg() *ClientCfg {
 		Index: "default",
 		URL:   &url.URL{},
 	}
+}
+
+func (client *ClientCfg) Decode(v url.Values) error {
+	err := sp.Decode(v, client)
+	if err != nil {
+		return err
+	}
+	client.URL, err = parseURL(client.DB)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (client *ClientCfg) Encode() (url.Values, error) {
+	v, err := sp.Encode(client)
+	if err != nil {
+		return nil, err
+	}
+	return v, nil
 }
