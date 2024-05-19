@@ -6,27 +6,9 @@ import (
 	"github.com/ohzqq/srch/param"
 )
 
-func TestClientInit(t *testing.T) {
-	for _, test := range cfgTests {
-		cfg := param.NewClient()
-		err := param.Decode(test.str(), cfg)
-		if err != nil {
-			t.Error(err)
-		}
-		if cfg.DB != "" {
-			if cfg.Path != hareTestPath {
-				t.Errorf("got %v, wanted %v\n", cfg.Path, hareTestPath)
-			}
-			if cfg.Scheme != "file" {
-				t.Errorf("got %v, wanted %v\n", cfg.Scheme, "file")
-			}
-		}
-	}
-}
-
 func TestClientInitStr(t *testing.T) {
-	for _, test := range cfgTests {
-		client, err := New(test.str())
+	for _, test := range param.ParamTests() {
+		client, err := New(test.String())
 		if err != nil {
 			t.Fatal(err)
 		}
