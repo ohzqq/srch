@@ -1,6 +1,7 @@
 package index
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/ohzqq/srch/param"
@@ -23,11 +24,11 @@ func TestClientInitStr(t *testing.T) {
 		//}
 
 		if !client.TableExists(settingsTbl) {
-			t.Error(test.msg("_settings table doesn't exist"))
+			t.Error(test.Err("", errors.New("_settings table doesn't exist")))
 		}
 		_, err = client.GetIdxCfg(client.Client.Index)
 		if err != nil {
-			t.Error(test.err(client.Client.Index, test.Cfg.Index, err))
+			t.Error(test.Err(test.Msg("", client.Client.Index, test.Cfg.IndexName()), err))
 		}
 	}
 }
