@@ -16,6 +16,14 @@ const (
 type Client struct {
 	*hare.Database
 	*url.URL `json:"-"`
+	*ClientCfg
+
+	tbl *hare.Table
+}
+
+type ClientCfg struct {
+	*hare.Database
+	*url.URL `json:"-"`
 
 	tbl *hare.Table
 
@@ -26,8 +34,7 @@ type Client struct {
 
 func NewClient(settings any) (*Client, error) {
 	client := &Client{
-		Index: "default",
-		URL:   &url.URL{},
+		URL: &url.URL{},
 	}
 
 	err := Decode(settings, client)
@@ -45,21 +52,26 @@ func NewClient(settings any) (*Client, error) {
 		return nil, fmt.Errorf("new set datastorage error: %w\n", err)
 	}
 
+	err = client.init()
+	if err != nil {
+		return nil, fmt.Errorf("client init error: %w\n", err)
+	}
+
 	return client, nil
 }
 
-func (client *Client) init() error {
+func (client *ClientCfg) init() error {
 	//Create settings table if it doesn't exist
 	if !client.Database.TableExists(settingsTbl) {
 		err := client.Database.CreateTable(settingsTbl)
 		if err != nil {
-			return fmt.Errorf("db.getCfg CreateTable error\n%w\n", err)
+			return fmt.Errorf("client.init error\n%w\n", err)
 		}
 	}
 	return nil
 }
 
-func (client *Client) SetDatastorage(ds hare.Datastorage) error {
+func (client *ClientCfg) SetDatastorage(ds hare.Datastorage) error {
 	h, err := hare.New(ds)
 	if err != nil {
 		return err
@@ -68,7 +80,7 @@ func (client *Client) SetDatastorage(ds hare.Datastorage) error {
 	return nil
 }
 
-func (client *Client) Decode(v url.Values) error {
+func (client *ClientCfg) Decode(v url.Values) error {
 	err := sp.Decode(v, client)
 	if err != nil {
 		return err
@@ -80,7 +92,7 @@ func (client *Client) Decode(v url.Values) error {
 	return nil
 }
 
-func (client *Client) Encode() (url.Values, error) {
+func (client *ClientCfg) Encode() (url.Values, error) {
 	v, err := sp.Encode(client)
 	if err != nil {
 		return nil, err

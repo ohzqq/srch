@@ -129,7 +129,7 @@ func ParamTests() map[QueryStr]CfgTest {
 				Idx: &Idx{
 					SrchAttr: []string{"*"},
 				},
-				Client: &Client{
+				Client: &ClientCfg{
 					Index: "default",
 				},
 				Search: &Search{
@@ -142,7 +142,7 @@ func ParamTests() map[QueryStr]CfgTest {
 				Idx: &Idx{
 					SrchAttr: []string{"*"},
 				},
-				Client: &Client{
+				Client: &ClientCfg{
 					Index: "default",
 				},
 				Search: &Search{
@@ -155,7 +155,7 @@ func ParamTests() map[QueryStr]CfgTest {
 				Idx: &Idx{
 					SrchAttr: []string{"title"},
 				},
-				Client: &Client{
+				Client: &ClientCfg{
 					Index: "default",
 				},
 				Search: &Search{
@@ -170,7 +170,7 @@ func ParamTests() map[QueryStr]CfgTest {
 					SortAttr: []string{"tags"},
 					Data:     DataTestURL,
 				},
-				Client: &Client{
+				Client: &ClientCfg{
 					Index: "default",
 					DB:    HareTestURL,
 				},
@@ -187,7 +187,7 @@ func ParamTests() map[QueryStr]CfgTest {
 					FacetAttr: []string{"tags", "authors", "series", "narrators"},
 					Data:      DataTestURL,
 				},
-				Client: &Client{
+				Client: &ClientCfg{
 					Index: "default",
 					DB:    HareTestURL,
 				},
@@ -204,7 +204,7 @@ func ParamTests() map[QueryStr]CfgTest {
 					FacetAttr: []string{"tags", "authors", "series", "narrators"},
 					Data:      DataTestURL,
 				},
-				Client: &Client{
+				Client: &ClientCfg{
 					Index: "default",
 					DB:    HareTestURL,
 				},
@@ -221,7 +221,7 @@ func ParamTests() map[QueryStr]CfgTest {
 					FacetAttr: []string{"tags", "authors", "series", "narrators"},
 					Data:      DataTestURL,
 				},
-				Client: &Client{
+				Client: &ClientCfg{
 					Index: "default",
 					DB:    HareTestURL,
 					UID:   "id",
@@ -239,7 +239,7 @@ func ParamTests() map[QueryStr]CfgTest {
 					FacetAttr: []string{"tags", "authors", "series", "narrators"},
 					Data:      DataTestURL,
 				},
-				Client: &Client{
+				Client: &ClientCfg{
 					Index: "audiobooks",
 					DB:    HareTestURL,
 					UID:   "id",
@@ -257,7 +257,7 @@ func ParamTests() map[QueryStr]CfgTest {
 					FacetAttr: []string{"tags", "authors", "series", "narrators"},
 					Data:      DataTestURL,
 				},
-				Client: &Client{
+				Client: &ClientCfg{
 					Index: "audiobooks",
 					DB:    HareTestURL,
 					UID:   "id",
@@ -275,7 +275,7 @@ func ParamTests() map[QueryStr]CfgTest {
 					FacetAttr: []string{"tags", "authors", "series", "narrators"},
 					Data:      DataTestURL,
 				},
-				Client: &Client{
+				Client: &ClientCfg{
 					Index: "audiobooks",
 					DB:    HareTestURL,
 					UID:   "id",
@@ -294,7 +294,7 @@ func ParamTests() map[QueryStr]CfgTest {
 					FacetAttr: []string{"tags", "authors", "series", "narrators"},
 					Data:      DataTestURL,
 				},
-				Client: &Client{
+				Client: &ClientCfg{
 					Index: "audiobooks",
 					DB:    HareTestURL,
 					UID:   "id",
@@ -314,7 +314,7 @@ func ParamTests() map[QueryStr]CfgTest {
 					FacetAttr: []string{"tags", "authors", "series", "narrators"},
 					Data:      DataTestURL,
 				},
-				Client: &Client{
+				Client: &ClientCfg{
 					Index: "audiobooks",
 					DB:    HareTestURL,
 					UID:   "id",
@@ -335,7 +335,7 @@ func ParamTests() map[QueryStr]CfgTest {
 					FacetAttr: []string{"tags", "authors", "series", "narrators"},
 					Data:      DataTestURL,
 				},
-				Client: &Client{
+				Client: &ClientCfg{
 					Index: "audiobooks",
 					DB:    HareTestURL,
 					UID:   "id",

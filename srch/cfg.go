@@ -7,7 +7,7 @@ import (
 )
 
 type Cfg struct {
-	Client *Client
+	Client *ClientCfg
 	Search *Search
 	Idx    *Idx
 }
