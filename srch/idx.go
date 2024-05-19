@@ -2,15 +2,11 @@ package srch
 
 import (
 	"net/url"
-	"slices"
 
 	"github.com/ohzqq/sp"
 )
 
-type Idx struct {
-	*url.URL `json:"-"`
-	*ClientCfg
-
+type IdxCfg struct {
 	// Index Settings
 	SrchAttr  []string `query:"searchableAttributes" json:"searchableAttributes,omitempty" mapstructure:"searchable_attributes" qs:"searchableAttributes,omitempty"`
 	FacetAttr []string `query:"attributesForFaceting,omitempty" json:"attributesForFaceting,omitempty" mapstructure:"attributes_for_faceting" qs:"attributesForFaceting,omitempty"`
@@ -18,15 +14,13 @@ type Idx struct {
 	Data      string   `json:"-" mapstructure:"path" qs:"data"`
 }
 
-func NewIdx() *Idx {
-	client := NewClientCfg()
-	return &Idx{
-		ClientCfg: client,
-		SrchAttr:  []string{"*"},
+func NewIdx() *IdxCfg {
+	return &IdxCfg{
+		SrchAttr: []string{"*"},
 	}
 }
 
-func (cfg *Idx) Decode(u url.Values) error {
+func (cfg *IdxCfg) Decode(u url.Values) error {
 	err := sp.Decode(u, cfg)
 	if err != nil {
 		return err
@@ -41,25 +35,25 @@ func (cfg *Idx) Decode(u url.Values) error {
 	return nil
 }
 
-func (cfg *Idx) Encode() (url.Values, error) {
+func (cfg *IdxCfg) Encode() (url.Values, error) {
 	return sp.Encode(cfg)
 }
 
-func CfgEqual(old, cur *Idx) bool {
-	if !slices.Equal(old.SrchAttr, cur.SrchAttr) {
-		return false
-	}
-	if !slices.Equal(old.FacetAttr, cur.FacetAttr) {
-		return false
-	}
-	if !slices.Equal(old.SortAttr, cur.SortAttr) {
-		return false
-	}
-	if old.Index != cur.Index {
-		return false
-	}
-	if old.UID != cur.UID {
-		return false
-	}
-	return true
-}
+//func CfgEqual(old, cur *Idx) bool {
+//  if !slices.Equal(old.SrchAttr, cur.SrchAttr) {
+//    return false
+//  }
+//  if !slices.Equal(old.FacetAttr, cur.FacetAttr) {
+//    return false
+//  }
+//  if !slices.Equal(old.SortAttr, cur.SortAttr) {
+//    return false
+//  }
+//  if old.Index != cur.Index {
+//    return false
+//  }
+//  if old.UID != cur.UID {
+//    return false
+//  }
+//  return true
+//}

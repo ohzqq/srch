@@ -1,4 +1,4 @@
-package doc
+package srch
 
 import (
 	"slices"
@@ -36,18 +36,18 @@ func TestNewMapping(t *testing.T) {
 	}
 }
 
-//func TestMappingParams(t *testing.T) {
-//  var testMapping = map[analyzer.Analyzer][]string{
-//    analyzer.Standard: []string{"title", "comments", "tags"},
-//    analyzer.Keyword:  []string{"tags", "authors", "series", "narrators"},
-//  }
+func TestMappingParams(t *testing.T) {
+	var testMapping = map[analyzer.Analyzer][]string{
+		analyzer.Standard: []string{"title", "comments", "tags"},
+		analyzer.Keyword:  []string{"tags", "authors", "series", "narrators"},
+	}
 
-//  m := NewMappingFromParams(testParams())
+	m := NewMappingFromParams(testParams())
 
-//  for ana, fields := range m {
-//    want := testMapping[ana]
-//    if !slices.Equal(fields, want) {
-//      t.Errorf("got %#v\n, wanted %#v\n", fields, want)
-//    }
-//  }
-//}
+	for ana, fields := range m {
+		want := testMapping[ana]
+		if !slices.Equal(fields, want) {
+			t.Errorf("got %#v\n, wanted %#v\n", fields, want)
+		}
+	}
+}

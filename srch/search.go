@@ -25,14 +25,10 @@ type Search struct {
 	URI          string   `json:"-" mapstructure:"path" qs:"url"`
 
 	*url.URL `json:"-"`
-	*ClientCfg
 }
 
 func NewSearch() *Search {
-	client := NewClientCfg()
-	return &Search{
-		ClientCfg: client,
-	}
+	return &Search{}
 }
 
 func (s *Search) Decode(u url.Values) error {
