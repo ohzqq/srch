@@ -12,7 +12,7 @@ import (
 
 const hareTestPath = `/home/mxb/code/srch/testdata/hare`
 const hareTestURL = `file://home/mxb/code/srch/testdata/hare`
-const hareTestQuery = `?url=file://home/mxb/code/srch/testdata/hare/`
+const hareTestQuery = `?url=file://home/mxb/code/srch/testdata/hare`
 
 var defTbls = []string{"_settings"}
 
@@ -36,12 +36,11 @@ var cfgTests = []test{
 		},
 	},
 	test{
-		query: `?searchableAttributes=title&url=file://home/mxb/code/srch/testdata/hare/&sortableAttributes=tags`,
+		query: `?searchableAttributes=title&sortableAttributes=tags`,
 		Cfg: &param.Idx{
 			SrchAttr: []string{"title"},
 			Client: &param.Client{
 				Index: "default",
-				DB:    `file://home/mxb/code/srch/testdata/hare/`,
 			},
 			SortAttr: []string{"tags"},
 		},
