@@ -127,7 +127,7 @@ func TestGetIdx(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	if idx.Index != defaultTbl {
-		t.Errorf("got %v, wanted %v\n", idx.Index, defaultTbl)
+	if idx.IndexName() != defaultTbl {
+		t.Errorf("got %v, wanted %v\n", idx.IndexName(), defaultTbl)
 	}
 }

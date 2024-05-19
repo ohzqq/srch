@@ -10,12 +10,12 @@ type IdxCfg struct {
 	ID      int         `json:"_id"`
 	Mapping doc.Mapping `json:"mapping"`
 
-	*param.Idx
+	*param.Cfg
 }
 
 func NewCfg() *IdxCfg {
 	cfg := &IdxCfg{
-		Idx: param.NewIdx(),
+		Cfg: param.NewCfg(),
 	}
 
 	return cfg.
@@ -23,31 +23,31 @@ func NewCfg() *IdxCfg {
 		SetName(defaultTbl)
 }
 
-func NewCfgParams(params *param.Idx) *IdxCfg {
+func NewCfgParams(params *param.Cfg) *IdxCfg {
 	cfg := &IdxCfg{
-		Idx: params,
+		Cfg: params,
 	}
 
-	return cfg.SetName(cfg.Index).
-		SetMapping(NewMappingFromParamCfg(cfg.Idx)).
-		SetCustomID(cfg.UID)
+	return cfg.SetName(cfg.IndexName()).
+		SetMapping(NewMappingFromParamCfg(cfg.Cfg)).
+		SetCustomID(cfg.Client.UID)
 }
 
 func (cfg *IdxCfg) Parse(v any) error {
-	err := param.Decode(v, cfg.Idx)
+	err := cfg.Cfg.Decode(v)
 	if err != nil {
 		return err
 	}
 
-	cfg.SetName(cfg.Index).
-		SetMapping(NewMappingFromParamCfg(cfg.Idx)).
-		SetCustomID(cfg.UID)
+	cfg.SetName(cfg.IndexName()).
+		SetMapping(NewMappingFromParamCfg(cfg.Cfg)).
+		SetCustomID(cfg.Client.UID)
 
 	return nil
 }
 
 func (cfg *IdxCfg) SetName(tbl string) *IdxCfg {
-	cfg.Index = tbl
+	cfg.Client.Index = tbl
 	return cfg
 }
 
@@ -57,7 +57,7 @@ func (cfg *IdxCfg) SetMapping(m doc.Mapping) *IdxCfg {
 }
 
 func (cfg *IdxCfg) SetCustomID(id string) *IdxCfg {
-	cfg.UID = id
+	cfg.Client.UID = id
 	return cfg
 }
 
@@ -83,18 +83,18 @@ func NewCfgFromParams(settings string) (*IdxCfg, error) {
 	return cfg, nil
 }
 
-func NewMappingFromParamCfg(cfg *param.Idx) doc.Mapping {
+func NewMappingFromParamCfg(cfg *param.Cfg) doc.Mapping {
 	if !cfg.HasSrchAttr() && !cfg.HasFacetAttr() {
 		return doc.DefaultMapping()
 	}
 
 	m := doc.NewMapping()
 
-	for _, attr := range cfg.SrchAttr {
+	for _, attr := range cfg.Idx.SrchAttr {
 		m.AddFulltext(attr)
 	}
 
-	for _, attr := range cfg.FacetAttr {
+	for _, attr := range cfg.Idx.FacetAttr {
 		m.AddKeywords(attr)
 	}
 
@@ -120,7 +120,7 @@ func NewMappingFromParams(params *param.Params) doc.Mapping {
 }
 
 func (tbl *IdxCfg) WithCustomID(name string) *IdxCfg {
-	tbl.UID = name
+	tbl.Client.UID = name
 	return tbl
 }
 

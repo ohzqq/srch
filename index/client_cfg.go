@@ -48,7 +48,7 @@ func (cfg *ClientCfg) Find(name string) (*IdxCfg, error) {
 		if err != nil {
 			return nil, err
 		}
-		if idx.Index == name {
+		if idx.IndexName() == name {
 			return idx, nil
 		}
 	}
