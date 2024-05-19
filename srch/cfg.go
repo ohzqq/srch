@@ -15,7 +15,7 @@ type Cfg struct {
 func NewCfg() *Cfg {
 	client := NewClientCfg()
 	return &Cfg{
-		Idx:    NewIdx(),
+		Idx:    NewIdxCfg(),
 		Search: NewSearch(),
 		Client: client,
 	}

@@ -7,6 +7,10 @@ import (
 )
 
 type IdxCfg struct {
+	ID      int     `json:"_id"`
+	Mapping Mapping `json:"mapping"`
+	Cfg     *ClientCfg
+
 	// Index Settings
 	SrchAttr  []string `query:"searchableAttributes" json:"searchableAttributes,omitempty" mapstructure:"searchable_attributes" qs:"searchableAttributes,omitempty"`
 	FacetAttr []string `query:"attributesForFaceting,omitempty" json:"attributesForFaceting,omitempty" mapstructure:"attributes_for_faceting" qs:"attributesForFaceting,omitempty"`
@@ -14,10 +18,27 @@ type IdxCfg struct {
 	Data      string   `json:"-" mapstructure:"path" qs:"data"`
 }
 
-func NewIdx() *IdxCfg {
-	return &IdxCfg{
+func NewIdxCfg() *IdxCfg {
+	cfg := &IdxCfg{
 		SrchAttr: []string{"*"},
 	}
+	return cfg.
+		SetMapping(DefaultMapping())
+}
+
+func (cfg *IdxCfg) SetMapping(m Mapping) *IdxCfg {
+	cfg.Mapping = m
+	return cfg
+}
+
+func (cfg *IdxCfg) SetName(tbl string) *IdxCfg {
+	cfg.Cfg.Index = tbl
+	return cfg
+}
+
+func (cfg *IdxCfg) SetCustomID(id string) *IdxCfg {
+	cfg.Cfg.UID = id
+	return cfg
 }
 
 func (cfg *IdxCfg) Decode(u url.Values) error {
@@ -57,3 +78,16 @@ func (cfg *IdxCfg) Encode() (url.Values, error) {
 //  }
 //  return true
 //}
+
+func NewCfgTbl(tbl string, m Mapping, id string) *IdxCfg {
+	return NewIdxCfg().
+		SetMapping(m).
+		SetCustomID(id).
+		SetName(tbl)
+}
+
+func DefaultIdxCfg() *IdxCfg {
+	return NewIdxCfg().
+		SetMapping(DefaultMapping()).
+		SetName(defaultTbl)
+}
