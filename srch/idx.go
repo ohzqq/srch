@@ -9,7 +9,7 @@ import (
 
 type Idx struct {
 	*url.URL `json:"-"`
-	*Client
+	*ClientCfg
 
 	// Index Settings
 	SrchAttr  []string `query:"searchableAttributes" json:"searchableAttributes,omitempty" mapstructure:"searchable_attributes" qs:"searchableAttributes,omitempty"`
@@ -19,10 +19,10 @@ type Idx struct {
 }
 
 func NewIdx() *Idx {
-	client, _ := NewClient("")
+	client := NewClientCfg()
 	return &Idx{
-		Client:   client,
-		SrchAttr: []string{"*"},
+		ClientCfg: client,
+		SrchAttr:  []string{"*"},
 	}
 }
 
