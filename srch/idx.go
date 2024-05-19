@@ -19,8 +19,9 @@ type Idx struct {
 }
 
 func NewIdx() *Idx {
+	client, _ := NewClient("")
 	return &Idx{
-		Client:   NewClient(),
+		Client:   client,
 		SrchAttr: []string{"*"},
 	}
 }

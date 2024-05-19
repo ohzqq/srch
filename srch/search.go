@@ -29,8 +29,9 @@ type Search struct {
 }
 
 func NewSearch() *Search {
+	client, _ := NewClient("")
 	return &Search{
-		Client: NewClient(),
+		Client: client,
 	}
 }
 

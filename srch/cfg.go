@@ -13,10 +13,11 @@ type Cfg struct {
 }
 
 func NewCfg() *Cfg {
+	client, _ := NewClient("")
 	return &Cfg{
 		Idx:    NewIdx(),
 		Search: NewSearch(),
-		Client: NewClient(),
+		Client: client,
 	}
 }
 
