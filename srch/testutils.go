@@ -101,7 +101,18 @@ func (q QueryStr) URL() *url.URL {
 	return u
 }
 
-func sliceErr(q string, got, want []string) error {
+func strSliceErr(q string, got, want []string) error {
+	slices.Sort(got)
+	slices.Sort(want)
+	if !slices.Equal(got, want) {
+		return err(msg(q, got, want), errors.New("slices not equal"))
+	}
+	return nil
+}
+
+func intSliceErr(q string, got, want []int) error {
+	slices.Sort(got)
+	slices.Sort(want)
 	if !slices.Equal(got, want) {
 		return err(msg(q, got, want), errors.New("slices not equal"))
 	}

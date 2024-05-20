@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
-	"slices"
 	"testing"
 )
 
@@ -33,6 +32,11 @@ func TestClientMem(t *testing.T) {
 		}
 
 		err = test.listTbls(query)
+		if err != nil {
+			t.Error(err)
+		}
+
+		err = test.getClientCfg(query)
 		if err != nil {
 			t.Error(err)
 		}
@@ -69,10 +73,37 @@ func (t clientTest) settingsExists(q QueryStr) error {
 	return nil
 }
 
+func (t clientTest) getClientCfg(q QueryStr) error {
+	err := t.got.getCfgTbl()
+	err = t.want.getCfgTbl()
+	terr := errors.New(msg(q.String(), t.got, t.want))
+	if err != nil {
+		return terr
+	}
+
+	err = t.testIDs(q, terr)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (t clientTest) testIDs(q QueryStr, terr error) error {
+	gIDs, err := t.got.IdxIDs()
+	if err != nil {
+		return terr
+	}
+	wIDs, err := t.want.IdxIDs()
+	if err != nil {
+		return terr
+	}
+
+	return intSliceErr(q.String(), gIDs, wIDs)
+}
+
 func (t clientTest) listTbls(q QueryStr) error {
 	got := t.got.Database.TableNames()
 	want := t.want.Database.TableNames()
-	slices.Sort(got)
-	slices.Sort(want)
-	return sliceErr(q.String(), got, want)
+	return strSliceErr(q.String(), got, want)
 }

@@ -8,7 +8,7 @@ import (
 )
 
 type ClientCfg struct {
-	tbl *hare.Table
+	*hare.Table
 
 	DB    string `json:"-" mapstructure:"path" qs:"db"`
 	Index string `query:"index,omitempty" json:"index,omitempty" mapstructure:"index" qs:"index"`
@@ -21,16 +21,16 @@ func NewClientCfg() *ClientCfg {
 	}
 }
 
-func (client *ClientCfg) Decode(v url.Values) error {
-	err := sp.Decode(v, client)
+func (cfg *ClientCfg) Decode(v url.Values) error {
+	err := sp.Decode(v, cfg)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (client *ClientCfg) Encode() (url.Values, error) {
-	v, err := sp.Encode(client)
+func (cfg *ClientCfg) Encode() (url.Values, error) {
+	v, err := sp.Encode(cfg)
 	if err != nil {
 		return nil, err
 	}

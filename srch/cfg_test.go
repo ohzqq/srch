@@ -98,15 +98,15 @@ func TestDecodeCfgStr(t *testing.T) {
 }
 
 func (ct cfgTest) SrchCfg(got, want *Search) error {
-	err := sliceErr("search.RtrvAttr", got.RtrvAttr, want.RtrvAttr)
+	err := strSliceErr("search.RtrvAttr", got.RtrvAttr, want.RtrvAttr)
 	if err != nil {
 		return err
 	}
-	err = sliceErr("search.Facets", got.Facets, want.Facets)
+	err = strSliceErr("search.Facets", got.Facets, want.Facets)
 	if err != nil {
 		return err
 	}
-	err = sliceErr("search.FacetFltr", got.FacetFltr, want.FacetFltr)
+	err = strSliceErr("search.FacetFltr", got.FacetFltr, want.FacetFltr)
 	if err != nil {
 		return err
 	}
@@ -114,15 +114,15 @@ func (ct cfgTest) SrchCfg(got, want *Search) error {
 }
 
 func (ct cfgTest) IdxCfg(got, want *IdxCfg) error {
-	err := sliceErr("search.SrchAttr", got.SrchAttr, want.SrchAttr)
+	err := strSliceErr("search.SrchAttr", got.SrchAttr, want.SrchAttr)
 	if err != nil {
 		return err
 	}
-	err = sliceErr("search.FacetAttr", got.FacetAttr, want.FacetAttr)
+	err = strSliceErr("search.FacetAttr", got.FacetAttr, want.FacetAttr)
 	if err != nil {
 		return err
 	}
-	err = sliceErr("search.SortAttr", got.SortAttr, want.SortAttr)
+	err = strSliceErr("search.SortAttr", got.SortAttr, want.SortAttr)
 	if err != nil {
 		return err
 	}

@@ -52,6 +52,19 @@ func (client *Client) init() error {
 	return nil
 }
 
+func (client *Client) getCfgTbl() error {
+	tbl, err := client.Database.GetTable(settingsTbl)
+	if err != nil {
+		return err
+	}
+	client.SetTbl(tbl)
+	return nil
+}
+
+func (client *Client) IdxIDs() ([]int, error) {
+	return client.tbl.IDs()
+}
+
 func (client *Client) SetDatastorage(ds hare.Datastorage) error {
 	h, err := hare.New(ds)
 	if err != nil {
@@ -59,4 +72,9 @@ func (client *Client) SetDatastorage(ds hare.Datastorage) error {
 	}
 	client.Database = h
 	return nil
+}
+
+func (cfg *Client) SetTbl(tbl *hare.Table) *Client {
+	cfg.tbl = tbl
+	return cfg
 }
