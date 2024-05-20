@@ -7,8 +7,6 @@ import (
 )
 
 type IdxCfg struct {
-	*Cfg
-
 	ID      int     `json:"_id"`
 	Mapping Mapping `json:"mapping"`
 

@@ -8,9 +8,6 @@ import (
 )
 
 type ClientCfg struct {
-	*hare.Database
-	*url.URL `json:"-"`
-
 	tbl *hare.Table
 
 	DB    string `json:"-" mapstructure:"path" qs:"db"`
@@ -21,16 +18,11 @@ type ClientCfg struct {
 func NewClientCfg() *ClientCfg {
 	return &ClientCfg{
 		Index: "default",
-		URL:   &url.URL{},
 	}
 }
 
 func (client *ClientCfg) Decode(v url.Values) error {
 	err := sp.Decode(v, client)
-	if err != nil {
-		return err
-	}
-	client.URL, err = parseURL(client.DB)
 	if err != nil {
 		return err
 	}
