@@ -51,16 +51,23 @@ func (t reqTest) getClientWant(idx int) *Client {
 	return client
 }
 
-func (t reqTest) clientWant(idx int) *Client {
-	return t.getClientWant(idx)
-}
-
-func (t reqTest) clientTest() (clientTest, error) {
-	client, err := t.Client()
+func (t reqTest) clientTest(idx int) (clientTest, error) {
+	g, err := t.Client()
 	if err != nil {
 		return clientTest{}, err
 	}
-	return clientTest{Client: client}, nil
+	return clientTest{
+		got:  g,
+		want: t.getClientWant(idx),
+	}, nil
+}
+
+func (t reqTest) clientWant(idx int) clientTest {
+	return clientTest{Client: t.getClientWant(idx)}
+}
+
+func (t reqTest) clientGot() (*Client, error) {
+	return t.Client()
 }
 
 func (t reqTest) getTestIdx(q QueryStr) int {
