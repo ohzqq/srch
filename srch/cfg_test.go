@@ -2,6 +2,7 @@ package srch
 
 import (
 	"errors"
+	"fmt"
 	"testing"
 )
 
@@ -126,6 +127,7 @@ func (ct cfgTest) IdxCfg(got, want *IdxCfg) error {
 	if err != nil {
 		return err
 	}
+	fmt.Printf("got map %#v\nwant map %#v\n", got.Mapping, want.Mapping)
 	return nil
 }
 

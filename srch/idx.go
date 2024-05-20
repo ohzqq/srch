@@ -3,6 +3,7 @@ package srch
 import (
 	"net/url"
 
+	"github.com/ohzqq/hare"
 	"github.com/ohzqq/sp"
 )
 
@@ -42,11 +43,30 @@ func (cfg *IdxCfg) Decode(u url.Values) error {
 	if len(cfg.SortAttr) > 0 {
 		cfg.SortAttr = ParseQueryStrings(cfg.SortAttr)
 	}
+	cfg.SetMapping(cfg.mapParams())
 	return nil
 }
 
 func (cfg *IdxCfg) Encode() (url.Values, error) {
 	return sp.Encode(cfg)
+}
+
+func (cfg *IdxCfg) mapParams() Mapping {
+	m := NewMapping()
+
+	for _, attr := range cfg.SrchAttr {
+		m.AddFulltext(attr)
+	}
+
+	for _, attr := range cfg.FacetAttr {
+		m.AddKeywords(attr)
+	}
+
+	for _, attr := range cfg.SortAttr {
+		m.AddKeywords(attr)
+	}
+
+	return m
 }
 
 //func CfgEqual(old, cur *Idx) bool {
@@ -76,4 +96,17 @@ func NewCfgTbl(tbl string, m Mapping, id string) *IdxCfg {
 func DefaultIdxCfg() *IdxCfg {
 	return NewIdxCfg().
 		SetMapping(DefaultMapping())
+}
+
+func (c *IdxCfg) SetID(id int) {
+	c.ID = id
+}
+
+func (c *IdxCfg) GetID() int {
+	return c.ID
+}
+
+func (c *IdxCfg) AfterFind(db *hare.Database) error {
+	//println("after find")
+	return nil
 }

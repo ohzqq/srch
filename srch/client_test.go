@@ -40,6 +40,11 @@ func TestClientMem(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
+
+		err = test.getIdxCfg(query)
+		if err != nil {
+			t.Error(err)
+		}
 	}
 }
 
@@ -85,6 +90,24 @@ func (t clientTest) getClientCfg(q QueryStr) error {
 	if err != nil {
 		return err
 	}
+
+	return nil
+}
+
+func (t clientTest) getIdxCfg(q QueryStr) error {
+	gn := t.got.IndexName()
+	gCfg, err := t.got.FindIdxCfg(gn)
+	if err != nil {
+		return err
+	}
+
+	wn := t.want.IndexName()
+	wCfg, err := t.want.FindIdxCfg(wn)
+	if err != nil {
+		return err
+	}
+	println(gCfg.ID)
+	println(wCfg.ID)
 
 	return nil
 }

@@ -3,13 +3,10 @@ package srch
 import (
 	"net/url"
 
-	"github.com/ohzqq/hare"
 	"github.com/ohzqq/sp"
 )
 
 type ClientCfg struct {
-	*hare.Table
-
 	DB    string `json:"-" mapstructure:"path" qs:"db"`
 	Index string `query:"index,omitempty" json:"index,omitempty" mapstructure:"index" qs:"index"`
 	UID   string `query:"uid,omitempty" json:"uid,omitempty" mapstructure:"uid" qs:"uid"`

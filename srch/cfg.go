@@ -5,6 +5,8 @@ import (
 	"net/url"
 	"path/filepath"
 	"strings"
+
+	"github.com/samber/lo"
 )
 
 type Cfg struct {
@@ -40,6 +42,22 @@ func (cfg *Cfg) Decode(v url.Values) error {
 		return err
 	}
 	return nil
+}
+
+func (cfg *Cfg) Encode() (url.Values, error) {
+	iv, err := cfg.Idx.Encode()
+	if err != nil {
+		return nil, err
+	}
+	sv, err := cfg.Search.Encode()
+	if err != nil {
+		return nil, err
+	}
+	cv, err := cfg.Client.Encode()
+	if err != nil {
+		return nil, err
+	}
+	return lo.Assign(iv, sv, cv), nil
 }
 
 func (cfg *Cfg) SetIdxName(tbl string) *Cfg {
