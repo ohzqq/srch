@@ -37,6 +37,16 @@ func (cfg *Cfg) Decode(v any) error {
 	return nil
 }
 
+func (cfg *Cfg) SetIdxName(tbl string) *Cfg {
+	cfg.Client.Index = tbl
+	return cfg
+}
+
+func (cfg *Cfg) SetCustomID(id string) *Cfg {
+	cfg.Client.UID = id
+	return cfg
+}
+
 func (cfg *Cfg) IndexName() string {
 	if cfg.Client.Index != "" {
 		return cfg.Client.Index
