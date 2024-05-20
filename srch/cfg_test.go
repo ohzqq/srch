@@ -2,7 +2,6 @@ package srch
 
 import (
 	"errors"
-	"fmt"
 	"testing"
 )
 
@@ -127,13 +126,22 @@ func (ct cfgTest) IdxCfg(got, want *IdxCfg) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("got map %#v\nwant map %#v\n", got.Mapping, want.Mapping)
+	wm := want.mapParams()
+	for k, v := range got.Mapping {
+		if _, ok := wm[k]; !ok {
+			return errors.New("no key")
+		}
+		err := strSliceErr("doc.Mapping", v, wm[k])
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
 func (ct cfgTest) cfg(got, want *Cfg) error {
 	if got.IndexName() != want.IndexName() {
-		return err(
+		return newErr(
 			msg("cfg.IndexName()",
 				got.IndexName(),
 				want.IndexName(),
@@ -142,7 +150,7 @@ func (ct cfgTest) cfg(got, want *Cfg) error {
 		)
 	}
 	if got.Client.UID != want.Client.UID {
-		return err(
+		return newErr(
 			msg("cfg.Client.UID",
 				got.Client.UID,
 				want.Client.UID,
@@ -151,7 +159,7 @@ func (ct cfgTest) cfg(got, want *Cfg) error {
 		)
 	}
 	if got.DataURL().Path != want.DataURL().Path {
-		return err(
+		return newErr(
 			msg("cfg.DataURL().Path",
 				got.DataURL().Path,
 				want.DataURL().Path,
@@ -160,7 +168,7 @@ func (ct cfgTest) cfg(got, want *Cfg) error {
 		)
 	}
 	if got.DB().Path != want.DB().Path {
-		return err(
+		return newErr(
 			msg("cfg.DB().Path",
 				got.DB().Path,
 				want.DB().Path,
@@ -169,7 +177,7 @@ func (ct cfgTest) cfg(got, want *Cfg) error {
 		)
 	}
 	if got.SrchURL().Path != want.SrchURL().Path {
-		return err(
+		return newErr(
 			msg("cfg.SrchURL().Path",
 				got.SrchURL().Path,
 				want.SrchURL().Path),
