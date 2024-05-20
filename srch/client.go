@@ -13,9 +13,9 @@ const (
 )
 
 type Client struct {
+	*Cfg
 	*hare.Database
 	*url.URL `json:"-"`
-	*Cfg
 
 	tbl *hare.Table
 }

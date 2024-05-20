@@ -1,5 +1,16 @@
 package srch
 
+import "testing"
+
+func TestClientMem(t *testing.T) {
+}
+
+func TestClientDisk(t *testing.T) {
+}
+
+func TestClientNet(t *testing.T) {
+}
+
 //func TestClientInitStr(t *testing.T) {
 //  for query, test := range ParamTests() {
 //    client, err := NewClient(query.String())
