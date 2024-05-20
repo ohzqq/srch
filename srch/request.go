@@ -2,6 +2,7 @@ package srch
 
 import (
 	"errors"
+	"fmt"
 	"net/url"
 	"strings"
 )
@@ -24,13 +25,12 @@ func (req *Request) Decode(u any) (*Client, error) {
 		return nil, err
 	}
 
-	cfg := NewCfg()
-	err = cfg.Decode(v)
+	cfg, err := NewCfg(v)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("param decoding error: %w\n", err)
 	}
 
-	client, err := NewClient(v)
+	client, err := NewClient(cfg)
 	if err != nil {
 		return nil, err
 	}

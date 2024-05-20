@@ -20,20 +20,10 @@ type Client struct {
 	tbl *hare.Table
 }
 
-func NewClient(settings any) (*Client, error) {
+func NewClient(cfg *Cfg) (*Client, error) {
 	client := &Client{
 		URL: &url.URL{},
-		Cfg: NewCfg(),
-	}
-
-	v, err := ParseQuery(settings)
-	if err != nil {
-		return nil, err
-	}
-
-	err = client.Decode(v)
-	if err != nil {
-		return nil, fmt.Errorf("param decoding error: %w\n", err)
+		Cfg: cfg,
 	}
 
 	ds, err := NewDatastorage(client.URL)

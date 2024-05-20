@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/url"
 	"path/filepath"
+	"strings"
 )
 
 type Cfg struct {
@@ -12,13 +13,17 @@ type Cfg struct {
 	Idx    *IdxCfg
 }
 
-func NewCfg() *Cfg {
-	client := NewClientCfg()
-	return &Cfg{
+func NewCfg(v url.Values) (*Cfg, error) {
+	cfg := &Cfg{
 		Idx:    NewIdxCfg(),
 		Search: NewSearch(),
-		Client: client,
+		Client: NewClientCfg(),
 	}
+	err := cfg.Decode(v)
+	if err != nil {
+		return nil, err
+	}
+	return cfg, nil
 }
 
 func (cfg *Cfg) Decode(v url.Values) error {
@@ -154,4 +159,17 @@ func parseSrchAttrs(attrs []string) []string {
 	default:
 		return ParseQueryStrings(attrs)
 	}
+}
+
+func ParseQueryStrings(q []string) []string {
+	var vals []string
+	for _, val := range q {
+		if val == "" {
+			break
+		}
+		for _, v := range strings.Split(val, ",") {
+			vals = append(vals, v)
+		}
+	}
+	return vals
 }
