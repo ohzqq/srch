@@ -4,9 +4,14 @@ import (
 	"testing"
 )
 
-func TestDecodeCfgStr(t *testing.T) {
+func TestDecodeCfgReq(t *testing.T) {
 	for query, test := range ParamTests() {
-		cfg, err := NewCfg(query.Query())
+		req, err := NewRequest(query.String())
+		if err != nil {
+			t.Error(err)
+		}
+
+		cfg, err := req.Cfg()
 		if err != nil {
 			t.Error(err)
 		}

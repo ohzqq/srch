@@ -2,7 +2,6 @@ package srch
 
 import (
 	"errors"
-	"fmt"
 	"net/url"
 	"strings"
 )
@@ -19,22 +18,16 @@ func NewRequest(u any) (*Request, error) {
 	return &Request{vals: v}, nil
 }
 
-func (req *Request) Decode(u any) (*Client, error) {
-	v, err := ParseQuery(u)
+func (req *Request) Cfg() (*Cfg, error) {
+	return NewCfg(req.vals)
+}
+
+func (req *Request) Client() (*Client, error) {
+	cfg, err := req.Cfg()
 	if err != nil {
 		return nil, err
 	}
-
-	cfg, err := NewCfg(v)
-	if err != nil {
-		return nil, fmt.Errorf("param decoding error: %w\n", err)
-	}
-
-	client, err := NewClient(cfg)
-	if err != nil {
-		return nil, err
-	}
-	return client, nil
+	return NewClient(cfg)
 }
 
 func ParseQuery(q any) (url.Values, error) {
