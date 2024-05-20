@@ -34,12 +34,3 @@ func ParseQueryStrings(q []string) []string {
 	}
 	return vals
 }
-
-func parseQuery(q string) url.Values {
-	q = strings.TrimPrefix(q, "?")
-	u, err := url.ParseQuery(q)
-	if err != nil {
-		return make(url.Values)
-	}
-	return u
-}

@@ -21,21 +21,16 @@ func NewCfg() *Cfg {
 	}
 }
 
-func (cfg *Cfg) Decode(q any) error {
-	v, err := ParseQuery(q)
+func (cfg *Cfg) Decode(v url.Values) error {
+	err := Decode(v, cfg.Idx)
 	if err != nil {
 		return err
 	}
-
-	err = cfg.Idx.Decode(v)
+	err = Decode(v, cfg.Search)
 	if err != nil {
 		return err
 	}
-	err = cfg.Search.Decode(v)
-	if err != nil {
-		return err
-	}
-	err = cfg.Client.Decode(v)
+	err = Decode(v, cfg.Client)
 	if err != nil {
 		return err
 	}

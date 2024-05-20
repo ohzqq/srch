@@ -26,7 +26,12 @@ func NewClient(settings any) (*Client, error) {
 		Cfg: NewCfg(),
 	}
 
-	err := client.Decode(settings)
+	v, err := ParseQuery(settings)
+	if err != nil {
+		return nil, err
+	}
+
+	err = client.Decode(v)
 	if err != nil {
 		return nil, fmt.Errorf("param decoding error: %w\n", err)
 	}

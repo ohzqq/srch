@@ -7,7 +7,7 @@ import (
 func TestDecodeCfgStr(t *testing.T) {
 	for query, test := range ParamTests() {
 		cfg := NewCfg()
-		err := cfg.Decode(query.String())
+		err := cfg.Decode(query.Query())
 		if err != nil {
 			t.Error(err)
 		}
