@@ -30,6 +30,10 @@ type cfgTest struct {
 	*Cfg
 }
 
+type clientTest struct {
+	*Client
+}
+
 func newTestReq(v any) (reqTest, error) {
 	req, err := NewRequest(v)
 	if err != nil {
@@ -40,6 +44,10 @@ func newTestReq(v any) (reqTest, error) {
 
 func (t reqTest) cfgTest(want *Cfg) cfgTest {
 	return cfgTest{Cfg: want}
+}
+
+func (t reqTest) clientTest(want *Client) clientTest {
+	return clientTest{Client: want}
 }
 
 func (q QueryStr) String() string {
@@ -56,31 +64,16 @@ func (q QueryStr) URL() *url.URL {
 	return u
 }
 
-func (ct cfgTest) Slice(q string, got, want []string) error {
-	if !slices.Equal(got, want) {
-		return ct.Err(ct.Msg(q, got, want), errors.New("slices not equal"))
-	}
-	return nil
-}
-
-func (ct cfgTest) Msg(q string, got, want any) string {
-	return fmt.Sprintf("%v\ngot %#v, wanted %#v\n", q, got, want)
-}
-
-func (ct cfgTest) Err(msg string, err error) error {
-	return fmt.Errorf("%v\nerror: %w\n", msg, err)
-}
-
 func (ct cfgTest) SrchCfg(got, want *Search) error {
-	err := ct.Slice("search.RtrvAttr", got.RtrvAttr, want.RtrvAttr)
+	err := sliceErr("search.RtrvAttr", got.RtrvAttr, want.RtrvAttr)
 	if err != nil {
 		return err
 	}
-	err = ct.Slice("search.Facets", got.Facets, want.Facets)
+	err = sliceErr("search.Facets", got.Facets, want.Facets)
 	if err != nil {
 		return err
 	}
-	err = ct.Slice("search.FacetFltr", got.FacetFltr, want.FacetFltr)
+	err = sliceErr("search.FacetFltr", got.FacetFltr, want.FacetFltr)
 	if err != nil {
 		return err
 	}
@@ -88,15 +81,15 @@ func (ct cfgTest) SrchCfg(got, want *Search) error {
 }
 
 func (ct cfgTest) IdxCfg(got, want *IdxCfg) error {
-	err := ct.Slice("search.SrchAttr", got.SrchAttr, want.SrchAttr)
+	err := sliceErr("search.SrchAttr", got.SrchAttr, want.SrchAttr)
 	if err != nil {
 		return err
 	}
-	err = ct.Slice("search.FacetAttr", got.FacetAttr, want.FacetAttr)
+	err = sliceErr("search.FacetAttr", got.FacetAttr, want.FacetAttr)
 	if err != nil {
 		return err
 	}
-	err = ct.Slice("search.SortAttr", got.SortAttr, want.SortAttr)
+	err = sliceErr("search.SortAttr", got.SortAttr, want.SortAttr)
 	if err != nil {
 		return err
 	}
@@ -105,19 +98,48 @@ func (ct cfgTest) IdxCfg(got, want *IdxCfg) error {
 
 func (ct cfgTest) cfg(got, want *Cfg) error {
 	if got.IndexName() != want.IndexName() {
-		return ct.Err(ct.Msg("cfg.IndexName()", got.IndexName(), want.IndexName()), errors.New("index name doesn't match"))
+		return err(
+			msg("cfg.IndexName()",
+				got.IndexName(),
+				want.IndexName(),
+			),
+			errors.New("index name doesn't match"),
+		)
 	}
 	if got.Client.UID != want.Client.UID {
-		return ct.Err(ct.Msg("cfg.Client.UID", got.Client.UID, want.Client.UID), errors.New("index uid doesn't match"))
+		return err(
+			msg("cfg.Client.UID",
+				got.Client.UID,
+				want.Client.UID,
+			),
+			errors.New("index uid doesn't match"),
+		)
 	}
 	if got.DataURL().Path != want.DataURL().Path {
-		return ct.Err(ct.Msg("cfg.DataURL().Path", got.DataURL().Path, want.DataURL().Path), errors.New("data path doesn't match"))
+		return err(
+			msg("cfg.DataURL().Path",
+				got.DataURL().Path,
+				want.DataURL().Path,
+			),
+			errors.New("data path doesn't match"),
+		)
 	}
 	if got.DB().Path != want.DB().Path {
-		return ct.Err(ct.Msg("cfg.DB().Path", got.DB().Path, want.DB().Path), errors.New("db path doesn't match"))
+		return err(
+			msg("cfg.DB().Path",
+				got.DB().Path,
+				want.DB().Path,
+			),
+			errors.New("db path doesn't match"),
+		)
 	}
 	if got.SrchURL().Path != want.SrchURL().Path {
-		return ct.Err(ct.Msg("cfg.SrchURL().Path", got.SrchURL().Path, want.SrchURL().Path), errors.New("srch path doesn't match"))
+		return err(
+			msg("cfg.SrchURL().Path",
+				got.SrchURL().Path,
+				want.SrchURL().Path),
+			errors.New("srch path doesn't match"),
+		)
 	}
 	return nil
 }
@@ -804,13 +826,17 @@ func getCfgParamTest(q QueryStr) cfgTest {
 	return tests[q]
 }
 
-func sliceTest(num, field any, got, want []string) error {
+func sliceErr(q string, got, want []string) error {
 	if !slices.Equal(got, want) {
-		return paramTestMsg(num, field, got, want)
+		return err(msg(q, got, want), errors.New("slices not equal"))
 	}
 	return nil
 }
 
-func paramTestMsg(num, field, got, want any) error {
-	return fmt.Errorf("test %v, field %s\ngot %#v, wanted %#v\n", num, field, got, want)
+func msg(q string, got, want any) string {
+	return fmt.Sprintf("%v\ngot %#v, wanted %#v\n", q, got, want)
+}
+
+func err(msg string, err error) error {
+	return fmt.Errorf("%v\nerror: %w\n", msg, err)
 }
