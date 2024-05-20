@@ -55,7 +55,7 @@ func (ct CfgTest) Err(msg string, err error) error {
 	return fmt.Errorf("%v\nerror: %w\n", msg, err)
 }
 
-func (ct CfgTest) Srch(got, want *Search) error {
+func (ct CfgTest) SrchCfg(got, want *Search) error {
 	err := ct.Slice("search.RtrvAttr", got.RtrvAttr, want.RtrvAttr)
 	if err != nil {
 		return err
@@ -71,7 +71,7 @@ func (ct CfgTest) Srch(got, want *Search) error {
 	return nil
 }
 
-func (ct CfgTest) Index(got, want *IdxCfg) error {
+func (ct CfgTest) IdxCfg(got, want *IdxCfg) error {
 	err := ct.Slice("search.SrchAttr", got.SrchAttr, want.SrchAttr)
 	if err != nil {
 		return err
@@ -87,7 +87,7 @@ func (ct CfgTest) Index(got, want *IdxCfg) error {
 	return nil
 }
 
-func (ct CfgTest) Config(got, want *Cfg) error {
+func (ct CfgTest) cfg(got, want *Cfg) error {
 	if got.IndexName() != want.IndexName() {
 		return ct.Err(ct.Msg("cfg.IndexName()", got.IndexName(), want.IndexName()), errors.New("index name doesn't match"))
 	}
@@ -122,9 +122,9 @@ var TestQueryParams = []QueryStr{
 	QueryStr(`?searchableAttributes=title&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=tags&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags,authors,series,narrators&uid=id&index=audiobooks&attributesToRetrieve=title,tags,authors&facets=tags,authors,series,narrators&query=fish&facetFilters=["authors:amy lane", ["tags:romance", "tags:-dnr"]]&url=file://home/mxb/code/srch/testdata/hare/audiobooks.json`),
 }
 
-func ParamTests() map[QueryStr]CfgTest {
+func clientTests() map[QueryStr]CfgTest {
 	return map[QueryStr]CfgTest{
-		QueryStr(``): CfgTest{
+		TestQueryParams[0]: CfgTest{
 			Cfg: &Cfg{
 				Idx: &IdxCfg{
 					SrchAttr: []string{"*"},
@@ -137,7 +137,7 @@ func ParamTests() map[QueryStr]CfgTest {
 				},
 			},
 		},
-		QueryStr(`?searchableAttributes=`): CfgTest{
+		TestQueryParams[1]: CfgTest{
 			Cfg: &Cfg{
 				Idx: &IdxCfg{
 					SrchAttr: []string{"*"},
@@ -150,7 +150,7 @@ func ParamTests() map[QueryStr]CfgTest {
 				},
 			},
 		},
-		QueryStr(`?searchableAttributes=title`): CfgTest{
+		TestQueryParams[2]: CfgTest{
 			Cfg: &Cfg{
 				Idx: &IdxCfg{
 					SrchAttr: []string{"title"},
@@ -163,7 +163,7 @@ func ParamTests() map[QueryStr]CfgTest {
 				},
 			},
 		},
-		QueryStr(`?searchableAttributes=title&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=tags&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson`): CfgTest{
+		TestQueryParams[3]: CfgTest{
 			Cfg: &Cfg{
 				Idx: &IdxCfg{
 					SrchAttr: []string{"title"},
@@ -179,7 +179,7 @@ func ParamTests() map[QueryStr]CfgTest {
 				},
 			},
 		},
-		QueryStr(`?searchableAttributes=title&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=tags&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags,authors,series,narrators`): CfgTest{
+		TestQueryParams[4]: CfgTest{
 			Cfg: &Cfg{
 				Idx: &IdxCfg{
 					SrchAttr:  []string{"title"},
@@ -196,7 +196,7 @@ func ParamTests() map[QueryStr]CfgTest {
 				},
 			},
 		},
-		QueryStr(`?searchableAttributes=title&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=tags&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags&attributesForFaceting=authors&attributesForFaceting=series&attributesForFaceting=narrators`): CfgTest{
+		TestQueryParams[5]: CfgTest{
 			Cfg: &Cfg{
 				Idx: &IdxCfg{
 					SrchAttr:  []string{"title"},
@@ -213,7 +213,7 @@ func ParamTests() map[QueryStr]CfgTest {
 				},
 			},
 		},
-		QueryStr(`?searchableAttributes=title&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=tags&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags,authors,series,narrators&uid=id`): CfgTest{
+		TestQueryParams[6]: CfgTest{
 			Cfg: &Cfg{
 				Idx: &IdxCfg{
 					SrchAttr:  []string{"title"},
@@ -231,7 +231,7 @@ func ParamTests() map[QueryStr]CfgTest {
 				},
 			},
 		},
-		QueryStr(`?searchableAttributes=title&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=tags&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags,authors,series,narrators&uid=id&index=audiobooks`): CfgTest{
+		TestQueryParams[7]: CfgTest{
 			Cfg: &Cfg{
 				Idx: &IdxCfg{
 					SrchAttr:  []string{"title"},
@@ -249,7 +249,7 @@ func ParamTests() map[QueryStr]CfgTest {
 				},
 			},
 		},
-		QueryStr(`?searchableAttributes=title&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=tags&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags,authors,series,narrators&uid=id&index=audiobooks&attributesToRetrieve=title,tags,authors`): CfgTest{
+		TestQueryParams[8]: CfgTest{
 			Cfg: &Cfg{
 				Idx: &IdxCfg{
 					SrchAttr:  []string{"title"},
@@ -267,7 +267,7 @@ func ParamTests() map[QueryStr]CfgTest {
 				},
 			},
 		},
-		QueryStr(`?searchableAttributes=title&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=tags&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags,authors,series,narrators&uid=id&index=audiobooks&attributesToRetrieve=title,tags,authors&facets=tags,authors,series,narrators`): CfgTest{
+		TestQueryParams[9]: CfgTest{
 			Cfg: &Cfg{
 				Idx: &IdxCfg{
 					SrchAttr:  []string{"title"},
@@ -286,7 +286,7 @@ func ParamTests() map[QueryStr]CfgTest {
 				},
 			},
 		},
-		QueryStr(`?searchableAttributes=title&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=tags&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags,authors,series,narrators&uid=id&index=audiobooks&attributesToRetrieve=title,tags,authors&facets=tags,authors,series,narrators&query=fish`): CfgTest{
+		TestQueryParams[10]: CfgTest{
 			Cfg: &Cfg{
 				Idx: &IdxCfg{
 					SrchAttr:  []string{"title"},
@@ -306,7 +306,237 @@ func ParamTests() map[QueryStr]CfgTest {
 				},
 			},
 		},
-		QueryStr(`?searchableAttributes=title&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=tags&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags,authors,series,narrators&uid=id&index=audiobooks&attributesToRetrieve=title,tags,authors&facets=tags,authors,series,narrators&query=fish&facetFilters=["authors:amy lane"]`): CfgTest{
+		TestQueryParams[11]: CfgTest{
+			Cfg: &Cfg{
+				Idx: &IdxCfg{
+					SrchAttr:  []string{"title"},
+					SortAttr:  []string{"tags"},
+					FacetAttr: []string{"tags", "authors", "series", "narrators"},
+					Data:      DataTestURL,
+				},
+				Client: &ClientCfg{
+					Index: "audiobooks",
+					DB:    HareTestURL,
+					UID:   "id",
+				},
+				Search: &Search{
+					RtrvAttr:  []string{"title", "tags", "authors"},
+					Facets:    []string{"tags", "authors", "series", "narrators"},
+					Query:     "fish",
+					FacetFltr: []string{"[\"authors:amy lane\"]"},
+				},
+			},
+		},
+		QueryStr(`?searchableAttributes=title&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=tags&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags,authors,series,narrators&uid=id&index=audiobooks&attributesToRetrieve=title,tags,authors&facets=tags,authors,series,narrators&query=fish&facetFilters=["authors:amy lane", ["tags:romance", "tags:-dnr"]]&url=file://home/mxb/code/srch/testdata/hare/audiobooks.json`): CfgTest{
+			Cfg: &Cfg{
+				Idx: &IdxCfg{
+					SrchAttr:  []string{"title"},
+					SortAttr:  []string{"tags"},
+					FacetAttr: []string{"tags", "authors", "series", "narrators"},
+					Data:      DataTestURL,
+				},
+				Client: &ClientCfg{
+					Index: "audiobooks",
+					DB:    HareTestURL,
+					UID:   "id",
+				},
+				Search: &Search{
+					RtrvAttr:  []string{"title", "tags", "authors"},
+					Facets:    []string{"tags", "authors", "series", "narrators"},
+					Query:     "fish",
+					FacetFltr: []string{"[\"authors:amy lane\", [\"tags:romance\", \"tags:-dnr\"]]"},
+					URI:       filepath.Join(HareTestURL, "audiobooks.json"),
+				},
+			},
+		},
+	}
+}
+
+func cfgParamTests() map[QueryStr]CfgTest {
+	return map[QueryStr]CfgTest{
+		TestQueryParams[0]: CfgTest{
+			Cfg: &Cfg{
+				Idx: &IdxCfg{
+					SrchAttr: []string{"*"},
+				},
+				Client: &ClientCfg{
+					Index: "default",
+				},
+				Search: &Search{
+					RtrvAttr: []string{"*"},
+				},
+			},
+		},
+		TestQueryParams[1]: CfgTest{
+			Cfg: &Cfg{
+				Idx: &IdxCfg{
+					SrchAttr: []string{"*"},
+				},
+				Client: &ClientCfg{
+					Index: "default",
+				},
+				Search: &Search{
+					RtrvAttr: []string{"*"},
+				},
+			},
+		},
+		TestQueryParams[2]: CfgTest{
+			Cfg: &Cfg{
+				Idx: &IdxCfg{
+					SrchAttr: []string{"title"},
+				},
+				Client: &ClientCfg{
+					Index: "default",
+				},
+				Search: &Search{
+					RtrvAttr: []string{"*"},
+				},
+			},
+		},
+		TestQueryParams[3]: CfgTest{
+			Cfg: &Cfg{
+				Idx: &IdxCfg{
+					SrchAttr: []string{"title"},
+					SortAttr: []string{"tags"},
+					Data:     DataTestURL,
+				},
+				Client: &ClientCfg{
+					Index: "default",
+					DB:    HareTestURL,
+				},
+				Search: &Search{
+					RtrvAttr: []string{"*"},
+				},
+			},
+		},
+		TestQueryParams[4]: CfgTest{
+			Cfg: &Cfg{
+				Idx: &IdxCfg{
+					SrchAttr:  []string{"title"},
+					SortAttr:  []string{"tags"},
+					FacetAttr: []string{"tags", "authors", "series", "narrators"},
+					Data:      DataTestURL,
+				},
+				Client: &ClientCfg{
+					Index: "default",
+					DB:    HareTestURL,
+				},
+				Search: &Search{
+					RtrvAttr: []string{"*"},
+				},
+			},
+		},
+		TestQueryParams[5]: CfgTest{
+			Cfg: &Cfg{
+				Idx: &IdxCfg{
+					SrchAttr:  []string{"title"},
+					SortAttr:  []string{"tags"},
+					FacetAttr: []string{"tags", "authors", "series", "narrators"},
+					Data:      DataTestURL,
+				},
+				Client: &ClientCfg{
+					Index: "default",
+					DB:    HareTestURL,
+				},
+				Search: &Search{
+					RtrvAttr: []string{"*"},
+				},
+			},
+		},
+		TestQueryParams[6]: CfgTest{
+			Cfg: &Cfg{
+				Idx: &IdxCfg{
+					SrchAttr:  []string{"title"},
+					SortAttr:  []string{"tags"},
+					FacetAttr: []string{"tags", "authors", "series", "narrators"},
+					Data:      DataTestURL,
+				},
+				Client: &ClientCfg{
+					Index: "default",
+					DB:    HareTestURL,
+					UID:   "id",
+				},
+				Search: &Search{
+					RtrvAttr: []string{"*"},
+				},
+			},
+		},
+		TestQueryParams[7]: CfgTest{
+			Cfg: &Cfg{
+				Idx: &IdxCfg{
+					SrchAttr:  []string{"title"},
+					SortAttr:  []string{"tags"},
+					FacetAttr: []string{"tags", "authors", "series", "narrators"},
+					Data:      DataTestURL,
+				},
+				Client: &ClientCfg{
+					Index: "audiobooks",
+					DB:    HareTestURL,
+					UID:   "id",
+				},
+				Search: &Search{
+					RtrvAttr: []string{"*"},
+				},
+			},
+		},
+		TestQueryParams[8]: CfgTest{
+			Cfg: &Cfg{
+				Idx: &IdxCfg{
+					SrchAttr:  []string{"title"},
+					SortAttr:  []string{"tags"},
+					FacetAttr: []string{"tags", "authors", "series", "narrators"},
+					Data:      DataTestURL,
+				},
+				Client: &ClientCfg{
+					Index: "audiobooks",
+					DB:    HareTestURL,
+					UID:   "id",
+				},
+				Search: &Search{
+					RtrvAttr: []string{"title", "tags", "authors"},
+				},
+			},
+		},
+		TestQueryParams[9]: CfgTest{
+			Cfg: &Cfg{
+				Idx: &IdxCfg{
+					SrchAttr:  []string{"title"},
+					SortAttr:  []string{"tags"},
+					FacetAttr: []string{"tags", "authors", "series", "narrators"},
+					Data:      DataTestURL,
+				},
+				Client: &ClientCfg{
+					Index: "audiobooks",
+					DB:    HareTestURL,
+					UID:   "id",
+				},
+				Search: &Search{
+					RtrvAttr: []string{"title", "tags", "authors"},
+					Facets:   []string{"tags", "authors", "series", "narrators"},
+				},
+			},
+		},
+		TestQueryParams[10]: CfgTest{
+			Cfg: &Cfg{
+				Idx: &IdxCfg{
+					SrchAttr:  []string{"title"},
+					SortAttr:  []string{"tags"},
+					FacetAttr: []string{"tags", "authors", "series", "narrators"},
+					Data:      DataTestURL,
+				},
+				Client: &ClientCfg{
+					Index: "audiobooks",
+					DB:    HareTestURL,
+					UID:   "id",
+				},
+				Search: &Search{
+					RtrvAttr: []string{"title", "tags", "authors"},
+					Facets:   []string{"tags", "authors", "series", "narrators"},
+					Query:    "fish",
+				},
+			},
+		},
+		TestQueryParams[11]: CfgTest{
 			Cfg: &Cfg{
 				Idx: &IdxCfg{
 					SrchAttr:  []string{"title"},

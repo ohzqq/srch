@@ -2,7 +2,6 @@ package srch
 
 import (
 	"fmt"
-	"net/url"
 
 	"github.com/ohzqq/hare"
 )
@@ -15,18 +14,16 @@ const (
 type Client struct {
 	*Cfg
 	*hare.Database
-	*url.URL `json:"-"`
 
 	tbl *hare.Table
 }
 
 func NewClient(cfg *Cfg) (*Client, error) {
 	client := &Client{
-		URL: &url.URL{},
 		Cfg: cfg,
 	}
 
-	ds, err := NewDatastorage(client.URL)
+	ds, err := NewDatastorage(client.DB())
 	if err != nil {
 		return nil, fmt.Errorf("new datastorage error: %w\n", err)
 	}
