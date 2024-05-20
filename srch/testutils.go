@@ -34,14 +34,50 @@ func newTestReq(v any) (reqTest, error) {
 	return reqTest{Request: req}, nil
 }
 
-func (t reqTest) cfgTest(idx int) cfgTest {
-	cfg := getTestCfg(idx)
-	return cfgTest{Cfg: cfg}
+func (t reqTest) getCfg(idx int) *Cfg {
+	return getTestCfg(idx)
 }
 
-func (t reqTest) clientTest(idx int) clientTest {
-	client := getTestClient(idx)
-	return clientTest{Client: client}
+func (t reqTest) cfgWant(idx int) cfgTest {
+	return cfgTest{Cfg: t.getCfg(idx)}
+}
+
+func (t reqTest) cfgGot() (*Cfg, error) {
+	return t.Cfg()
+}
+
+func (t reqTest) getClientWant(idx int) *Client {
+	client, _ := NewClient(t.getCfg(idx))
+	return client
+}
+
+func (t reqTest) clientWant(idx int) *Client {
+	return t.getClientWant(idx)
+}
+
+func (t reqTest) clientTest() (clientTest, error) {
+	client, err := t.Client()
+	if err != nil {
+		return clientTest{}, err
+	}
+	return clientTest{Client: client}, nil
+}
+
+func (t reqTest) getTestIdx(q QueryStr) int {
+	idx := slices.Index(TestQueryParams, q)
+	if idx == -1 {
+		return 0
+	}
+	return idx
+}
+
+func (t reqTest) getQuery(idx int) QueryStr {
+	for i := range TestQueryParams {
+		if i == idx {
+			return TestQueryParams[idx]
+		}
+	}
+	return TestQueryParams[0]
 }
 
 func (q QueryStr) String() string {
