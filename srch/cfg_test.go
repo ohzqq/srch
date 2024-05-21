@@ -132,7 +132,7 @@ func (ct cfgTest) SrchCfg(got, want *Search) error {
 	return nil
 }
 
-func (ct cfgTest) IdxCfg(got, want *IdxCfg) error {
+func (ct cfgTest) IdxCfg(got, want *Idx) error {
 	err := strSliceErr("search.SrchAttr", got.SrchAttr, want.SrchAttr)
 	if err != nil {
 		return err

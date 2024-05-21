@@ -88,7 +88,7 @@ func (client *Client) Indexes() (map[string]int, error) {
 	}
 
 	for _, id := range ids {
-		idx := &IdxCfg{}
+		idx := &Idx{}
 		err := client.tbl.Find(id, idx)
 		if err != nil {
 			return nil, fmt.Errorf("%w: %v\n", err, client.IndexName())
@@ -112,7 +112,7 @@ func (client *Client) IdxIDs() ([]int, error) {
 	return client.tbl.IDs()
 }
 
-func (client *Client) FindIdxCfg(name string) (*IdxCfg, error) {
+func (client *Client) FindIdxCfg(name string) (*Idx, error) {
 	err := client.GetCfg()
 	if err != nil {
 		return nil, err
@@ -124,7 +124,7 @@ func (client *Client) FindIdxCfg(name string) (*IdxCfg, error) {
 	}
 
 	for _, id := range ids {
-		idx := &IdxCfg{}
+		idx := &Idx{}
 		err := client.tbl.Find(id, idx)
 		if err != nil {
 			return nil, fmt.Errorf("%w: %v\n", err, client.IndexName())

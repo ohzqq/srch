@@ -146,7 +146,7 @@ var TestQueryParams = []QueryStr{
 func getTestCfg(idx int) *Cfg {
 	tests := []*Cfg{
 		&Cfg{
-			Idx: &IdxCfg{
+			Idx: &Idx{
 				SrchAttr: []string{"*"},
 			},
 			Client: &ClientCfg{
@@ -157,7 +157,7 @@ func getTestCfg(idx int) *Cfg {
 			},
 		},
 		&Cfg{
-			Idx: &IdxCfg{
+			Idx: &Idx{
 				SrchAttr: []string{"*"},
 			},
 			Client: &ClientCfg{
@@ -168,7 +168,7 @@ func getTestCfg(idx int) *Cfg {
 			},
 		},
 		&Cfg{
-			Idx: &IdxCfg{
+			Idx: &Idx{
 				SrchAttr: []string{"title"},
 			},
 			Client: &ClientCfg{
@@ -179,7 +179,7 @@ func getTestCfg(idx int) *Cfg {
 			},
 		},
 		&Cfg{
-			Idx: &IdxCfg{
+			Idx: &Idx{
 				SrchAttr: []string{"title"},
 				SortAttr: []string{"title"},
 				Data:     DataTestURL,
@@ -193,7 +193,7 @@ func getTestCfg(idx int) *Cfg {
 			},
 		},
 		&Cfg{
-			Idx: &IdxCfg{
+			Idx: &Idx{
 				SrchAttr:  []string{"title"},
 				SortAttr:  []string{"title"},
 				FacetAttr: []string{"tags", "authors", "series", "narrators"},
@@ -208,7 +208,7 @@ func getTestCfg(idx int) *Cfg {
 			},
 		},
 		&Cfg{
-			Idx: &IdxCfg{
+			Idx: &Idx{
 				SrchAttr:  []string{"title"},
 				SortAttr:  []string{"title"},
 				FacetAttr: []string{"tags", "authors", "series", "narrators"},
@@ -223,7 +223,7 @@ func getTestCfg(idx int) *Cfg {
 			},
 		},
 		&Cfg{
-			Idx: &IdxCfg{
+			Idx: &Idx{
 				SrchAttr:  []string{"title"},
 				SortAttr:  []string{"title"},
 				FacetAttr: []string{"tags", "authors", "series", "narrators"},
@@ -239,7 +239,7 @@ func getTestCfg(idx int) *Cfg {
 			},
 		},
 		&Cfg{
-			Idx: &IdxCfg{
+			Idx: &Idx{
 				SrchAttr:  []string{"title"},
 				SortAttr:  []string{"title"},
 				FacetAttr: []string{"tags", "authors", "series", "narrators"},
@@ -255,7 +255,7 @@ func getTestCfg(idx int) *Cfg {
 			},
 		},
 		&Cfg{
-			Idx: &IdxCfg{
+			Idx: &Idx{
 				SrchAttr:  []string{"title"},
 				SortAttr:  []string{"title"},
 				FacetAttr: []string{"tags", "authors", "series", "narrators"},
@@ -271,7 +271,7 @@ func getTestCfg(idx int) *Cfg {
 			},
 		},
 		&Cfg{
-			Idx: &IdxCfg{
+			Idx: &Idx{
 				SrchAttr:  []string{"title"},
 				SortAttr:  []string{"title"},
 				FacetAttr: []string{"tags", "authors", "series", "narrators"},
@@ -288,7 +288,7 @@ func getTestCfg(idx int) *Cfg {
 			},
 		},
 		&Cfg{
-			Idx: &IdxCfg{
+			Idx: &Idx{
 				SrchAttr:  []string{"title"},
 				SortAttr:  []string{"title"},
 				FacetAttr: []string{"tags", "authors", "series", "narrators"},
@@ -306,7 +306,7 @@ func getTestCfg(idx int) *Cfg {
 			},
 		},
 		&Cfg{
-			Idx: &IdxCfg{
+			Idx: &Idx{
 				SrchAttr:  []string{"title"},
 				SortAttr:  []string{"title"},
 				FacetAttr: []string{"tags", "authors", "series", "narrators"},
@@ -325,7 +325,7 @@ func getTestCfg(idx int) *Cfg {
 			},
 		},
 		&Cfg{
-			Idx: &IdxCfg{
+			Idx: &Idx{
 				SrchAttr:  []string{"title"},
 				SortAttr:  []string{"title"},
 				FacetAttr: []string{"tags", "authors", "series", "narrators"},

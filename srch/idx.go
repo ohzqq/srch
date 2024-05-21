@@ -7,7 +7,7 @@ import (
 	"github.com/ohzqq/sp"
 )
 
-type IdxCfg struct {
+type Idx struct {
 	ID      int     `json:"_id"`
 	Mapping Mapping `json:"mapping"`
 	Name    string  `json:"name" qs:"index"`
@@ -19,8 +19,8 @@ type IdxCfg struct {
 	Data      string   `json:"-" mapstructure:"path" qs:"data"`
 }
 
-func NewIdxCfg() *IdxCfg {
-	cfg := &IdxCfg{
+func NewIdxCfg() *Idx {
+	cfg := &Idx{
 		SrchAttr: []string{"*"},
 		Name:     "default",
 	}
@@ -28,12 +28,12 @@ func NewIdxCfg() *IdxCfg {
 		SetMapping(DefaultMapping())
 }
 
-func (cfg *IdxCfg) SetMapping(m Mapping) *IdxCfg {
+func (cfg *Idx) SetMapping(m Mapping) *Idx {
 	cfg.Mapping = m
 	return cfg
 }
 
-func (cfg *IdxCfg) Decode(u url.Values) error {
+func (cfg *Idx) Decode(u url.Values) error {
 	err := sp.Decode(u, cfg)
 	if err != nil {
 		return err
@@ -49,11 +49,11 @@ func (cfg *IdxCfg) Decode(u url.Values) error {
 	return nil
 }
 
-func (cfg *IdxCfg) Encode() (url.Values, error) {
+func (cfg *Idx) Encode() (url.Values, error) {
 	return sp.Encode(cfg)
 }
 
-func (cfg *IdxCfg) mapParams() Mapping {
+func (cfg *Idx) mapParams() Mapping {
 	m := NewMapping()
 
 	for _, attr := range cfg.SrchAttr {
@@ -90,25 +90,25 @@ func (cfg *IdxCfg) mapParams() Mapping {
 //  return true
 //}
 
-func NewCfgTbl(tbl string, m Mapping, id string) *IdxCfg {
+func NewCfgTbl(tbl string, m Mapping, id string) *Idx {
 	return NewIdxCfg().
 		SetMapping(m)
 }
 
-func DefaultIdxCfg() *IdxCfg {
+func DefaultIdxCfg() *Idx {
 	return NewIdxCfg().
 		SetMapping(DefaultMapping())
 }
 
-func (c *IdxCfg) SetID(id int) {
+func (c *Idx) SetID(id int) {
 	c.ID = id
 }
 
-func (c *IdxCfg) GetID() int {
+func (c *Idx) GetID() int {
 	return c.ID
 }
 
-func (c *IdxCfg) AfterFind(db *hare.Database) error {
+func (c *Idx) AfterFind(db *hare.Database) error {
 	//println("after find")
 	return nil
 }
