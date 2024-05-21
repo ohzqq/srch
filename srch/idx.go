@@ -10,6 +10,7 @@ import (
 type IdxCfg struct {
 	ID      int     `json:"_id"`
 	Mapping Mapping `json:"mapping"`
+	Name    string  `json:"name" qs:"index"`
 
 	// Index Settings
 	SrchAttr  []string `query:"searchableAttributes" json:"searchableAttributes,omitempty" mapstructure:"searchable_attributes" qs:"searchableAttributes,omitempty"`
@@ -21,6 +22,7 @@ type IdxCfg struct {
 func NewIdxCfg() *IdxCfg {
 	cfg := &IdxCfg{
 		SrchAttr: []string{"*"},
+		Name:     "default",
 	}
 	return cfg.
 		SetMapping(DefaultMapping())

@@ -2,11 +2,30 @@ package srch
 
 import (
 	"errors"
+	"fmt"
 	"testing"
 )
 
 type cfgTest struct {
 	*Cfg
+}
+
+func TestNewClient(t *testing.T) {
+	for _, query := range TestQueryParams {
+		cfg, err := NewCfg(query.Query())
+		if err != nil {
+			t.Error(err)
+		}
+		client, err := NewClient(cfg)
+		if err != nil {
+			t.Error(err)
+		}
+		idx, err := client.FindIdxCfg(client.IndexName())
+		if err != nil {
+			t.Error(err)
+		}
+		fmt.Printf("%#v\n", idx)
+	}
 }
 
 func TestDecodeCfgReq(t *testing.T) {

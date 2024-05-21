@@ -65,7 +65,7 @@ func (cfg *Cfg) Encode() (url.Values, error) {
 }
 
 func (cfg *Cfg) SetIdxName(tbl string) *Cfg {
-	cfg.Client.Index = tbl
+	cfg.Idx.Name = tbl
 	return cfg
 }
 
@@ -75,8 +75,8 @@ func (cfg *Cfg) SetCustomID(id string) *Cfg {
 }
 
 func (cfg *Cfg) IndexName() string {
-	if cfg.Client.Index != "" {
-		return cfg.Client.Index
+	if cfg.Idx.Name != "" {
+		return cfg.Idx.Name
 	}
 	return "default"
 }

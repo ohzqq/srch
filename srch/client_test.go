@@ -48,6 +48,21 @@ func TestClientMem(t *testing.T) {
 	}
 }
 
+func TestClientMemListTbls(t *testing.T) {
+	for i, query := range TestQueryParams {
+		req, err := newTestReq(query.String())
+		if err != nil {
+			t.Fatal(err)
+		}
+		test, err := req.clientTest(i)
+
+		err = test.listTbls(query)
+		if err != nil {
+			t.Error(err)
+		}
+	}
+}
+
 func TestClientDisk(t *testing.T) {
 }
 
