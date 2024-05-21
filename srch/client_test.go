@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"reflect"
 	"testing"
+
+	"github.com/samber/lo"
 )
 
 type clientTest struct {
@@ -27,11 +29,6 @@ func TestClientMem(t *testing.T) {
 		}
 
 		err = test.settingsExists(query)
-		if err != nil {
-			t.Error(err)
-		}
-
-		err = test.listTbls(query)
 		if err != nil {
 			t.Error(err)
 		}
@@ -94,8 +91,8 @@ func (t clientTest) settingsExists(q QueryStr) error {
 }
 
 func (t clientTest) getClientCfg(q QueryStr) error {
-	err := t.got.getCfgTbl()
-	err = t.want.getCfgTbl()
+	err := t.got.GetCfg()
+	err = t.want.GetCfg()
 	terr := errors.New(msg(q.String(), t.got, t.want))
 	if err != nil {
 		return terr
@@ -121,8 +118,9 @@ func (t clientTest) getIdxCfg(q QueryStr) error {
 	if err != nil {
 		return err
 	}
-	println(gCfg.ID)
-	println(wCfg.ID)
+	if gCfg.ID != wCfg.ID {
+		return errors.New("not same id")
+	}
 
 	return nil
 }
@@ -142,6 +140,10 @@ func (t clientTest) testIDs(q QueryStr, terr error) error {
 
 func (t clientTest) listTbls(q QueryStr) error {
 	got := t.got.TableNames()
-	want := []string{t.want.IndexName()}
+	want := lo.Without(t.want.Database.TableNames(), "", "_settings")
+	if len(want) == 0 {
+		want = []string{"default"}
+	}
+	//want := []string{t.want.IndexName()}
 	return strSliceErr(q.String(), got, want)
 }

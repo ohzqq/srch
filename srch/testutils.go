@@ -148,6 +148,7 @@ func getTestCfg(idx int) *Cfg {
 		&Cfg{
 			Idx: &Idx{
 				SrchAttr: []string{"*"},
+				Name:     "default",
 			},
 			Client: &ClientCfg{
 				Index: "default",
@@ -159,6 +160,7 @@ func getTestCfg(idx int) *Cfg {
 		&Cfg{
 			Idx: &Idx{
 				SrchAttr: []string{"*"},
+				Name:     "default",
 			},
 			Client: &ClientCfg{
 				Index: "default",
@@ -170,6 +172,7 @@ func getTestCfg(idx int) *Cfg {
 		&Cfg{
 			Idx: &Idx{
 				SrchAttr: []string{"title"},
+				Name:     "default",
 			},
 			Client: &ClientCfg{
 				Index: "default",
@@ -183,6 +186,7 @@ func getTestCfg(idx int) *Cfg {
 				SrchAttr: []string{"title"},
 				SortAttr: []string{"title"},
 				Data:     DataTestURL,
+				Name:     "default",
 			},
 			Client: &ClientCfg{
 				Index: "default",
@@ -198,6 +202,7 @@ func getTestCfg(idx int) *Cfg {
 				SortAttr:  []string{"title"},
 				FacetAttr: []string{"tags", "authors", "series", "narrators"},
 				Data:      DataTestURL,
+				Name:      "default",
 			},
 			Client: &ClientCfg{
 				Index: "default",
@@ -213,6 +218,7 @@ func getTestCfg(idx int) *Cfg {
 				SortAttr:  []string{"title"},
 				FacetAttr: []string{"tags", "authors", "series", "narrators"},
 				Data:      DataTestURL,
+				Name:      "default",
 			},
 			Client: &ClientCfg{
 				Index: "default",
@@ -228,6 +234,7 @@ func getTestCfg(idx int) *Cfg {
 				SortAttr:  []string{"title"},
 				FacetAttr: []string{"tags", "authors", "series", "narrators"},
 				Data:      DataTestURL,
+				Name:      "default",
 			},
 			Client: &ClientCfg{
 				Index: "default",
@@ -244,6 +251,7 @@ func getTestCfg(idx int) *Cfg {
 				SortAttr:  []string{"title"},
 				FacetAttr: []string{"tags", "authors", "series", "narrators"},
 				Data:      DataTestURL,
+				Name:      "audiobooks",
 			},
 			Client: &ClientCfg{
 				Index: "audiobooks",
@@ -260,6 +268,7 @@ func getTestCfg(idx int) *Cfg {
 				SortAttr:  []string{"title"},
 				FacetAttr: []string{"tags", "authors", "series", "narrators"},
 				Data:      DataTestURL,
+				Name:      "audiobooks",
 			},
 			Client: &ClientCfg{
 				Index: "audiobooks",
@@ -276,6 +285,7 @@ func getTestCfg(idx int) *Cfg {
 				SortAttr:  []string{"title"},
 				FacetAttr: []string{"tags", "authors", "series", "narrators"},
 				Data:      DataTestURL,
+				Name:      "audiobooks",
 			},
 			Client: &ClientCfg{
 				Index: "audiobooks",
@@ -293,6 +303,7 @@ func getTestCfg(idx int) *Cfg {
 				SortAttr:  []string{"title"},
 				FacetAttr: []string{"tags", "authors", "series", "narrators"},
 				Data:      DataTestURL,
+				Name:      "audiobooks",
 			},
 			Client: &ClientCfg{
 				Index: "audiobooks",
@@ -311,6 +322,7 @@ func getTestCfg(idx int) *Cfg {
 				SortAttr:  []string{"title"},
 				FacetAttr: []string{"tags", "authors", "series", "narrators"},
 				Data:      DataTestURL,
+				Name:      "audiobooks",
 			},
 			Client: &ClientCfg{
 				Index: "audiobooks",
@@ -330,6 +342,7 @@ func getTestCfg(idx int) *Cfg {
 				SortAttr:  []string{"title"},
 				FacetAttr: []string{"tags", "authors", "series", "narrators"},
 				Data:      DataTestURL,
+				Name:      "audiobooks",
 			},
 			Client: &ClientCfg{
 				Index: "audiobooks",

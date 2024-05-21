@@ -2,10 +2,9 @@ package srch
 
 import (
 	"fmt"
-	"slices"
 
 	"github.com/ohzqq/hare"
-	"github.com/samber/lo"
+	"golang.org/x/exp/maps"
 )
 
 const (
@@ -39,11 +38,13 @@ func NewClient(cfg *Cfg) (*Client, error) {
 }
 
 func (client *Client) TableNames() []string {
-	return lo.Without(client.Database.TableNames(), "_settings", "")
+	idxs := client.Indexes()
+	return maps.Keys(idxs)
 }
 
 func (client *Client) TableExists(name string) bool {
-	return slices.Contains(client.TableNames(), name)
+	_, ok := client.Indexes()[name]
+	return ok
 }
 
 func (client *Client) GetCfg() error {
@@ -60,7 +61,7 @@ func (client *Client) GetCfg() error {
 	}
 	client.SetTbl(tbl)
 
-	if !client.TableExists(client.IndexName()) {
+	if !client.Database.TableExists(client.IndexName()) {
 		err = client.Database.CreateTable(client.IndexName())
 		if err != nil {
 			return err
@@ -74,29 +75,29 @@ func (client *Client) GetCfg() error {
 	return nil
 }
 
-func (client *Client) Indexes() (map[string]int, error) {
+func (client *Client) Indexes() map[string]int {
 	idxs := make(map[string]int)
 
 	err := client.GetCfg()
 	if err != nil {
-		return nil, err
+		return idxs
 	}
 
 	ids, err := client.tbl.IDs()
 	if err != nil {
-		return nil, err
+		return idxs
 	}
 
 	for _, id := range ids {
 		idx := &Idx{}
 		err := client.tbl.Find(id, idx)
 		if err != nil {
-			return nil, fmt.Errorf("%w: %v\n", err, client.IndexName())
+			return idxs
 		}
 		idxs[idx.Name] = id
 	}
 
-	return idxs, err
+	return idxs
 }
 
 func (client *Client) getCfgTbl() error {
