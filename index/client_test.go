@@ -14,21 +14,12 @@ func TestClientInitStr(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		//if cfg.DB != "" {
-		//  if cfg.Path != hareTestPath {
-		//    t.Errorf("got %v, wanted %v\n", cfg.Path, hareTestPath)
-		//  }
-		//  if cfg.Scheme != "file" {
-		//    t.Errorf("got %v, wanted %v\n", cfg.Scheme, "file")
-		//  }
-		//}
-
 		if !client.TableExists(settingsTbl) {
 			t.Error(test.Err("", errors.New("_settings table doesn't exist")))
 		}
-		_, err = client.GetIdxCfg(client.Client.Index)
+		_, err = client.GetIdxCfg(client.Idx.Name)
 		if err != nil {
-			t.Error(test.Err(test.Msg("", client.Client.Index, test.Cfg.IndexName()), err))
+			t.Error(test.Err(test.Msg("", client.Idx.Index, test.Cfg.IndexName()), err))
 		}
 	}
 }
@@ -42,9 +33,9 @@ func TestClientInitURL(t *testing.T) {
 		if !client.TableExists(settingsTbl) {
 			t.Error(test.msg("_settings table doesn't exist"))
 		}
-		_, err = client.GetIdxCfg(client.Client.Index)
+		_, err = client.GetIdxCfg(client.Idx.Name)
 		if err != nil {
-			t.Error(test.err(client.Client.Index, test.Cfg.Index, err))
+			t.Error(test.err(client.Idx.Name, test.Idx.Name, err))
 		}
 	}
 }
@@ -58,9 +49,9 @@ func TestClientInitValues(t *testing.T) {
 		if !client.TableExists(settingsTbl) {
 			t.Error(test.msg("_settings table doesn't exist"))
 		}
-		_, err = client.GetIdxCfg(client.Client.Index)
+		_, err = client.GetIdxCfg(client.Idx.Name)
 		if err != nil {
-			t.Error(test.err(client.Client.Index, test.Cfg.Index, err))
+			t.Error(test.err(client.Idx.Name, test.Idx.Name, err))
 		}
 	}
 }

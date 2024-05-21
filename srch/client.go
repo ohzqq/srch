@@ -2,9 +2,10 @@ package srch
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/ohzqq/hare"
-	"golang.org/x/exp/maps"
+	"github.com/samber/lo"
 )
 
 const (
@@ -38,13 +39,12 @@ func NewClient(cfg *Cfg) (*Client, error) {
 }
 
 func (client *Client) TableNames() []string {
-	idxs := client.Indexes()
-	return maps.Keys(idxs)
+	client.GetCfg()
+	return lo.Without(client.Database.TableNames(), settingsTbl, "")
 }
 
 func (client *Client) TableExists(name string) bool {
-	_, ok := client.Indexes()[name]
-	return ok
+	return slices.Contains(client.TableNames(), name)
 }
 
 func (client *Client) GetCfg() error {
@@ -73,31 +73,6 @@ func (client *Client) GetCfg() error {
 	}
 
 	return nil
-}
-
-func (client *Client) Indexes() map[string]int {
-	idxs := make(map[string]int)
-
-	err := client.GetCfg()
-	if err != nil {
-		return idxs
-	}
-
-	ids, err := client.tbl.IDs()
-	if err != nil {
-		return idxs
-	}
-
-	for _, id := range ids {
-		idx := &Idx{}
-		err := client.tbl.Find(id, idx)
-		if err != nil {
-			return idxs
-		}
-		idxs[idx.Name] = id
-	}
-
-	return idxs
 }
 
 func (client *Client) getCfgTbl() error {

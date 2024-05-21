@@ -2,7 +2,6 @@ package srch
 
 import (
 	"errors"
-	"fmt"
 	"testing"
 )
 
@@ -20,11 +19,10 @@ func TestNewClient(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-		idx, err := client.FindIdxCfg(client.IndexName())
+		_, err = client.FindIdxCfg(client.IndexName())
 		if err != nil {
 			t.Error(err)
 		}
-		fmt.Printf("%#v\n", idx)
 	}
 }
 
