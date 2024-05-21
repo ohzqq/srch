@@ -16,10 +16,8 @@ import (
 var client = &http.Client{}
 
 func NewDatastorage(u *url.URL) (hare.Datastorage, error) {
-	ds, err := NewMem()
-	if u == nil {
-		return ds, nil
-	}
+	var err error
+	ds := NewMem()
 	switch u.Scheme {
 	case "file":
 		ds, err = Disk(u.Path)
@@ -56,19 +54,15 @@ func Disk(path string) (*disk.Disk, error) {
 	return ds, nil
 }
 
-func NewMem() (hare.Datastorage, error) {
+func NewMem() hare.Datastorage {
 	return DefaultMem()
 }
 
-func DefaultMem() (*ram.Ram, error) {
+func DefaultMem() *ram.Ram {
 	r := &ram.Ram{
 		Store: store.New(),
 	}
-	err := r.CreateTable(defaultTbl)
-	if err != nil {
-		return nil, err
-	}
-	return r, nil
+	return r
 }
 
 func NewNet(uri string, d []byte) (*net.Net, error) {

@@ -6,6 +6,7 @@ import (
 
 	"github.com/ohzqq/hare"
 	"github.com/ohzqq/hare/dberr"
+	"github.com/samber/lo"
 )
 
 const (
@@ -52,6 +53,10 @@ func (client *Client) init() error {
 		}
 	}
 	return nil
+}
+
+func (client *Client) TableNames() []string {
+	return lo.Without(client.Database.TableNames(), "_settings")
 }
 
 func (client *Client) getCfgTbl() error {

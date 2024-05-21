@@ -126,7 +126,7 @@ func (t clientTest) testIDs(q QueryStr, terr error) error {
 }
 
 func (t clientTest) listTbls(q QueryStr) error {
-	got := t.got.Database.TableNames()
-	want := t.want.Database.TableNames()
+	got := t.got.TableNames()
+	want := []string{t.want.IndexName()}
 	return strSliceErr(q.String(), got, want)
 }
