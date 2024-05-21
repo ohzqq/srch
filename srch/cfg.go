@@ -15,12 +15,16 @@ type Cfg struct {
 	Idx    *IdxCfg
 }
 
-func NewCfg(v url.Values) (*Cfg, error) {
-	cfg := &Cfg{
+func newCfg() *Cfg {
+	return &Cfg{
 		Idx:    NewIdxCfg(),
 		Search: NewSearch(),
 		Client: NewClientCfg(),
 	}
+}
+
+func NewCfg(v url.Values) (*Cfg, error) {
+	cfg := newCfg()
 	err := cfg.Decode(v)
 	if err != nil {
 		return nil, err
