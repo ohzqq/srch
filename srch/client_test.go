@@ -91,8 +91,8 @@ func (t clientTest) settingsExists(q QueryStr) error {
 }
 
 func (t clientTest) getClientCfg(q QueryStr) error {
-	err := t.got.GetCfg()
-	err = t.want.GetCfg()
+	err := t.got.LoadCfg()
+	err = t.want.LoadCfg()
 	terr := errors.New(msg(q.String(), t.got, t.want))
 	if err != nil {
 		return terr

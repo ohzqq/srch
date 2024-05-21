@@ -39,7 +39,7 @@ func NewClient(cfg *Cfg) (*Client, error) {
 }
 
 func (client *Client) TableNames() []string {
-	client.GetCfg()
+	client.LoadCfg()
 	return lo.Without(client.Database.TableNames(), settingsTbl, "")
 }
 
@@ -47,7 +47,7 @@ func (client *Client) TableExists(name string) bool {
 	return slices.Contains(client.TableNames(), name)
 }
 
-func (client *Client) GetCfg() error {
+func (client *Client) LoadCfg() error {
 	if !client.Database.TableExists(settingsTbl) {
 		err := client.Database.CreateTable(settingsTbl)
 		if err != nil {
@@ -75,21 +75,12 @@ func (client *Client) GetCfg() error {
 	return nil
 }
 
-func (client *Client) getCfgTbl() error {
-	tbl, err := client.Database.GetTable(settingsTbl)
-	if err != nil {
-		return err
-	}
-	client.SetTbl(tbl)
-	return nil
-}
-
 func (client *Client) IdxIDs() ([]int, error) {
 	return client.tbl.IDs()
 }
 
 func (client *Client) FindIdxCfg(name string) (*Idx, error) {
-	err := client.GetCfg()
+	err := client.LoadCfg()
 	if err != nil {
 		return nil, err
 	}
