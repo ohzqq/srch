@@ -28,43 +28,59 @@ func NewIdxCfg() *Idx {
 		SetMapping(DefaultMapping())
 }
 
-func (cfg *Idx) SetMapping(m Mapping) *Idx {
-	cfg.Mapping = m
-	return cfg
+func (idx *Idx) SetMapping(m Mapping) *Idx {
+	idx.Mapping = m
+	return idx
 }
 
-func (cfg *Idx) Decode(u url.Values) error {
-	err := sp.Decode(u, cfg)
+func (idx *Idx) Decode(u url.Values) error {
+	err := sp.Decode(u, idx)
 	if err != nil {
 		return err
 	}
-	cfg.SrchAttr = parseSrchAttrs(cfg.SrchAttr)
-	if len(cfg.FacetAttr) > 0 {
-		cfg.FacetAttr = ParseQueryStrings(cfg.FacetAttr)
+	idx.SrchAttr = parseSrchAttrs(idx.SrchAttr)
+	if len(idx.FacetAttr) > 0 {
+		idx.FacetAttr = ParseQueryStrings(idx.FacetAttr)
 	}
-	if len(cfg.SortAttr) > 0 {
-		cfg.SortAttr = ParseQueryStrings(cfg.SortAttr)
+	if len(idx.SortAttr) > 0 {
+		idx.SortAttr = ParseQueryStrings(idx.SortAttr)
 	}
-	cfg.SetMapping(cfg.mapParams())
+	idx.SetMapping(idx.mapParams())
 	return nil
 }
 
-func (cfg *Idx) Encode() (url.Values, error) {
-	return sp.Encode(cfg)
+func (idx *Idx) HasData() bool {
+	return idx.Data != ""
 }
 
-func (cfg *Idx) mapParams() Mapping {
+func (idx *Idx) HasSrchAttr() bool {
+	return len(idx.SrchAttr) > 0
+}
+
+func (idx *Idx) HasFacetAttr() bool {
+	return len(idx.FacetAttr) > 0
+}
+
+func (idx *Idx) HasSortAttr() bool {
+	return len(idx.SortAttr) > 0
+}
+
+func (idx *Idx) Encode() (url.Values, error) {
+	return sp.Encode(idx)
+}
+
+func (idx *Idx) mapParams() Mapping {
 	m := NewMapping()
 
-	for _, attr := range cfg.SrchAttr {
+	for _, attr := range idx.SrchAttr {
 		m.AddFulltext(attr)
 	}
 
-	for _, attr := range cfg.FacetAttr {
+	for _, attr := range idx.FacetAttr {
 		m.AddKeywords(attr)
 	}
 
-	for _, attr := range cfg.SortAttr {
+	for _, attr := range idx.SortAttr {
 		m.AddKeywords(attr)
 	}
 

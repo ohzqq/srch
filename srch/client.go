@@ -15,8 +15,8 @@ const (
 
 type Client struct {
 	*Cfg
-	*hare.Database
 
+	db  *hare.Database
 	tbl *hare.Table
 }
 
@@ -40,7 +40,7 @@ func NewClient(cfg *Cfg) (*Client, error) {
 
 func (client *Client) TableNames() []string {
 	client.LoadCfg()
-	return lo.Without(client.Database.TableNames(), settingsTbl, "")
+	return lo.Without(client.db.TableNames(), settingsTbl, "")
 }
 
 func (client *Client) TableExists(name string) bool {
@@ -48,21 +48,21 @@ func (client *Client) TableExists(name string) bool {
 }
 
 func (client *Client) LoadCfg() error {
-	if !client.Database.TableExists(settingsTbl) {
-		err := client.Database.CreateTable(settingsTbl)
+	if !client.db.TableExists(settingsTbl) {
+		err := client.db.CreateTable(settingsTbl)
 		if err != nil {
 			return fmt.Errorf("client.GetCfg error\n%w\n", err)
 		}
 	}
 
-	tbl, err := client.Database.GetTable(settingsTbl)
+	tbl, err := client.db.GetTable(settingsTbl)
 	if err != nil {
 		return err
 	}
 	client.SetTbl(tbl)
 
-	if !client.Database.TableExists(client.IndexName()) {
-		err = client.Database.CreateTable(client.IndexName())
+	if !client.db.TableExists(client.IndexName()) {
+		err = client.db.CreateTable(client.IndexName())
 		if err != nil {
 			return err
 		}
@@ -109,7 +109,7 @@ func (client *Client) SetDatastorage(ds hare.Datastorage) error {
 	if err != nil {
 		return err
 	}
-	client.Database = h
+	client.db = h
 	return nil
 }
 

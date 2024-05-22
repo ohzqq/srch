@@ -106,14 +106,19 @@ func (cfg *Cfg) DataURL() *url.URL {
 }
 
 func (cfg *Cfg) HasData() bool {
-	return cfg.Idx.Data != ""
+	return cfg.Idx.HasData()
 }
 
 func (cfg *Cfg) HasDB() bool {
 	return cfg.Client.DB != ""
 }
-func (cfg *Cfg) HasIdx() bool {
+
+func (cfg *Cfg) HasIdxURL() bool {
 	return cfg.Search.URI != ""
+}
+
+func (cfg *Cfg) GetIdxCfg() (*Idx, error) {
+	return cfg.Idx, nil
 }
 
 func (cfg *Cfg) HasSrchAttr() bool {

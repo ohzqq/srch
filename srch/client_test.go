@@ -82,8 +82,8 @@ func (t clientTest) storage(q QueryStr) error {
 }
 
 func (t clientTest) settingsExists(q QueryStr) error {
-	got := t.got.Database.TableExists(settingsTbl)
-	want := t.want.Database.TableExists(settingsTbl)
+	got := t.got.db.TableExists(settingsTbl)
+	want := t.want.db.TableExists(settingsTbl)
 	if got != want {
 		return errors.New(msg(q.String(), got, want))
 	}
@@ -140,7 +140,7 @@ func (t clientTest) testIDs(q QueryStr, terr error) error {
 
 func (t clientTest) listTbls(q QueryStr) error {
 	got := t.got.TableNames()
-	want := lo.Without(t.want.Database.TableNames(), "", "_settings")
+	want := lo.Without(t.want.db.TableNames(), "", "_settings")
 	if len(want) == 0 {
 		want = []string{"default"}
 	}
