@@ -8,6 +8,8 @@ import (
 )
 
 type Idx struct {
+	tbl *hare.Table
+
 	ID      int     `json:"_id"`
 	Mapping Mapping `json:"mapping"`
 	Name    string  `json:"name" qs:"index"`
@@ -49,8 +51,11 @@ func (idx *Idx) Decode(u url.Values) error {
 	return nil
 }
 
-func (idx *Idx) HasData() bool {
-	return idx.Data != ""
+func (idx *Idx) Cfg() *Idx {
+	if idx.HasSrchAttr() || idx.HasFacetAttr() || idx.HasSortAttr() {
+		return idx
+	}
+	return idx
 }
 
 func (idx *Idx) HasSrchAttr() bool {

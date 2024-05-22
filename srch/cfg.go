@@ -106,7 +106,7 @@ func (cfg *Cfg) DataURL() *url.URL {
 }
 
 func (cfg *Cfg) HasData() bool {
-	return cfg.Idx.HasData()
+	return cfg.Idx.Data != ""
 }
 
 func (cfg *Cfg) HasDB() bool {
@@ -115,22 +115,6 @@ func (cfg *Cfg) HasDB() bool {
 
 func (cfg *Cfg) HasIdxURL() bool {
 	return cfg.Search.URI != ""
-}
-
-func (cfg *Cfg) GetIdxCfg() (*Idx, error) {
-	return cfg.Idx, nil
-}
-
-func (cfg *Cfg) HasSrchAttr() bool {
-	return len(cfg.Idx.SrchAttr) > 0
-}
-
-func (cfg *Cfg) HasFacetAttr() bool {
-	return len(cfg.Idx.FacetAttr) > 0
-}
-
-func (cfg *Cfg) HasSortAttr() bool {
-	return len(cfg.Idx.SortAttr) > 0
 }
 
 func (cfg *Cfg) HasFilters() bool {

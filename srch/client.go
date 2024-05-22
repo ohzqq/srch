@@ -104,6 +104,23 @@ func (client *Client) FindIdxCfg(name string) (*Idx, error) {
 	return nil, err
 }
 
+func (client *Client) FindIdx(name string) (*Idx, error) {
+	idx, err := client.FindIdxCfg(name)
+	if err != nil {
+		return nil, err
+	}
+	if client.Idx.HasSrchAttr() || client.Idx.HasFacetAttr() || client.Idx.HasSortAttr() {
+		if client.HasData() {
+			data := client.DataURL()
+			fmt.Printf("data url %#v\n", data)
+		}
+	}
+	if client.HasIdxURL() {
+		println("2. Has idx url")
+	}
+	return idx, nil
+}
+
 func (client *Client) SetDatastorage(ds hare.Datastorage) error {
 	h, err := hare.New(ds)
 	if err != nil {
