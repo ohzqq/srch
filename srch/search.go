@@ -22,7 +22,6 @@ type Search struct {
 	FacetFltr    []string `query:"facetFilters,omitempty" json:"facetFilters,omitempty" mapstructure:"facet_filters" qs:"facetFilters"`
 	SortFacetsBy string   `query:"sortFacetsBy,omitempty" json:"sortFacetsBy,omitempty" mapstructure:"sort_facets_by" qs:"sortFacetsBy"`
 	MaxFacetVals int      `query:"maxValuesPerFacet,omitempty" json:"maxValuesPerFacet,omitempty" mapstructure:"max_values_per_facet" qs:"maxValuesPerFacet,omitempty"`
-	URI          string   `json:"-" mapstructure:"path" qs:"url"`
 
 	*url.URL `json:"-"`
 }
@@ -39,12 +38,6 @@ func (s *Search) Decode(u url.Values) error {
 	s.RtrvAttr = parseSrchAttrs(s.RtrvAttr)
 	if len(s.Facets) > 0 {
 		s.Facets = ParseQueryStrings(s.Facets)
-	}
-	if s.URI != "" {
-		s.URL, err = url.Parse(s.URI)
-		if err != nil {
-			return err
-		}
 	}
 	return nil
 }

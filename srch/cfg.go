@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/ohzqq/sp"
 	"github.com/samber/lo"
 )
 
@@ -13,6 +14,11 @@ type Cfg struct {
 	Client *ClientCfg
 	Search *Search
 	Idx    *Idx
+
+	//data locations
+	Hare   string `json:"-" mapstructure:"path" qs:"db"`
+	Data   string `json:"-" mapstructure:"path" qs:"data"`
+	IdxURL string `json:"-" mapstructure:"path" qs:"idx"`
 }
 
 func newCfg() *Cfg {
@@ -41,7 +47,7 @@ func (cfg *Cfg) Decode(v url.Values) error {
 	if err != nil {
 		return err
 	}
-	err = Decode(v, cfg.Client)
+	err = sp.Decode(v, cfg)
 	if err != nil {
 		return err
 	}
@@ -57,7 +63,7 @@ func (cfg *Cfg) Encode() (url.Values, error) {
 	if err != nil {
 		return nil, err
 	}
-	cv, err := cfg.Client.Encode()
+	cv, err := sp.Encode(cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -82,7 +88,7 @@ func (cfg *Cfg) IndexName() string {
 }
 
 func (cfg *Cfg) DB() *url.URL {
-	u, err := parseURL(cfg.Client.DB)
+	u, err := parseURL(cfg.Hare)
 	if err != nil {
 		return &url.URL{Scheme: "mem"}
 	}
@@ -90,7 +96,7 @@ func (cfg *Cfg) DB() *url.URL {
 }
 
 func (cfg *Cfg) SrchURL() *url.URL {
-	u, err := parseURL(cfg.Search.URI)
+	u, err := parseURL(cfg.IdxURL)
 	if err != nil {
 		return &url.URL{Scheme: "mem"}
 	}
@@ -98,7 +104,7 @@ func (cfg *Cfg) SrchURL() *url.URL {
 }
 
 func (cfg *Cfg) DataURL() *url.URL {
-	u, err := parseURL(cfg.Idx.Data)
+	u, err := parseURL(cfg.Data)
 	if err != nil {
 		return &url.URL{Scheme: "mem"}
 	}
@@ -106,15 +112,15 @@ func (cfg *Cfg) DataURL() *url.URL {
 }
 
 func (cfg *Cfg) HasData() bool {
-	return cfg.Idx.Data != ""
+	return cfg.Data != ""
 }
 
 func (cfg *Cfg) HasDB() bool {
-	return cfg.Client.DB != ""
+	return cfg.Hare != ""
 }
 
 func (cfg *Cfg) HasIdxURL() bool {
-	return cfg.Search.URI != ""
+	return cfg.IdxURL != ""
 }
 
 func (cfg *Cfg) HasFilters() bool {

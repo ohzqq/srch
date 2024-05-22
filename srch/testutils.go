@@ -151,7 +151,7 @@ func getTestCfg(idx int) *Cfg {
 				Name:     "default",
 			},
 			Client: &ClientCfg{
-				Index: "default",
+				Name: "default",
 			},
 			Search: &Search{
 				RtrvAttr: []string{"*"},
@@ -163,7 +163,7 @@ func getTestCfg(idx int) *Cfg {
 				Name:     "default",
 			},
 			Client: &ClientCfg{
-				Index: "default",
+				Name: "default",
 			},
 			Search: &Search{
 				RtrvAttr: []string{"*"},
@@ -175,122 +175,122 @@ func getTestCfg(idx int) *Cfg {
 				Name:     "default",
 			},
 			Client: &ClientCfg{
-				Index: "default",
+				Name: "default",
 			},
 			Search: &Search{
 				RtrvAttr: []string{"*"},
 			},
 		},
 		&Cfg{
+			Data: DataTestURL,
+			Hare: HareTestURL,
 			Idx: &Idx{
 				SrchAttr: []string{"title"},
 				SortAttr: []string{"title"},
-				Data:     DataTestURL,
 				Name:     "default",
 			},
 			Client: &ClientCfg{
-				Index: "default",
-				DB:    HareTestURL,
+				Name: "default",
 			},
 			Search: &Search{
 				RtrvAttr: []string{"*"},
 			},
 		},
 		&Cfg{
+			Data: DataTestURL,
+			Hare: HareTestURL,
 			Idx: &Idx{
 				SrchAttr:  []string{"title"},
 				SortAttr:  []string{"title"},
 				FacetAttr: []string{"tags", "authors", "series", "narrators"},
-				Data:      DataTestURL,
 				Name:      "default",
 			},
 			Client: &ClientCfg{
-				Index: "default",
-				DB:    HareTestURL,
+				Name: "default",
 			},
 			Search: &Search{
 				RtrvAttr: []string{"*"},
 			},
 		},
 		&Cfg{
+			Data: DataTestURL,
+			Hare: HareTestURL,
 			Idx: &Idx{
 				SrchAttr:  []string{"title"},
 				SortAttr:  []string{"title"},
 				FacetAttr: []string{"tags", "authors", "series", "narrators"},
-				Data:      DataTestURL,
 				Name:      "default",
 			},
 			Client: &ClientCfg{
-				Index: "default",
-				DB:    HareTestURL,
+				Name: "default",
 			},
 			Search: &Search{
 				RtrvAttr: []string{"*"},
 			},
 		},
 		&Cfg{
+			Data: DataTestURL,
+			Hare: HareTestURL,
 			Idx: &Idx{
 				SrchAttr:  []string{"title"},
 				SortAttr:  []string{"title"},
 				FacetAttr: []string{"tags", "authors", "series", "narrators"},
-				Data:      DataTestURL,
 				Name:      "default",
 			},
 			Client: &ClientCfg{
-				Index: "default",
-				DB:    HareTestURL,
-				UID:   "id",
+				Name: "default",
+				UID:  "id",
 			},
 			Search: &Search{
 				RtrvAttr: []string{"*"},
 			},
 		},
 		&Cfg{
+			Data: DataTestURL,
+			Hare: HareTestURL,
 			Idx: &Idx{
 				SrchAttr:  []string{"title"},
 				SortAttr:  []string{"title"},
 				FacetAttr: []string{"tags", "authors", "series", "narrators"},
-				Data:      DataTestURL,
 				Name:      "audiobooks",
 			},
 			Client: &ClientCfg{
-				Index: "audiobooks",
-				DB:    HareTestURL,
-				UID:   "id",
+				Name: "audiobooks",
+				UID:  "id",
 			},
 			Search: &Search{
 				RtrvAttr: []string{"*"},
 			},
 		},
 		&Cfg{
+			Data: DataTestURL,
+			Hare: HareTestURL,
 			Idx: &Idx{
 				SrchAttr:  []string{"title"},
 				SortAttr:  []string{"title"},
 				FacetAttr: []string{"tags", "authors", "series", "narrators"},
-				Data:      DataTestURL,
 				Name:      "audiobooks",
 			},
 			Client: &ClientCfg{
-				Index: "audiobooks",
-				DB:    HareTestURL,
-				UID:   "id",
+				Name: "audiobooks",
+				UID:  "id",
 			},
 			Search: &Search{
 				RtrvAttr: []string{"title", "tags", "authors"},
 			},
 		},
 		&Cfg{
+			Data: DataTestURL,
+			Hare: HareTestURL,
 			Idx: &Idx{
 				SrchAttr:  []string{"title"},
 				SortAttr:  []string{"title"},
 				FacetAttr: []string{"tags", "authors", "series", "narrators"},
-				Data:      DataTestURL,
 				Name:      "audiobooks",
 			},
 			Client: &ClientCfg{
-				Index: "audiobooks",
-				DB:    HareTestURL,
-				UID:   "id",
+				Name: "audiobooks",
+				UID:  "id",
 			},
 			Search: &Search{
 				RtrvAttr: []string{"title", "tags", "authors"},
@@ -298,17 +298,17 @@ func getTestCfg(idx int) *Cfg {
 			},
 		},
 		&Cfg{
+			Data: DataTestURL,
+			Hare: HareTestURL,
 			Idx: &Idx{
 				SrchAttr:  []string{"title"},
 				SortAttr:  []string{"title"},
 				FacetAttr: []string{"tags", "authors", "series", "narrators"},
-				Data:      DataTestURL,
 				Name:      "audiobooks",
 			},
 			Client: &ClientCfg{
-				Index: "audiobooks",
-				DB:    HareTestURL,
-				UID:   "id",
+				Name: "audiobooks",
+				UID:  "id",
 			},
 			Search: &Search{
 				RtrvAttr: []string{"title", "tags", "authors"},
@@ -317,17 +317,17 @@ func getTestCfg(idx int) *Cfg {
 			},
 		},
 		&Cfg{
+			Data: DataTestURL,
+			Hare: HareTestURL,
 			Idx: &Idx{
 				SrchAttr:  []string{"title"},
 				SortAttr:  []string{"title"},
 				FacetAttr: []string{"tags", "authors", "series", "narrators"},
-				Data:      DataTestURL,
 				Name:      "audiobooks",
 			},
 			Client: &ClientCfg{
-				Index: "audiobooks",
-				DB:    HareTestURL,
-				UID:   "id",
+				Name: "audiobooks",
+				UID:  "id",
 			},
 			Search: &Search{
 				RtrvAttr:  []string{"title", "tags", "authors"},
@@ -337,24 +337,24 @@ func getTestCfg(idx int) *Cfg {
 			},
 		},
 		&Cfg{
+			Data:   DataTestURL,
+			Hare:   HareTestURL,
+			IdxURL: filepath.Join(HareTestURL, "audiobooks.json"),
 			Idx: &Idx{
 				SrchAttr:  []string{"title"},
 				SortAttr:  []string{"title"},
 				FacetAttr: []string{"tags", "authors", "series", "narrators"},
-				Data:      DataTestURL,
 				Name:      "audiobooks",
 			},
 			Client: &ClientCfg{
-				Index: "audiobooks",
-				DB:    HareTestURL,
-				UID:   "id",
+				Name: "audiobooks",
+				UID:  "id",
 			},
 			Search: &Search{
 				RtrvAttr:  []string{"title", "tags", "authors"},
 				Facets:    []string{"tags", "authors", "series", "narrators"},
 				Query:     "fish",
 				FacetFltr: []string{"[\"authors:amy lane\", [\"tags:romance\", \"tags:-dnr\"]]"},
-				URI:       filepath.Join(HareTestURL, "audiobooks.json"),
 			},
 		},
 	}
