@@ -15,9 +15,9 @@ type Cfg struct {
 	Idx    *Idx
 
 	//data locations
-	Hare   string `json:"-" mapstructure:"path" qs:"db"`
-	Data   string `json:"-" mapstructure:"path" qs:"data"`
-	IdxURL string `json:"-" mapstructure:"path" qs:"idx"`
+	Hare   string `json:"-" mapstructure:"db" qs:"db"`
+	Data   string `json:"-" mapstructure:"data" qs:"data"`
+	IdxURL string `json:"-" mapstructure:"idx" qs:"idx"`
 }
 
 func newCfg() *Cfg {
