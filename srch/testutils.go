@@ -12,7 +12,7 @@ import (
 const (
 	HareTestPath  = `/home/mxb/code/srch/testdata/hare`
 	HareTestURL   = `file://home/mxb/code/srch/testdata/hare`
-	HareTestQuery = `?url=file://home/mxb/code/srch/testdata/hare/`
+	HareTestQuery = `?idx=file://home/mxb/code/srch/testdata/hare/`
 )
 
 const (
@@ -135,12 +135,12 @@ var TestQueryParams = []QueryStr{
 	QueryStr(`?searchableAttributes=title&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=title&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags,authors,series,narrators`),
 	QueryStr(`?searchableAttributes=title&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=title&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags&attributesForFaceting=authors&attributesForFaceting=series&attributesForFaceting=narrators`),
 	QueryStr(`?searchableAttributes=title&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=title&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags,authors,series,narrators&uid=id`),
-	QueryStr(`?searchableAttributes=title&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=title&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags,authors,series,narrators&uid=id&index=audiobooks`),
-	QueryStr(`?searchableAttributes=title&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=title&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags,authors,series,narrators&uid=id&index=audiobooks&attributesToRetrieve=title,tags,authors`),
-	QueryStr(`?searchableAttributes=title&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=title&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags,authors,series,narrators&uid=id&index=audiobooks&attributesToRetrieve=title,tags,authors&facets=tags,authors,series,narrators`),
-	QueryStr(`?searchableAttributes=title&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=title&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags,authors,series,narrators&uid=id&index=audiobooks&attributesToRetrieve=title,tags,authors&facets=tags,authors,series,narrators&query=fish`),
-	QueryStr(`?searchableAttributes=title&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=title&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags,authors,series,narrators&uid=id&index=audiobooks&attributesToRetrieve=title,tags,authors&facets=tags,authors,series,narrators&query=fish&facetFilters=["authors:amy lane"]`),
-	QueryStr(`?searchableAttributes=title&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=title&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags,authors,series,narrators&uid=id&index=audiobooks&attributesToRetrieve=title,tags,authors&facets=tags,authors,series,narrators&query=fish&facetFilters=["authors:amy lane", ["tags:romance", "tags:-dnr"]]&url=file://home/mxb/code/srch/testdata/hare/audiobooks.json`),
+	QueryStr(`?searchableAttributes=title&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=title&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags,authors,series,narrators&uid=id&name=audiobooks`),
+	QueryStr(`?searchableAttributes=title&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=title&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags,authors,series,narrators&uid=id&name=audiobooks&attributesToRetrieve=title,tags,authors`),
+	QueryStr(`?searchableAttributes=title&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=title&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags,authors,series,narrators&uid=id&name=audiobooks&attributesToRetrieve=title,tags,authors&facets=tags,authors,series,narrators`),
+	QueryStr(`?searchableAttributes=title&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=title&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags,authors,series,narrators&uid=id&name=audiobooks&attributesToRetrieve=title,tags,authors&facets=tags,authors,series,narrators&query=fish`),
+	QueryStr(`?searchableAttributes=title&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=title&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags,authors,series,narrators&uid=id&name=audiobooks&attributesToRetrieve=title,tags,authors&facets=tags,authors,series,narrators&query=fish&facetFilters=["authors:amy lane"]`),
+	QueryStr(`?searchableAttributes=title&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=title&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags,authors,series,narrators&uid=id&name=audiobooks&attributesToRetrieve=title,tags,authors&facets=tags,authors,series,narrators&query=fish&facetFilters=["authors:amy lane", ["tags:romance", "tags:-dnr"]]&idx=file://home/mxb/code/srch/testdata/hare/audiobooks.json`),
 }
 
 func getTestCfg(idx int) *Cfg {
@@ -150,9 +150,6 @@ func getTestCfg(idx int) *Cfg {
 				SrchAttr: []string{"*"},
 				Name:     "default",
 			},
-			Client: &ClientCfg{
-				Name: "default",
-			},
 			Search: &Search{
 				RtrvAttr: []string{"*"},
 			},
@@ -162,9 +159,6 @@ func getTestCfg(idx int) *Cfg {
 				SrchAttr: []string{"*"},
 				Name:     "default",
 			},
-			Client: &ClientCfg{
-				Name: "default",
-			},
 			Search: &Search{
 				RtrvAttr: []string{"*"},
 			},
@@ -173,9 +167,6 @@ func getTestCfg(idx int) *Cfg {
 			Idx: &Idx{
 				SrchAttr: []string{"title"},
 				Name:     "default",
-			},
-			Client: &ClientCfg{
-				Name: "default",
 			},
 			Search: &Search{
 				RtrvAttr: []string{"*"},
@@ -189,8 +180,18 @@ func getTestCfg(idx int) *Cfg {
 				SortAttr: []string{"title"},
 				Name:     "default",
 			},
-			Client: &ClientCfg{
-				Name: "default",
+			Search: &Search{
+				RtrvAttr: []string{"*"},
+			},
+		},
+		&Cfg{
+			Data: DataTestURL,
+			Hare: HareTestURL,
+			Idx: &Idx{
+				SrchAttr:  []string{"title"},
+				SortAttr:  []string{"title"},
+				FacetAttr: []string{"tags", "authors", "series", "narrators"},
+				Name:      "default",
 			},
 			Search: &Search{
 				RtrvAttr: []string{"*"},
@@ -205,9 +206,6 @@ func getTestCfg(idx int) *Cfg {
 				FacetAttr: []string{"tags", "authors", "series", "narrators"},
 				Name:      "default",
 			},
-			Client: &ClientCfg{
-				Name: "default",
-			},
 			Search: &Search{
 				RtrvAttr: []string{"*"},
 			},
@@ -220,26 +218,7 @@ func getTestCfg(idx int) *Cfg {
 				SortAttr:  []string{"title"},
 				FacetAttr: []string{"tags", "authors", "series", "narrators"},
 				Name:      "default",
-			},
-			Client: &ClientCfg{
-				Name: "default",
-			},
-			Search: &Search{
-				RtrvAttr: []string{"*"},
-			},
-		},
-		&Cfg{
-			Data: DataTestURL,
-			Hare: HareTestURL,
-			Idx: &Idx{
-				SrchAttr:  []string{"title"},
-				SortAttr:  []string{"title"},
-				FacetAttr: []string{"tags", "authors", "series", "narrators"},
-				Name:      "default",
-			},
-			Client: &ClientCfg{
-				Name: "default",
-				UID:  "id",
+				UID:       "id",
 			},
 			Search: &Search{
 				RtrvAttr: []string{"*"},
@@ -253,10 +232,7 @@ func getTestCfg(idx int) *Cfg {
 				SortAttr:  []string{"title"},
 				FacetAttr: []string{"tags", "authors", "series", "narrators"},
 				Name:      "audiobooks",
-			},
-			Client: &ClientCfg{
-				Name: "audiobooks",
-				UID:  "id",
+				UID:       "id",
 			},
 			Search: &Search{
 				RtrvAttr: []string{"*"},
@@ -270,10 +246,7 @@ func getTestCfg(idx int) *Cfg {
 				SortAttr:  []string{"title"},
 				FacetAttr: []string{"tags", "authors", "series", "narrators"},
 				Name:      "audiobooks",
-			},
-			Client: &ClientCfg{
-				Name: "audiobooks",
-				UID:  "id",
+				UID:       "id",
 			},
 			Search: &Search{
 				RtrvAttr: []string{"title", "tags", "authors"},
@@ -287,10 +260,7 @@ func getTestCfg(idx int) *Cfg {
 				SortAttr:  []string{"title"},
 				FacetAttr: []string{"tags", "authors", "series", "narrators"},
 				Name:      "audiobooks",
-			},
-			Client: &ClientCfg{
-				Name: "audiobooks",
-				UID:  "id",
+				UID:       "id",
 			},
 			Search: &Search{
 				RtrvAttr: []string{"title", "tags", "authors"},
@@ -305,10 +275,7 @@ func getTestCfg(idx int) *Cfg {
 				SortAttr:  []string{"title"},
 				FacetAttr: []string{"tags", "authors", "series", "narrators"},
 				Name:      "audiobooks",
-			},
-			Client: &ClientCfg{
-				Name: "audiobooks",
-				UID:  "id",
+				UID:       "id",
 			},
 			Search: &Search{
 				RtrvAttr: []string{"title", "tags", "authors"},
@@ -324,10 +291,7 @@ func getTestCfg(idx int) *Cfg {
 				SortAttr:  []string{"title"},
 				FacetAttr: []string{"tags", "authors", "series", "narrators"},
 				Name:      "audiobooks",
-			},
-			Client: &ClientCfg{
-				Name: "audiobooks",
-				UID:  "id",
+				UID:       "id",
 			},
 			Search: &Search{
 				RtrvAttr:  []string{"title", "tags", "authors"},
@@ -345,10 +309,7 @@ func getTestCfg(idx int) *Cfg {
 				SortAttr:  []string{"title"},
 				FacetAttr: []string{"tags", "authors", "series", "narrators"},
 				Name:      "audiobooks",
-			},
-			Client: &ClientCfg{
-				Name: "audiobooks",
-				UID:  "id",
+				UID:       "id",
 			},
 			Search: &Search{
 				RtrvAttr:  []string{"title", "tags", "authors"},

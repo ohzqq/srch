@@ -18,8 +18,8 @@ type Idx struct {
 
 	ID      int     `json:"_id"`
 	Mapping Mapping `json:"mapping"`
-	Name    string  `json:"name" qs:"index"`
-	UID     string  `query:"uid,omitempty" json:"uid,omitempty" mapstructure:"uid" qs:"uid"`
+	Name    string  `json:"name" qs:"name"`
+	UID     string  `json:"uid,omitempty" mapstructure:"uid" qs:"uid"`
 
 	// Index Settings
 	SrchAttr  []string `query:"searchableAttributes" json:"searchableAttributes,omitempty" mapstructure:"searchable_attributes" qs:"searchableAttributes,omitempty"`

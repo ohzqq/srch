@@ -11,7 +11,6 @@ import (
 )
 
 type Cfg struct {
-	Client *ClientCfg
 	Search *Search
 	Idx    *Idx
 
@@ -25,7 +24,6 @@ func newCfg() *Cfg {
 	return &Cfg{
 		Idx:    NewIdxCfg(),
 		Search: NewSearch(),
-		Client: NewClientCfg(),
 	}
 }
 
@@ -76,7 +74,7 @@ func (cfg *Cfg) SetIdxName(tbl string) *Cfg {
 }
 
 func (cfg *Cfg) SetCustomID(id string) *Cfg {
-	cfg.Client.UID = id
+	cfg.Idx.UID = id
 	return cfg
 }
 
