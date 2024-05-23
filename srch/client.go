@@ -49,7 +49,7 @@ func (client *Client) initDB() error {
 	return nil
 }
 
-func (client *Client) idxNames() []string {
+func (client *Client) Indexes() []string {
 	client.LoadCfg()
 	cfgs, _ := client.getIdxCfgs()
 	return maps.Keys(cfgs)
@@ -85,33 +85,10 @@ func (client *Client) LoadCfg() error {
 	return nil
 }
 
-func (client *Client) IdxIDs() ([]int, error) {
-	client.LoadCfg()
-	return client.tbl.IDs()
-}
-
 func (client *Client) FindIdxCfg(name string) (*Idx, error) {
 	err := client.LoadCfg()
 	if err != nil {
 		return nil, err
-	}
-
-	if !client.db.TableExists(client.Idx.idxTblName()) {
-		err = client.db.CreateTable(client.Idx.idxTblName())
-		if err != nil {
-			return nil, err
-		}
-		_, err = client.tbl.Insert(client.Idx)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	if !client.db.TableExists(client.Idx.dataTblName()) {
-		err = client.db.CreateTable(client.Idx.dataTblName())
-		if err != nil {
-			return nil, err
-		}
 	}
 
 	cfgs, err := client.getIdxCfgs()
@@ -127,6 +104,29 @@ func (client *Client) FindIdxCfg(name string) (*Idx, error) {
 }
 
 func (client *Client) getIdxCfgs() (map[string]*Idx, error) {
+	err := client.LoadCfg()
+	if err != nil {
+		return nil, err
+	}
+
+	if !client.db.TableExists(client.Idx.idxTblName()) {
+		err := client.db.CreateTable(client.Idx.idxTblName())
+		if err != nil {
+			return nil, err
+		}
+		_, err = client.tbl.Insert(client.Idx)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if !client.db.TableExists(client.Idx.dataTblName()) {
+		err := client.db.CreateTable(client.Idx.dataTblName())
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	ids, err := client.tbl.IDs()
 	if err != nil {
 		return nil, err

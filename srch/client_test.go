@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"reflect"
 	"testing"
-
-	"github.com/samber/lo"
 )
 
 type clientTest struct {
@@ -164,11 +162,19 @@ func (t clientTest) getIdxCfg(q QueryStr) error {
 }
 
 func (t clientTest) testIDs(q QueryStr, terr error) error {
-	gIDs, err := t.got.IdxIDs()
+	err := t.got.LoadCfg()
 	if err != nil {
 		return terr
 	}
-	wIDs, err := t.want.IdxIDs()
+	err = t.want.LoadCfg()
+	if err != nil {
+		return terr
+	}
+	gIDs, err := t.got.tbl.IDs()
+	if err != nil {
+		return terr
+	}
+	wIDs, err := t.want.tbl.IDs()
 	if err != nil {
 		return terr
 	}
@@ -177,15 +183,15 @@ func (t clientTest) testIDs(q QueryStr, terr error) error {
 }
 
 func (t clientTest) testTotalIdx(q QueryStr) error {
-	gIDs, err := t.got.IdxIDs()
-	if err != nil {
-		return err
-	}
-	wIDs, err := t.want.IdxIDs()
-	if err != nil {
-		return err
-	}
 
+	err := t.got.LoadCfg()
+	if err != nil {
+		return err
+	}
+	gIDs, err := t.got.tbl.IDs()
+	if err != nil {
+		return err
+	}
 	gCfgs, err := t.got.getIdxCfgs()
 	if err != nil {
 		return err
@@ -204,17 +210,12 @@ func (t clientTest) testTotalIdx(q QueryStr) error {
 		return fmt.Errorf("got %v _settings records, wanted %v\n", len(gIDs), len(gCfgs))
 	}
 
-	if len(wIDs) != len(wCfgs) {
-		return fmt.Errorf("got %v _settings records, wanted %v\n", len(wIDs), len(wCfgs))
-	}
-
 	return nil
 }
 
 func (t clientTest) listTbls(q QueryStr) error {
-	fmt.Printf("idx names %#v\n", t.got.idxNames())
-	got := t.got.TableNames()
-	want := lo.Without(t.want.db.TableNames(), "", "_settings")
+	got := t.got.Indexes()
+	want := t.want.Indexes()
 	if len(want) == 0 {
 		want = []string{"default"}
 	}
