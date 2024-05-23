@@ -162,6 +162,7 @@ func (t clientTest) testIDs(q QueryStr, terr error) error {
 }
 
 func (t clientTest) listTbls(q QueryStr) error {
+	fmt.Printf("idx names %#v\n", t.got.idxNames())
 	got := t.got.TableNames()
 	want := lo.Without(t.want.db.TableNames(), "", "_settings")
 	if len(want) == 0 {

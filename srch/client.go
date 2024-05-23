@@ -3,10 +3,10 @@ package srch
 import (
 	"fmt"
 	"slices"
-	"strings"
 
 	"github.com/ohzqq/hare"
 	"github.com/samber/lo"
+	"golang.org/x/exp/maps"
 )
 
 const (
@@ -51,21 +51,8 @@ func (client *Client) initDB() error {
 
 func (client *Client) idxNames() []string {
 	client.LoadCfg()
-	tbls := lo.Without(client.db.TableNames(), settingsTbl, "")
-
-	var names []string
-	for _, tbl := range tbls {
-		if strings.HasSuffix(tbl, "Idx") {
-			it := strings.TrimSuffix(tbl, "Idx")
-			names = append(names, it)
-		}
-		if strings.HasSuffix(tbl, "Data") {
-			dt := strings.TrimSuffix(tbl, "Data")
-			names = append(names, dt)
-		}
-	}
-
-	return names
+	cfgs, _ := client.getIdxCfgs()
+	return maps.Keys(cfgs)
 }
 
 func (client *Client) TableNames() []string {
@@ -130,6 +117,7 @@ func (client *Client) FindIdxCfg(name string) (*Idx, error) {
 	if err != nil {
 		return nil, err
 	}
+	fmt.Printf("%#v\n", cfgs)
 
 	if idx, ok := cfgs[client.IndexName()]; ok {
 		return idx, nil
@@ -151,7 +139,7 @@ func (client *Client) getIdxCfgs() (map[string]*Idx, error) {
 		if err != nil {
 			return nil, fmt.Errorf("%w: %v\n", err, client.IndexName())
 		}
-		idxs[client.IndexName()] = idx
+		idxs[idx.Name] = idx
 	}
 
 	return idxs, nil
