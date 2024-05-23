@@ -14,7 +14,8 @@ import (
 )
 
 type Idx struct {
-	tbl *hare.Table
+	srch *hare.Table
+	data *hare.Table
 
 	ID      int     `json:"_id"`
 	Mapping Mapping `json:"mapping"`
@@ -39,6 +40,14 @@ func NewIdxCfg() *Idx {
 func (idx *Idx) SetMapping(m Mapping) *Idx {
 	idx.Mapping = m
 	return idx
+}
+
+func (idx *Idx) idxTblName() string {
+	return "idx" + idx.Name
+}
+
+func (idx *Idx) dataTblName() string {
+	return "data" + idx.Name
 }
 
 func (idx *Idx) Decode(u url.Values) error {
@@ -120,7 +129,7 @@ func (idx *Idx) Find(ids ...int) ([]*doc.Doc, error) {
 	default:
 		for _, id := range ids {
 			doc := &doc.Doc{}
-			err := idx.tbl.Find(id, doc)
+			err := idx.srch.Find(id, doc)
 			if err != nil {
 				return nil, err
 			}
@@ -131,7 +140,7 @@ func (idx *Idx) Find(ids ...int) ([]*doc.Doc, error) {
 }
 
 func (idx *Idx) FindAll() ([]*doc.Doc, error) {
-	ids, err := idx.tbl.IDs()
+	ids, err := idx.srch.IDs()
 	if err != nil {
 		return nil, err
 	}
@@ -148,7 +157,7 @@ func (idx *Idx) InsertDoc(data map[string]any) error {
 			doc.AddField(ana, field, val)
 		}
 	}
-	_, err := idx.tbl.Insert(doc)
+	_, err := idx.srch.Insert(doc)
 	if err != nil {
 		return err
 	}

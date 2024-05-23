@@ -25,17 +25,27 @@ func NewClient(cfg *Cfg) (*Client, error) {
 		Cfg: cfg,
 	}
 
+	//step 1: initialize hare db
+	err := client.initDB()
+	if err != nil {
+		return nil, err
+	}
+
+	return client, nil
+}
+
+func (client *Client) initDB() error {
 	ds, err := NewDatastorage(client.DB())
 	if err != nil {
-		return nil, fmt.Errorf("new datastorage error: %w\n", err)
+		return fmt.Errorf("new datastorage error: %w\n", err)
 	}
 
 	err = client.SetDatastorage(ds)
 	if err != nil {
-		return nil, fmt.Errorf("new set datastorage error: %w\n", err)
+		return fmt.Errorf("new set datastorage error: %w\n", err)
 	}
 
-	return client, nil
+	return nil
 }
 
 func (client *Client) TableNames() []string {
@@ -61,17 +71,6 @@ func (client *Client) LoadCfg() error {
 	}
 	client.SetTbl(tbl)
 
-	if !client.db.TableExists(client.IndexName()) {
-		err = client.db.CreateTable(client.IndexName())
-		if err != nil {
-			return err
-		}
-		_, err = client.tbl.Insert(client.Idx)
-		if err != nil {
-			return err
-		}
-	}
-
 	return nil
 }
 
@@ -83,6 +82,17 @@ func (client *Client) FindIdxCfg(name string) (*Idx, error) {
 	err := client.LoadCfg()
 	if err != nil {
 		return nil, err
+	}
+
+	if !client.db.TableExists(client.Idx.idxTblName()) {
+		err = client.db.CreateTable(client.Idx.idxTblName())
+		if err != nil {
+			return nil, err
+		}
+		_, err = client.tbl.Insert(client.Idx)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	ids, err := client.tbl.IDs()
@@ -105,20 +115,20 @@ func (client *Client) FindIdxCfg(name string) (*Idx, error) {
 }
 
 func (client *Client) FindIdx(name string) (*Idx, error) {
-	idx, err := client.FindIdxCfg(name)
+	cfg, err := client.FindIdxCfg(name)
 	if err != nil {
 		return nil, err
 	}
 	if client.Idx.HasSrchAttr() || client.Idx.HasFacetAttr() || client.Idx.HasSortAttr() {
 		if client.HasData() {
-			data := client.DataURL()
-			fmt.Printf("data url %#v\n", data)
+			//data := client.DataURL()
+			//fmt.Printf("data url %#v\n", data)
 		}
 	}
 	if client.HasIdxURL() {
-		println("2. Has idx url")
+		//println("2. Has idx url")
 	}
-	return idx, nil
+	return cfg, nil
 }
 
 func (client *Client) FindIdxData(name string) (*Idx, error) {
