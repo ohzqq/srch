@@ -184,15 +184,11 @@ func (t clientTest) testIDs(q QueryStr, terr error) error {
 
 func (t clientTest) testTotalIdx(q QueryStr) error {
 
-	err := t.got.LoadCfg()
+	gCfgs, err := t.got.getIdxCfgs()
 	if err != nil {
 		return err
 	}
 	gIDs, err := t.got.tbl.IDs()
-	if err != nil {
-		return err
-	}
-	gCfgs, err := t.got.getIdxCfgs()
 	if err != nil {
 		return err
 	}
