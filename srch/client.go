@@ -3,6 +3,7 @@ package srch
 import (
 	"fmt"
 	"slices"
+	"strings"
 
 	"github.com/ohzqq/hare"
 	"github.com/samber/lo"
@@ -48,6 +49,25 @@ func (client *Client) initDB() error {
 	return nil
 }
 
+func (client *Client) idxNames() []string {
+	client.LoadCfg()
+	tbls := lo.Without(client.db.TableNames(), settingsTbl, "")
+
+	var names []string
+	for _, tbl := range tbls {
+		if strings.HasSuffix(tbl, "Idx") {
+			it := strings.TrimSuffix(tbl, "Idx")
+			names = append(names, it)
+		}
+		if strings.HasSuffix(tbl, "Data") {
+			dt := strings.TrimSuffix(tbl, "Data")
+			names = append(names, dt)
+		}
+	}
+
+	return names
+}
+
 func (client *Client) TableNames() []string {
 	client.LoadCfg()
 	return lo.Without(client.db.TableNames(), settingsTbl, "")
@@ -55,6 +75,10 @@ func (client *Client) TableNames() []string {
 
 func (client *Client) TableExists(name string) bool {
 	return slices.Contains(client.TableNames(), name)
+}
+
+func (client *Client) HasIdx(name string) bool {
+	return false
 }
 
 func (client *Client) LoadCfg() error {
@@ -95,23 +119,42 @@ func (client *Client) FindIdxCfg(name string) (*Idx, error) {
 		}
 	}
 
+	if !client.db.TableExists(client.Idx.dataTblName()) {
+		err = client.db.CreateTable(client.Idx.dataTblName())
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	cfgs, err := client.getIdxCfgs()
+	if err != nil {
+		return nil, err
+	}
+
+	if idx, ok := cfgs[client.IndexName()]; ok {
+		return idx, nil
+	}
+
+	return nil, err
+}
+
+func (client *Client) getIdxCfgs() (map[string]*Idx, error) {
 	ids, err := client.tbl.IDs()
 	if err != nil {
 		return nil, err
 	}
 
+	idxs := make(map[string]*Idx)
 	for _, id := range ids {
 		idx := &Idx{}
 		err := client.tbl.Find(id, idx)
 		if err != nil {
 			return nil, fmt.Errorf("%w: %v\n", err, client.IndexName())
 		}
-		if idx.Name == name {
-			return idx, nil
-		}
+		idxs[client.IndexName()] = idx
 	}
 
-	return nil, err
+	return idxs, nil
 }
 
 func (client *Client) FindIdx(name string) (*Idx, error) {

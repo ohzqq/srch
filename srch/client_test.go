@@ -165,7 +165,7 @@ func (t clientTest) listTbls(q QueryStr) error {
 	got := t.got.TableNames()
 	want := lo.Without(t.want.db.TableNames(), "", "_settings")
 	if len(want) == 0 {
-		want = []string{"idxdefault"}
+		want = []string{"default"}
 	}
 	//want := []string{t.want.IndexName()}
 	return strSliceErr(q.String(), got, want)

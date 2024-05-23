@@ -43,11 +43,11 @@ func (idx *Idx) SetMapping(m Mapping) *Idx {
 }
 
 func (idx *Idx) idxTblName() string {
-	return "idx" + idx.Name
+	return idx.Name + "Idx"
 }
 
 func (idx *Idx) dataTblName() string {
-	return "data" + idx.Name
+	return idx.Name + "Data"
 }
 
 func (idx *Idx) Decode(u url.Values) error {
