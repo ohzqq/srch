@@ -45,6 +45,21 @@ func TestClientMem(t *testing.T) {
 	}
 }
 
+func TestClientTotalIdxs(t *testing.T) {
+	for i, query := range TestQueryParams {
+		req, err := newTestReq(query.String())
+		if err != nil {
+			t.Fatal(err)
+		}
+		test, err := req.clientTest(i)
+		err = test.testTotalIdx(query)
+		if err != nil {
+			t.Error(err)
+		}
+	}
+
+}
+
 func TestClientMemListTbls(t *testing.T) {
 	for i, query := range TestQueryParams {
 		req, err := newTestReq(query.String())
@@ -159,6 +174,41 @@ func (t clientTest) testIDs(q QueryStr, terr error) error {
 	}
 
 	return intSliceErr(q.String(), gIDs, wIDs)
+}
+
+func (t clientTest) testTotalIdx(q QueryStr) error {
+	gIDs, err := t.got.IdxIDs()
+	if err != nil {
+		return err
+	}
+	wIDs, err := t.want.IdxIDs()
+	if err != nil {
+		return err
+	}
+
+	gCfgs, err := t.got.getIdxCfgs()
+	if err != nil {
+		return err
+	}
+
+	wCfgs, err := t.want.getIdxCfgs()
+	if err != nil {
+		return err
+	}
+
+	if len(gCfgs) != len(wCfgs) {
+		return errors.New("len of configs not equal")
+	}
+
+	if len(gIDs) != len(gCfgs) {
+		return fmt.Errorf("got %v _settings records, wanted %v\n", len(gIDs), len(gCfgs))
+	}
+
+	if len(wIDs) != len(wCfgs) {
+		return fmt.Errorf("got %v _settings records, wanted %v\n", len(wIDs), len(wCfgs))
+	}
+
+	return nil
 }
 
 func (t clientTest) listTbls(q QueryStr) error {

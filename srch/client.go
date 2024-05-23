@@ -86,6 +86,7 @@ func (client *Client) LoadCfg() error {
 }
 
 func (client *Client) IdxIDs() ([]int, error) {
+	client.LoadCfg()
 	return client.tbl.IDs()
 }
 
@@ -117,7 +118,6 @@ func (client *Client) FindIdxCfg(name string) (*Idx, error) {
 	if err != nil {
 		return nil, err
 	}
-	fmt.Printf("%#v\n", cfgs)
 
 	if idx, ok := cfgs[client.IndexName()]; ok {
 		return idx, nil
