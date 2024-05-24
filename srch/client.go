@@ -1,7 +1,6 @@
 package srch
 
 import (
-	"errors"
 	"fmt"
 	"slices"
 
@@ -53,7 +52,6 @@ func (client *Client) initDB() error {
 
 func (client *Client) Indexes() map[string]*Idx {
 	client.LoadCfg()
-	//cfgs, _ := client.getIdxCfgs()
 	return client.indexes
 }
 
@@ -81,6 +79,10 @@ func (client *Client) LoadCfg() error {
 		if err != nil {
 			return fmt.Errorf("client.GetCfg error\n%w\n", err)
 		}
+		_, err = client.FindIdxCfg(client.IndexName())
+		if err != nil {
+			return err
+		}
 	}
 
 	tbl, err := client.db.GetTable(settingsTbl)
@@ -102,7 +104,6 @@ func (client *Client) LoadCfg() error {
 		}
 		client.indexes[idx.Name] = idx
 	}
-
 	return nil
 }
 
@@ -134,7 +135,7 @@ func (client *Client) FindIdxCfg(name string) (*Idx, error) {
 		return idx, nil
 	}
 
-	return nil, errors.New("idx not found")
+	return nil, ErrIdxNotFound
 }
 
 func (client *Client) getIdxCfgs() (map[string]*Idx, error) {
