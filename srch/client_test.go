@@ -146,13 +146,13 @@ func (t clientTest) getClientCfg(q QueryStr) error {
 
 func (t clientTest) getIdxCfg(q QueryStr) error {
 	gn := t.got.IndexName()
-	gCfg, err := t.got.FindIdxCfg(gn)
+	gCfg, err := t.got.FindIdx(gn)
 	if err != nil {
 		return errors.New(msg(q.String(), gCfg, t.got))
 	}
 
 	wn := t.want.IndexName()
-	wCfg, err := t.want.FindIdxCfg(wn)
+	wCfg, err := t.want.FindIdx(wn)
 	if err != nil {
 		return err
 	}

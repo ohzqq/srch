@@ -19,7 +19,7 @@ func TestNewClient(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-		_, err = client.FindIdxCfg(client.IndexName())
+		_, err = client.FindIdx(client.IndexName())
 		if err != nil {
 			t.Error(err)
 		}

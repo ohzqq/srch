@@ -79,7 +79,7 @@ func (client *Client) LoadCfg() error {
 		if err != nil {
 			return fmt.Errorf("client.GetCfg error\n%w\n", err)
 		}
-		_, err = client.FindIdxCfg(client.IndexName())
+		err = client.findIdxCfg(client.IndexName())
 		if err != nil {
 			return err
 		}
@@ -107,35 +107,35 @@ func (client *Client) LoadCfg() error {
 	return nil
 }
 
-func (client *Client) FindIdxCfg(name string) (*Idx, error) {
+func (client *Client) findIdxCfg(name string) error {
 	if !client.HasIdx(name) {
 		//var id int
 		if !client.db.TableExists(client.Idx.idxTblName()) {
 			err := client.db.CreateTable(client.Idx.idxTblName())
 			if err != nil {
-				return nil, err
+				return err
 			}
 			_, err = client.tbl.Insert(client.Idx)
 			if err != nil {
-				return nil, err
+				return err
 			}
 		}
 
 		if !client.db.TableExists(client.Idx.dataTblName()) {
 			err := client.db.CreateTable(client.Idx.dataTblName())
 			if err != nil {
-				return nil, err
+				return err
 			}
 		}
 	}
 
-	idxs := client.Indexes()
+	client.Indexes()
 
-	if idx, ok := idxs[name]; ok {
-		return idx, nil
+	if !client.HasIdx(name) {
+		return ErrIdxNotFound
 	}
 
-	return nil, ErrIdxNotFound
+	return nil
 }
 
 func (client *Client) getIdxCfgs() (map[string]*Idx, error) {
@@ -148,24 +148,16 @@ func (client *Client) getIdxCfgs() (map[string]*Idx, error) {
 }
 
 func (client *Client) FindIdx(name string) (*Idx, error) {
-	cfg, err := client.FindIdxCfg(name)
-	if err != nil {
-		return nil, err
+	idxs := client.Indexes()
+	idx, ok := idxs[name]
+	if !ok {
+		return nil, ErrIdxNotFound
 	}
-	if client.Idx.HasSrchAttr() || client.Idx.HasFacetAttr() || client.Idx.HasSortAttr() {
-		if client.HasData() {
-			//data := client.DataURL()
-			//fmt.Printf("data url %#v\n", data)
-		}
-	}
-	if client.HasIdxURL() {
-		//println("2. Has idx url")
-	}
-	return cfg, nil
+	return idx, nil
 }
 
 func (client *Client) FindIdxData(name string) (*Idx, error) {
-	idx, err := client.FindIdxCfg(name)
+	idx, err := client.FindIdx(name)
 	if err != nil {
 		return nil, err
 	}
