@@ -54,9 +54,9 @@ func (client *Client) LoadCfg() error {
 	if !client.db.TableExists(settingsTbl) {
 		err := client.db.CreateTable(settingsTbl)
 		if err != nil {
-			return fmt.Errorf("client.GetCfg error\n%w\n", err)
+			return fmt.Errorf("client.LoadCfg error\n%w\n", err)
 		}
-		err = client.findIdxCfg(client.IndexName())
+		_, err = client.db.Insert(settingsTbl, client.Idx)
 		if err != nil {
 			return err
 		}
@@ -96,6 +96,10 @@ func (client *Client) HasIdx(name string) bool {
 }
 
 func (client *Client) FindIdx(name string) (*Idx, error) {
+	err := client.findIdxCfg(name)
+	if err != nil {
+		return nil, err
+	}
 	idxs := client.Indexes()
 	idx, ok := idxs[name]
 	if !ok {
@@ -137,7 +141,8 @@ func (client *Client) findIdxCfg(name string) error {
 	client.Indexes()
 
 	if !client.HasIdx(name) {
-		return ErrIdxNotFound
+		println(name)
+		//return client.findIdxCfg(name)
 	}
 
 	return nil

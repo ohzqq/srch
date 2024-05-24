@@ -146,6 +146,7 @@ func (t clientTest) getClientCfg(q QueryStr) error {
 
 func (t clientTest) getIdxCfg(q QueryStr) error {
 	gn := t.got.IndexName()
+	//println(gn)
 	gCfg, err := t.got.FindIdx(gn)
 	if err != nil {
 		return errors.New(msg(q.String(), gCfg, t.got))
