@@ -61,8 +61,14 @@ func (client *Client) HasIdx(name string) bool {
 	return ok
 }
 
-//func (client *Client) GetIdx(name string) (*Idx, error) {
-//}
+func (client *Client) FindIdx(name string) (*Idx, error) {
+	idxs := client.Indexes()
+	idx, ok := idxs[name]
+	if !ok {
+		return nil, ErrIdxNotFound
+	}
+	return idx, nil
+}
 
 func (client *Client) TableNames() []string {
 	client.LoadCfg()
@@ -136,24 +142,6 @@ func (client *Client) findIdxCfg(name string) error {
 	}
 
 	return nil
-}
-
-func (client *Client) getIdxCfgs() (map[string]*Idx, error) {
-	err := client.LoadCfg()
-	if err != nil {
-		return nil, err
-	}
-
-	return client.indexes, nil
-}
-
-func (client *Client) FindIdx(name string) (*Idx, error) {
-	idxs := client.Indexes()
-	idx, ok := idxs[name]
-	if !ok {
-		return nil, ErrIdxNotFound
-	}
-	return idx, nil
 }
 
 func (client *Client) FindIdxData(name string) (*Idx, error) {

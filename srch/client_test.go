@@ -186,20 +186,20 @@ func (t clientTest) testIDs(q QueryStr, terr error) error {
 
 func (t clientTest) testTotalIdx(q QueryStr) error {
 
-	gCfgs, err := t.got.getIdxCfgs()
-	if err != nil {
-		return nil
-	}
+	gCfgs := t.got.Indexes()
+	//if err != nil {
+	//  return nil
+	//}
 
 	gIDs, err := t.got.tbl.IDs()
 	if err != nil {
 		return err
 	}
 
-	wCfgs, err := t.want.getIdxCfgs()
-	if err != nil {
-		return err
-	}
+	wCfgs := t.want.Indexes()
+	//if err != nil {
+	//  return err
+	//}
 
 	if len(gCfgs) != len(wCfgs) {
 		return errors.New("len of configs not equal")
