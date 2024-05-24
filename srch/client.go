@@ -50,35 +50,6 @@ func (client *Client) initDB() error {
 	return nil
 }
 
-func (client *Client) Indexes() map[string]*Idx {
-	client.LoadCfg()
-	return client.indexes
-}
-
-func (client *Client) HasIdx(name string) bool {
-	idxs := client.Indexes()
-	_, ok := idxs[name]
-	return ok
-}
-
-func (client *Client) FindIdx(name string) (*Idx, error) {
-	idxs := client.Indexes()
-	idx, ok := idxs[name]
-	if !ok {
-		return nil, ErrIdxNotFound
-	}
-	return idx, nil
-}
-
-func (client *Client) TableNames() []string {
-	client.LoadCfg()
-	return lo.Without(client.db.TableNames(), settingsTbl, "")
-}
-
-func (client *Client) TableExists(name string) bool {
-	return slices.Contains(client.TableNames(), name)
-}
-
 func (client *Client) LoadCfg() error {
 	if !client.db.TableExists(settingsTbl) {
 		err := client.db.CreateTable(settingsTbl)
@@ -113,6 +84,34 @@ func (client *Client) LoadCfg() error {
 	return nil
 }
 
+func (client *Client) Indexes() map[string]*Idx {
+	client.LoadCfg()
+	return client.indexes
+}
+
+func (client *Client) HasIdx(name string) bool {
+	idxs := client.Indexes()
+	_, ok := idxs[name]
+	return ok
+}
+
+func (client *Client) FindIdx(name string) (*Idx, error) {
+	idxs := client.Indexes()
+	idx, ok := idxs[name]
+	if !ok {
+		return nil, ErrIdxNotFound
+	}
+	return idx, nil
+}
+
+func (client *Client) FindIdxData(name string) (*Idx, error) {
+	idx, err := client.FindIdx(name)
+	if err != nil {
+		return nil, err
+	}
+	return idx, nil
+}
+
 func (client *Client) findIdxCfg(name string) error {
 	if !client.HasIdx(name) {
 		//var id int
@@ -144,14 +143,6 @@ func (client *Client) findIdxCfg(name string) error {
 	return nil
 }
 
-func (client *Client) FindIdxData(name string) (*Idx, error) {
-	idx, err := client.FindIdx(name)
-	if err != nil {
-		return nil, err
-	}
-	return idx, nil
-}
-
 func (client *Client) SetDatastorage(ds hare.Datastorage) error {
 	h, err := hare.New(ds)
 	if err != nil {
@@ -161,7 +152,16 @@ func (client *Client) SetDatastorage(ds hare.Datastorage) error {
 	return nil
 }
 
-func (cfg *Client) SetTbl(tbl *hare.Table) *Client {
-	cfg.tbl = tbl
-	return cfg
+func (client *Client) TableNames() []string {
+	client.LoadCfg()
+	return lo.Without(client.db.TableNames(), settingsTbl, "")
+}
+
+func (client *Client) TableExists(name string) bool {
+	return slices.Contains(client.TableNames(), name)
+}
+
+func (client *Client) SetTbl(tbl *hare.Table) *Client {
+	client.tbl = tbl
+	return client
 }
