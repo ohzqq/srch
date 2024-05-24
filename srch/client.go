@@ -120,31 +120,30 @@ func (client *Client) FindIdxData(name string) (*Idx, error) {
 }
 
 func (client *Client) findIdxCfg(name string) error {
+
+	// check if idx exists
 	if !client.HasIdx(name) {
-		//var id int
+		// if it doesn't exist, create srch idx table
 		if !client.db.TableExists(client.Idx.idxTblName()) {
 			err := client.db.CreateTable(client.Idx.idxTblName())
 			if err != nil {
 				return err
 			}
+
+			// since the idx doesn't exist, insert param settings
 			_, err = client.tbl.Insert(client.Idx)
 			if err != nil {
 				return err
 			}
 		}
 
+		// create table for the index data
 		if !client.db.TableExists(client.Idx.dataTblName()) {
 			err := client.db.CreateTable(client.Idx.dataTblName())
 			if err != nil {
 				return err
 			}
 		}
-	}
-
-	client.Indexes()
-
-	if !client.HasIdx(name) {
-		return ErrIdxNotFound
 	}
 
 	return nil
