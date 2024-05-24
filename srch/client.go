@@ -51,11 +51,13 @@ func (client *Client) initDB() error {
 }
 
 func (client *Client) LoadCfg() error {
+	// check for settings table, create if it doesn't exist.
 	if !client.db.TableExists(settingsTbl) {
 		err := client.db.CreateTable(settingsTbl)
 		if err != nil {
 			return fmt.Errorf("client.LoadCfg error\n%w\n", err)
 		}
+		// since it doesn't exist, insert the current idx cfg
 		_, err = client.db.Insert(settingsTbl, client.Idx)
 		if err != nil {
 			return err
@@ -66,7 +68,8 @@ func (client *Client) LoadCfg() error {
 	if err != nil {
 		return err
 	}
-	client.SetTbl(tbl)
+	client.tbl = tbl
+	//client.SetTbl(tbl)
 
 	ids, err := client.tbl.IDs()
 	if err != nil {
@@ -141,8 +144,7 @@ func (client *Client) findIdxCfg(name string) error {
 	client.Indexes()
 
 	if !client.HasIdx(name) {
-		println(name)
-		//return client.findIdxCfg(name)
+		return ErrIdxNotFound
 	}
 
 	return nil
@@ -164,9 +166,4 @@ func (client *Client) TableNames() []string {
 
 func (client *Client) TableExists(name string) bool {
 	return slices.Contains(client.TableNames(), name)
-}
-
-func (client *Client) SetTbl(tbl *hare.Table) *Client {
-	client.tbl = tbl
-	return client
 }
