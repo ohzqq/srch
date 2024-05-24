@@ -114,6 +114,52 @@ func TestDecodeCfgStr(t *testing.T) {
 	}
 }
 
+func TestCfgChanged(t *testing.T) {
+	var changes = []QueryStr{
+		QueryStr(`?searchableAttributes=tags&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=title&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags,authors,series,narrators&uid=id&name=audiobooks`),
+		QueryStr(`?searchableAttributes=title&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=id&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags,authors,series,narrators&uid=id&name=audiobooks`),
+		QueryStr(`?searchableAttributes=title&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=title&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags,authors,series&uid=id&name=audiobooks`),
+		QueryStr(`?searchableAttributes=title&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=tags&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags,authors,series,narrators&uid=guid&name=audiobooks`),
+	}
+	for _, query := range changes {
+		req, err := newTestReq(query.String())
+		if err != nil {
+			t.Error(err)
+		}
+		//want := req.cfgWant(i)
+		cfg, err := req.cfgGot()
+		if err != nil {
+			t.Error(err)
+		}
+
+		//client, err := NewClient(got)
+		//if err != nil {
+		//t.Error(err)
+		//}
+
+		//idx, err := client.FindIdx(got.IndexName())
+		//if err != nil {
+		//t.Error(err)
+		//}
+
+		r, err := NewRequest(TestQueryParams[len(TestQueryParams)-1].String())
+		if err != nil {
+			t.Error(err)
+		}
+		test, err := r.Cfg()
+		if err != nil {
+			t.Error(err)
+		}
+
+		got := test.Idx.Changed(cfg.Idx)
+		want := true
+
+		if got != want {
+			t.Errorf("query %v\ncfg change %v, %v\nparam %#v\ndb %#v\n", query.String(), cfg.IndexName(), test.Idx.Changed(cfg.Idx), test.Idx, cfg.Idx)
+		}
+	}
+}
+
 func (ct cfgTest) SrchCfg(got, want *Search) error {
 	err := strSliceErr("search.RtrvAttr", got.RtrvAttr, want.RtrvAttr)
 	if err != nil {

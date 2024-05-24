@@ -144,7 +144,14 @@ func (client *Client) findIdxCfg(name string) error {
 				return err
 			}
 		}
+
+		return nil
 	}
+
+	//rec, ok := client.indexes[name]
+	//if !ok {
+	//return errors.New("not ok")
+	//}
 
 	return nil
 }

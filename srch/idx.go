@@ -185,24 +185,24 @@ func (idx *Idx) Search(kw string) ([]int, error) {
 	return ids, nil
 }
 
-//func CfgEqual(old, cur *Idx) bool {
-//  if !slices.Equal(old.SrchAttr, cur.SrchAttr) {
-//    return false
-//  }
-//  if !slices.Equal(old.FacetAttr, cur.FacetAttr) {
-//    return false
-//  }
-//  if !slices.Equal(old.SortAttr, cur.SortAttr) {
-//    return false
-//  }
-//  if old.Index != cur.Index {
-//    return false
-//  }
-//  if old.UID != cur.UID {
-//    return false
-//  }
-//  return true
-//}
+func (idx *Idx) Changed(old *Idx) bool {
+	if !slices.Equal(old.SrchAttr, idx.SrchAttr) {
+		return true
+	}
+	if !slices.Equal(old.FacetAttr, idx.FacetAttr) {
+		return true
+	}
+	if !slices.Equal(old.SortAttr, idx.SortAttr) {
+		return true
+	}
+	if old.Name != idx.Name {
+		return true
+	}
+	if old.UID != idx.UID {
+		return true
+	}
+	return false
+}
 
 func NewCfgTbl(tbl string, m Mapping, id string) *Idx {
 	return NewIdxCfg().
