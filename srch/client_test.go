@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"reflect"
 	"testing"
+
+	"golang.org/x/exp/maps"
 )
 
 type clientTest struct {
@@ -211,8 +213,8 @@ func (t clientTest) testTotalIdx(q QueryStr) error {
 }
 
 func (t clientTest) listTbls(q QueryStr) error {
-	got := t.got.Indexes()
-	want := t.want.Indexes()
+	got := maps.Keys(t.got.Indexes())
+	want := maps.Keys(t.want.Indexes())
 	if len(want) == 0 {
 		want = []string{"default"}
 	}
