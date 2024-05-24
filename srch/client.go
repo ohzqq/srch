@@ -1,6 +1,7 @@
 package srch
 
 import (
+	"errors"
 	"fmt"
 	"slices"
 
@@ -125,28 +126,15 @@ func (client *Client) FindIdxCfg(name string) (*Idx, error) {
 				return nil, err
 			}
 		}
-
-		//idx := &Idx{}
-		//err := client.tbl.Find(id, idx)
-		//if err != nil {
-		//return nil, fmt.Errorf("%w: %v\n", err, client.IndexName())
-		//}
-		//client.indexes[name] = idx
-		//return nil, errors.New("idx not found")
 	}
-	idxs := client.Indexes()
 
-	//cfgs, err := client.getIdxCfgs()
-	//if err != nil {
-	//return nil, err
-	//}
-	//fmt.Printf("cfgs %#v\n", cfgs)
+	idxs := client.Indexes()
 
 	if idx, ok := idxs[name]; ok {
 		return idx, nil
 	}
 
-	return nil, nil
+	return nil, errors.New("idx not found")
 }
 
 func (client *Client) getIdxCfgs() (map[string]*Idx, error) {
