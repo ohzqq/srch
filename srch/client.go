@@ -17,13 +17,15 @@ const (
 type Client struct {
 	*Cfg
 
-	db  *hare.Database
-	tbl *hare.Table
+	db      *hare.Database
+	tbl     *hare.Table
+	indexes map[string]*Idx
 }
 
 func NewClient(cfg *Cfg) (*Client, error) {
 	client := &Client{
-		Cfg: cfg,
+		Cfg:     cfg,
+		indexes: make(map[string]*Idx),
 	}
 
 	//step 1: initialize hare db
@@ -55,6 +57,20 @@ func (client *Client) Indexes() []string {
 	return maps.Keys(cfgs)
 }
 
+func (client *Client) HasIdx(name string) bool {
+	client.LoadCfg()
+	cfgs, _ := client.getIdxCfgs()
+	for n, _ := range cfgs {
+		if name == n {
+			return true
+		}
+	}
+	return false
+}
+
+//func (client *Client) GetIdx(name string) (*Idx, error) {
+//}
+
 func (client *Client) TableNames() []string {
 	client.LoadCfg()
 	return lo.Without(client.db.TableNames(), settingsTbl, "")
@@ -62,10 +78,6 @@ func (client *Client) TableNames() []string {
 
 func (client *Client) TableExists(name string) bool {
 	return slices.Contains(client.TableNames(), name)
-}
-
-func (client *Client) HasIdx(name string) bool {
-	return false
 }
 
 func (client *Client) LoadCfg() error {
