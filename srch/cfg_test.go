@@ -115,13 +115,14 @@ func TestDecodeCfgStr(t *testing.T) {
 }
 
 func TestCfgChanged(t *testing.T) {
-	var changes = []QueryStr{
-		QueryStr(`?searchableAttributes=tags&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=title&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags,authors,series,narrators&uid=id&name=audiobooks`),
-		QueryStr(`?searchableAttributes=title&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=id&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags,authors,series,narrators&uid=id&name=audiobooks`),
-		QueryStr(`?searchableAttributes=title&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=title&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags,authors,series&uid=id&name=audiobooks`),
-		QueryStr(`?searchableAttributes=title&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=tags&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags,authors,series,narrators&uid=guid&name=audiobooks`),
+	var wanted = []bool{
+		false,
+		true,
+		true,
+		true,
+		true,
 	}
-	for _, query := range changes {
+	for i, query := range changedCfg {
 		req, err := newTestReq(query.String())
 		if err != nil {
 			t.Error(err)
@@ -131,16 +132,6 @@ func TestCfgChanged(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-
-		//client, err := NewClient(got)
-		//if err != nil {
-		//t.Error(err)
-		//}
-
-		//idx, err := client.FindIdx(got.IndexName())
-		//if err != nil {
-		//t.Error(err)
-		//}
 
 		r, err := NewRequest(TestQueryParams[len(TestQueryParams)-1].String())
 		if err != nil {
@@ -152,10 +143,36 @@ func TestCfgChanged(t *testing.T) {
 		}
 
 		got := test.Idx.Changed(cfg.Idx)
-		want := true
+		want := wanted[i]
 
 		if got != want {
 			t.Errorf("query %v\ncfg change %v, %v\nparam %#v\ndb %#v\n", query.String(), cfg.IndexName(), test.Idx.Changed(cfg.Idx), test.Idx, cfg.Idx)
+		}
+	}
+}
+
+func TestUpdateChangedCfg(t *testing.T) {
+	for _, query := range changedCfg {
+		req, err := newTestReq(query.String())
+		if err != nil {
+			t.Error(err)
+		}
+		client, err := req.Client()
+		if err != nil {
+			t.Error(err)
+		}
+		idx, err := client.FindIdx(client.IndexName())
+		if err != nil {
+			t.Error(err)
+		}
+
+		if idx.Changed(client.Idx) {
+			client.Idx.SetID(idx.GetID())
+			err := client.tbl.Update(client.Idx)
+			if err != nil {
+				t.Error(err)
+			}
+			//println(client.Idx.GetID())
 		}
 	}
 }
