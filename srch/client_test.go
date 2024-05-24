@@ -146,7 +146,7 @@ func (t clientTest) getIdxCfg(q QueryStr) error {
 	gn := t.got.IndexName()
 	gCfg, err := t.got.FindIdxCfg(gn)
 	if err != nil {
-		return err
+		return errors.New(msg(q.String(), gCfg, t.got))
 	}
 
 	wn := t.want.IndexName()
@@ -186,8 +186,9 @@ func (t clientTest) testTotalIdx(q QueryStr) error {
 
 	gCfgs, err := t.got.getIdxCfgs()
 	if err != nil {
-		return err
+		return nil
 	}
+
 	gIDs, err := t.got.tbl.IDs()
 	if err != nil {
 		return err

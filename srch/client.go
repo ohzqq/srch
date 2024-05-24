@@ -53,19 +53,14 @@ func (client *Client) initDB() error {
 
 func (client *Client) Indexes() []string {
 	client.LoadCfg()
-	cfgs, _ := client.getIdxCfgs()
-	return maps.Keys(cfgs)
+	//cfgs, _ := client.getIdxCfgs()
+	return maps.Keys(client.indexes)
 }
 
 func (client *Client) HasIdx(name string) bool {
 	client.LoadCfg()
-	cfgs, _ := client.getIdxCfgs()
-	for n, _ := range cfgs {
-		if name == n {
-			return true
-		}
-	}
-	return false
+	_, ok := client.indexes[name]
+	return ok
 }
 
 //func (client *Client) GetIdx(name string) (*Idx, error) {
@@ -94,6 +89,20 @@ func (client *Client) LoadCfg() error {
 	}
 	client.SetTbl(tbl)
 
+	ids, err := client.tbl.IDs()
+	if err != nil {
+		return err
+	}
+
+	for _, id := range ids {
+		idx := &Idx{}
+		err := client.tbl.Find(id, idx)
+		if err != nil {
+			return fmt.Errorf("%w: %v\n", err, client.IndexName())
+		}
+		client.indexes[idx.Name] = idx
+	}
+
 	return nil
 }
 
@@ -103,12 +112,42 @@ func (client *Client) FindIdxCfg(name string) (*Idx, error) {
 		return nil, err
 	}
 
-	cfgs, err := client.getIdxCfgs()
-	if err != nil {
-		return nil, err
+	if !client.HasIdx(name) {
+		var id int
+		if !client.db.TableExists(client.Idx.idxTblName()) {
+			err := client.db.CreateTable(client.Idx.idxTblName())
+			if err != nil {
+				return nil, err
+			}
+			id, err = client.tbl.Insert(client.Idx)
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		if !client.db.TableExists(client.Idx.dataTblName()) {
+			err := client.db.CreateTable(client.Idx.dataTblName())
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		idx := &Idx{}
+		err := client.tbl.Find(id, idx)
+		if err != nil {
+			return nil, fmt.Errorf("%w: %v\n", err, client.IndexName())
+		}
+		client.indexes[name] = idx
+		//return nil, errors.New("idx not found")
 	}
 
-	if idx, ok := cfgs[client.IndexName()]; ok {
+	//cfgs, err := client.getIdxCfgs()
+	//if err != nil {
+	//return nil, err
+	//}
+	//fmt.Printf("cfgs %#v\n", cfgs)
+
+	if idx, ok := client.indexes[name]; ok {
 		return idx, nil
 	}
 
@@ -121,40 +160,41 @@ func (client *Client) getIdxCfgs() (map[string]*Idx, error) {
 		return nil, err
 	}
 
-	if !client.db.TableExists(client.Idx.idxTblName()) {
-		err := client.db.CreateTable(client.Idx.idxTblName())
-		if err != nil {
-			return nil, err
-		}
-		_, err = client.tbl.Insert(client.Idx)
-		if err != nil {
-			return nil, err
-		}
-	}
+	//  if !client.db.TableExists(client.Idx.idxTblName()) {
+	//    err := client.db.CreateTable(client.Idx.idxTblName())
+	//    if err != nil {
+	//      return nil, err
+	//    }
+	//    _, err = client.tbl.Insert(client.Idx)
+	//    if err != nil {
+	//      return nil, err
+	//    }
+	//  }
 
-	if !client.db.TableExists(client.Idx.dataTblName()) {
-		err := client.db.CreateTable(client.Idx.dataTblName())
-		if err != nil {
-			return nil, err
-		}
-	}
+	//  if !client.db.TableExists(client.Idx.dataTblName()) {
+	//    err := client.db.CreateTable(client.Idx.dataTblName())
+	//    if err != nil {
+	//      return nil, err
+	//    }
+	//  }
 
-	ids, err := client.tbl.IDs()
-	if err != nil {
-		return nil, err
-	}
+	//  //ids, err := client.tbl.IDs()
+	//  //if err != nil {
+	//  //return nil, err
+	//  //}
 
-	idxs := make(map[string]*Idx)
-	for _, id := range ids {
-		idx := &Idx{}
-		err := client.tbl.Find(id, idx)
-		if err != nil {
-			return nil, fmt.Errorf("%w: %v\n", err, client.IndexName())
-		}
-		idxs[idx.Name] = idx
-	}
+	//  //idxs := make(map[string]*Idx)
+	//  //for _, id := range ids {
+	//  //  idx := &Idx{}
+	//  //  err := client.tbl.Find(id, idx)
+	//  //  if err != nil {
+	//  //    return nil, fmt.Errorf("%w: %v\n", err, client.IndexName())
+	//  //  }
+	//  //  idxs[idx.Name] = idx
+	//  //  client.indexes[idx.Name] = idx
+	//  //}
 
-	return idxs, nil
+	return client.indexes, nil
 }
 
 func (client *Client) FindIdx(name string) (*Idx, error) {
