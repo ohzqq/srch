@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"slices"
 	"strings"
+	"testing"
 )
 
 const (
@@ -20,10 +21,26 @@ const (
 	IdxTestFile = `file://home/mxb/code/srch/testdata/hare/audiobooks.json`
 )
 
+type testFunc func(int, reqTest) error
+
 type QueryStr string
 
 type reqTest struct {
 	*Request
+}
+
+func runTests(t *testing.T, test testFunc) {
+	for i, query := range TestQueryParams {
+		req, err := newTestReq(query.String())
+		if err != nil {
+			t.Error(err)
+		}
+
+		err = test(i, req)
+		if err != nil {
+			t.Error(err)
+		}
+	}
 }
 
 func newTestReq(v any) (reqTest, error) {
