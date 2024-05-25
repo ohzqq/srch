@@ -129,8 +129,8 @@ func (t clientTest) settingsExists(q QueryStr) error {
 }
 
 func (t clientTest) getClientCfg(q QueryStr) error {
-	err := t.got.LoadCfg()
-	err = t.want.LoadCfg()
+	err := t.got.loadSettingsTbl()
+	err = t.want.loadSettingsTbl()
 	terr := errors.New(msg(q.String(), t.got, t.want))
 	if err != nil {
 		return terr
@@ -165,11 +165,11 @@ func (t clientTest) getIdxCfg(q QueryStr) error {
 }
 
 func (t clientTest) testIDs(q QueryStr, terr error) error {
-	err := t.got.LoadCfg()
+	err := t.got.loadSettingsTbl()
 	if err != nil {
 		return terr
 	}
-	err = t.want.LoadCfg()
+	err = t.want.loadSettingsTbl()
 	if err != nil {
 		return terr
 	}

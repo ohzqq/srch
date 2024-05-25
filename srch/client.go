@@ -50,7 +50,7 @@ func (client *Client) initDB() error {
 	return nil
 }
 
-func (client *Client) LoadCfg() error {
+func (client *Client) loadSettingsTbl() error {
 	// check for settings table, create if it doesn't exist.
 	if !client.db.TableExists(settingsTbl) {
 		err := client.db.CreateTable(settingsTbl)
@@ -69,26 +69,27 @@ func (client *Client) LoadCfg() error {
 		return err
 	}
 	client.tbl = tbl
-	//client.SetTbl(tbl)
+
+	return nil
+}
+
+func (client *Client) Indexes() map[string]*Idx {
+	client.loadSettingsTbl()
 
 	ids, err := client.tbl.IDs()
 	if err != nil {
-		return err
+		return client.indexes
 	}
 
 	for _, id := range ids {
 		idx := &Idx{}
 		err := client.tbl.Find(id, idx)
 		if err != nil {
-			return fmt.Errorf("%w: %v\n", err, client.IndexName())
+			return client.indexes
+			//return fmt.Errorf("%w: %v\n", err, client.IndexName())
 		}
 		client.indexes[idx.Name] = idx
 	}
-	return nil
-}
-
-func (client *Client) Indexes() map[string]*Idx {
-	client.LoadCfg()
 	return client.indexes
 }
 
@@ -98,16 +99,41 @@ func (client *Client) HasIdx(name string) bool {
 	return ok
 }
 
-func (client *Client) FindIdx(name string) (*Idx, error) {
-	err := client.findIdxCfg(name)
-	if err != nil {
-		return nil, err
-	}
+func (client *Client) GetIdx(name string) *Idx {
 	idxs := client.Indexes()
-	idx, ok := idxs[name]
-	if !ok {
-		return nil, ErrIdxNotFound
+	if idx, ok := idxs[name]; ok {
+		return idx
 	}
+	return client.Idx
+}
+
+func (client *Client) FindIdx(name string) (*Idx, error) {
+	if !client.HasIdx(name) {
+		// if it doesn't exist, create srch idx table
+		if !client.db.TableExists(client.Idx.idxTblName()) {
+			err := client.db.CreateTable(client.Idx.idxTblName())
+			if err != nil {
+				return nil, err
+			}
+
+			// since the idx doesn't exist, insert param settings
+			err = client.InsertCfg(client.Idx)
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		// create table for the index data
+		if !client.db.TableExists(client.Idx.dataTblName()) {
+			err := client.db.CreateTable(client.Idx.dataTblName())
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	idx := client.GetIdx(name)
+
 	return idx, nil
 }
 
@@ -119,40 +145,20 @@ func (client *Client) FindIdxData(name string) (*Idx, error) {
 	return idx, nil
 }
 
-func (client *Client) findIdxCfg(name string) error {
-
-	// check if idx exists
-	if !client.HasIdx(name) {
-		// if it doesn't exist, create srch idx table
-		if !client.db.TableExists(client.Idx.idxTblName()) {
-			err := client.db.CreateTable(client.Idx.idxTblName())
-			if err != nil {
-				return err
-			}
-
-			// since the idx doesn't exist, insert param settings
-			_, err = client.tbl.Insert(client.Idx)
-			if err != nil {
-				return err
-			}
-		}
-
-		// create table for the index data
-		if !client.db.TableExists(client.Idx.dataTblName()) {
-			err := client.db.CreateTable(client.Idx.dataTblName())
-			if err != nil {
-				return err
-			}
-		}
-
-		return nil
+func (client *Client) InsertCfg(cfg *Idx) error {
+	_, err := client.tbl.Insert(cfg)
+	if err != nil {
+		return err
 	}
+	return nil
+}
 
-	//rec, ok := client.indexes[name]
-	//if !ok {
-	//return errors.New("not ok")
-	//}
-
+func (client *Client) UpdateCfg(cfg *Idx) error {
+	client.Idx.SetID(cfg.GetID())
+	err := client.tbl.Update(client.Idx)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -166,7 +172,7 @@ func (client *Client) SetDatastorage(ds hare.Datastorage) error {
 }
 
 func (client *Client) TableNames() []string {
-	client.LoadCfg()
+	client.loadSettingsTbl()
 	return lo.Without(client.db.TableNames(), settingsTbl, "")
 }
 

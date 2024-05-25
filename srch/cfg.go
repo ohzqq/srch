@@ -12,7 +12,7 @@ import (
 
 type Cfg struct {
 	Search *Search
-	Idx    *Idx
+	Idx    *Idx `qs:"-"`
 
 	//data locations
 	Hare   string `json:"-" mapstructure:"db" qs:"db"`
