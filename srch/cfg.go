@@ -11,8 +11,8 @@ import (
 )
 
 type Cfg struct {
-	Search *Search
-	Idx    *Idx `qs:"-"`
+	Search *Search `qs:"-"`
+	Idx    *Idx    `qs:"-"`
 
 	//data locations
 	Hare   string `json:"-" mapstructure:"db" qs:"db"`

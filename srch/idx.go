@@ -37,6 +37,10 @@ func NewIdxCfg() *Idx {
 		SetMapping(DefaultMapping())
 }
 
+func NewIdx() *Idx {
+	return NewIdxCfg()
+}
+
 func (idx *Idx) SetMapping(m Mapping) *Idx {
 	idx.Mapping = m
 	return idx
@@ -48,6 +52,16 @@ func (idx *Idx) idxTblName() string {
 
 func (idx *Idx) dataTblName() string {
 	return idx.Name + "Data"
+}
+
+func (idx *Idx) setSrchIdx(tbl *hare.Table) *Idx {
+	idx.srch = tbl
+	return idx
+}
+
+func (idx *Idx) setData(tbl *hare.Table) *Idx {
+	idx.data = tbl
+	return idx
 }
 
 func (idx *Idx) Decode(u url.Values) error {

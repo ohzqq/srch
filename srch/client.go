@@ -86,7 +86,6 @@ func (client *Client) Indexes() map[string]*Idx {
 		err := client.tbl.Find(id, idx)
 		if err != nil {
 			return client.indexes
-			//return fmt.Errorf("%w: %v\n", err, client.IndexName())
 		}
 		client.indexes[idx.Name] = idx
 	}
