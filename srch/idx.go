@@ -11,9 +11,9 @@ import (
 )
 
 type Idx struct {
-	db   *hare.Database
-	data *url.URL
-	idx  *url.URL
+	db      *hare.Database
+	dataURL *url.URL
+	idxURL  *url.URL
 
 	ID      int     `json:"_id"`
 	Mapping Mapping `json:"mapping"`
@@ -46,7 +46,7 @@ func NewIdx() *Idx {
 }
 
 func (idx *Idx) ContentType() string {
-	return mime.TypeByExtension(filepath.Ext(idx.data.Path))
+	return mime.TypeByExtension(filepath.Ext(idx.dataURL.Path))
 }
 
 func (idx *Idx) SetMapping(m Mapping) *Idx {
@@ -55,12 +55,12 @@ func (idx *Idx) SetMapping(m Mapping) *Idx {
 }
 
 func (idx *Idx) SetDataURL(u *url.URL) *Idx {
-	idx.data = u
+	idx.dataURL = u
 	return idx
 }
 
 func (idx *Idx) SetIdxURL(u *url.URL) *Idx {
-	idx.idx = u
+	idx.idxURL = u
 	return idx
 }
 
@@ -72,26 +72,37 @@ func (idx *Idx) dataTblName() string {
 	return idx.Name + "Data"
 }
 
-func (idx *Idx) setDB(db *hare.Database) (*Idx, error) {
+func (idx *Idx) setDB(db *hare.Database) *Idx {
 	idx.db = db
+	return idx
+}
 
-	var err error
-
-	if !idx.db.TableExists(idx.idxTblName()) {
-		err = idx.db.CreateTable(idx.idxTblName())
-		if err != nil {
-			return idx, err
-		}
-	}
-
+func (idx *Idx) data() (*hare.Table, error) {
 	if !idx.db.TableExists(idx.dataTblName()) {
-		err = idx.db.CreateTable(idx.dataTblName())
+		err := idx.db.CreateTable(idx.dataTblName())
 		if err != nil {
-			return idx, err
+			return nil, err
 		}
 	}
+	tbl, err := idx.db.GetTable(idx.dataTblName())
+	if err != nil {
+		return nil, err
+	}
+	return tbl, nil
+}
 
-	return idx, nil
+func (idx *Idx) idx() (*hare.Table, error) {
+	if !idx.db.TableExists(idx.idxTblName()) {
+		err := idx.db.CreateTable(idx.idxTblName())
+		if err != nil {
+			return nil, err
+		}
+	}
+	tbl, err := idx.db.GetTable(idx.idxTblName())
+	if err != nil {
+		return nil, err
+	}
+	return tbl, nil
 }
 
 func (idx *Idx) Decode(u url.Values) error {

@@ -28,7 +28,7 @@ func testContentType(_ int, req reqTest) error {
 	}
 
 	ct := idx.ContentType()
-	switch ext := filepath.Ext(idx.data.Path); ext {
+	switch ext := filepath.Ext(idx.dataURL.Path); ext {
 	case ".json":
 		if ct != JSON {
 			return fmt.Errorf("got %v content type, wanted %v\n", ct, JSON)
