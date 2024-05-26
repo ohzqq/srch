@@ -44,3 +44,17 @@ func testContentType(_ int, req reqTest) error {
 	}
 	return nil
 }
+
+func testFindData(_ int, req reqTest) error {
+	client, err := req.Client()
+	if err != nil {
+		return err
+	}
+
+	_, err = client.FindIdx(client.IndexName())
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

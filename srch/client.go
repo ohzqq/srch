@@ -131,7 +131,8 @@ func (client *Client) FindIdx(name string) (*Idx, error) {
 		}
 	}
 
-	idx := client.GetIdx(name).SetDataURL(client.DataURL())
+	idx := client.GetIdx(name).
+		SetDataURL(client.DataURL())
 
 	return idx, nil
 }

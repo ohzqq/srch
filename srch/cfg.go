@@ -49,6 +49,7 @@ func (cfg *Cfg) Decode(v url.Values) error {
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
