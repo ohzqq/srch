@@ -16,6 +16,7 @@ type Doc struct {
 	HID      int                           `json:"_id"`
 	ID       int                           `json:"id,omitempty"`
 	CustomID string                        `json:"-"`
+	Data     map[string]any                `json:"data"`
 }
 
 func New() *Doc {
@@ -157,7 +158,7 @@ func (d *Doc) GetID() int {
 	return d.HID
 }
 
-func (d *Doc) AfterFind(_ *hare.Database) error {
+func (d *Doc) AfterFind(db *hare.Database) error {
 	return nil
 }
 

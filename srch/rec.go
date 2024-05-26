@@ -1,10 +1,34 @@
 package srch
 
-import "github.com/ohzqq/hare"
+import (
+	"slices"
+
+	"github.com/ohzqq/hare"
+	"github.com/ohzqq/srch/analyzer"
+)
 
 type Item struct {
 	ID   int            `json:"_id"`
 	Data map[string]any `json:"data"`
+}
+
+func NewItem() *Item {
+	return &Item{
+		Data: make(map[string]any),
+	}
+}
+
+func (i *Item) Idx(m Mapping) *Doc {
+	doc := New()
+	for ana, attrs := range m {
+		for field, val := range i.Data {
+			if ana == analyzer.Simple && slices.Equal(attrs, []string{"*"}) {
+				doc.AddField(ana, field, val)
+			}
+			doc.AddField(ana, field, val)
+		}
+	}
+	return doc
 }
 
 func (r *Item) SetID(id int) {

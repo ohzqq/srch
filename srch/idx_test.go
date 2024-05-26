@@ -12,12 +12,24 @@ var dataURLs = []QueryStr{
 	QueryStr(`?name=audiobooks&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson`),
 }
 
-func TestIdxData(t *testing.T) {
+func TestIdxInsertData(t *testing.T) {
 	test := func(idx *Idx) error {
+		rc, err := idx.openData()
+		if err != nil {
+			t.Error(err)
+		}
+		defer rc.Close()
+
+		err = idx.Batch(rc)
+		if err != nil {
+			t.Error(err)
+		}
+
 		ct := idx.DataContentType()
 		switch ct {
 		case NdJSON:
-			println("need to idx to mem table")
+			//f, err := os.Open()
+			//println("need to idx ndjson to mem table")
 		case JSON:
 			println("need to idx to mem table")
 		case Hare:
@@ -25,7 +37,23 @@ func TestIdxData(t *testing.T) {
 		}
 		return nil
 	}
-	runIdxTests(t, test)
+	req, err := NewRequest(`?searchableAttributes=title&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=title&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags,authors,series&uid=id&name=audiobooks`)
+	if err != nil {
+		t.Error(err)
+	}
+	client, err := req.Client()
+	if err != nil {
+		t.Error(err)
+	}
+	idx, err := client.FindIdx(client.IndexName())
+	if err != nil {
+		t.Error(err)
+	}
+	err = test(idx)
+	if err != nil {
+		t.Error(err)
+	}
+	//runIdxTests(t, test)
 }
 
 func TestDataContentType(t *testing.T) {

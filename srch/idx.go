@@ -2,8 +2,10 @@ package srch
 
 import (
 	"encoding/json"
+	"io"
 	"mime"
 	"net/url"
+	"os"
 	"path/filepath"
 	"slices"
 
@@ -25,6 +27,8 @@ type Idx struct {
 	SrchAttr  []string `query:"searchableAttributes" json:"searchableAttributes,omitempty" mapstructure:"searchable_attributes" qs:"searchableAttributes,omitempty"`
 	FacetAttr []string `query:"attributesForFaceting,omitempty" json:"attributesForFaceting,omitempty" mapstructure:"attributes_for_faceting" qs:"attributesForFaceting,omitempty"`
 	SortAttr  []string `query:"sortableAttributes,omitempty" json:"sortableAttributes,omitempty" mapstructure:"sortable_attributes" qs:"sortableAttributes,omitempty"`
+
+	getData func(any) map[string]any
 }
 
 const (
@@ -122,11 +126,59 @@ func (idx *Idx) mapParams() Mapping {
 	return m
 }
 
-func (idx *Idx) InsertData(d []byte) error {
-	item := make(map[string]any)
-	err := json.Unmarshal(d, &item)
+func (idx *Idx) Insert(item *Item) error {
+	doc := item.Idx(idx.Mapping).
+		WithCustomID(idx.UID)
+
+	srch, err := idx.srch()
 	if err != nil {
 		return err
+	}
+
+	_, err = srch.Insert(doc)
+	if err != nil {
+		return err
+	}
+
+	data, err := idx.data()
+	if err != nil {
+		return err
+	}
+
+	_, err = data.Insert(item)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (idx *Idx) openData() (io.ReadCloser, error) {
+	switch idx.dataURL.Scheme {
+	case "file":
+		f, err := os.Open(idx.dataURL.Path)
+		if err != nil {
+			return nil, err
+		}
+		return f, nil
+	}
+	return nil, nil
+}
+
+func (idx *Idx) Batch(r io.ReadCloser) error {
+	//r := bytes.NewReader(d)
+	dec := json.NewDecoder(r)
+	for {
+		item := NewItem()
+		if err := dec.Decode(&item.Data); err == io.EOF {
+			break
+		} else if err != nil {
+			return err
+		}
+		err := idx.Insert(item)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -240,19 +292,16 @@ func DefaultIdxCfg() *Idx {
 
 func (idx *Idx) data() (*hare.Table, error) {
 	dataTbl := idx.Name + "Data"
-
 	if !idx.db.TableExists(dataTbl) {
 		err := idx.db.CreateTable(dataTbl)
 		if err != nil {
 			return nil, err
 		}
 	}
-
 	tbl, err := idx.db.GetTable(dataTbl)
 	if err != nil {
 		return nil, err
 	}
-
 	return tbl, nil
 }
 
