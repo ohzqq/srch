@@ -17,8 +17,9 @@ const (
 )
 
 const (
-	DataTestURL = `file://home/mxb/code/srch/testdata/ndbooks.ndjson`
-	IdxTestFile = `file://home/mxb/code/srch/testdata/hare/audiobooks.json`
+	ndjsonDataURL = `file://home/mxb/code/srch/testdata/ndbooks.ndjson`
+	hareDataURL   = `file://home/mxb/code/srch/testdata/hare/audiobooksData.hare`
+	srchIdxURL    = `file://home/mxb/code/srch/testdata/hare/audiobooksIdx.hare`
 )
 
 type testFunc func(int, reqTest) error
@@ -198,7 +199,7 @@ func getTestCfg(idx int) *Cfg {
 			},
 		},
 		&Cfg{
-			Data: DataTestURL,
+			Data: ndjsonDataURL,
 			Hare: HareTestURL,
 			Idx: &Idx{
 				SrchAttr: []string{"title"},
@@ -210,7 +211,7 @@ func getTestCfg(idx int) *Cfg {
 			},
 		},
 		&Cfg{
-			Data: DataTestURL,
+			Data: ndjsonDataURL,
 			Hare: HareTestURL,
 			Idx: &Idx{
 				SrchAttr:  []string{"title"},
@@ -223,7 +224,7 @@ func getTestCfg(idx int) *Cfg {
 			},
 		},
 		&Cfg{
-			Data: DataTestURL,
+			Data: ndjsonDataURL,
 			Hare: HareTestURL,
 			Idx: &Idx{
 				SrchAttr:  []string{"title"},
@@ -236,7 +237,7 @@ func getTestCfg(idx int) *Cfg {
 			},
 		},
 		&Cfg{
-			Data: DataTestURL,
+			Data: ndjsonDataURL,
 			Hare: HareTestURL,
 			Idx: &Idx{
 				SrchAttr:  []string{"title"},
@@ -250,7 +251,7 @@ func getTestCfg(idx int) *Cfg {
 			},
 		},
 		&Cfg{
-			Data: DataTestURL,
+			Data: ndjsonDataURL,
 			Hare: HareTestURL,
 			Idx: &Idx{
 				SrchAttr:  []string{"title"},
@@ -264,7 +265,7 @@ func getTestCfg(idx int) *Cfg {
 			},
 		},
 		&Cfg{
-			Data: DataTestURL,
+			Data: ndjsonDataURL,
 			Hare: HareTestURL,
 			Idx: &Idx{
 				SrchAttr:  []string{"title"},
@@ -278,7 +279,7 @@ func getTestCfg(idx int) *Cfg {
 			},
 		},
 		&Cfg{
-			Data: DataTestURL,
+			Data: ndjsonDataURL,
 			Hare: HareTestURL,
 			Idx: &Idx{
 				SrchAttr:  []string{"title"},
@@ -293,7 +294,7 @@ func getTestCfg(idx int) *Cfg {
 			},
 		},
 		&Cfg{
-			Data: DataTestURL,
+			Data: ndjsonDataURL,
 			Hare: HareTestURL,
 			Idx: &Idx{
 				SrchAttr:  []string{"title"},
@@ -309,7 +310,7 @@ func getTestCfg(idx int) *Cfg {
 			},
 		},
 		&Cfg{
-			Data: DataTestURL,
+			Data: ndjsonDataURL,
 			Hare: HareTestURL,
 			Idx: &Idx{
 				SrchAttr:  []string{"title"},
@@ -326,7 +327,7 @@ func getTestCfg(idx int) *Cfg {
 			},
 		},
 		&Cfg{
-			Data:   DataTestURL,
+			Data:   ndjsonDataURL,
 			Hare:   HareTestURL,
 			IdxURL: filepath.Join(HareTestURL, "audiobooks.json"),
 			Idx: &Idx{

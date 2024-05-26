@@ -42,7 +42,7 @@ func NewDatastorage(u *url.URL) (hare.Datastorage, error) {
 func Disk(path string) (*disk.Disk, error) {
 	p, file := filepath.Split(path)
 
-	ext := ".json"
+	ext := ".hare"
 	if e := filepath.Ext(file); e != "" {
 		ext = e
 		path = p

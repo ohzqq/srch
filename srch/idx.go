@@ -15,7 +15,7 @@ import (
 
 type Idx struct {
 	srch *hare.Table
-	data *hare.Table
+	data *hare.Database
 
 	ID      int     `json:"_id"`
 	Mapping Mapping `json:"mapping"`
@@ -59,7 +59,7 @@ func (idx *Idx) setSrchIdx(tbl *hare.Table) *Idx {
 	return idx
 }
 
-func (idx *Idx) setData(tbl *hare.Table) *Idx {
+func (idx *Idx) setData(tbl *hare.Database) *Idx {
 	idx.data = tbl
 	return idx
 }
