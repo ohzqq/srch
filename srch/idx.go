@@ -2,6 +2,7 @@ package srch
 
 import (
 	"encoding/json"
+	"fmt"
 	"mime"
 	"net/url"
 	"path/filepath"
@@ -19,6 +20,7 @@ type Idx struct {
 	srch *hare.Table
 	db   *hare.Database
 	data *url.URL
+	idx  *url.URL
 
 	ID      int     `json:"_id"`
 	Mapping Mapping `json:"mapping"`
@@ -50,6 +52,22 @@ func NewIdx() *Idx {
 	return NewIdxCfg()
 }
 
+func (idx *Idx) init() error {
+	// check for database type and set storage
+	ds, err := NewDatastorage(idx.idx)
+	if err != nil {
+		return fmt.Errorf("new datastorage error: %w\n", err)
+	}
+
+	h, err := hare.New(ds)
+	if err != nil {
+		return err
+	}
+	idx.db = h
+
+	return nil
+}
+
 func (idx *Idx) ContentType() string {
 	return mime.TypeByExtension(filepath.Ext(idx.data.Path))
 }
@@ -61,6 +79,11 @@ func (idx *Idx) SetMapping(m Mapping) *Idx {
 
 func (idx *Idx) SetDataURL(u *url.URL) *Idx {
 	idx.data = u
+	return idx
+}
+
+func (idx *Idx) SetIdxURL(u *url.URL) *Idx {
+	idx.idx = u
 	return idx
 }
 
