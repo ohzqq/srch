@@ -87,6 +87,7 @@ func (client *Client) Indexes() map[string]*Idx {
 		if err != nil {
 			return client.indexes
 		}
+		idx.SetDataURL(client.DataURL())
 		client.indexes[idx.Name] = idx
 	}
 	return client.indexes
@@ -115,18 +116,17 @@ func (client *Client) FindIdx(name string) (*Idx, error) {
 		}
 	}
 
-	idx := client.GetIdx(name).
-		SetDataURL(client.DataURL()).
-		SetIdxURL(client.SrchURL())
+	idx := client.GetIdx(name)
 
 	return idx, nil
 }
 
 func (client *Client) InsertCfg(cfg *Idx) error {
-	_, err := client.tbl.Insert(cfg)
+	id, err := client.tbl.Insert(cfg)
 	if err != nil {
 		return err
 	}
+	client.Idx.SetID(id)
 	return nil
 }
 

@@ -11,7 +11,6 @@ import (
 )
 
 type Idx struct {
-	db      *hare.Database
 	data    *hare.Table
 	srch    *hare.Table
 	dataURL *url.URL
