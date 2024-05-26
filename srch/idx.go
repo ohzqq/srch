@@ -31,6 +31,12 @@ type Idx struct {
 	SortAttr  []string `query:"sortableAttributes,omitempty" json:"sortableAttributes,omitempty" mapstructure:"sortable_attributes" qs:"sortableAttributes,omitempty"`
 }
 
+const (
+	NdJSON = `application/x-ndjson`
+	JSON   = `application/json`
+	Hare   = `application/hare`
+)
+
 func NewIdxCfg() *Idx {
 	cfg := &Idx{
 		SrchAttr: []string{"*"},
@@ -251,4 +257,9 @@ func (c *Idx) GetID() int {
 func (c *Idx) AfterFind(db *hare.Database) error {
 	//println("after find")
 	return nil
+}
+
+func init() {
+	mime.AddExtensionType(".ndjson", "application/x-ndjson")
+	mime.AddExtensionType(".hare", "application/hare")
 }
