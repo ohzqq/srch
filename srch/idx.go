@@ -1,6 +1,7 @@
 package srch
 
 import (
+	"encoding/json"
 	"mime"
 	"net/url"
 	"path/filepath"
@@ -11,8 +12,7 @@ import (
 )
 
 type Idx struct {
-	data    *hare.Table
-	srch    *hare.Table
+	db      *hare.Database
 	dataURL *url.URL
 	idxURL  *url.URL
 
@@ -122,6 +122,15 @@ func (idx *Idx) mapParams() Mapping {
 	return m
 }
 
+func (idx *Idx) InsertData(d []byte) error {
+	item := make(map[string]any)
+	err := json.Unmarshal(d, &item)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 //func (idx *Idx) Insert(d []byte) error {
 //  doc := make(map[string]any)
 //  err := json.Unmarshal(d, &doc)
@@ -229,6 +238,39 @@ func DefaultIdxCfg() *Idx {
 		SetMapping(DefaultMapping())
 }
 
+func (idx *Idx) data() (*hare.Table, error) {
+	dataTbl := idx.Name + "Data"
+
+	if !idx.db.TableExists(dataTbl) {
+		err := idx.db.CreateTable(dataTbl)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	tbl, err := idx.db.GetTable(dataTbl)
+	if err != nil {
+		return nil, err
+	}
+
+	return tbl, nil
+}
+
+func (idx *Idx) srch() (*hare.Table, error) {
+	idxTbl := idx.Name + "Idx"
+	if !idx.db.TableExists(idxTbl) {
+		err := idx.db.CreateTable(idxTbl)
+		if err != nil {
+			return nil, err
+		}
+	}
+	tbl, err := idx.db.GetTable(idxTbl)
+	if err != nil {
+		return nil, err
+	}
+	return tbl, nil
+}
+
 func (c *Idx) SetID(id int) {
 	c.ID = id
 }
@@ -238,31 +280,7 @@ func (c *Idx) GetID() int {
 }
 
 func (idx *Idx) AfterFind(db *hare.Database) error {
-	var err error
-
-	dataTbl := idx.Name + "Data"
-	if !db.TableExists(dataTbl) {
-		err = db.CreateTable(dataTbl)
-		if err != nil {
-			return err
-		}
-	}
-	idx.srch, err = db.GetTable(dataTbl)
-	if err != nil {
-		return err
-	}
-
-	idxTbl := idx.Name + "Idx"
-	if !db.TableExists(idxTbl) {
-		err = db.CreateTable(idxTbl)
-		if err != nil {
-			return err
-		}
-	}
-	idx.data, err = db.GetTable(idxTbl)
-	if err != nil {
-		return err
-	}
+	idx.db = db
 	return nil
 }
 
