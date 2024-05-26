@@ -45,22 +45,48 @@ func testContentType(_ int, req reqTest) error {
 	return nil
 }
 
-func TestInitIdx(t *testing.T) {
-	runTests(t, testInitIdx)
+func TestIdxTbls(t *testing.T) {
+	runIdxTests(t, testHasTbls)
 }
 
-func testInitIdx(_ int, req reqTest) error {
-	client, err := req.Client()
-	if err != nil {
-		return err
+func testHasTbls(idx *Idx) error {
+	if got := !idx.db.TableExists(idx.idxTblName()); got {
+		want := true
+		if got != want {
+			return fmt.Errorf("got %v for tbl %v, wanted %v\n", got, idx.idxTblName(), want)
+		}
 	}
-
-	idx, err := client.FindIdx(client.IndexName())
-	if err != nil {
-		return err
+	if got := !idx.db.TableExists(idx.dataTblName()); got {
+		want := true
+		if got != want {
+			return fmt.Errorf("got %v for tbl %v, wanted %v\n", got, idx.dataTblName(), want)
+		}
 	}
-
-	fmt.Printf("%#v\n", idx.db)
-
 	return nil
+}
+
+type testIdxFunc func(*Idx) error
+
+func runIdxTests(t *testing.T, test testIdxFunc) {
+	for _, query := range TestQueryParams {
+		req, err := newTestReq(query.String())
+		if err != nil {
+			t.Error(err)
+		}
+
+		client, err := req.Client()
+		if err != nil {
+			t.Error(err)
+		}
+
+		idx, err := client.FindIdx(client.IndexName())
+		if err != nil {
+			t.Error(err)
+		}
+
+		err = test(idx)
+		if err != nil {
+			t.Error(err)
+		}
+	}
 }

@@ -23,6 +23,7 @@ const (
 )
 
 type testFunc func(int, reqTest) error
+type testClientFunc func(int, *Client) error
 
 type QueryStr string
 
@@ -38,6 +39,25 @@ func runTests(t *testing.T, test testFunc) {
 		}
 
 		err = test(i, req)
+		if err != nil {
+			t.Error(err)
+		}
+	}
+}
+
+func runClientTests(t *testing.T, test testClientFunc) {
+	for i, query := range TestQueryParams {
+		req, err := newTestReq(query.String())
+		if err != nil {
+			t.Error(err)
+		}
+
+		client, err := req.Client()
+		if err != nil {
+			t.Error(err)
+		}
+
+		err = test(i, client)
 		if err != nil {
 			t.Error(err)
 		}
