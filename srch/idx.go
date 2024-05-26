@@ -12,6 +12,8 @@ import (
 
 type Idx struct {
 	db      *hare.Database
+	data    *hare.Table
+	srch    *hare.Table
 	dataURL *url.URL
 	idxURL  *url.URL
 
@@ -45,7 +47,7 @@ func NewIdx() *Idx {
 	return NewIdxCfg()
 }
 
-func (idx *Idx) ContentType() string {
+func (idx *Idx) DataContentType() string {
 	return mime.TypeByExtension(filepath.Ext(idx.dataURL.Path))
 }
 
@@ -70,39 +72,6 @@ func (idx *Idx) idxTblName() string {
 
 func (idx *Idx) dataTblName() string {
 	return idx.Name + "Data"
-}
-
-func (idx *Idx) setDB(db *hare.Database) *Idx {
-	idx.db = db
-	return idx
-}
-
-func (idx *Idx) data() (*hare.Table, error) {
-	if !idx.db.TableExists(idx.dataTblName()) {
-		err := idx.db.CreateTable(idx.dataTblName())
-		if err != nil {
-			return nil, err
-		}
-	}
-	tbl, err := idx.db.GetTable(idx.dataTblName())
-	if err != nil {
-		return nil, err
-	}
-	return tbl, nil
-}
-
-func (idx *Idx) idx() (*hare.Table, error) {
-	if !idx.db.TableExists(idx.idxTblName()) {
-		err := idx.db.CreateTable(idx.idxTblName())
-		if err != nil {
-			return nil, err
-		}
-	}
-	tbl, err := idx.db.GetTable(idx.idxTblName())
-	if err != nil {
-		return nil, err
-	}
-	return tbl, nil
 }
 
 func (idx *Idx) Decode(u url.Values) error {
@@ -277,8 +246,28 @@ func (c *Idx) GetID() int {
 	return c.ID
 }
 
-func (c *Idx) AfterFind(db *hare.Database) error {
-	//println("after find")
+func (idx *Idx) AfterFind(db *hare.Database) error {
+	var err error
+	if !db.TableExists(idx.dataTblName()) {
+		err = db.CreateTable(idx.dataTblName())
+		if err != nil {
+			return err
+		}
+	}
+	idx.srch, err = db.GetTable(idx.dataTblName())
+	if err != nil {
+		return err
+	}
+	if !db.TableExists(idx.idxTblName()) {
+		err = db.CreateTable(idx.idxTblName())
+		if err != nil {
+			return err
+		}
+	}
+	idx.data, err = db.GetTable(idx.idxTblName())
+	if err != nil {
+		return err
+	}
 	return nil
 }
 

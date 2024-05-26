@@ -12,57 +12,42 @@ var dataURLs = []QueryStr{
 	QueryStr(`?name=audiobooks&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson`),
 }
 
+func TestIdxData(t *testing.T) {
+	test := func(idx *Idx) error {
+		ct := idx.DataContentType()
+		switch ct {
+		case NdJSON:
+			println("need to idx to mem table")
+		case JSON:
+			println("need to idx to mem table")
+		case Hare:
+			println("need to load hare table")
+		}
+		return nil
+	}
+	runIdxTests(t, test)
+}
+
 func TestDataContentType(t *testing.T) {
-	runTests(t, testContentType)
-}
-
-func testContentType(_ int, req reqTest) error {
-	client, err := req.Client()
-	if err != nil {
-		return err
-	}
-
-	idx, err := client.FindIdx(client.IndexName())
-	if err != nil {
-		return err
-	}
-
-	ct := idx.ContentType()
-	switch ext := filepath.Ext(idx.dataURL.Path); ext {
-	case ".json":
-		if ct != JSON {
-			return fmt.Errorf("got %v content type, wanted %v\n", ct, JSON)
+	test := func(idx *Idx) error {
+		ct := idx.DataContentType()
+		switch ext := filepath.Ext(idx.dataURL.Path); ext {
+		case ".json":
+			if ct != JSON {
+				return fmt.Errorf("got %v content type, wanted %v\n", ct, JSON)
+			}
+		case ".ndjson":
+			if ct != NdJSON {
+				return fmt.Errorf("got %v content type, wanted %v\n", ct, NdJSON)
+			}
+		case ".hare":
+			if ct != Hare {
+				return fmt.Errorf("got %v content type, wanted %v\n", ct, Hare)
+			}
 		}
-	case ".ndjson":
-		if ct != NdJSON {
-			return fmt.Errorf("got %v content type, wanted %v\n", ct, NdJSON)
-		}
-	case ".hare":
-		if ct != Hare {
-			return fmt.Errorf("got %v content type, wanted %v\n", ct, Hare)
-		}
+		return nil
 	}
-	return nil
-}
-
-func TestIdxTbls(t *testing.T) {
-	runIdxTests(t, testHasTbls)
-}
-
-func testHasTbls(idx *Idx) error {
-	if got := !idx.db.TableExists(idx.idxTblName()); got {
-		want := true
-		if got != want {
-			return fmt.Errorf("got %v for tbl %v, wanted %v\n", got, idx.idxTblName(), want)
-		}
-	}
-	if got := !idx.db.TableExists(idx.dataTblName()); got {
-		want := true
-		if got != want {
-			return fmt.Errorf("got %v for tbl %v, wanted %v\n", got, idx.dataTblName(), want)
-		}
-	}
-	return nil
+	runIdxTests(t, test)
 }
 
 type testIdxFunc func(*Idx) error

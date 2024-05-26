@@ -115,11 +115,11 @@ func (client *Client) FindIdx(name string) (*Idx, error) {
 		}
 	}
 
-	client.Idx.SetDataURL(client.DataURL()).
-		SetIdxURL(client.SrchURL()).
-		setDB(client.db)
+	idx := client.GetIdx(name).
+		SetDataURL(client.DataURL()).
+		SetIdxURL(client.SrchURL())
 
-	return client.Idx, nil
+	return idx, nil
 }
 
 func (client *Client) InsertCfg(cfg *Idx) error {
