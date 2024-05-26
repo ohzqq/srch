@@ -1,27 +1,19 @@
 package srch
 
 import (
-	"encoding/json"
-	"fmt"
 	"mime"
 	"net/url"
 	"path/filepath"
 	"slices"
 
-	"github.com/RoaringBitmap/roaring"
 	"github.com/ohzqq/hare"
 	"github.com/ohzqq/sp"
-	"github.com/ohzqq/srch/analyzer"
-	"github.com/ohzqq/srch/doc"
-	"github.com/spf13/cast"
 )
 
 type Idx struct {
-	srch  *hare.Table
-	items *hare.Table
-	db    *hare.Database
-	data  *url.URL
-	idx   *url.URL
+	db   *hare.Database
+	data *url.URL
+	idx  *url.URL
 
 	ID      int     `json:"_id"`
 	Mapping Mapping `json:"mapping"`
@@ -53,22 +45,6 @@ func NewIdx() *Idx {
 	return NewIdxCfg()
 }
 
-func (idx *Idx) init() error {
-	// check for database type and set storage
-	ds, err := NewDatastorage(idx.idx)
-	if err != nil {
-		return fmt.Errorf("new datastorage error: %w\n", err)
-	}
-
-	h, err := hare.New(ds)
-	if err != nil {
-		return err
-	}
-	idx.db = h
-
-	return nil
-}
-
 func (idx *Idx) ContentType() string {
 	return mime.TypeByExtension(filepath.Ext(idx.data.Path))
 }
@@ -96,14 +72,26 @@ func (idx *Idx) dataTblName() string {
 	return idx.Name + "Data"
 }
 
-func (idx *Idx) setSrchIdx(tbl *hare.Table) *Idx {
-	idx.srch = tbl
-	return idx
-}
+func (idx *Idx) setDB(db *hare.Database) (*Idx, error) {
+	idx.db = db
 
-func (idx *Idx) setItems(tbl *hare.Table) *Idx {
-	idx.items = tbl
-	return idx
+	var err error
+
+	if !idx.db.TableExists(idx.idxTblName()) {
+		err = idx.db.CreateTable(idx.idxTblName())
+		if err != nil {
+			return idx, err
+		}
+	}
+
+	if !idx.db.TableExists(idx.dataTblName()) {
+		err = idx.db.CreateTable(idx.dataTblName())
+		if err != nil {
+			return idx, err
+		}
+	}
+
+	return idx, nil
 }
 
 func (idx *Idx) Decode(u url.Values) error {
@@ -163,83 +151,83 @@ func (idx *Idx) mapParams() Mapping {
 	return m
 }
 
-func (idx *Idx) Insert(d []byte) error {
-	doc := make(map[string]any)
-	err := json.Unmarshal(d, &doc)
-	if err != nil {
-		return err
-	}
-	return idx.InsertDoc(doc)
-}
+//func (idx *Idx) Insert(d []byte) error {
+//  doc := make(map[string]any)
+//  err := json.Unmarshal(d, &doc)
+//  if err != nil {
+//    return err
+//  }
+//  return idx.InsertDoc(doc)
+//}
 
-func (idx *Idx) Find(ids ...int) ([]*doc.Doc, error) {
-	var docs []*doc.Doc
-	switch len(ids) {
-	case 0:
-		return docs, nil
-	case 1:
-		if ids[0] == -1 {
-			return idx.FindAll()
-		}
-		fallthrough
-	default:
-		for _, id := range ids {
-			doc := &doc.Doc{}
-			err := idx.srch.Find(id, doc)
-			if err != nil {
-				return nil, err
-			}
-			docs = append(docs, doc)
-		}
-		return docs, nil
-	}
-}
+//func (idx *Idx) Find(ids ...int) ([]*doc.Doc, error) {
+//  var docs []*doc.Doc
+//  switch len(ids) {
+//  case 0:
+//    return docs, nil
+//  case 1:
+//    if ids[0] == -1 {
+//      return idx.FindAll()
+//    }
+//    fallthrough
+//  default:
+//    for _, id := range ids {
+//      doc := &doc.Doc{}
+//      err := idx.srch.Find(id, doc)
+//      if err != nil {
+//        return nil, err
+//      }
+//      docs = append(docs, doc)
+//    }
+//    return docs, nil
+//  }
+//}
 
-func (idx *Idx) FindAll() ([]*doc.Doc, error) {
-	ids, err := idx.srch.IDs()
-	if err != nil {
-		return nil, err
-	}
-	return idx.Find(ids...)
-}
+//func (idx *Idx) FindAll() ([]*doc.Doc, error) {
+//  ids, err := idx.srch.IDs()
+//  if err != nil {
+//    return nil, err
+//  }
+//  return idx.Find(ids...)
+//}
 
-func (idx *Idx) InsertDoc(data map[string]any) error {
-	doc := doc.New()
-	for ana, attrs := range idx.Mapping {
-		for field, val := range data {
-			if ana == analyzer.Simple && slices.Equal(attrs, []string{"*"}) {
-				doc.AddField(ana, field, val)
-			}
-			doc.AddField(ana, field, val)
-		}
-	}
-	_, err := idx.srch.Insert(doc)
-	if err != nil {
-		return err
-	}
-	return nil
-}
+//func (idx *Idx) InsertDoc(data map[string]any) error {
+//  doc := doc.New()
+//  for ana, attrs := range idx.Mapping {
+//    for field, val := range data {
+//      if ana == analyzer.Simple && slices.Equal(attrs, []string{"*"}) {
+//        doc.AddField(ana, field, val)
+//      }
+//      doc.AddField(ana, field, val)
+//    }
+//  }
+//  _, err := idx.srch.Insert(doc)
+//  if err != nil {
+//    return err
+//  }
+//  return nil
+//}
 
-func (idx *Idx) Search(kw string) ([]int, error) {
-	docs, err := idx.Find(-1)
-	if err != nil {
-		return nil, err
-	}
+//func (idx *Idx) Search(kw string) ([]int, error) {
+//  docs, err := idx.Find(-1)
+//  if err != nil {
+//    return nil, err
+//  }
 
-	res := roaring.New()
-	for ana, attrs := range idx.Mapping {
-		for _, doc := range docs {
-			for _, attr := range attrs {
-				id := doc.Search(attr, ana, kw)
-				if id != -1 {
-					res.AddInt(id)
-				}
-			}
-		}
-	}
-	ids := cast.ToIntSlice(res.ToArray())
-	return ids, nil
-}
+//  res := roaring.New()
+//  for ana, attrs := range idx.Mapping {
+//    for _, doc := range docs {
+//      for _, attr := range attrs {
+//        id := doc.Search(attr, ana, kw)
+//        if id != -1 {
+//          res.AddInt(id)
+//        }
+//      }
+//    }
+//  }
+//  ids := cast.ToIntSlice(res.ToArray())
+//  return ids, nil
+//}
 
 func (idx *Idx) Changed(old *Idx) bool {
 	if !slices.Equal(old.SrchAttr, idx.SrchAttr) {

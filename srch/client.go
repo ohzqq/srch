@@ -111,48 +111,17 @@ func (client *Client) FindIdx(name string) (*Idx, error) {
 		// since the idx doesn't exist, insert param settings
 		err := client.InsertCfg(client.Idx)
 		if err != nil {
-			return nil, err
+			return client.Idx, err
 		}
 	}
 
-	// if it doesn't exist, create srch idx table
-	if !client.db.TableExists(client.Idx.idxTblName()) {
-		err := client.db.CreateTable(client.Idx.idxTblName())
-		if err != nil {
-			return nil, err
-		}
-	}
-	srch, err := client.db.GetTable(client.Idx.idxTblName())
+	idx, err := client.Idx.setDB(client.db)
 	if err != nil {
-		return nil, err
+		return idx, err
 	}
-
-	// create table for the index data
-	if !client.db.TableExists(client.Idx.dataTblName()) {
-		err := client.db.CreateTable(client.Idx.dataTblName())
-		if err != nil {
-			return nil, err
-		}
-	}
-	data, err := client.db.GetTable(client.Idx.dataTblName())
-	if err != nil {
-		return nil, err
-	}
-
-	idx := client.GetIdx(name).
-		SetDataURL(client.DataURL()).
-		setSrchIdx(srch).
-		setItems(data).
+	idx.SetDataURL(client.DataURL()).
 		SetIdxURL(client.SrchURL())
 
-	return idx, nil
-}
-
-func (client *Client) FindIdxData(name string) (*Idx, error) {
-	idx, err := client.FindIdx(name)
-	if err != nil {
-		return nil, err
-	}
 	return idx, nil
 }
 

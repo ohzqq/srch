@@ -60,11 +60,6 @@ func testInitIdx(_ int, req reqTest) error {
 		return err
 	}
 
-	err = idx.init()
-	if err != nil {
-		return err
-	}
-
 	fmt.Printf("%#v\n", idx.db)
 
 	return nil
