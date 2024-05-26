@@ -2,6 +2,7 @@ package srch
 
 import (
 	"errors"
+	"fmt"
 	"testing"
 )
 
@@ -24,6 +25,33 @@ func TestNewClient(t *testing.T) {
 			t.Error(err)
 		}
 	}
+
+	runTests(t, testHasTbls)
+}
+
+func testHasTbls(_ int, req reqTest) error {
+	client, err := req.Client()
+	if err != nil {
+		return err
+	}
+	idx, err := client.FindIdx(client.IndexName())
+	if err != nil {
+		return err
+	}
+	if got := !client.db.TableExists(idx.idxTblName()); got {
+		want := true
+		if got != want {
+			return fmt.Errorf("got %v for tbl %v, wanted %v\n", got, idx.idxTblName(), want)
+		}
+	}
+	if got := !client.db.TableExists(idx.dataTblName()); got {
+		want := true
+		if got != want {
+			return fmt.Errorf("got %v for tbl %v, wanted %v\n", got, idx.dataTblName(), want)
+		}
+	}
+
+	return nil
 }
 
 func TestDecodeCfgReq(t *testing.T) {

@@ -131,8 +131,19 @@ func (client *Client) FindIdx(name string) (*Idx, error) {
 		}
 	}
 
+	//data, err := client.db.GetTable(client.Idx.dataTblName())
+	//if err != nil {
+	//return nil, err
+	//}
+	//srch, err := client.db.GetTable(client.Idx.idxTblName())
+	//if err != nil {
+	//return nil, err
+	//}
+
 	idx := client.GetIdx(name).
 		SetDataURL(client.DataURL()).
+		//setSrchIdx(srch).
+		//setItems(data).
 		SetIdxURL(client.SrchURL())
 
 	return idx, nil

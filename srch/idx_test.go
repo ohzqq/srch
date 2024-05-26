@@ -65,5 +65,7 @@ func testInitIdx(_ int, req reqTest) error {
 		return err
 	}
 
+	fmt.Printf("%#v\n", idx.db)
+
 	return nil
 }
