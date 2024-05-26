@@ -66,14 +66,6 @@ func (idx *Idx) SetIdxURL(u *url.URL) *Idx {
 	return idx
 }
 
-func (idx *Idx) idxTblName() string {
-	return idx.Name + "Idx"
-}
-
-func (idx *Idx) dataTblName() string {
-	return idx.Name + "Data"
-}
-
 func (idx *Idx) Decode(u url.Values) error {
 	err := sp.Decode(u, idx)
 	if err != nil {
@@ -248,23 +240,27 @@ func (c *Idx) GetID() int {
 
 func (idx *Idx) AfterFind(db *hare.Database) error {
 	var err error
-	if !db.TableExists(idx.dataTblName()) {
-		err = db.CreateTable(idx.dataTblName())
+
+	dataTbl := idx.Name + "Data"
+	if !db.TableExists(dataTbl) {
+		err = db.CreateTable(dataTbl)
 		if err != nil {
 			return err
 		}
 	}
-	idx.srch, err = db.GetTable(idx.dataTblName())
+	idx.srch, err = db.GetTable(dataTbl)
 	if err != nil {
 		return err
 	}
-	if !db.TableExists(idx.idxTblName()) {
-		err = db.CreateTable(idx.idxTblName())
+
+	idxTbl := idx.Name + "Idx"
+	if !db.TableExists(idxTbl) {
+		err = db.CreateTable(idxTbl)
 		if err != nil {
 			return err
 		}
 	}
-	idx.data, err = db.GetTable(idx.idxTblName())
+	idx.data, err = db.GetTable(idxTbl)
 	if err != nil {
 		return err
 	}
