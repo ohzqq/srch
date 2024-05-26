@@ -3,7 +3,6 @@ package srch
 import (
 	"mime"
 	"net/url"
-	"path/filepath"
 
 	"github.com/ohzqq/hare"
 )
@@ -26,14 +25,8 @@ type Data struct {
 }
 
 func NewData(u *url.URL) *Data {
-	//switch u.Scheme {
-	//case "file":
-	//case "http", "https":
-	//case "":
-	//}
-	return &Data{URL: u}
-}
-
-func (d *Data) ContentType() string {
-	return mime.TypeByExtension(filepath.Ext(d.Path))
+	data := &Data{
+		URL: u,
+	}
+	return data
 }

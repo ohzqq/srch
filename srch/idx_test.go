@@ -22,10 +22,13 @@ func testContentType(_ int, req reqTest) error {
 		return err
 	}
 
-	data := NewData(client.DataURL())
+	idx, err := client.FindIdx(client.IndexName())
+	if err != nil {
+		return err
+	}
 
-	ct := data.ContentType()
-	switch ext := filepath.Ext(data.Path); ext {
+	ct := idx.ContentType()
+	switch ext := filepath.Ext(idx.data.Path); ext {
 	case ".json":
 		if ct != JSON {
 			return fmt.Errorf("got %v content type, wanted %v\n", ct, JSON)
@@ -33,6 +36,10 @@ func testContentType(_ int, req reqTest) error {
 	case ".ndjson":
 		if ct != NdJSON {
 			return fmt.Errorf("got %v content type, wanted %v\n", ct, NdJSON)
+		}
+	case ".hare":
+		if ct != Hare {
+			return fmt.Errorf("got %v content type, wanted %v\n", ct, Hare)
 		}
 	}
 	return nil

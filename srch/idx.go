@@ -2,7 +2,9 @@ package srch
 
 import (
 	"encoding/json"
+	"mime"
 	"net/url"
+	"path/filepath"
 	"slices"
 
 	"github.com/RoaringBitmap/roaring"
@@ -15,7 +17,8 @@ import (
 
 type Idx struct {
 	srch *hare.Table
-	data *hare.Database
+	db   *hare.Database
+	data *url.URL
 
 	ID      int     `json:"_id"`
 	Mapping Mapping `json:"mapping"`
@@ -41,8 +44,17 @@ func NewIdx() *Idx {
 	return NewIdxCfg()
 }
 
+func (idx *Idx) ContentType() string {
+	return mime.TypeByExtension(filepath.Ext(idx.data.Path))
+}
+
 func (idx *Idx) SetMapping(m Mapping) *Idx {
 	idx.Mapping = m
+	return idx
+}
+
+func (idx *Idx) SetDataURL(u *url.URL) *Idx {
+	idx.data = u
 	return idx
 }
 
@@ -60,7 +72,7 @@ func (idx *Idx) setSrchIdx(tbl *hare.Table) *Idx {
 }
 
 func (idx *Idx) setData(tbl *hare.Database) *Idx {
-	idx.data = tbl
+	idx.db = tbl
 	return idx
 }
 
