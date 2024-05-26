@@ -22,7 +22,7 @@ func TestNewClient(t *testing.T) {
 		}
 		_, err = client.FindIdx(client.IndexName())
 		if err != nil {
-			t.Error(err)
+			t.Errorf("name %v\n%v\n", query.Query(), err)
 		}
 	}
 
