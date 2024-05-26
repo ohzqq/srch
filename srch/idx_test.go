@@ -37,6 +37,49 @@ func TestIdxInsertData(t *testing.T) {
 		}
 		return nil
 	}
+	req, err := NewRequest(`?searchableAttributes=title&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=title&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags,authors,series&name=audiobooks`)
+	if err != nil {
+		t.Error(err)
+	}
+	client, err := req.Client()
+	if err != nil {
+		t.Error(err)
+	}
+	idx, err := client.FindIdx(client.IndexName())
+	if err != nil {
+		t.Error(err)
+	}
+	err = test(idx)
+	if err != nil {
+		t.Error(err)
+	}
+	//runIdxTests(t, test)
+}
+
+func TestIdxFindData(t *testing.T) {
+	test := func(idx *Idx) error {
+		r, err := idx.openData()
+		if err != nil {
+			return err
+		}
+		//doc := New()
+		//srch, err := idx.srch()
+		//if err != nil {
+		//return err
+		//}
+		id := 7245
+		//err = srch.Find(id, doc)
+		//if err != nil {
+		//return err
+		//}
+		idx.getData = NdJSONFind(idx.UID, r)
+		d, err := idx.Find(id)
+		if err != nil {
+			return err
+		}
+		fmt.Printf("%#v\n", d)
+		return nil
+	}
 	req, err := NewRequest(`?searchableAttributes=title&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=title&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags,authors,series&uid=id&name=audiobooks`)
 	if err != nil {
 		t.Error(err)

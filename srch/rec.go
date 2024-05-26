@@ -22,10 +22,12 @@ func (i *Item) Idx(m Mapping) *Doc {
 	doc := New()
 	for ana, attrs := range m {
 		for field, val := range i.Data {
-			if ana == analyzer.Simple && slices.Equal(attrs, []string{"*"}) {
+			if slices.Contains(attrs, field) {
+				if ana == analyzer.Simple && slices.Equal(attrs, []string{"*"}) {
+					doc.AddField(ana, field, val)
+				}
 				doc.AddField(ana, field, val)
 			}
-			doc.AddField(ana, field, val)
 		}
 	}
 	return doc

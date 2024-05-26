@@ -11,6 +11,7 @@ import (
 
 	"github.com/ohzqq/hare"
 	"github.com/ohzqq/sp"
+	"github.com/spf13/cast"
 )
 
 type Idx struct {
@@ -28,7 +29,7 @@ type Idx struct {
 	FacetAttr []string `query:"attributesForFaceting,omitempty" json:"attributesForFaceting,omitempty" mapstructure:"attributes_for_faceting" qs:"attributesForFaceting,omitempty"`
 	SortAttr  []string `query:"sortableAttributes,omitempty" json:"sortableAttributes,omitempty" mapstructure:"sortable_attributes" qs:"sortableAttributes,omitempty"`
 
-	getData func(any) map[string]any
+	getData FindItemFunc
 }
 
 const (
@@ -126,9 +127,32 @@ func (idx *Idx) mapParams() Mapping {
 	return m
 }
 
+func (idx *Idx) Find(id int) (map[string]any, error) {
+	doc := New()
+	srch, err := idx.srch()
+	if err != nil {
+		return nil, err
+	}
+	err = srch.Find(id, doc)
+	if err != nil {
+		return nil, err
+	}
+
+	d, err := idx.getData(doc.ID)
+	if err != nil {
+		return nil, err
+	}
+	return d, nil
+}
+
 func (idx *Idx) Insert(item *Item) error {
 	doc := item.Idx(idx.Mapping).
 		WithCustomID(idx.UID)
+
+	if id, ok := item.Data[idx.UID]; ok {
+		i := cast.ToInt(id)
+		doc.ID = i
+	}
 
 	srch, err := idx.srch()
 	if err != nil {
@@ -140,15 +164,15 @@ func (idx *Idx) Insert(item *Item) error {
 		return err
 	}
 
-	data, err := idx.data()
-	if err != nil {
-		return err
-	}
+	//data, err := idx.data()
+	//if err != nil {
+	//return err
+	//}
 
-	_, err = data.Insert(item)
-	if err != nil {
-		return err
-	}
+	//_, err = data.Insert(item)
+	//if err != nil {
+	//return err
+	//}
 
 	return nil
 }

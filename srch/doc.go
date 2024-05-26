@@ -152,6 +152,9 @@ func (d *Doc) SearchField(name string, tok string) bool {
 
 func (d *Doc) SetID(id int) {
 	d.HID = id
+	if d.ID < 1 {
+		d.ID = id
+	}
 }
 
 func (d *Doc) GetID() int {
