@@ -12,7 +12,13 @@ var dataURLs = []QueryStr{
 	QueryStr(`?name=audiobooks&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson`),
 }
 
+const (
+	testDocPK = 7312
+	testDocID = 7245
+)
+
 func TestIdxInsertData(t *testing.T) {
+	t.SkipNow()
 	test := func(idx *Idx) error {
 		rc, err := idx.openData()
 		if err != nil {
@@ -56,6 +62,9 @@ func TestIdxInsertData(t *testing.T) {
 	//runIdxTests(t, test)
 }
 
+func TestIdxFindDoc(t *testing.T) {
+}
+
 func TestIdxFindData(t *testing.T) {
 	test := func(idx *Idx) error {
 		r, err := idx.openData()
@@ -67,17 +76,22 @@ func TestIdxFindData(t *testing.T) {
 		//if err != nil {
 		//return err
 		//}
-		id := 7245
 		//err = srch.Find(id, doc)
 		//if err != nil {
 		//return err
 		//}
 		idx.getData = NdJSONFind(idx.PrimaryKey, r)
-		d, err := idx.Find(id)
+		d, err := idx.Find(testDocID)
 		if err != nil {
 			return err
 		}
-		fmt.Printf("%#v\n", d)
+		id, ok := d[idx.PrimaryKey]
+		if !ok {
+			t.Errorf("data doesn't have pk, wanted %v\n", idx.PrimaryKey)
+		}
+		if pk := float64(testDocPK); id != pk {
+			t.Errorf("got %v pk, wanted %v\n", id, pk)
+		}
 		return nil
 	}
 	req, err := NewRequest(`?searchableAttributes=title&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=title&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags,authors,series&uid=id&name=audiobooks`)

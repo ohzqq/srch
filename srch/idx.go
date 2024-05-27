@@ -10,6 +10,7 @@ import (
 	"slices"
 
 	"github.com/ohzqq/hare"
+	"github.com/ohzqq/hare/dberr"
 	"github.com/ohzqq/sp"
 )
 
@@ -128,10 +129,12 @@ func (idx *Idx) mapParams() Mapping {
 
 func (idx *Idx) Find(id int) (map[string]any, error) {
 	doc := DefaultDoc()
+
 	srch, err := idx.srch()
 	if err != nil {
 		return nil, err
 	}
+
 	err = srch.Find(id, doc)
 	if err != nil {
 		return nil, err
@@ -157,17 +160,49 @@ func (idx *Idx) AddDoc(d map[string]any) error {
 		return err
 	}
 
-	//data, err := idx.data()
-	//if err != nil {
-	//return err
-	//}
+	return nil
+}
 
-	//_, err = data.Insert(item)
-	//if err != nil {
-	//return err
-	//}
+func (idx *Idx) UpdateDoc(d map[string]any) error {
+	doc := New(d, idx.Mapping, idx.PrimaryKey)
+
+	srch, err := idx.srch()
+	if err != nil {
+		return err
+	}
+
+	_, err = srch.Insert(doc)
+	if err != nil {
+		return err
+	}
 
 	return nil
+}
+
+func (idx *Idx) FindByPK(pk int) (*Doc, error) {
+
+	srch, err := idx.srch()
+	if err != nil {
+		return nil, err
+	}
+
+	ids, err := srch.IDs()
+	if err != nil {
+		return nil, err
+	}
+
+	for _, id := range ids {
+		doc := DefaultDoc()
+		err := srch.Find(id, doc)
+		if err != nil {
+			return nil, err
+		}
+		if doc.PrimaryKey == pk {
+			return doc, nil
+		}
+	}
+
+	return nil, dberr.ErrNoRecord
 }
 
 func (idx *Idx) openData() (io.ReadCloser, error) {

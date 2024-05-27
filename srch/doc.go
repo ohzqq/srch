@@ -16,7 +16,6 @@ type Doc struct {
 	Simple     map[string]*bloom.BloomFilter `json:"attributesForFaceting"`
 	ID         int                           `json:"_id"`
 	PrimaryKey int                           `json:"primaryKey,omitempty"`
-	CustomID   string                        `json:"-"`
 }
 
 func New(data map[string]any, m Mapping, key ...string) *Doc {
