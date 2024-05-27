@@ -207,7 +207,7 @@ func (ct cfgTest) IdxCfg(got, want *Idx) error {
 		return err
 	}
 	wm := want.mapParams()
-	for k, v := range got.Mapping {
+	for k, v := range got.DocMapping() {
 		if _, ok := wm[k]; !ok {
 			return errors.New("no key")
 		}

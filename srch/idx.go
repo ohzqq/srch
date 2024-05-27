@@ -9,8 +9,10 @@ import (
 	"path/filepath"
 	"slices"
 
+	"github.com/RoaringBitmap/roaring"
 	"github.com/ohzqq/hare"
 	"github.com/ohzqq/sp"
+	"github.com/spf13/cast"
 )
 
 type Idx struct {
@@ -81,7 +83,7 @@ func (idx *Idx) Decode(u url.Values) error {
 	if len(idx.SortAttr) > 0 {
 		idx.SortAttr = ParseQueryStrings(idx.SortAttr)
 	}
-	idx.SetMapping(idx.mapParams())
+	//idx.SetMapping(idx.mapParams())
 	return nil
 }
 
@@ -90,6 +92,16 @@ func (idx *Idx) Cfg() *Idx {
 		return idx
 	}
 	return idx
+}
+
+func (idx *Idx) DocMapping() Mapping {
+	if idx.Mapping == nil ||
+		idx.HasSrchAttr() ||
+		idx.HasFacetAttr() ||
+		idx.HasSortAttr() {
+		return idx.mapParams()
+	}
+	return idx.Mapping
 }
 
 func (idx *Idx) HasSrchAttr() bool {
@@ -278,43 +290,26 @@ func (idx *Idx) Batch(r io.ReadCloser) error {
 //  }
 //}
 
-//func (idx *Idx) InsertDoc(data map[string]any) error {
-//  doc := doc.New()
-//  for ana, attrs := range idx.Mapping {
-//    for field, val := range data {
-//      if ana == analyzer.Simple && slices.Equal(attrs, []string{"*"}) {
-//        doc.AddField(ana, field, val)
-//      }
-//      doc.AddField(ana, field, val)
-//    }
-//  }
-//  _, err := idx.srch.Insert(doc)
-//  if err != nil {
-//    return err
-//  }
-//  return nil
-//}
+func (idx *Idx) Search(kw string) ([]int, error) {
+	docs, err := idx.findDocs(nil)
+	if err != nil {
+		return nil, err
+	}
 
-//func (idx *Idx) Search(kw string) ([]int, error) {
-//  docs, err := idx.Find(-1)
-//  if err != nil {
-//    return nil, err
-//  }
-
-//  res := roaring.New()
-//  for ana, attrs := range idx.Mapping {
-//    for _, doc := range docs {
-//      for _, attr := range attrs {
-//        id := doc.Search(attr, ana, kw)
-//        if id != -1 {
-//          res.AddInt(id)
-//        }
-//      }
-//    }
-//  }
-//  ids := cast.ToIntSlice(res.ToArray())
-//  return ids, nil
-//}
+	res := roaring.New()
+	for ana, attrs := range idx.Mapping {
+		for _, doc := range docs {
+			for _, attr := range attrs {
+				id := doc.Search(attr, ana, kw)
+				if id != -1 {
+					res.AddInt(id)
+				}
+			}
+		}
+	}
+	ids := cast.ToIntSlice(res.ToArray())
+	return ids, nil
+}
 
 func (idx *Idx) Changed(old *Idx) bool {
 	if !slices.Equal(old.SrchAttr, idx.SrchAttr) {
