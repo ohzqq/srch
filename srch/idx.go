@@ -198,17 +198,55 @@ func (idx *Idx) FindAllDocs() ([]*Doc, error) {
 	return docs, nil
 }
 
-func (idx *Idx) findDocByPK(pks ...int) ([]*Doc, error) {
-	recs, err := idx.FindAllDocs()
+func (idx *Idx) findDocs(test func(*Doc) bool) ([]*Doc, error) {
+	srch, err := idx.srch()
 	if err != nil {
 		return nil, err
 	}
 
+	ids, err := srch.IDs()
+	if err != nil {
+		return nil, err
+	}
+
+	//docs := make([]*Doc, len(ids))
 	var docs []*Doc
-	for _, rec := range recs {
-		if slices.Contains(pks, rec.PrimaryKey) {
-			docs = append(docs, rec)
+	for _, id := range ids {
+		doc := DefaultDoc()
+		err = srch.Find(id, doc)
+		if err != nil {
+			return nil, err
 		}
+		if test != nil {
+			if test(doc) {
+				docs = append(docs, doc)
+			}
+		} else {
+			docs = append(docs, doc)
+		}
+	}
+	return docs, nil
+}
+
+func (idx *Idx) findDocByPK(pks ...int) ([]*Doc, error) {
+	//recs, err := idx.FindAllDocs()
+	//if err != nil {
+	//return nil, err
+	//}
+
+	//var docs []*Doc
+	//for _, rec := range recs {
+	//if slices.Contains(pks, rec.PrimaryKey) {
+	//docs = append(docs, rec)
+	//}
+	//}
+
+	test := func(doc *Doc) bool {
+		return slices.Contains(pks, doc.PrimaryKey)
+	}
+	docs, err := idx.findDocs(test)
+	if err != nil {
+		return nil, err
 	}
 
 	return docs, nil
