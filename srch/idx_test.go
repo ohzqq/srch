@@ -109,9 +109,12 @@ func TestIdxUpdateDoc(t *testing.T) {
 		if err != nil {
 			return err
 		}
-		d["title"] = "poot"
+		if len(d) < 1 {
+			return fmt.Errorf("got %v results, expected at least one", len(d))
+		}
+		d[0]["title"] = "poot"
 
-		err = idx.UpdateDoc(d)
+		err = idx.UpdateDoc(d[0])
 		return nil
 	}
 	runIdxTest(t, testIdxReq, test)
@@ -128,7 +131,7 @@ func TestIdxFindData(t *testing.T) {
 		if err != nil {
 			return err
 		}
-		id, ok := d[idx.PrimaryKey]
+		id, ok := d[0][idx.PrimaryKey]
 		if !ok {
 			t.Errorf("data doesn't have pk, wanted %v\n", idx.PrimaryKey)
 		}

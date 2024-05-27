@@ -127,20 +127,24 @@ func (idx *Idx) mapParams() Mapping {
 	return m
 }
 
-func (idx *Idx) Find(id int) (map[string]any, error) {
-	doc := DefaultDoc()
+func (idx *Idx) Find(ids ...int) ([]map[string]any, error) {
 
 	srch, err := idx.srch()
 	if err != nil {
 		return nil, err
 	}
 
-	err = srch.Find(id, doc)
-	if err != nil {
-		return nil, err
+	pks := make([]int, len(ids))
+	for i, id := range ids {
+		doc := DefaultDoc()
+		err = srch.Find(id, doc)
+		if err != nil {
+			return nil, err
+		}
+		pks[i] = doc.PrimaryKey
 	}
 
-	d, err := idx.getData(doc.PrimaryKey)
+	d, err := idx.getData(pks...)
 	if err != nil {
 		return nil, err
 	}
@@ -236,7 +240,6 @@ func (idx *Idx) openData() (io.ReadCloser, error) {
 }
 
 func (idx *Idx) Batch(r io.ReadCloser) error {
-	//r := bytes.NewReader(d)
 	dec := json.NewDecoder(r)
 	for {
 		d := make(map[string]any)

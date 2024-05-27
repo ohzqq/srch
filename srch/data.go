@@ -3,12 +3,13 @@ package srch
 import (
 	"encoding/json"
 	"io"
+	"slices"
 
 	"github.com/ohzqq/hare/dberr"
 	"github.com/spf13/cast"
 )
 
-type FindItemFunc func(int) (map[string]any, error)
+type FindItemFunc func(...int) ([]map[string]any, error)
 
 func (idx *Idx) findNdJSON(id int, r io.ReadCloser) (map[string]any, error) {
 	dec := json.NewDecoder(r)
@@ -33,10 +34,11 @@ func (idx *Idx) findNdJSON(id int, r io.ReadCloser) (map[string]any, error) {
 }
 
 func NdJSONFind(uid string, r io.ReadCloser) FindItemFunc {
-	return func(id int) (map[string]any, error) {
+	return func(ids ...int) ([]map[string]any, error) {
 		//r := bytes.NewReader(d)
 		dec := json.NewDecoder(r)
 		i := 1
+		var items []map[string]any
 		for {
 			item := make(map[string]any)
 			if err := dec.Decode(&item); err == io.EOF {
@@ -48,11 +50,11 @@ func NdJSONFind(uid string, r io.ReadCloser) FindItemFunc {
 			if it, ok := item[uid]; ok {
 				did = cast.ToInt(it)
 			}
-			if did == id {
-				return item, nil
+			if slices.Contains(ids, did) {
+				items = append(items, item)
 			}
 			i++
 		}
-		return nil, dberr.ErrNoRecord
+		return items, nil
 	}
 }
