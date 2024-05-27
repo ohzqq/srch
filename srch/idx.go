@@ -160,8 +160,11 @@ func (idx *Idx) UpdateDoc(items ...map[string]any) error {
 
 	for _, doc := range docs {
 		i := slices.Index(pks, doc.PrimaryKey)
-		doc.Analyze(idx.Mapping, items[i])
+		if i == -1 {
+			continue
+		}
 
+		doc.Analyze(idx.Mapping, items[i])
 		err = srch.Update(doc)
 		if err != nil {
 			return err
@@ -212,25 +215,6 @@ func (idx *Idx) findDocByPK(pks ...int) ([]*Doc, error) {
 		return slices.Contains(pks, doc.PrimaryKey)
 	}
 	return idx.findDocs(test)
-}
-
-func (idx *Idx) findByDocID(ids ...int) ([]*Doc, error) {
-	srch, err := idx.srch()
-	if err != nil {
-		return nil, err
-	}
-
-	var docs []*Doc
-	for _, id := range ids {
-		doc := DefaultDoc()
-		err = srch.Find(id, doc)
-		if err != nil {
-			return nil, err
-		}
-		docs = append(docs, doc)
-	}
-
-	return docs, nil
 }
 
 func (idx *Idx) openData() (io.ReadCloser, error) {

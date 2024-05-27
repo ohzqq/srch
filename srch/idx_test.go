@@ -85,27 +85,6 @@ func TestIdxFindDocByPK(t *testing.T) {
 	runIdxTest(t, testIdxReq, test)
 }
 
-func TestIdxFindDocByID(t *testing.T) {
-	test := func(idx *Idx) error {
-		docs, err := idx.findByDocID(testDocID)
-		if err != nil {
-			return err
-		}
-		var doc *Doc
-		if len(docs) > 0 {
-			doc = docs[0]
-		}
-		if doc.ID != testDocID {
-			return fmt.Errorf("got %v doc id, wanted %v\n", doc.ID, testDocID)
-		}
-		if doc.PrimaryKey != testDocPK {
-			return fmt.Errorf("got %v doc pk, wanted %v\n", doc.PrimaryKey, testDocPK)
-		}
-		return nil
-	}
-	runIdxTest(t, testIdxReq, test)
-}
-
 func TestIdxUpdateDoc(t *testing.T) {
 	test := func(idx *Idx) error {
 		r, err := idx.openData()
