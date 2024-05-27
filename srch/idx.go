@@ -10,7 +10,6 @@ import (
 	"slices"
 
 	"github.com/ohzqq/hare"
-	"github.com/ohzqq/hare/dberr"
 	"github.com/ohzqq/sp"
 )
 
@@ -143,27 +142,31 @@ func (idx *Idx) AddDoc(d map[string]any) error {
 	return nil
 }
 
-func (idx *Idx) UpdateDoc(d map[string]any) error {
+func (idx *Idx) UpdateDoc(items ...map[string]any) error {
+	pks := make([]int, len(items))
+	for i, d := range items {
+		pks[i] = getDocID(idx.PrimaryKey, d)
+	}
+
+	docs, err := idx.findDocByPK(pks...)
+	if err != nil {
+		return err
+	}
+
 	srch, err := idx.srch()
 	if err != nil {
 		return err
 	}
 
-	pk := getDocID(idx.PrimaryKey, d)
-	docs, err := idx.findDocByPK(pk)
-	if err != nil {
-		return err
-	}
-	if len(docs) < 1 {
-		return dberr.ErrNoRecord
-	}
-	docs[0].Analyze(idx.Mapping, d)
+	for _, doc := range docs {
+		i := slices.Index(pks, doc.PrimaryKey)
+		doc.Analyze(idx.Mapping, items[i])
 
-	err = srch.Update(docs[0])
-	if err != nil {
-		return err
+		err = srch.Update(doc)
+		if err != nil {
+			return err
+		}
 	}
-
 	return nil
 }
 
@@ -173,29 +176,6 @@ func (idx *Idx) Find(ids ...int) ([]map[string]any, error) {
 		return nil, err
 	}
 	return d, nil
-}
-
-func (idx *Idx) FindAllDocs() ([]*Doc, error) {
-	srch, err := idx.srch()
-	if err != nil {
-		return nil, err
-	}
-
-	ids, err := srch.IDs()
-	if err != nil {
-		return nil, err
-	}
-
-	docs := make([]*Doc, len(ids))
-	for i, id := range ids {
-		doc := DefaultDoc()
-		err = srch.Find(id, doc)
-		if err != nil {
-			return nil, err
-		}
-		docs[i] = doc
-	}
-	return docs, nil
 }
 
 func (idx *Idx) findDocs(test func(*Doc) bool) ([]*Doc, error) {
@@ -209,7 +189,6 @@ func (idx *Idx) findDocs(test func(*Doc) bool) ([]*Doc, error) {
 		return nil, err
 	}
 
-	//docs := make([]*Doc, len(ids))
 	var docs []*Doc
 	for _, id := range ids {
 		doc := DefaultDoc()
@@ -229,27 +208,10 @@ func (idx *Idx) findDocs(test func(*Doc) bool) ([]*Doc, error) {
 }
 
 func (idx *Idx) findDocByPK(pks ...int) ([]*Doc, error) {
-	//recs, err := idx.FindAllDocs()
-	//if err != nil {
-	//return nil, err
-	//}
-
-	//var docs []*Doc
-	//for _, rec := range recs {
-	//if slices.Contains(pks, rec.PrimaryKey) {
-	//docs = append(docs, rec)
-	//}
-	//}
-
 	test := func(doc *Doc) bool {
 		return slices.Contains(pks, doc.PrimaryKey)
 	}
-	docs, err := idx.findDocs(test)
-	if err != nil {
-		return nil, err
-	}
-
-	return docs, nil
+	return idx.findDocs(test)
 }
 
 func (idx *Idx) findByDocID(ids ...int) ([]*Doc, error) {
