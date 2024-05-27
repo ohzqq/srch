@@ -75,7 +75,7 @@ func (cfg *Cfg) SetIdxName(tbl string) *Cfg {
 }
 
 func (cfg *Cfg) SetCustomID(id string) *Cfg {
-	cfg.Idx.UID = id
+	cfg.Idx.PrimaryKey = id
 	return cfg
 }
 

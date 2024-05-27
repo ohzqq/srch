@@ -11,21 +11,38 @@ import (
 )
 
 type Doc struct {
-	Standard map[string]*bloom.BloomFilter `json:"searchableAttributes"`
-	Keyword  map[string]*bloom.BloomFilter `json:"attributesForFaceting"`
-	Simple   map[string]*bloom.BloomFilter `json:"attributesForFaceting"`
-	ID       int                           `json:"_id"`
-	UID      int                           `json:"id,omitempty"`
-	CustomID string                        `json:"-"`
+	Standard   map[string]*bloom.BloomFilter `json:"searchableAttributes"`
+	Keyword    map[string]*bloom.BloomFilter `json:"attributesForFaceting"`
+	Simple     map[string]*bloom.BloomFilter `json:"attributesForFaceting"`
+	ID         int                           `json:"_id"`
+	PrimaryKey int                           `json:"primaryKey,omitempty"`
+	CustomID   string                        `json:"-"`
 }
 
-func New(key ...string) *Doc {
-	var pk string
+func New(data map[string]any, m Mapping, key ...string) *Doc {
+	doc := DefaultDoc()
+
 	if len(key) > 0 {
-		pk = key[0]
+		pk := key[0]
+		if id, ok := data[pk]; ok {
+			doc.PrimaryKey = cast.ToInt(id)
+		}
 	}
-	return DefaultDoc().
-		WithCustomID(pk)
+
+	for ana, attrs := range m {
+		for field, val := range data {
+			for _, attr := range attrs {
+				if field == attr {
+					if ana == analyzer.Simple && slices.Equal(attrs, []string{"*"}) {
+						doc.AddField(ana, field, val)
+					}
+					doc.AddField(ana, field, val)
+				}
+			}
+		}
+	}
+
+	return doc
 }
 
 func DefaultDoc() *Doc {
@@ -56,27 +73,6 @@ func (doc *Doc) AddField(ana analyzer.Analyzer, attr string, val any) {
 	}
 }
 
-func (doc *Doc) WithCustomID(f string) *Doc {
-	doc.CustomID = f
-	return doc
-}
-
-func (doc *Doc) SetData(m Mapping, data map[string]any) *Doc {
-	for ana, attrs := range m {
-		for field, val := range data {
-			for _, attr := range attrs {
-				if field == attr {
-					if ana == analyzer.Simple && slices.Equal(attrs, []string{"*"}) {
-						doc.AddField(ana, field, val)
-					}
-					doc.AddField(ana, field, val)
-				}
-			}
-		}
-	}
-	return doc
-}
-
 func (d *Doc) SearchAllFields(kw string) bool {
 	for n, _ := range d.Standard {
 		return d.SearchField(n, kw)
@@ -95,7 +91,7 @@ func (d *Doc) Search(name string, ana analyzer.Analyzer, kw string) int {
 	if f := lo.Uniq(found); len(f) == 1 {
 		if f[0] {
 			//fmt.Printf("field %s: found %v\n", name, found)
-			return d.UID
+			return d.PrimaryKey
 		}
 	}
 	return -1
@@ -122,8 +118,8 @@ func (d *Doc) SearchField(name string, tok string) bool {
 
 func (d *Doc) SetID(id int) {
 	d.ID = id
-	if d.UID < 1 {
-		d.UID = id
+	if d.PrimaryKey < 1 {
+		d.PrimaryKey = id
 	}
 }
 

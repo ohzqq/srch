@@ -229,11 +229,11 @@ func (ct cfgTest) cfg(got, want *Cfg) error {
 			errors.New("index name doesn't match"),
 		)
 	}
-	if got.Idx.UID != want.Idx.UID {
+	if got.Idx.PrimaryKey != want.Idx.PrimaryKey {
 		return newErr(
 			msg("cfg.Client.UID",
-				got.Idx.UID,
-				want.Idx.UID,
+				got.Idx.PrimaryKey,
+				want.Idx.PrimaryKey,
 			),
 			errors.New("index uid doesn't match"),
 		)

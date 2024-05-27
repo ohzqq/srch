@@ -18,10 +18,10 @@ type Idx struct {
 	dataURL *url.URL
 	idxURL  *url.URL
 
-	ID      int     `json:"_id"`
-	Mapping Mapping `json:"mapping"`
-	Name    string  `json:"name" qs:"name"`
-	UID     string  `json:"uid,omitempty" mapstructure:"uid" qs:"uid"`
+	ID         int     `json:"_id"`
+	Mapping    Mapping `json:"mapping"`
+	Name       string  `json:"name" qs:"name"`
+	PrimaryKey string  `json:"uid,omitempty" mapstructure:"uid" qs:"primaryKey"`
 
 	// Index Settings
 	SrchAttr  []string `query:"searchableAttributes" json:"searchableAttributes,omitempty" mapstructure:"searchable_attributes" qs:"searchableAttributes,omitempty"`
@@ -137,7 +137,7 @@ func (idx *Idx) Find(id int) (map[string]any, error) {
 		return nil, err
 	}
 
-	d, err := idx.getData(doc.UID)
+	d, err := idx.getData(doc.PrimaryKey)
 	if err != nil {
 		return nil, err
 	}
@@ -145,15 +145,7 @@ func (idx *Idx) Find(id int) (map[string]any, error) {
 }
 
 func (idx *Idx) AddDoc(d map[string]any) error {
-	//doc := item.Idx(idx.Mapping).
-	//  WithCustomID(idx.UID)
-
-	//if id, ok := item.Data[idx.UID]; ok {
-	//  i := cast.ToInt(id)
-	//  doc.UID = i
-	//}
-
-	doc := New(idx.UID).SetData(idx.Mapping, d)
+	doc := New(d, idx.Mapping, idx.PrimaryKey)
 
 	srch, err := idx.srch()
 	if err != nil {
@@ -299,7 +291,7 @@ func (idx *Idx) Changed(old *Idx) bool {
 	if old.Name != idx.Name {
 		return true
 	}
-	if old.UID != idx.UID {
+	if old.PrimaryKey != idx.PrimaryKey {
 		return true
 	}
 	return false

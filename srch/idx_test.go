@@ -72,7 +72,7 @@ func TestIdxFindData(t *testing.T) {
 		//if err != nil {
 		//return err
 		//}
-		idx.getData = NdJSONFind(idx.UID, r)
+		idx.getData = NdJSONFind(idx.PrimaryKey, r)
 		d, err := idx.Find(id)
 		if err != nil {
 			return err

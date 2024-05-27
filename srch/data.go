@@ -21,7 +21,7 @@ func (idx *Idx) findNdJSON(id int, r io.ReadCloser) (map[string]any, error) {
 			return nil, err
 		}
 		did := i
-		if it, ok := item[idx.UID]; ok {
+		if it, ok := item[idx.PrimaryKey]; ok {
 			did = cast.ToInt(it)
 		}
 		if did == id {
