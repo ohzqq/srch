@@ -19,22 +19,6 @@ const (
 	testDocID = 7245
 )
 
-func TestIdxSearch(t *testing.T) {
-	test := func(_ int, client *Client) error {
-		idx, err := client.FindIdx(client.IndexName())
-		if err != nil {
-			t.Error(err)
-		}
-		r, err := idx.openData()
-		if err != nil {
-			return err
-		}
-		idx.getData = NdJSONFind(idx.PrimaryKey, r)
-		return nil
-	}
-	runClientTests(t, test)
-}
-
 func TestIdxInsertData(t *testing.T) {
 	t.SkipNow()
 	test := func(idx *Idx) error {

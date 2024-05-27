@@ -221,6 +221,14 @@ func (idx *Idx) findDocs(test func(*Doc) bool) ([]*Doc, error) {
 	return docs, nil
 }
 
+func (idx *Idx) getPKs(docs []*Doc) []int {
+	pks := make([]int, len(docs))
+	for i, doc := range docs {
+		pks[i] = doc.PrimaryKey
+	}
+	return pks
+}
+
 func (idx *Idx) findDocByPK(pks ...int) ([]*Doc, error) {
 	test := func(doc *Doc) bool {
 		return slices.Contains(pks, doc.PrimaryKey)
@@ -257,57 +265,36 @@ func (idx *Idx) Batch(r io.ReadCloser) error {
 	return nil
 }
 
-//func (idx *Idx) Insert(d []byte) error {
-//  doc := make(map[string]any)
-//  err := json.Unmarshal(d, &doc)
-//  if err != nil {
-//    return err
-//  }
-//  return idx.InsertDoc(doc)
-//}
-
-//func (idx *Idx) Find(ids ...int) ([]*doc.Doc, error) {
-//  var docs []*doc.Doc
-//  switch len(ids) {
-//  case 0:
-//    return docs, nil
-//  case 1:
-//    if ids[0] == -1 {
-//      return idx.FindAll()
-//    }
-//    fallthrough
-//  default:
-//    for _, id := range ids {
-//      doc := &doc.Doc{}
-//      err := idx.srch.Find(id, doc)
-//      if err != nil {
-//        return nil, err
-//      }
-//      docs = append(docs, doc)
-//    }
-//    return docs, nil
-//  }
-//}
-
-func (idx *Idx) Search(kw string) ([]int, error) {
+func (idx *Idx) Search(srch *Search) ([]map[string]any, error) {
 	docs, err := idx.findDocs(nil)
 	if err != nil {
 		return nil, err
 	}
 
-	res := roaring.New()
-	for ana, attrs := range idx.DocMapping() {
-		for _, doc := range docs {
-			for _, attr := range attrs {
-				id := doc.Search(attr, ana, kw)
-				if id != -1 {
-					res.AddInt(id)
+	var ids []int
+	if srch.Query == "" {
+		ids = idx.getPKs(docs)
+	} else {
+		res := roaring.New()
+		for ana, attrs := range idx.DocMapping() {
+			for _, doc := range docs {
+				for _, attr := range attrs {
+					id := doc.Search(attr, ana, srch.Query)
+					if id != -1 {
+						res.AddInt(id)
+					}
 				}
 			}
 		}
+		ids = cast.ToIntSlice(res.ToArray())
 	}
-	ids := cast.ToIntSlice(res.ToArray())
-	return ids, nil
+
+	data, err := idx.Find(ids...)
+	if err != nil {
+		return nil, err
+	}
+	data = srch.FilterRtrvAttr(data)
+	return data, nil
 }
 
 func (idx *Idx) Changed(old *Idx) bool {

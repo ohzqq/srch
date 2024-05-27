@@ -52,12 +52,6 @@ func runIdxTests(t *testing.T, test testIdxFunc) {
 	}
 }
 
-func runSrchTests(t *testing.T, test testIdxFunc) {
-	for _, query := range TestQueryParams {
-		runIdxTest(t, query, test)
-	}
-}
-
 func runIdxTest(t *testing.T, query QueryStr, test testIdxFunc) {
 	client, err := getTestClient(query)
 	if err != nil {
@@ -105,6 +99,14 @@ func getTestClient(query QueryStr) (*Client, error) {
 	}
 
 	return client, nil
+}
+
+func getTestIdx(query QueryStr) (*Idx, error) {
+	client, err := getTestClient(query)
+	if err != nil {
+		return nil, err
+	}
+	return client.FindIdx(client.IndexName())
 }
 
 func newTestReq(v any) (reqTest, error) {
@@ -219,7 +221,7 @@ var TestQueryParams = []QueryStr{
 	QueryStr(`?searchableAttributes=title&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=title&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags,authors,series,narrators&primaryKey=id&name=audiobooks`),
 	QueryStr(`?searchableAttributes=title&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=title&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags,authors,series,narrators&primaryKey=id&name=audiobooks&attributesToRetrieve=title,tags,authors`),
 	QueryStr(`?searchableAttributes=title&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=title&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags,authors,series,narrators&primaryKey=id&name=audiobooks&attributesToRetrieve=title,tags,authors&facets=tags,authors,series,narrators`),
-	QueryStr(`?searchableAttributes=title&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=title&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags,authors,series,narrators&primaryKey=id&name=audiobooks&attributesToRetrieve=title,tags,authors&facets=tags,authors,series,narrators&query=fish`),
+	QueryStr(`?searchableAttributes=title&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=title&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags,authors,series,narrators&primaryKey=id&name=audiobooks&facets=tags,authors,series,narrators&query=fish`),
 	QueryStr(`?searchableAttributes=title&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=title&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags,authors,series,narrators&primaryKey=id&name=audiobooks&attributesToRetrieve=title,tags,authors&facets=tags,authors,series,narrators&query=fish&facetFilters=["authors:amy lane"]`),
 	QueryStr(`?searchableAttributes=title&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=title&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags,authors,series,narrators&primaryKey=id&name=audiobooks&attributesToRetrieve=title,tags,authors&facets=tags,authors,series,narrators&query=fish&facetFilters=["authors:amy lane", ["tags:romance", "tags:-dnr"]]&idx=file://home/mxb/code/srch/testdata/hare/audiobooks.json`),
 }
@@ -367,7 +369,7 @@ func getTestCfg(idx int) *Cfg {
 				PrimaryKey: "id",
 			},
 			Search: &Search{
-				RtrvAttr: []string{"title", "tags", "authors"},
+				RtrvAttr: []string{"*"},
 				Facets:   []string{"tags", "authors", "series", "narrators"},
 				Query:    "fish",
 			},

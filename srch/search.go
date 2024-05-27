@@ -4,6 +4,7 @@ import (
 	"net/url"
 
 	"github.com/ohzqq/sp"
+	"github.com/samber/lo"
 )
 
 type Search struct {
@@ -28,6 +29,19 @@ type Search struct {
 
 func NewSearch() *Search {
 	return &Search{}
+}
+
+func (s *Search) FilterRtrvAttr(data []map[string]any) []map[string]any {
+	for _, attr := range s.RtrvAttr {
+		if attr == "*" {
+			return data
+		}
+		fn := func(d map[string]any, _ int) map[string]any {
+			return lo.PickByKeys(d, s.RtrvAttr)
+		}
+		return lo.Map(data, fn)
+	}
+	return data
 }
 
 func (s *Search) Decode(u url.Values) error {
