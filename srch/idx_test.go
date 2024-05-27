@@ -87,9 +87,13 @@ func TestIdxFindDocByPK(t *testing.T) {
 
 func TestIdxFindDocByID(t *testing.T) {
 	test := func(idx *Idx) error {
-		doc, err := idx.findByDocID(testDocID)
+		docs, err := idx.findByDocID(testDocID)
 		if err != nil {
 			return err
+		}
+		var doc *Doc
+		if len(docs) > 0 {
+			doc = docs[0]
 		}
 		if doc.ID != testDocID {
 			return fmt.Errorf("got %v doc id, wanted %v\n", doc.ID, testDocID)

@@ -202,33 +202,44 @@ func (idx *Idx) findDocByPK(pks ...int) ([]*Doc, error) {
 		return nil, err
 	}
 
+	recs, err := idx.findByDocID(ids...)
+	if err != nil {
+		return nil, err
+	}
+
 	var docs []*Doc
-	for _, id := range ids {
-		doc, err := idx.findByDocID(id)
-		if err != nil {
-			return nil, err
-		}
+	for _, doc := range recs {
 		if slices.Contains(pks, doc.PrimaryKey) {
 			docs = append(docs, doc)
 		}
 	}
+	//for _, id := range ids {
+	//  doc, err := idx.findByDocID(id)
+	//  if err != nil {
+	//    return nil, err
+	//  }
+	//}
 
 	return docs, nil
 }
 
-func (idx *Idx) findByDocID(id int) (*Doc, error) {
+func (idx *Idx) findByDocID(ids ...int) ([]*Doc, error) {
 	srch, err := idx.srch()
 	if err != nil {
 		return nil, err
 	}
 
-	doc := DefaultDoc()
-	err = srch.Find(id, doc)
-	if err != nil {
-		return nil, err
+	var docs []*Doc
+	for _, id := range ids {
+		doc := DefaultDoc()
+		err = srch.Find(id, doc)
+		if err != nil {
+			return nil, err
+		}
+		docs = append(docs, doc)
 	}
 
-	return doc, nil
+	return docs, nil
 }
 
 func (idx *Idx) openData() (io.ReadCloser, error) {
