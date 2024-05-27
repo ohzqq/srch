@@ -52,6 +52,38 @@ func NewIdx() *Idx {
 	return NewIdxCfg()
 }
 
+func (idx *Idx) Search(srch *Search) ([]map[string]any, error) {
+	docs, err := idx.findDocs(nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var ids []int
+	if srch.Query == "" {
+		ids = idx.getPKs(docs)
+	} else {
+		res := roaring.New()
+		for ana, attrs := range idx.srchMap() {
+			for _, doc := range docs {
+				for _, attr := range attrs {
+					id := doc.Search(attr, ana, srch.Query)
+					if id != -1 {
+						res.AddInt(id)
+					}
+				}
+			}
+		}
+		ids = cast.ToIntSlice(res.ToArray())
+	}
+
+	data, err := idx.Find(ids...)
+	if err != nil {
+		return nil, err
+	}
+	data = srch.FilterRtrvAttr(data)
+	return data, nil
+}
+
 func (idx *Idx) DataContentType() string {
 	return mime.TypeByExtension(filepath.Ext(idx.dataURL.Path))
 }
@@ -120,6 +152,14 @@ func (idx *Idx) Encode() (url.Values, error) {
 }
 
 func (idx *Idx) mapParams() Mapping {
+	m := idx.srchMap()
+	for _, attr := range idx.SortAttr {
+		m.AddKeywords(attr)
+	}
+	return m
+}
+
+func (idx *Idx) srchMap() Mapping {
 	m := NewMapping()
 
 	for _, attr := range idx.SrchAttr {
@@ -127,10 +167,6 @@ func (idx *Idx) mapParams() Mapping {
 	}
 
 	for _, attr := range idx.FacetAttr {
-		m.AddKeywords(attr)
-	}
-
-	for _, attr := range idx.SortAttr {
 		m.AddKeywords(attr)
 	}
 
@@ -263,38 +299,6 @@ func (idx *Idx) Batch(r io.ReadCloser) error {
 		}
 	}
 	return nil
-}
-
-func (idx *Idx) Search(srch *Search) ([]map[string]any, error) {
-	docs, err := idx.findDocs(nil)
-	if err != nil {
-		return nil, err
-	}
-
-	var ids []int
-	if srch.Query == "" {
-		ids = idx.getPKs(docs)
-	} else {
-		res := roaring.New()
-		for ana, attrs := range idx.DocMapping() {
-			for _, doc := range docs {
-				for _, attr := range attrs {
-					id := doc.Search(attr, ana, srch.Query)
-					if id != -1 {
-						res.AddInt(id)
-					}
-				}
-			}
-		}
-		ids = cast.ToIntSlice(res.ToArray())
-	}
-
-	data, err := idx.Find(ids...)
-	if err != nil {
-		return nil, err
-	}
-	data = srch.FilterRtrvAttr(data)
-	return data, nil
 }
 
 func (idx *Idx) Changed(old *Idx) bool {

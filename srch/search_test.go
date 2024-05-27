@@ -5,7 +5,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/spf13/cast"
 	"golang.org/x/exp/maps"
 )
 
@@ -49,9 +48,7 @@ func TestSearch(t *testing.T) {
 			if err != nil {
 				t.Error(err)
 			}
-			titles := make([]string, len(gotResults))
 			for i, item := range gotResults {
-				titles[i] = cast.ToString(item["title"])
 				err = testTotalFields(srch.RtrvAttr, wantResults[i], item)
 				if err != nil {
 					t.Error(err)
@@ -81,7 +78,6 @@ func testTotalFields(attr []string, test, res map[string]any) error {
 		if attr[0] != "*" {
 			want = t
 		}
-		println(attr[0] == "*")
 	}
 	if got != want {
 		return fmt.Errorf("got %v fields, wanted %v\n", got, want)
