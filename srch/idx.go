@@ -11,7 +11,6 @@ import (
 
 	"github.com/ohzqq/hare"
 	"github.com/ohzqq/sp"
-	"github.com/spf13/cast"
 )
 
 type Idx struct {
@@ -128,7 +127,7 @@ func (idx *Idx) mapParams() Mapping {
 }
 
 func (idx *Idx) Find(id int) (map[string]any, error) {
-	doc := New()
+	doc := DefaultDoc()
 	srch, err := idx.srch()
 	if err != nil {
 		return nil, err
@@ -145,14 +144,16 @@ func (idx *Idx) Find(id int) (map[string]any, error) {
 	return d, nil
 }
 
-func (idx *Idx) Insert(item *Item) error {
-	doc := item.Idx(idx.Mapping).
-		WithCustomID(idx.UID)
+func (idx *Idx) AddDoc(d map[string]any) error {
+	//doc := item.Idx(idx.Mapping).
+	//  WithCustomID(idx.UID)
 
-	if id, ok := item.Data[idx.UID]; ok {
-		i := cast.ToInt(id)
-		doc.UID = i
-	}
+	//if id, ok := item.Data[idx.UID]; ok {
+	//  i := cast.ToInt(id)
+	//  doc.UID = i
+	//}
+
+	doc := New(idx.UID).SetData(idx.Mapping, d)
 
 	srch, err := idx.srch()
 	if err != nil {
@@ -193,13 +194,13 @@ func (idx *Idx) Batch(r io.ReadCloser) error {
 	//r := bytes.NewReader(d)
 	dec := json.NewDecoder(r)
 	for {
-		item := NewItem()
-		if err := dec.Decode(&item.Data); err == io.EOF {
+		d := make(map[string]any)
+		if err := dec.Decode(&d); err == io.EOF {
 			break
 		} else if err != nil {
 			return err
 		}
-		err := idx.Insert(item)
+		err := idx.AddDoc(d)
 		if err != nil {
 			return err
 		}

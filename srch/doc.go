@@ -1,6 +1,8 @@
 package srch
 
 import (
+	"slices"
+
 	"github.com/bits-and-blooms/bloom/v3"
 	"github.com/ohzqq/hare"
 	"github.com/ohzqq/srch/analyzer"
@@ -17,7 +19,16 @@ type Doc struct {
 	CustomID string                        `json:"-"`
 }
 
-func New() *Doc {
+func New(key ...string) *Doc {
+	var pk string
+	if len(key) > 0 {
+		pk = key[0]
+	}
+	return DefaultDoc().
+		WithCustomID(pk)
+}
+
+func DefaultDoc() *Doc {
 	return &Doc{
 		Standard: make(map[string]*bloom.BloomFilter),
 		Keyword:  make(map[string]*bloom.BloomFilter),
@@ -52,24 +63,13 @@ func (doc *Doc) WithCustomID(f string) *Doc {
 
 func (doc *Doc) SetData(m Mapping, data map[string]any) *Doc {
 	for ana, attrs := range m {
-		for _, attr := range attrs {
-			if val, ok := data[attr]; ok {
-				str := cast.ToString(val)
-				toks := ana.Tokenize(str)
-				filter := bloom.NewWithEstimates(uint(len(toks)*2), 0.01)
-				for _, tok := range toks {
-					filter.TestOrAddString(tok)
-				}
-
-				switch ana {
-				case analyzer.Keyword:
-					doc.Keyword[attr] = filter
-				case analyzer.Standard:
-					doc.Standard[attr] = filter
-				case analyzer.Simple:
-					fallthrough
-				default:
-					doc.Simple[attr] = filter
+		for field, val := range data {
+			for _, attr := range attrs {
+				if field == attr {
+					if ana == analyzer.Simple && slices.Equal(attrs, []string{"*"}) {
+						doc.AddField(ana, field, val)
+					}
+					doc.AddField(ana, field, val)
 				}
 			}
 		}

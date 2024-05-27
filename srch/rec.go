@@ -19,7 +19,7 @@ func NewItem() *Item {
 }
 
 func (i *Item) Idx(m Mapping) *Doc {
-	doc := New()
+	doc := DefaultDoc()
 	for ana, attrs := range m {
 		for field, val := range i.Data {
 			for _, attr := range attrs {
