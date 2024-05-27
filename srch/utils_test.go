@@ -47,20 +47,19 @@ func runTests(t *testing.T, test testFunc) {
 
 func runClientTests(t *testing.T, test testClientFunc) {
 	for i, query := range TestQueryParams {
-		req, err := newTestReq(query.String())
-		if err != nil {
-			t.Error(err)
-		}
+		runClientTest(t, i, query, test)
+	}
+}
 
-		client, err := req.Client()
-		if err != nil {
-			t.Error(err)
-		}
+func runClientTest(t *testing.T, i int, query QueryStr, test testClientFunc) {
+	client, err := getTestClient(query)
+	if err != nil {
+		t.Error(err)
+	}
 
-		err = test(i, client)
-		if err != nil {
-			t.Error(err)
-		}
+	err = test(i, client)
+	if err != nil {
+		t.Error(err)
 	}
 }
 
