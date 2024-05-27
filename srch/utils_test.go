@@ -64,6 +64,20 @@ func runClientTests(t *testing.T, test testClientFunc) {
 	}
 }
 
+func getTestClient(query QueryStr) (*Client, error) {
+	req, err := newTestReq(query.String())
+	if err != nil {
+		return nil, err
+	}
+
+	client, err := req.Client()
+	if err != nil {
+		return nil, err
+	}
+
+	return client, nil
+}
+
 func newTestReq(v any) (reqTest, error) {
 	req, err := NewRequest(v)
 	if err != nil {

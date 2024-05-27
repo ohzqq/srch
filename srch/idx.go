@@ -180,7 +180,6 @@ func (idx *Idx) UpdateDoc(d map[string]any) error {
 }
 
 func (idx *Idx) FindByPK(pk int) (*Doc, error) {
-
 	srch, err := idx.srch()
 	if err != nil {
 		return nil, err

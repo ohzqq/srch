@@ -12,6 +12,8 @@ var dataURLs = []QueryStr{
 	QueryStr(`?name=audiobooks&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson`),
 }
 
+const testIdxReq = QueryStr(`?searchableAttributes=title&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=title&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags,authors,series&uid=id&name=audiobooks`)
+
 const (
 	testDocPK = 7312
 	testDocID = 7245
@@ -62,7 +64,21 @@ func TestIdxInsertData(t *testing.T) {
 	//runIdxTests(t, test)
 }
 
-func TestIdxFindDoc(t *testing.T) {
+func TestIdxFindDocByPK(t *testing.T) {
+	test := func(idx *Idx) error {
+		doc, err := idx.FindByPK(testDocPK)
+		if err != nil {
+			return err
+		}
+		if doc.ID != testDocID {
+			return fmt.Errorf("got %v doc id, wanted %v\n", doc.ID, testDocID)
+		}
+		if doc.PrimaryKey != testDocPK {
+			return fmt.Errorf("got %v doc pk, wanted %v\n", doc.PrimaryKey, testDocPK)
+		}
+		return nil
+	}
+	runIdxTest(t, testIdxReq, test)
 }
 
 func TestIdxFindData(t *testing.T) {
@@ -71,15 +87,6 @@ func TestIdxFindData(t *testing.T) {
 		if err != nil {
 			return err
 		}
-		//doc := New()
-		//srch, err := idx.srch()
-		//if err != nil {
-		//return err
-		//}
-		//err = srch.Find(id, doc)
-		//if err != nil {
-		//return err
-		//}
 		idx.getData = NdJSONFind(idx.PrimaryKey, r)
 		d, err := idx.Find(testDocID)
 		if err != nil {
@@ -139,24 +146,23 @@ type testIdxFunc func(*Idx) error
 
 func runIdxTests(t *testing.T, test testIdxFunc) {
 	for _, query := range TestQueryParams {
-		req, err := newTestReq(query.String())
-		if err != nil {
-			t.Error(err)
-		}
+		runIdxTest(t, query, test)
+	}
+}
 
-		client, err := req.Client()
-		if err != nil {
-			t.Error(err)
-		}
+func runIdxTest(t *testing.T, query QueryStr, test testIdxFunc) {
+	client, err := getTestClient(query)
+	if err != nil {
+		t.Error(err)
+	}
 
-		idx, err := client.FindIdx(client.IndexName())
-		if err != nil {
-			t.Error(err)
-		}
+	idx, err := client.FindIdx(client.IndexName())
+	if err != nil {
+		t.Error(err)
+	}
 
-		err = test(idx)
-		if err != nil {
-			t.Error(err)
-		}
+	err = test(idx)
+	if err != nil {
+		t.Error(err)
 	}
 }
