@@ -202,21 +202,26 @@ func (idx *Idx) findDocByPK(pks ...int) ([]*Doc, error) {
 		return nil, err
 	}
 
-	recs, err := idx.findByDocID(ids...)
-	if err != nil {
-		return nil, err
-	}
-
 	var docs []*Doc
-	for _, doc := range recs {
+	for _, id := range ids {
+		doc := DefaultDoc()
+		err = srch.Find(id, doc)
+		if err != nil {
+			return nil, err
+		}
 		if slices.Contains(pks, doc.PrimaryKey) {
 			docs = append(docs, doc)
 		}
 	}
-	//for _, id := range ids {
-	//  doc, err := idx.findByDocID(id)
-	//  if err != nil {
-	//    return nil, err
+
+	//recs, err := idx.findByDocID(ids...)
+	//if err != nil {
+	//return nil, err
+	//}
+
+	//for _, doc := range recs {
+	//  if slices.Contains(pks, doc.PrimaryKey) {
+	//    docs = append(docs, doc)
 	//  }
 	//}
 
