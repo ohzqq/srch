@@ -174,13 +174,16 @@ func (idx *Idx) UpdateDoc(d map[string]any) error {
 	}
 
 	pk := getDocID(idx.PrimaryKey, d)
-	doc, err := idx.findDocByPK(pk)
+	docs, err := idx.findDocByPK(pk)
 	if err != nil {
 		return err
 	}
-	doc.Analyze(idx.Mapping, d)
+	if len(docs) < 1 {
+		return dberr.ErrNoRecord
+	}
+	docs[0].Analyze(idx.Mapping, d)
 
-	err = srch.Update(doc)
+	err = srch.Update(docs[0])
 	if err != nil {
 		return err
 	}
@@ -188,7 +191,7 @@ func (idx *Idx) UpdateDoc(d map[string]any) error {
 	return nil
 }
 
-func (idx *Idx) findDocByPK(pk int) (*Doc, error) {
+func (idx *Idx) findDocByPK(pks ...int) ([]*Doc, error) {
 	srch, err := idx.srch()
 	if err != nil {
 		return nil, err
@@ -199,17 +202,18 @@ func (idx *Idx) findDocByPK(pk int) (*Doc, error) {
 		return nil, err
 	}
 
+	var docs []*Doc
 	for _, id := range ids {
 		doc, err := idx.findByDocID(id)
 		if err != nil {
 			return nil, err
 		}
-		if doc.PrimaryKey == pk {
-			return doc, nil
+		if slices.Contains(pks, doc.PrimaryKey) {
+			docs = append(docs, doc)
 		}
 	}
 
-	return nil, dberr.ErrNoRecord
+	return docs, nil
 }
 
 func (idx *Idx) findByDocID(id int) (*Doc, error) {

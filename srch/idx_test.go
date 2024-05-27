@@ -66,9 +66,13 @@ func TestIdxInsertData(t *testing.T) {
 
 func TestIdxFindDocByPK(t *testing.T) {
 	test := func(idx *Idx) error {
-		doc, err := idx.findDocByPK(testDocPK)
+		docs, err := idx.findDocByPK(testDocPK)
 		if err != nil {
 			return err
+		}
+		var doc *Doc
+		if len(docs) > 0 {
+			doc = docs[0]
 		}
 		if doc.ID != testDocID {
 			return fmt.Errorf("got %v doc id, wanted %v\n", doc.ID, testDocID)
