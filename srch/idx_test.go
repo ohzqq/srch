@@ -66,7 +66,7 @@ func TestIdxInsertData(t *testing.T) {
 
 func TestIdxFindDocByPK(t *testing.T) {
 	test := func(idx *Idx) error {
-		doc, err := idx.FindByPK(testDocPK)
+		doc, err := idx.findDocByPK(testDocPK)
 		if err != nil {
 			return err
 		}
@@ -76,6 +76,42 @@ func TestIdxFindDocByPK(t *testing.T) {
 		if doc.PrimaryKey != testDocPK {
 			return fmt.Errorf("got %v doc pk, wanted %v\n", doc.PrimaryKey, testDocPK)
 		}
+		return nil
+	}
+	runIdxTest(t, testIdxReq, test)
+}
+
+func TestIdxFindDocByID(t *testing.T) {
+	test := func(idx *Idx) error {
+		doc, err := idx.findByDocID(testDocID)
+		if err != nil {
+			return err
+		}
+		if doc.ID != testDocID {
+			return fmt.Errorf("got %v doc id, wanted %v\n", doc.ID, testDocID)
+		}
+		if doc.PrimaryKey != testDocPK {
+			return fmt.Errorf("got %v doc pk, wanted %v\n", doc.PrimaryKey, testDocPK)
+		}
+		return nil
+	}
+	runIdxTest(t, testIdxReq, test)
+}
+
+func TestIdxUpdateDoc(t *testing.T) {
+	test := func(idx *Idx) error {
+		r, err := idx.openData()
+		if err != nil {
+			return err
+		}
+		idx.getData = NdJSONFind(idx.PrimaryKey, r)
+		d, err := idx.Find(testDocID)
+		if err != nil {
+			return err
+		}
+		d["title"] = "poot"
+
+		err = idx.UpdateDoc(d)
 		return nil
 	}
 	runIdxTest(t, testIdxReq, test)

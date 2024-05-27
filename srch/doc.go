@@ -23,11 +23,21 @@ func New(data map[string]any, m Mapping, key ...string) *Doc {
 
 	if len(key) > 0 {
 		pk := key[0]
-		if id, ok := data[pk]; ok {
-			doc.PrimaryKey = cast.ToInt(id)
-		}
+		doc.PrimaryKey = getDocID(pk, data)
 	}
 
+	return doc.Analyze(m, data)
+}
+
+func DefaultDoc() *Doc {
+	return &Doc{
+		Standard: make(map[string]*bloom.BloomFilter),
+		Keyword:  make(map[string]*bloom.BloomFilter),
+		Simple:   make(map[string]*bloom.BloomFilter),
+	}
+}
+
+func (doc *Doc) Analyze(m Mapping, data map[string]any) *Doc {
 	for ana, attrs := range m {
 		for field, val := range data {
 			for _, attr := range attrs {
@@ -40,16 +50,7 @@ func New(data map[string]any, m Mapping, key ...string) *Doc {
 			}
 		}
 	}
-
 	return doc
-}
-
-func DefaultDoc() *Doc {
-	return &Doc{
-		Standard: make(map[string]*bloom.BloomFilter),
-		Keyword:  make(map[string]*bloom.BloomFilter),
-		Simple:   make(map[string]*bloom.BloomFilter),
-	}
 }
 
 func (doc *Doc) AddField(ana analyzer.Analyzer, attr string, val any) {
@@ -134,5 +135,5 @@ func getDocID(uid any, doc map[string]any) int {
 	if u, ok := doc[cast.ToString(uid)]; ok {
 		return cast.ToInt(u)
 	}
-	return cast.ToInt(uid)
+	return -1
 }

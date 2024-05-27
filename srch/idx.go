@@ -164,14 +164,19 @@ func (idx *Idx) AddDoc(d map[string]any) error {
 }
 
 func (idx *Idx) UpdateDoc(d map[string]any) error {
-	doc := New(d, idx.Mapping, idx.PrimaryKey)
-
 	srch, err := idx.srch()
 	if err != nil {
 		return err
 	}
 
-	_, err = srch.Insert(doc)
+	pk := getDocID(idx.PrimaryKey, d)
+	doc, err := idx.findDocByPK(pk)
+	if err != nil {
+		return err
+	}
+	doc.Analyze(idx.Mapping, d)
+
+	err = srch.Update(doc)
 	if err != nil {
 		return err
 	}
@@ -179,7 +184,7 @@ func (idx *Idx) UpdateDoc(d map[string]any) error {
 	return nil
 }
 
-func (idx *Idx) FindByPK(pk int) (*Doc, error) {
+func (idx *Idx) findDocByPK(pk int) (*Doc, error) {
 	srch, err := idx.srch()
 	if err != nil {
 		return nil, err
@@ -191,8 +196,7 @@ func (idx *Idx) FindByPK(pk int) (*Doc, error) {
 	}
 
 	for _, id := range ids {
-		doc := DefaultDoc()
-		err := srch.Find(id, doc)
+		doc, err := idx.findByDocID(id)
 		if err != nil {
 			return nil, err
 		}
@@ -202,6 +206,21 @@ func (idx *Idx) FindByPK(pk int) (*Doc, error) {
 	}
 
 	return nil, dberr.ErrNoRecord
+}
+
+func (idx *Idx) findByDocID(id int) (*Doc, error) {
+	srch, err := idx.srch()
+	if err != nil {
+		return nil, err
+	}
+
+	doc := DefaultDoc()
+	err = srch.Find(id, doc)
+	if err != nil {
+		return nil, err
+	}
+
+	return doc, nil
 }
 
 func (idx *Idx) openData() (io.ReadCloser, error) {
