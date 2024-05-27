@@ -4,7 +4,6 @@ import (
 	"github.com/bits-and-blooms/bloom/v3"
 	"github.com/ohzqq/hare"
 	"github.com/ohzqq/srch/analyzer"
-	"github.com/ohzqq/srch/param"
 	"github.com/samber/lo"
 	"github.com/spf13/cast"
 )
@@ -13,10 +12,9 @@ type Doc struct {
 	Standard map[string]*bloom.BloomFilter `json:"searchableAttributes"`
 	Keyword  map[string]*bloom.BloomFilter `json:"attributesForFaceting"`
 	Simple   map[string]*bloom.BloomFilter `json:"attributesForFaceting"`
-	HID      int                           `json:"_id"`
-	ID       int                           `json:"id,omitempty"`
+	ID       int                           `json:"_id"`
+	UID      int                           `json:"id,omitempty"`
 	CustomID string                        `json:"-"`
-	Data     map[string]any                `json:"data"`
 }
 
 func New() *Doc {
@@ -79,34 +77,6 @@ func (doc *Doc) SetData(m Mapping, data map[string]any) *Doc {
 	return doc
 }
 
-func NewDoc(data map[string]any, params *param.Params) *Doc {
-	doc := New()
-	for _, attr := range params.SrchAttr {
-		if f, ok := data[attr]; ok {
-			str := cast.ToString(f)
-			toks := analyzer.Standard.Tokenize(str)
-			filter := bloom.NewWithEstimates(uint(len(toks)*2), 0.01)
-			for _, tok := range toks {
-				filter.TestOrAddString(tok)
-			}
-			doc.Standard[attr] = filter
-		}
-	}
-
-	for _, attr := range params.Facets {
-		if f, ok := data[attr]; ok {
-			str := cast.ToStringSlice(f)
-			toks := analyzer.Keyword.Tokenize(str...)
-			filter := bloom.NewWithEstimates(uint(len(toks)*5), 0.01)
-			for _, tok := range toks {
-				filter.TestOrAddString(tok)
-			}
-			doc.Keyword[attr] = filter
-		}
-	}
-	return doc
-}
-
 func (d *Doc) SearchAllFields(kw string) bool {
 	for n, _ := range d.Standard {
 		return d.SearchField(n, kw)
@@ -125,7 +95,7 @@ func (d *Doc) Search(name string, ana analyzer.Analyzer, kw string) int {
 	if f := lo.Uniq(found); len(f) == 1 {
 		if f[0] {
 			//fmt.Printf("field %s: found %v\n", name, found)
-			return d.ID
+			return d.UID
 		}
 	}
 	return -1
@@ -151,14 +121,14 @@ func (d *Doc) SearchField(name string, tok string) bool {
 }
 
 func (d *Doc) SetID(id int) {
-	d.HID = id
-	if d.ID < 1 {
-		d.ID = id
+	d.ID = id
+	if d.UID < 1 {
+		d.UID = id
 	}
 }
 
 func (d *Doc) GetID() int {
-	return d.HID
+	return d.ID
 }
 
 func (d *Doc) AfterFind(db *hare.Database) error {

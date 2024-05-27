@@ -138,7 +138,7 @@ func (idx *Idx) Find(id int) (map[string]any, error) {
 		return nil, err
 	}
 
-	d, err := idx.getData(doc.ID)
+	d, err := idx.getData(doc.UID)
 	if err != nil {
 		return nil, err
 	}
@@ -151,7 +151,7 @@ func (idx *Idx) Insert(item *Item) error {
 
 	if id, ok := item.Data[idx.UID]; ok {
 		i := cast.ToInt(id)
-		doc.ID = i
+		doc.UID = i
 	}
 
 	srch, err := idx.srch()
