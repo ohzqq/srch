@@ -127,30 +127,6 @@ func (idx *Idx) mapParams() Mapping {
 	return m
 }
 
-func (idx *Idx) Find(ids ...int) ([]map[string]any, error) {
-
-	srch, err := idx.srch()
-	if err != nil {
-		return nil, err
-	}
-
-	pks := make([]int, len(ids))
-	for i, id := range ids {
-		doc := DefaultDoc()
-		err = srch.Find(id, doc)
-		if err != nil {
-			return nil, err
-		}
-		pks[i] = doc.PrimaryKey
-	}
-
-	d, err := idx.getData(pks...)
-	if err != nil {
-		return nil, err
-	}
-	return d, nil
-}
-
 func (idx *Idx) AddDoc(d map[string]any) error {
 	doc := New(d, idx.Mapping, idx.PrimaryKey)
 
@@ -191,7 +167,15 @@ func (idx *Idx) UpdateDoc(d map[string]any) error {
 	return nil
 }
 
-func (idx *Idx) findDocByPK(pks ...int) ([]*Doc, error) {
+func (idx *Idx) Find(ids ...int) ([]map[string]any, error) {
+	d, err := idx.getData(ids...)
+	if err != nil {
+		return nil, err
+	}
+	return d, nil
+}
+
+func (idx *Idx) FindAllDocs() ([]*Doc, error) {
 	srch, err := idx.srch()
 	if err != nil {
 		return nil, err
@@ -202,28 +186,30 @@ func (idx *Idx) findDocByPK(pks ...int) ([]*Doc, error) {
 		return nil, err
 	}
 
-	var docs []*Doc
-	for _, id := range ids {
+	docs := make([]*Doc, len(ids))
+	for i, id := range ids {
 		doc := DefaultDoc()
 		err = srch.Find(id, doc)
 		if err != nil {
 			return nil, err
 		}
-		if slices.Contains(pks, doc.PrimaryKey) {
-			docs = append(docs, doc)
-		}
+		docs[i] = doc
+	}
+	return docs, nil
+}
+
+func (idx *Idx) findDocByPK(pks ...int) ([]*Doc, error) {
+	recs, err := idx.FindAllDocs()
+	if err != nil {
+		return nil, err
 	}
 
-	//recs, err := idx.findByDocID(ids...)
-	//if err != nil {
-	//return nil, err
-	//}
-
-	//for _, doc := range recs {
-	//  if slices.Contains(pks, doc.PrimaryKey) {
-	//    docs = append(docs, doc)
-	//  }
-	//}
+	var docs []*Doc
+	for _, rec := range recs {
+		if slices.Contains(pks, rec.PrimaryKey) {
+			docs = append(docs, rec)
+		}
+	}
 
 	return docs, nil
 }
@@ -306,14 +292,6 @@ func (idx *Idx) Batch(r io.ReadCloser) error {
 //    }
 //    return docs, nil
 //  }
-//}
-
-//func (idx *Idx) FindAll() ([]*doc.Doc, error) {
-//  ids, err := idx.srch.IDs()
-//  if err != nil {
-//    return nil, err
-//  }
-//  return idx.Find(ids...)
 //}
 
 //func (idx *Idx) InsertDoc(data map[string]any) error {

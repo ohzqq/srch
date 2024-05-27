@@ -113,7 +113,7 @@ func TestIdxUpdateDoc(t *testing.T) {
 			return err
 		}
 		idx.getData = NdJSONFind(idx.PrimaryKey, r)
-		d, err := idx.Find(testDocID)
+		d, err := idx.Find(testDocPK)
 		if err != nil {
 			return err
 		}
@@ -135,7 +135,7 @@ func TestIdxFindData(t *testing.T) {
 			return err
 		}
 		idx.getData = NdJSONFind(idx.PrimaryKey, r)
-		d, err := idx.Find(testDocID)
+		d, err := idx.Find(testDocPK)
 		if err != nil {
 			return err
 		}
