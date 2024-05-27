@@ -21,7 +21,7 @@ type Idx struct {
 	idxURL  *url.URL
 
 	ID         int     `json:"_id"`
-	Mapping    Mapping `json:"mapping"`
+	mapping    Mapping `json:"mapping"`
 	Name       string  `json:"name" qs:"name"`
 	PrimaryKey string  `json:"uid,omitempty" mapstructure:"uid" qs:"primaryKey"`
 
@@ -57,7 +57,7 @@ func (idx *Idx) DataContentType() string {
 }
 
 func (idx *Idx) SetMapping(m Mapping) *Idx {
-	idx.Mapping = m
+	idx.mapping = m
 	return idx
 }
 
@@ -83,7 +83,6 @@ func (idx *Idx) Decode(u url.Values) error {
 	if len(idx.SortAttr) > 0 {
 		idx.SortAttr = ParseQueryStrings(idx.SortAttr)
 	}
-	//idx.SetMapping(idx.mapParams())
 	return nil
 }
 
@@ -95,13 +94,13 @@ func (idx *Idx) Cfg() *Idx {
 }
 
 func (idx *Idx) DocMapping() Mapping {
-	if idx.Mapping == nil ||
+	if idx.mapping == nil ||
 		idx.HasSrchAttr() ||
 		idx.HasFacetAttr() ||
 		idx.HasSortAttr() {
 		return idx.mapParams()
 	}
-	return idx.Mapping
+	return idx.mapping
 }
 
 func (idx *Idx) HasSrchAttr() bool {
@@ -139,7 +138,7 @@ func (idx *Idx) mapParams() Mapping {
 }
 
 func (idx *Idx) AddDoc(d map[string]any) error {
-	doc := New(d, idx.Mapping, idx.PrimaryKey)
+	doc := New(d, idx.DocMapping(), idx.PrimaryKey)
 
 	srch, err := idx.srch()
 	if err != nil {
@@ -176,7 +175,7 @@ func (idx *Idx) UpdateDoc(items ...map[string]any) error {
 			continue
 		}
 
-		doc.Analyze(idx.Mapping, items[i])
+		doc.Analyze(idx.DocMapping(), items[i])
 		err = srch.Update(doc)
 		if err != nil {
 			return err
@@ -297,7 +296,7 @@ func (idx *Idx) Search(kw string) ([]int, error) {
 	}
 
 	res := roaring.New()
-	for ana, attrs := range idx.Mapping {
+	for ana, attrs := range idx.DocMapping() {
 		for _, doc := range docs {
 			for _, attr := range attrs {
 				id := doc.Search(attr, ana, kw)

@@ -73,13 +73,6 @@ func (doc *Doc) AddField(ana analyzer.Analyzer, attr string, val any) {
 	}
 }
 
-func (d *Doc) SearchAllFields(kw string) bool {
-	for n, _ := range d.Standard {
-		return d.SearchField(n, kw)
-	}
-	return false
-}
-
 func (d *Doc) Search(name string, ana analyzer.Analyzer, kw string) int {
 	toks := ana.Tokenize(kw)
 	var found []bool

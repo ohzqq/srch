@@ -24,6 +24,7 @@ const (
 
 type testFunc func(int, reqTest) error
 type testClientFunc func(int, *Client) error
+type testIdxFunc func(*Idx) error
 
 type QueryStr string
 
@@ -42,6 +43,35 @@ func runTests(t *testing.T, test testFunc) {
 		if err != nil {
 			t.Error(err)
 		}
+	}
+}
+
+func runIdxTests(t *testing.T, test testIdxFunc) {
+	for _, query := range TestQueryParams {
+		runIdxTest(t, query, test)
+	}
+}
+
+func runSrchTests(t *testing.T, test testIdxFunc) {
+	for _, query := range TestQueryParams {
+		runIdxTest(t, query, test)
+	}
+}
+
+func runIdxTest(t *testing.T, query QueryStr, test testIdxFunc) {
+	client, err := getTestClient(query)
+	if err != nil {
+		t.Error(err)
+	}
+
+	idx, err := client.FindIdx(client.IndexName())
+	if err != nil {
+		t.Error(err)
+	}
+
+	err = test(idx)
+	if err != nil {
+		t.Error(err)
 	}
 }
 
