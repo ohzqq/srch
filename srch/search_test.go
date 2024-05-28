@@ -7,6 +7,7 @@ import (
 
 	"github.com/ohzqq/cdb"
 	"github.com/samber/lo"
+	"github.com/spf13/cast"
 	"golang.org/x/exp/maps"
 )
 
@@ -46,14 +47,13 @@ func calLib(ids ...int) ([]map[string]any, error) {
 
 var resIDs = []int{1296, 1909, 2265, 2535, 2536, 2611, 2634, 4535, 4626, 5285, 5815, 5816, 6080, 6081, 6082, 6231, 6352, 6777, 6828, 6831, 6912, 7113}
 
-func TestSearch(t *testing.T) {
+func TestSearchRtrvAttr(t *testing.T) {
 	test := func(idx *Idx, srch *Search) error {
-		//r, err := idx.openData()
-		//if err != nil {
-		//  return err
-		//}
-		//idx.getData = NdJSONFind(idx.PrimaryKey, r)
-		idx.getData = calLib
+		r, err := idx.openData()
+		if err != nil {
+			return err
+		}
+		idx.getData = NdJSONFind(idx.PrimaryKey, r)
 
 		wantResults, err := wantResults()
 		if err != nil {
@@ -78,6 +78,34 @@ func TestSearch(t *testing.T) {
 	runSrchTests(t, test)
 }
 
+func TestSearchDBData(t *testing.T) {
+	test := func(idx *Idx, srch *Search) error {
+		idx.getData = calLib
+
+		wantResults, err := wantResults()
+		if err != nil {
+			return err
+		}
+
+		if srch.Query != "" {
+			gotResults, err := idx.Search(srch)
+			if err != nil {
+				t.Error(err)
+			}
+			for i, item := range gotResults {
+				want := cast.ToString(wantResults[i]["title"])
+				got := cast.ToString(item["title"])
+				if got != want {
+					t.Errorf("got %v title, wanted %v\n", got, want)
+				}
+			}
+
+		}
+		return nil
+	}
+	runSrchTests(t, test)
+}
+
 func attrsToRtrv(attrs []string, data map[string]any) []string {
 	var r []string
 	for _, attr := range attrs {
@@ -91,8 +119,7 @@ func attrsToRtrv(attrs []string, data map[string]any) []string {
 
 func testTotalFields(attr []string, test, res map[string]any) error {
 	got := len(res)
-	//want := len(test)
-	want := len(res)
+	want := len(test)
 
 	if t := len(attr); t > 0 {
 		if attr[0] != "*" {
