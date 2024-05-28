@@ -36,7 +36,7 @@ func runSrchTest(t *testing.T, query QueryStr, test testSrchFunc) {
 	test(idx, client.Search)
 }
 
-func calLib(ids ...int) ([]map[string]any, error) {
+func calLib(ids []int) ([]map[string]any, error) {
 	lib := cdb.NewLib(calLibPath)
 	q := lib.NewQuery().GetByID(lo.ToAnySlice(resIDs)...)
 	recs, err := lib.GetBooks(q)
@@ -80,7 +80,7 @@ func TestSearchRtrvAttr(t *testing.T) {
 
 func TestSearchDBData(t *testing.T) {
 	test := func(idx *Idx, srch *Search) error {
-		idx.getData = calLib
+		idx.SetFindDataFunc(calLib)
 
 		wantResults, err := wantResults()
 		if err != nil {
@@ -136,5 +136,5 @@ func testTotalFields(attr []string, test, res map[string]any) error {
 func wantResults() ([]map[string]any, error) {
 	f, _ := os.Open(`/home/mxb/code/srch/testdata/ndbooks.ndjson`)
 	defer f.Close()
-	return findNDJSON(f, "id", resIDs...)
+	return findNDJSON(f, "id", resIDs)
 }

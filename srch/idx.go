@@ -215,15 +215,16 @@ func (idx *Idx) UpdateDoc(items ...map[string]any) error {
 	return nil
 }
 
+func (idx *Idx) SetFindDataFunc(fn FindItemFunc) *Idx {
+	idx.getData = fn
+	return idx
+}
+
 func (idx *Idx) Find(ids ...int) ([]map[string]any, error) {
 	if idx.getData != nil {
-		return idx.getData(ids...)
+		return idx.getData(ids)
 	}
-	d, err := FindData(idx.dataSrc, ids)
-	if err != nil {
-		return nil, err
-	}
-	return d, nil
+	return FindData(idx.dataSrc, ids)
 }
 
 func (idx *Idx) findDocs(test func(*Doc) bool) ([]*Doc, error) {
