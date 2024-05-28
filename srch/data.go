@@ -30,13 +30,13 @@ func FindData[T any](u *url.URL, ids []T) []map[string]any {
 	ct := mime.TypeByExtension(filepath.Ext(u.Path))
 	switch ct {
 	case NdJSON:
-		return SrcNDJSON(u, ids)
+		return DecodeNDJSON(u, ids)
 	}
 
 	return []map[string]any{}
 }
 
-func SrcNDJSON[T any](u *url.URL, ids []T) []map[string]any {
+func DecodeNDJSON[T any](u *url.URL, ids []T) []map[string]any {
 	var err error
 	var r io.ReadCloser
 	switch u.Scheme {
@@ -55,10 +55,36 @@ func SrcNDJSON[T any](u *url.URL, ids []T) []map[string]any {
 		return []map[string]any{}
 	}
 	defer r.Close()
-	return findNDJSON(r, u.Query().Get("primaryKey"), ids)
+	return decodeNDJSON(r, u.Query().Get("primaryKey"), ids)
 }
 
-func findNDJSON[T any](r io.Reader, uid string, ids []T) []map[string]any {
+func decodeJSON[T any](r io.Reader, uid string, ids []T) []map[string]any {
+	m := []map[string]any{}
+	err := json.NewDecoder(r).Decode(&m)
+	if err != nil {
+		return m
+	}
+	i := 1
+	guids := cast.ToIntSlice(ids)
+	var items []map[string]any
+	for _, item := range m {
+		did := i
+		if it, ok := item[uid]; ok {
+			did = cast.ToInt(it)
+		}
+		if len(ids) > 0 {
+			if slices.Contains(guids, did) {
+				items = append(items, item)
+			}
+		} else {
+			items = append(items, item)
+		}
+		i++
+	}
+	return m
+}
+
+func decodeNDJSON[T any](r io.Reader, uid string, ids []T) []map[string]any {
 	dec := json.NewDecoder(r)
 	i := 1
 	guids := cast.ToIntSlice(ids)
