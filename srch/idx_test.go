@@ -146,6 +146,42 @@ func TestIdxFindData(t *testing.T) {
 	//runIdxTests(t, test)
 }
 
+func TestIdxFindAllData(t *testing.T) {
+	test := func(idx *Idx) error {
+		r, err := idx.openData()
+		if err != nil {
+			return err
+		}
+		idx.getData = NdJSONFind(idx.PrimaryKey, r)
+		d, err := idx.Find()
+		if err != nil {
+			return err
+		}
+		want := 7251
+		if got := len(d); got != want {
+			t.Errorf("got %v items, wanted %v\n", got, want)
+		}
+		return nil
+	}
+	req, err := NewRequest(`?searchableAttributes=title&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=title&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags,authors,series&uid=id&name=audiobooks`)
+	if err != nil {
+		t.Error(err)
+	}
+	client, err := req.Client()
+	if err != nil {
+		t.Error(err)
+	}
+	idx, err := client.FindIdx(client.IndexName())
+	if err != nil {
+		t.Error(err)
+	}
+	err = test(idx)
+	if err != nil {
+		t.Error(err)
+	}
+	//runIdxTests(t, test)
+}
+
 func TestDataContentType(t *testing.T) {
 	test := func(idx *Idx) error {
 		ct := idx.DataContentType()
