@@ -10,30 +10,9 @@ import (
 
 type FindItemFunc func(...int) ([]map[string]any, error)
 
-func NdJSONFind(uid string, r io.ReadCloser) FindItemFunc {
+func SrcNDJSON(r io.ReadCloser, pk string) FindItemFunc {
 	return func(ids ...int) ([]map[string]any, error) {
-		//r := bytes.NewReader(d)
-		//dec := json.NewDecoder(r)
-		//i := 1
-		//var items []map[string]any
-		//for {
-		//  item := make(map[string]any)
-		//  if err := dec.Decode(&item); err == io.EOF {
-		//    break
-		//  } else if err != nil {
-		//    return nil, err
-		//  }
-		//  did := i
-		//  if it, ok := item[uid]; ok {
-		//    did = cast.ToInt(it)
-		//  }
-		//  if slices.Contains(ids, did) {
-		//    items = append(items, item)
-		//  }
-		//  i++
-		//}
-
-		items, err := findNDJSON(r, uid, ids...)
+		items, err := findNDJSON(r, pk, ids...)
 		if err != nil {
 			return nil, err
 		}
