@@ -4,15 +4,12 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"net/http/httptest"
 	"testing"
 )
 
 func TestServer(t *testing.T) {
-	mux := Mux()
-	ts := httptest.NewUnstartedServer(mux)
-	ts.Config = NewSrv()
-	ts.Start()
+	//mux := Mux()
+	ts := OfflineSrv()
 	defer ts.Close()
 
 	ts.URL += "/test/poot"

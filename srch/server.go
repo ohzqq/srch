@@ -3,6 +3,7 @@ package srch
 import (
 	"fmt"
 	"net/http"
+	"net/http/httptest"
 )
 
 func Mux() *http.ServeMux {
@@ -22,4 +23,11 @@ func NewSrv() *http.Server {
 		Handler: mux,
 	}
 	return srv
+}
+
+func OfflineSrv() *httptest.Server {
+	ts := httptest.NewUnstartedServer(nil)
+	ts.Config = NewSrv()
+	ts.Start()
+	return ts
 }
