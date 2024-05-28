@@ -27,10 +27,31 @@ type FindItemFunc func([]int) []map[string]any
 type FindItems[T any] func(...T) ([]map[string]any, error)
 
 func FindData[T any](u *url.URL, ids []T) []map[string]any {
+	var err error
+	var r io.ReadCloser
+	switch u.Scheme {
+	case "file":
+		r, err = os.Open(u.Path)
+		if err != nil {
+			return []map[string]any{}
+		}
+	case "http", "https":
+		res, err := client.Get(u.String())
+		if err != nil {
+			return []map[string]any{}
+		}
+		r = res.Body
+	default:
+		return []map[string]any{}
+	}
+	defer r.Close()
+
 	ct := mime.TypeByExtension(filepath.Ext(u.Path))
 	switch ct {
 	case NdJSON:
-		return DecodeNDJSON(u, ids)
+		return decodeNDJSON(r, u.Query().Get("primaryKey"), ids)
+	case JSON:
+		return decodeJSON(r, u.Query().Get("primaryKey"), ids)
 	}
 
 	return []map[string]any{}

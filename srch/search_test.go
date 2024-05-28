@@ -126,10 +126,8 @@ func testTotalFields(attr []string, test, res map[string]any) error {
 }
 
 func wantResults() []map[string]any {
-	//f, _ := os.Open(`/home/mxb/code/srch/testdata/ndbooks.ndjson`)
-	//defer f.Close()
-	//u, err := parseURL(ndjsonDataURL)
-	u, err := parseURL(jsonDataURL)
+	u, err := parseURL(ndjsonDataURL)
+	//u, err := parseURL(jsonDataURL)
 	if err != nil {
 		return []map[string]any{}
 	}
