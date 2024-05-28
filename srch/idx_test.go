@@ -71,16 +71,16 @@ func TestIdxFindDocByPK(t *testing.T) {
 
 func TestIdxUpdateDoc(t *testing.T) {
 	test := func(idx *Idx) error {
-		d, err := idx.Find(testDocPK)
-		if err != nil {
-			return err
-		}
+		d := idx.Find(testDocPK)
 		if len(d) < 1 {
 			return fmt.Errorf("got %v results, expected at least one", len(d))
 		}
 		d[0]["title"] = "poot"
 
-		err = idx.UpdateDoc(d[0])
+		err := idx.UpdateDoc(d[0])
+		if err != nil {
+			return err
+		}
 		return nil
 	}
 	runIdxTest(t, testIdxReq, test)
@@ -89,10 +89,7 @@ func TestIdxUpdateDoc(t *testing.T) {
 func TestIdxFindData(t *testing.T) {
 	test := func(idx *Idx) error {
 		//idx.getData = NDJSONsrc(r, idx.PrimaryKey)
-		d, err := idx.Find(testDocPK)
-		if err != nil {
-			return err
-		}
+		d := idx.Find(testDocPK)
 		id, ok := d[0][idx.PrimaryKey]
 		if !ok {
 			t.Errorf("data doesn't have pk, wanted %v\n", idx.PrimaryKey)
@@ -108,10 +105,7 @@ func TestIdxFindData(t *testing.T) {
 
 func TestIdxFindAllData(t *testing.T) {
 	test := func(idx *Idx) error {
-		d, err := idx.Find()
-		if err != nil {
-			return err
-		}
+		d := idx.Find(testDocPK)
 		want := 7251
 		if got := len(d); got != want {
 			t.Errorf("got %v items, wanted %v\n", got, want)

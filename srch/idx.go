@@ -71,10 +71,7 @@ func (idx *Idx) Search(srch *Search) ([]map[string]any, error) {
 		ids = cast.ToIntSlice(res.ToArray())
 	}
 
-	data, err := idx.Find(ids...)
-	if err != nil {
-		return nil, err
-	}
+	data := idx.Find(ids...)
 	data = srch.FilterRtrvAttr(data)
 	return data, nil
 }
@@ -220,7 +217,7 @@ func (idx *Idx) SetFindDataFunc(fn FindItemFunc) *Idx {
 	return idx
 }
 
-func (idx *Idx) Find(ids ...int) ([]map[string]any, error) {
+func (idx *Idx) Find(ids ...int) []map[string]any {
 	if idx.getData != nil {
 		return idx.getData(ids)
 	}

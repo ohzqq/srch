@@ -32,6 +32,9 @@ func NewSearch() *Search {
 }
 
 func (s *Search) FilterRtrvAttr(data []map[string]any) []map[string]any {
+	if len(data) < 1 {
+		return data
+	}
 	for _, attr := range s.RtrvAttr {
 		if attr == "*" {
 			return data

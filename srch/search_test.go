@@ -36,14 +36,18 @@ func runSrchTest(t *testing.T, query QueryStr, test testSrchFunc) {
 	test(idx, client.Search)
 }
 
-func calLib(ids []int) ([]map[string]any, error) {
+func calLib(ids []int) []map[string]any {
 	lib := cdb.NewLib(calLibPath)
 	q := lib.NewQuery().GetByID(lo.ToAnySlice(resIDs)...)
 	recs, err := lib.GetBooks(q)
 	if err != nil {
-		return nil, err
+		return []map[string]any{}
 	}
-	return recs.StringMap()
+	b, err := recs.StringMap()
+	if err != nil {
+		return []map[string]any{}
+	}
+	return b
 }
 
 var resIDs = []int{1296, 1909, 2265, 2535, 2536, 2611, 2634, 4535, 4626, 5285, 5815, 5816, 6080, 6081, 6082, 6231, 6352, 6777, 6828, 6831, 6912, 7113}
@@ -55,10 +59,7 @@ func TestSearchRtrvAttr(t *testing.T) {
 		if err != nil {
 			return err
 		}
-		wantResults, err := FindData(u, resIDs)
-		if err != nil {
-			return err
-		}
+		wantResults := FindData(u, resIDs)
 
 		if srch.Query != "" {
 			gotResults, err := idx.Search(srch)
@@ -82,10 +83,7 @@ func TestSearchDBData(t *testing.T) {
 	test := func(idx *Idx, srch *Search) error {
 		idx.SetFindDataFunc(calLib)
 
-		wantResults, err := wantResults()
-		if err != nil {
-			return err
-		}
+		wantResults := wantResults()
 
 		if srch.Query != "" {
 			gotResults, err := idx.Search(srch)
@@ -133,7 +131,7 @@ func testTotalFields(attr []string, test, res map[string]any) error {
 	return nil
 }
 
-func wantResults() ([]map[string]any, error) {
+func wantResults() []map[string]any {
 	f, _ := os.Open(`/home/mxb/code/srch/testdata/ndbooks.ndjson`)
 	defer f.Close()
 	return findNDJSON(f, "id", resIDs)
