@@ -2,6 +2,7 @@ package srch
 
 import (
 	"fmt"
+	"net/url"
 	"os"
 	"testing"
 
@@ -56,7 +57,11 @@ func TestSearchRtrvAttr(t *testing.T) {
 		idx.getData = NDJSONsrc(r, idx.PrimaryKey)
 
 		//wantResults, err := wantResults()
-		wantResults, err := FindData(ndjsonDataURL, resIDs, SrcNDJSON)
+		u, err := url.Parse(ndjsonDataURL)
+		if err != nil {
+			return err
+		}
+		wantResults, err := FindData(u, resIDs)
 		if err != nil {
 			return err
 		}

@@ -88,6 +88,7 @@ func (client *Client) Indexes() map[string]*Idx {
 			return client.indexes
 		}
 		idx.SetDataURL(client.DataURL())
+		idx.dataURL = client.Data
 		client.indexes[idx.Name] = idx
 	}
 	return client.indexes

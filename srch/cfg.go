@@ -105,9 +105,13 @@ func (cfg *Cfg) SrchURL() *url.URL {
 func (cfg *Cfg) DataURL() *url.URL {
 	u, err := parseURL(cfg.Data)
 	if err != nil {
-		return &url.URL{Scheme: "mem"}
+		u = &url.URL{Scheme: "mem"}
 	}
-	u.Query().Set("primaryKey", cfg.Idx.PrimaryKey)
+	if cfg.Idx.PrimaryKey != "" {
+		v := u.Query()
+		v.Set("primaryKey", cfg.Idx.PrimaryKey)
+		u.RawQuery = v.Encode()
+	}
 	return u
 }
 
@@ -160,6 +164,7 @@ func parseURL(uri string) (*url.URL, error) {
 	}
 	if u.Scheme == "file" {
 		u.Path = filepath.Join("/", u.Host, u.Path)
+		//u.Host = ""
 	}
 	return u, nil
 }

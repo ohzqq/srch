@@ -12,7 +12,7 @@ var dataURLs = []QueryStr{
 	QueryStr(`?name=audiobooks&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson`),
 }
 
-const testIdxReq = QueryStr(`?searchableAttributes=title&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=title&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags,authors,series&uid=id&name=audiobooks`)
+const testIdxReq = QueryStr(`?searchableAttributes=title&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=title&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags,authors,series&primaryKey=id&name=audiobooks`)
 
 const (
 	testDocPK = 7312
@@ -87,11 +87,6 @@ func TestIdxFindDocByPK(t *testing.T) {
 
 func TestIdxUpdateDoc(t *testing.T) {
 	test := func(idx *Idx) error {
-		r, err := idx.openData()
-		if err != nil {
-			return err
-		}
-		idx.getData = NDJSONsrc(r, idx.PrimaryKey)
 		d, err := idx.Find(testDocPK)
 		if err != nil {
 			return err
@@ -109,11 +104,7 @@ func TestIdxUpdateDoc(t *testing.T) {
 
 func TestIdxFindData(t *testing.T) {
 	test := func(idx *Idx) error {
-		r, err := idx.openData()
-		if err != nil {
-			return err
-		}
-		idx.getData = NDJSONsrc(r, idx.PrimaryKey)
+		//idx.getData = NDJSONsrc(r, idx.PrimaryKey)
 		d, err := idx.Find(testDocPK)
 		if err != nil {
 			return err
@@ -127,22 +118,7 @@ func TestIdxFindData(t *testing.T) {
 		}
 		return nil
 	}
-	req, err := NewRequest(`?searchableAttributes=title&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=title&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags,authors,series&uid=id&name=audiobooks`)
-	if err != nil {
-		t.Error(err)
-	}
-	client, err := req.Client()
-	if err != nil {
-		t.Error(err)
-	}
-	idx, err := client.FindIdx(client.IndexName())
-	if err != nil {
-		t.Error(err)
-	}
-	err = test(idx)
-	if err != nil {
-		t.Error(err)
-	}
+	runIdxTest(t, testIdxReq, test)
 	//runIdxTests(t, test)
 }
 

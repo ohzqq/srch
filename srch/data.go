@@ -3,25 +3,41 @@ package srch
 import (
 	"encoding/json"
 	"io"
+	"mime"
 	"net/url"
 	"os"
+	"path/filepath"
 	"slices"
 
+	"github.com/ohzqq/hare/dberr"
 	"github.com/spf13/cast"
 )
+
+const (
+	NdJSON = `application/x-ndjson`
+	JSON   = `application/json`
+	Hare   = `application/hare`
+)
+
+func init() {
+	mime.AddExtensionType(".ndjson", "application/x-ndjson")
+	mime.AddExtensionType(".hare", "application/hare")
+}
 
 type FindItemFunc func(...int) ([]map[string]any, error)
 type FindItems[T any] func(...T) ([]map[string]any, error)
 
-func FindData[T any](q string, col []T, fn func(uri *url.URL, ids ...T) ([]map[string]any, error)) ([]map[string]any, error) {
-	u, err := parseURL(q)
-	if err != nil {
-		u = &url.URL{Scheme: "mem"}
+func FindData[T any](u *url.URL, ids []T) ([]map[string]any, error) {
+	ct := mime.TypeByExtension(filepath.Ext(u.Path))
+	switch ct {
+	case NdJSON:
+		return SrcNDJSON(u, ids)
 	}
-	return fn(u, col...)
+
+	return nil, dberr.ErrNoRecord
 }
 
-func SrcNDJSON[T any](u *url.URL, ids ...T) ([]map[string]any, error) {
+func SrcNDJSON[T any](u *url.URL, ids []T) ([]map[string]any, error) {
 	var err error
 	var r io.ReadCloser
 	switch u.Scheme {
@@ -38,7 +54,7 @@ func SrcNDJSON[T any](u *url.URL, ids ...T) ([]map[string]any, error) {
 		r = res.Body
 	}
 	defer r.Close()
-	return findNDJSONz(r, u.Query().Get("primaryKey"), ids...)
+	return findNDJSONz(r, u.Query().Get("primaryKey"), ids)
 }
 
 func NDJSONsrc(r io.ReadCloser, pk string) FindItemFunc {
@@ -52,7 +68,7 @@ func NDJSONsrc(r io.ReadCloser, pk string) FindItemFunc {
 	}
 }
 
-func findNDJSONz[T any](r io.Reader, uid string, ids ...T) ([]map[string]any, error) {
+func findNDJSONz[T any](r io.Reader, uid string, ids []T) ([]map[string]any, error) {
 	dec := json.NewDecoder(r)
 	i := 1
 	guids := cast.ToIntSlice(ids)

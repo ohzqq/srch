@@ -18,6 +18,7 @@ import (
 type Idx struct {
 	db      *hare.Database
 	dataSrc *url.URL
+	dataURL string
 	idxURL  *url.URL
 
 	ID         int     `json:"_id"`
@@ -32,12 +33,6 @@ type Idx struct {
 
 	getData FindItemFunc
 }
-
-const (
-	NdJSON = `application/x-ndjson`
-	JSON   = `application/json`
-	Hare   = `application/hare`
-)
 
 func NewIdxCfg() *Idx {
 	cfg := &Idx{
@@ -221,7 +216,8 @@ func (idx *Idx) UpdateDoc(items ...map[string]any) error {
 }
 
 func (idx *Idx) Find(ids ...int) ([]map[string]any, error) {
-	d, err := idx.getData(ids...)
+	//d, err := idx.getData(ids...)
+	d, err := FindData(idx.dataSrc, ids)
 	if err != nil {
 		return nil, err
 	}
@@ -371,9 +367,4 @@ func (c *Idx) GetID() int {
 func (idx *Idx) AfterFind(db *hare.Database) error {
 	idx.db = db
 	return nil
-}
-
-func init() {
-	mime.AddExtensionType(".ndjson", "application/x-ndjson")
-	mime.AddExtensionType(".hare", "application/hare")
 }
