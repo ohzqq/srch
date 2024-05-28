@@ -105,7 +105,7 @@ func TestIdxFindData(t *testing.T) {
 
 func TestIdxFindAllData(t *testing.T) {
 	test := func(idx *Idx) error {
-		d := idx.Find(testDocPK)
+		d := idx.Find()
 		want := 7251
 		if got := len(d); got != want {
 			t.Errorf("got %v items, wanted %v\n", got, want)
