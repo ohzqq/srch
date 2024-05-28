@@ -91,7 +91,7 @@ func TestIdxUpdateDoc(t *testing.T) {
 		if err != nil {
 			return err
 		}
-		idx.getData = SrcNDJSON(r, idx.PrimaryKey)
+		idx.getData = NDJSONsrc(r, idx.PrimaryKey)
 		d, err := idx.Find(testDocPK)
 		if err != nil {
 			return err
@@ -113,7 +113,7 @@ func TestIdxFindData(t *testing.T) {
 		if err != nil {
 			return err
 		}
-		idx.getData = SrcNDJSON(r, idx.PrimaryKey)
+		idx.getData = NDJSONsrc(r, idx.PrimaryKey)
 		d, err := idx.Find(testDocPK)
 		if err != nil {
 			return err
@@ -152,7 +152,7 @@ func TestIdxFindAllData(t *testing.T) {
 		if err != nil {
 			return err
 		}
-		idx.getData = SrcNDJSON(r, idx.PrimaryKey)
+		idx.getData = NDJSONsrc(r, idx.PrimaryKey)
 		d, err := idx.Find()
 		if err != nil {
 			return err
@@ -185,7 +185,7 @@ func TestIdxFindAllData(t *testing.T) {
 func TestDataContentType(t *testing.T) {
 	test := func(idx *Idx) error {
 		ct := idx.DataContentType()
-		switch ext := filepath.Ext(idx.dataURL.Path); ext {
+		switch ext := filepath.Ext(idx.dataSrc.Path); ext {
 		case ".json":
 			if ct != JSON {
 				return fmt.Errorf("got %v content type, wanted %v\n", ct, JSON)

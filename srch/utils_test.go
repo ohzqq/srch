@@ -17,7 +17,7 @@ const (
 )
 
 const (
-	ndjsonDataURL = `file://home/mxb/code/srch/testdata/ndbooks.ndjson`
+	ndjsonDataURL = `file://home/mxb/code/srch/testdata/ndbooks.ndjson?primaryKey=id`
 	hareDataURL   = `file://home/mxb/code/srch/testdata/hare/audiobooksData.hare`
 	srchIdxURL    = `file://home/mxb/code/srch/testdata/hare/audiobooksIdx.hare`
 )

@@ -107,6 +107,7 @@ func (cfg *Cfg) DataURL() *url.URL {
 	if err != nil {
 		return &url.URL{Scheme: "mem"}
 	}
+	u.Query().Set("primaryKey", cfg.Idx.PrimaryKey)
 	return u
 }
 

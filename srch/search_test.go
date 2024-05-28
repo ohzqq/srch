@@ -53,9 +53,10 @@ func TestSearchRtrvAttr(t *testing.T) {
 		if err != nil {
 			return err
 		}
-		idx.getData = SrcNDJSON(r, idx.PrimaryKey)
+		idx.getData = NDJSONsrc(r, idx.PrimaryKey)
 
-		wantResults, err := wantResults()
+		//wantResults, err := wantResults()
+		wantResults, err := FindData(ndjsonDataURL, resIDs, SrcNDJSON)
 		if err != nil {
 			return err
 		}

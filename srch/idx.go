@@ -17,7 +17,7 @@ import (
 
 type Idx struct {
 	db      *hare.Database
-	dataURL *url.URL
+	dataSrc *url.URL
 	idxURL  *url.URL
 
 	ID         int     `json:"_id"`
@@ -85,7 +85,7 @@ func (idx *Idx) Search(srch *Search) ([]map[string]any, error) {
 }
 
 func (idx *Idx) DataContentType() string {
-	return mime.TypeByExtension(filepath.Ext(idx.dataURL.Path))
+	return mime.TypeByExtension(filepath.Ext(idx.dataSrc.Path))
 }
 
 func (idx *Idx) SetMapping(m Mapping) *Idx {
@@ -94,7 +94,7 @@ func (idx *Idx) SetMapping(m Mapping) *Idx {
 }
 
 func (idx *Idx) SetDataURL(u *url.URL) *Idx {
-	idx.dataURL = u
+	idx.dataSrc = u
 	return idx
 }
 
@@ -273,9 +273,9 @@ func (idx *Idx) findDocByPK(pks ...int) ([]*Doc, error) {
 }
 
 func (idx *Idx) openData() (io.ReadCloser, error) {
-	switch idx.dataURL.Scheme {
+	switch idx.dataSrc.Scheme {
 	case "file":
-		f, err := os.Open(idx.dataURL.Path)
+		f, err := os.Open(idx.dataSrc.Path)
 		if err != nil {
 			return nil, err
 		}
