@@ -216,7 +216,9 @@ func (idx *Idx) UpdateDoc(items ...map[string]any) error {
 }
 
 func (idx *Idx) Find(ids ...int) ([]map[string]any, error) {
-	//d, err := idx.getData(ids...)
+	if idx.getData != nil {
+		return idx.getData(ids...)
+	}
 	d, err := FindData(idx.dataSrc, ids)
 	if err != nil {
 		return nil, err

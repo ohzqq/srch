@@ -50,12 +50,6 @@ var resIDs = []int{1296, 1909, 2265, 2535, 2536, 2611, 2634, 4535, 4626, 5285, 5
 
 func TestSearchRtrvAttr(t *testing.T) {
 	test := func(idx *Idx, srch *Search) error {
-		r, err := idx.openData()
-		if err != nil {
-			return err
-		}
-		idx.getData = NDJSONsrc(r, idx.PrimaryKey)
-
 		//wantResults, err := wantResults()
 		u, err := url.Parse(ndjsonDataURL)
 		if err != nil {
