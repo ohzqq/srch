@@ -2,6 +2,7 @@ package srch
 
 import (
 	"fmt"
+	"net/http"
 	"slices"
 
 	"github.com/ohzqq/hare"
@@ -16,6 +17,7 @@ const (
 type Client struct {
 	*Cfg
 
+	client  *http.Client
 	db      *hare.Database
 	tbl     *hare.Table
 	indexes map[string]*Idx

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"testing"
 )
 
@@ -13,7 +14,7 @@ func TestServer(t *testing.T) {
 	defer ts.Close()
 
 	ts.URL += "/test/poot"
-	res, err := http.Get(ts.URL)
+	res, err := http.PostForm(ts.URL, url.Values{})
 	if err != nil {
 		t.Error(err)
 	}
