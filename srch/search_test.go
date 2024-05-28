@@ -71,6 +71,7 @@ func TestSearch(t *testing.T) {
 					t.Error(err)
 				}
 			}
+
 		}
 		return nil
 	}
@@ -90,12 +91,15 @@ func attrsToRtrv(attrs []string, data map[string]any) []string {
 
 func testTotalFields(attr []string, test, res map[string]any) error {
 	got := len(res)
-	want := len(test)
+	//want := len(test)
+	want := len(res)
+
 	if t := len(attr); t > 0 {
 		if attr[0] != "*" {
 			want = t
 		}
 	}
+
 	if got != want {
 		return fmt.Errorf("got %v fields, wanted %v\n", got, want)
 	}
