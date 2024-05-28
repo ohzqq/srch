@@ -10,23 +10,8 @@ import (
 	"github.com/spf13/cast"
 )
 
-type DataSrc struct {
-	*url.URL
-}
-
-func NewDataSrc(uri string) *DataSrc {
-	var err error
-	d := &DataSrc{}
-	d.URL, err = parseURL(uri)
-	if err != nil {
-		d.URL = &url.URL{Scheme: "mem"}
-	}
-	return d
-}
-
-func (d *DataSrc) Find(ids []any) ([]map[string]any, error) {
-	return nil, nil
-}
+type FindItemFunc func(...int) ([]map[string]any, error)
+type FindItems[T any] func(...T) ([]map[string]any, error)
 
 func FindData[T any](q string, col []T, fn func(uri *url.URL, ids ...T) ([]map[string]any, error)) ([]map[string]any, error) {
 	u, err := parseURL(q)
@@ -55,9 +40,6 @@ func SrcNDJSON[T any](u *url.URL, ids ...T) ([]map[string]any, error) {
 	defer r.Close()
 	return findNDJSONz(r, u.Query().Get("primaryKey"), ids...)
 }
-
-type FindItemFunc func(...int) ([]map[string]any, error)
-type FindItems[T any] func(...T) ([]map[string]any, error)
 
 func NDJSONsrc(r io.ReadCloser, pk string) FindItemFunc {
 	return func(ids ...int) ([]map[string]any, error) {
