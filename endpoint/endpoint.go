@@ -5,9 +5,9 @@ import (
 )
 
 const (
-	IdxName   = `{indexName}`
-	ObjectID  = `{objectID}`
-	FacetName = `{facetName}`
+	IdxName   = `indexName`
+	ObjectID  = `objectID`
+	FacetName = `facetName`
 )
 
 type endpoint int

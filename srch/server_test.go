@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"net/url"
 	"testing"
+
+	"github.com/ohzqq/srch/endpoint"
 )
 
 func TestServer(t *testing.T) {
@@ -13,7 +15,9 @@ func TestServer(t *testing.T) {
 	ts := OfflineSrv()
 	defer ts.Close()
 
-	ts.URL += "/test/poot"
+	println(endpoint.IdxName)
+
+	ts.URL += "/indexes/audiobooks"
 	res, err := http.PostForm(ts.URL, url.Values{})
 	if err != nil {
 		t.Error(err)
