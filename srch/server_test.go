@@ -30,18 +30,17 @@ func TestServer(t *testing.T) {
 
 func TestRoutes(t *testing.T) {
 	want := wantEndpoints
-	got := Endpoints
+	got := Routes
 	if !slices.Equal(got, want) {
 		t.Errorf("got %v endoints, wanted %v\n", got, want)
 	}
-	fmt.Printf("%#v\n", Endpoint)
 }
 
 var wantEndpoints = []string{
 	"/indexes",
 	"/indexes/{indexName}",
-	"/indexes/{indexName}/query",
 	"/indexes/{indexName}/browse",
+	"/indexes/{indexName}/query",
 	"/indexes/{indexName}/settings",
 	"/indexes/{indexName}/facets",
 	"/indexes/{indexName}/facets/{facetName}",
