@@ -34,24 +34,52 @@ const (
 	routeFacetQuery  = "/indexes/{indexName}/facets/{facetName}/query"
 )
 
+var Endpoints = []endpoint{
+	Indexes,
+	Idx,
+	IdxBrowse,
+	IdxObject,
+	IdxQuery,
+	IdxSettings,
+	Facets,
+	Facet,
+	FacetQuery,
+}
+
 func (end endpoint) SetWildcards(sets ...string) string {
 	if end != Indexes {
 		u := Indexes.Route()
 		if len(sets) > 0 {
 			u = filepath.Join(u, sets[0])
+			switch end {
+			case Idx:
+				return u
+			case IdxBrowse:
+				return filepath.Join(u, "browse")
+			case IdxQuery:
+				return filepath.Join(u, "query")
+			case IdxSettings:
+				return filepath.Join(u, "settings")
+			case Facets:
+				return filepath.Join(u, "facets")
+			}
 		}
 		if len(sets) > 1 {
-			u = filepath.Join(u, sets[1])
+			switch end {
+			case Facet:
+				return filepath.Join(u, "facets", sets[1])
+			case FacetQuery:
+				return filepath.Join(u, "facets", sets[1], "query")
+			case IdxObject:
+				return filepath.Join(u, sets[1])
+			}
 		}
-		return u
 	}
 	return Indexes.Route()
 }
 
 func (end endpoint) Route() string {
 	switch end {
-	case Indexes:
-		return routeIndexes
 	case Idx:
 		return routeIdx
 	case IdxBrowse:
@@ -62,12 +90,14 @@ func (end endpoint) Route() string {
 		return routeIdxQuery
 	case IdxSettings:
 		return routeIdxSettings
-	case IdxFacets:
+	case Facets:
 		return routeFacets
-	case IdxFacet:
+	case Facet:
 		return routeFacet
-	case IdxFacetQuery:
+	case FacetQuery:
 		return routeFacetQuery
+	default:
+		return routeIndexes
 	}
 }
 
@@ -85,4 +115,16 @@ func (end endpoint) Del() string {
 
 func (end endpoint) Post() string {
 	return "POST " + end.Route()
+}
+
+var Routes = []string{
+	routeIndexes,
+	routeIdx,
+	routeIdxBrowse,
+	routeIdxObject,
+	routeIdxQuery,
+	routeIdxSettings,
+	routeFacets,
+	routeFacet,
+	routeFacetQuery,
 }
