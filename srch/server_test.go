@@ -30,3 +30,7 @@ func TestServer(t *testing.T) {
 
 	fmt.Printf("%s\n", greeting)
 }
+
+func testHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "route %v\npath %s\n", endpoint.Idx.Post(), r.PathValue(endpoint.IdxName))
+}

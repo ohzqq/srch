@@ -15,6 +15,7 @@ type endpoint int
 const (
 	Root endpoint = iota
 	Idx
+	IdxBatch
 	IdxBrowse
 	IdxObject
 	IdxQuery
@@ -27,6 +28,7 @@ const (
 const (
 	routeIndexes     = "/indexes"
 	routeIdx         = "/indexes/{indexName}"
+	routeIdxBatch    = "/indexes/{indexName}/batch"
 	routeIdxBrowse   = "/indexes/{indexName}/browse"
 	routeIdxObject   = "/indexes/{indexName}/{objectID}"
 	routeIdxQuery    = "/indexes/{indexName}/query"
@@ -39,6 +41,7 @@ const (
 var Endpoints = []endpoint{
 	Root,
 	Idx,
+	IdxBatch,
 	IdxBrowse,
 	IdxObject,
 	IdxQuery,
@@ -56,6 +59,8 @@ func (end endpoint) SetWildcards(sets ...string) string {
 			switch end {
 			case Idx:
 				return u
+			case IdxBatch:
+				return filepath.Join(u, "batch")
 			case IdxBrowse:
 				return filepath.Join(u, "browse")
 			case IdxQuery:
@@ -84,6 +89,8 @@ func (end endpoint) Route() string {
 	switch end {
 	case Idx:
 		return routeIdx
+	case IdxBatch:
+		return routeIdxBatch
 	case IdxBrowse:
 		return routeIdxBrowse
 	case IdxObject:
