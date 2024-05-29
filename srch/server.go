@@ -8,6 +8,16 @@ import (
 )
 
 const (
+	segmentIndexes   = `/indexes`
+	segmentIndexName = `{indexName}`
+	segmentQuery     = `query`
+	segmentBrowse    = `browse`
+	segmentSettings  = `settings`
+	segmentFacets    = `facets`
+	segmentFacetName = `{facetName}`
+)
+
+const (
 	apiBase     = "/indexes"
 	IdxEndpoint = "/indexes/{indexName}"
 )
@@ -20,6 +30,26 @@ var (
 	FacetEndpoint     = filepath.Join(FacetsEndpoint, "{facetName}")
 	FacetSrchEndpoint = filepath.Join(FacetEndpoint, "query")
 )
+
+type endpoint struct {
+	Idx         string
+	IdxBrowse   string
+	IdxQuery    string
+	IdxSettings string
+	Facets      string
+	Facet       string
+	FacetQuery  string
+}
+
+var Endpoint = endpoint{
+	Idx:         segmentIndexes,
+	IdxBrowse:   filepath.Join(segmentIndexes, segmentIndexName, segmentBrowse),
+	IdxQuery:    filepath.Join(segmentIndexes, segmentIndexName, segmentQuery),
+	IdxSettings: filepath.Join(segmentIndexes, segmentIndexName, segmentSettings),
+	Facets:      filepath.Join(segmentIndexes, segmentIndexName, segmentFacets),
+	Facet:       filepath.Join(segmentIndexes, segmentIndexName, segmentFacets, segmentFacetName),
+	FacetQuery:  filepath.Join(segmentIndexes, segmentIndexName, segmentFacets, segmentFacetName, segmentQuery),
+}
 
 func NewSrv() *http.Server {
 	mux := http.NewServeMux()

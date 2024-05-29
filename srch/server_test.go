@@ -34,6 +34,7 @@ func TestRoutes(t *testing.T) {
 	if !slices.Equal(got, want) {
 		t.Errorf("got %v endoints, wanted %v\n", got, want)
 	}
+	fmt.Printf("%#v\n", Endpoint)
 }
 
 var wantEndpoints = []string{
