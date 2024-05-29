@@ -1,6 +1,8 @@
 package endpoint
 
-import "path/filepath"
+import (
+	"path/filepath"
+)
 
 const (
 	IdxName   = `{indexName}`
@@ -11,7 +13,7 @@ const (
 type endpoint int
 
 const (
-	Indexes endpoint = iota
+	Root endpoint = iota
 	Idx
 	IdxBrowse
 	IdxObject
@@ -35,7 +37,7 @@ const (
 )
 
 var Endpoints = []endpoint{
-	Indexes,
+	Root,
 	Idx,
 	IdxBrowse,
 	IdxObject,
@@ -47,8 +49,8 @@ var Endpoints = []endpoint{
 }
 
 func (end endpoint) SetWildcards(sets ...string) string {
-	if end != Indexes {
-		u := Indexes.Route()
+	if end != Root {
+		u := Root.Route()
 		if len(sets) > 0 {
 			u = filepath.Join(u, sets[0])
 			switch end {
@@ -75,7 +77,7 @@ func (end endpoint) SetWildcards(sets ...string) string {
 			}
 		}
 	}
-	return Indexes.Route()
+	return Root.Route()
 }
 
 func (end endpoint) Route() string {
