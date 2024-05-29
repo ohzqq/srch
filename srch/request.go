@@ -6,15 +6,6 @@ import (
 	"strings"
 )
 
-const (
-	SrchEndpoint = "/search"
-	CfgEndpoint  = "/config"
-	CfgCreate    = "/config/create"
-	CfgRead      = "/config/read"
-	CfgUpdate    = "/config/update"
-	CfgDelete    = "/config/delete"
-)
-
 type Request struct {
 	vals url.Values
 }

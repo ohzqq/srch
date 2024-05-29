@@ -4,6 +4,21 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"path/filepath"
+)
+
+const (
+	apiBase     = "/indexes"
+	IdxEndpoint = "/indexes/{indexName}"
+)
+
+var (
+	IdxSrchEndpoint   = filepath.Join(IdxEndpoint, "query")
+	IdxBrowseEndpoint = filepath.Join(IdxEndpoint, "browse")
+	IdxCfgEndpoint    = filepath.Join(IdxEndpoint, "settings")
+	FacetsEndpoint    = filepath.Join(IdxEndpoint, "facets")
+	FacetEndpoint     = filepath.Join(FacetsEndpoint, "{facetName}")
+	FacetSrchEndpoint = filepath.Join(FacetEndpoint, "query")
 )
 
 func NewSrv() *http.Server {
@@ -25,4 +40,15 @@ func OfflineSrv() *httptest.Server {
 	ts.Config = NewSrv()
 	ts.Start()
 	return ts
+}
+
+var Endpoints = []string{
+	apiBase,
+	IdxEndpoint,
+	IdxSrchEndpoint,
+	IdxBrowseEndpoint,
+	IdxCfgEndpoint,
+	FacetsEndpoint,
+	FacetEndpoint,
+	FacetSrchEndpoint,
 }
