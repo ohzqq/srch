@@ -1,73 +1,88 @@
-package srch
+package endpoint
 
-type route struct {
-	Indexes       string
-	Index         string
-	IndexQuery    string
-	IndexBrowse   string
-	IndexSettings string
-	Facets        string
-	Facet         string
-	FacetQuery    string
-}
+import "path/filepath"
 
 const (
-	segIdx       = `/indexes`
-	segIdxName   = `{indexName}`
-	segObjectID  = `{objectID}`
-	segBrowse    = `browse`
-	segQuery     = `query`
-	segSettings  = `settings`
-	segFacets    = `facets`
-	segFacetName = `{facetName}`
+	IdxName   = `{indexName}`
+	ObjectID  = `{objectID}`
+	FacetName = `{facetName}`
 )
 
 type endpoint int
 
 const (
-	endpointIndexes   = "/indexes"
-	endpointIdx         = "/indexes/{indexName}"
-	endpointIdxBrowse   = "/indexes/{indexName}/browse"
-	endpointIdxObject   = "/indexes/{indexName}/{objectID}"
-	endpointIdxQuery    = "/indexes/{indexName}/query"
-	endpointIdxSettings = "/indexes/{indexName}/settings"
-	endpointFacets      = "/indexes/{indexName}/facets"
-	endpointFacet       = "/indexes/{indexName}/facets/{facetName}"
-	endpointFacetQuery  = "/indexes/{indexName}/facets/{facetName}/query"
+	Indexes endpoint = iota
+	Idx
+	IdxBrowse
+	IdxObject
+	IdxQuery
+	IdxSettings
+	Facets
+	Facet
+	FacetQuery
 )
+
+const (
+	routeIndexes     = "/indexes"
+	routeIdx         = "/indexes/{indexName}"
+	routeIdxBrowse   = "/indexes/{indexName}/browse"
+	routeIdxObject   = "/indexes/{indexName}/{objectID}"
+	routeIdxQuery    = "/indexes/{indexName}/query"
+	routeIdxSettings = "/indexes/{indexName}/settings"
+	routeFacets      = "/indexes/{indexName}/facets"
+	routeFacet       = "/indexes/{indexName}/facets/{facetName}"
+	routeFacetQuery  = "/indexes/{indexName}/facets/{facetName}/query"
+)
+
+func (end endpoint) SetWildcards(sets ...string) string {
+	if end != Indexes {
+		u := Indexes.Route()
+		if len(sets) > 0 {
+			u = filepath.Join(u, sets[0])
+		}
+		if len(sets) > 1 {
+			u = filepath.Join(u, sets[1])
+		}
+		return u
+	}
+	return Indexes.Route()
+}
 
 func (end endpoint) Route() string {
 	switch end {
-	return endpointIndexes:
-	return endpointIdx:
-	return endpointIdxBrowse:
-	return endpointIdxObject:
-	return endpointIdxQuery:
-	return endpointIdxSettings:
-	return endpointFacets:
-	return endpointFacet:
-	return endpointFacetQuery:
+	case Indexes:
+		return routeIndexes
+	case Idx:
+		return routeIdx
+	case IdxBrowse:
+		return routeIdxBrowse
+	case IdxObject:
+		return routeIdxObject
+	case IdxQuery:
+		return routeIdxQuery
+	case IdxSettings:
+		return routeIdxSettings
+	case IdxFacets:
+		return routeFacets
+	case IdxFacet:
+		return routeFacet
+	case IdxFacetQuery:
+		return routeFacetQuery
 	}
 }
 
-var Endpoint = route{
-	Indexes:       endpointIndexes,
-	Index:         endpointIdx,
-	IndexBrowse:   endpointIdxBrowse,
-	IndexQuery:    endpointIdxQuery,
-	IndexSettings: endpointIdxSettings,
-	Facets:        endpointFacets,
-	Facet:         endpointFacet,
-	FacetQuery:    endpointFacetQuery,
+func (end endpoint) Get() string {
+	return "GET " + end.Route()
 }
 
-var Routes = []string{
-	endpointIndexes,
-	endpointIdx,
-	endpointIdxBrowse,
-	endpointIdxQuery,
-	endpointIdxSettings,
-	endpointFacets,
-	endpointFacet,
-	endpointFacetQuery,
+func (end endpoint) Put() string {
+	return "PUT " + end.Route()
+}
+
+func (end endpoint) Del() string {
+	return "DELETE " + end.Route()
+}
+
+func (end endpoint) Post() string {
+	return "POST " + end.Route()
 }
