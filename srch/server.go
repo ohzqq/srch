@@ -5,6 +5,8 @@ import (
 	"net/http/httptest"
 
 	"github.com/ohzqq/srch/endpoint"
+	"github.com/samber/lo"
+	"golang.org/x/exp/maps"
 )
 
 func NewSrv() *http.Server {
@@ -62,6 +64,73 @@ func OfflineSrv() *httptest.Server {
 	ts.Config = NewSrv()
 	ts.Start()
 	return ts
+}
+
+func ParseHTTPRequest(r *http.Request) *Request {
+	r.ParseForm()
+	cards := getWildCards(r)
+
+	params := lo.Assign(
+		map[string][]string(r.Form),
+		map[string][]string(r.PostForm),
+		map[string][]string(r.URL.Query()),
+	)
+
+	return &Request{
+		vals:      params,
+		URL:       r.URL,
+		method:    r.Method,
+		wildCards: cards,
+	}
+}
+
+func Indexes(w http.ResponseWriter, r *http.Request) {
+	req := ParseHTTPRequest(r)
+	client, err := req.Client()
+	if err != nil {
+	}
+	idx := maps.Keys(client.Indexes())
+	testRes(w, req, idx)
+}
+
+func IdxSrch(w http.ResponseWriter, r *http.Request) {
+	req := ParseHTTPRequest(r)
+	testRes(w, req, nil)
+}
+
+func IdxBrowse(w http.ResponseWriter, r *http.Request) {
+	req := ParseHTTPRequest(r)
+	testRes(w, req, nil)
+}
+
+func IdxObject(w http.ResponseWriter, r *http.Request) {
+	req := ParseHTTPRequest(r)
+	testRes(w, req, nil)
+}
+
+func IdxQuery(w http.ResponseWriter, r *http.Request) {
+	req := ParseHTTPRequest(r)
+	testRes(w, req, nil)
+}
+
+func IdxSettings(w http.ResponseWriter, r *http.Request) {
+	req := ParseHTTPRequest(r)
+	testRes(w, req, nil)
+}
+
+func Facets(w http.ResponseWriter, r *http.Request) {
+	req := ParseHTTPRequest(r)
+	testRes(w, req, nil)
+}
+
+func Facet(w http.ResponseWriter, r *http.Request) {
+	req := ParseHTTPRequest(r)
+	testRes(w, req, nil)
+}
+
+func FacetQuery(w http.ResponseWriter, r *http.Request) {
+	req := ParseHTTPRequest(r)
+	testRes(w, req, nil)
 }
 
 func getWildCards(r *http.Request) []string {

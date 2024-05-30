@@ -2,13 +2,10 @@ package srch
 
 import (
 	"errors"
-	"fmt"
-	"net/http"
 	"net/url"
 	"strings"
 
 	"github.com/ohzqq/srch/endpoint"
-	"github.com/samber/lo"
 )
 
 type Request struct {
@@ -25,24 +22,6 @@ func NewRequest(u any) (*Request, error) {
 		return nil, err
 	}
 	return &Request{vals: v}, nil
-}
-
-func ParseHTTPRequest(r *http.Request) *Request {
-	r.ParseForm()
-	cards := getWildCards(r)
-
-	params := lo.Assign(
-		map[string][]string(r.Form),
-		map[string][]string(r.PostForm),
-		map[string][]string(r.URL.Query()),
-	)
-
-	return &Request{
-		vals:      params,
-		URL:       r.URL,
-		method:    r.Method,
-		wildCards: cards,
-	}
 }
 
 func (req *Request) Endpoint() endpoint.Endpoint {
@@ -63,51 +42,6 @@ func (req *Request) Client() (*Client, error) {
 		return nil, err
 	}
 	return NewClient(cfg)
-}
-
-func Indexes(w http.ResponseWriter, r *http.Request) {
-	req := ParseHTTPRequest(r)
-	fmt.Fprintf(w, "%#v", req)
-}
-
-func IdxSrch(w http.ResponseWriter, r *http.Request) {
-	req := ParseHTTPRequest(r)
-	fmt.Fprintf(w, "%#v", req)
-}
-
-func IdxBrowse(w http.ResponseWriter, r *http.Request) {
-	req := ParseHTTPRequest(r)
-	fmt.Fprintf(w, "%#v", req)
-}
-
-func IdxObject(w http.ResponseWriter, r *http.Request) {
-	req := ParseHTTPRequest(r)
-	fmt.Fprintf(w, "%#v", req)
-}
-
-func IdxQuery(w http.ResponseWriter, r *http.Request) {
-	req := ParseHTTPRequest(r)
-	fmt.Fprintf(w, "%#v", req)
-}
-
-func IdxSettings(w http.ResponseWriter, r *http.Request) {
-	req := ParseHTTPRequest(r)
-	fmt.Fprintf(w, "%#v", req)
-}
-
-func Facets(w http.ResponseWriter, r *http.Request) {
-	req := ParseHTTPRequest(r)
-	fmt.Fprintf(w, "%#v", req)
-}
-
-func Facet(w http.ResponseWriter, r *http.Request) {
-	req := ParseHTTPRequest(r)
-	fmt.Fprintf(w, "%#v", req)
-}
-
-func FacetQuery(w http.ResponseWriter, r *http.Request) {
-	req := ParseHTTPRequest(r)
-	fmt.Fprintf(w, "%#v", req)
 }
 
 func ParseQuery(q any) (url.Values, error) {
