@@ -2,6 +2,7 @@ package srch
 
 import (
 	"errors"
+	"net/http"
 	"net/url"
 	"strings"
 )
@@ -28,6 +29,33 @@ func (req *Request) Client() (*Client, error) {
 		return nil, err
 	}
 	return NewClient(cfg)
+}
+
+func (req *Request) Indexes(w http.ResponseWriter, r *http.Request) {
+}
+
+func (req *Request) Idx(w http.ResponseWriter, r *http.Request) {
+}
+
+func (req *Request) IdxBrowse(w http.ResponseWriter, r *http.Request) {
+}
+
+func (req *Request) IdxObject(w http.ResponseWriter, r *http.Request) {
+}
+
+func (req *Request) IdxQuery(w http.ResponseWriter, r *http.Request) {
+}
+
+func (req *Request) IdxSettings(w http.ResponseWriter, r *http.Request) {
+}
+
+func (req *Request) Facets(w http.ResponseWriter, r *http.Request) {
+}
+
+func (req *Request) Facet(w http.ResponseWriter, r *http.Request) {
+}
+
+func (req *Request) FacetQuery(w http.ResponseWriter, r *http.Request) {
 }
 
 func ParseQuery(q any) (url.Values, error) {

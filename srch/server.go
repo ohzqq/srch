@@ -63,3 +63,11 @@ func OfflineSrv() *httptest.Server {
 	ts.Start()
 	return ts
 }
+
+func getIdxName(r *http.Request) (string, bool) {
+	name := r.PathValue(endpoint.IdxName)
+	if name == "" {
+		return name, false
+	}
+	return name, true
+}

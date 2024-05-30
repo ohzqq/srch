@@ -10,10 +10,10 @@ const (
 	FacetName = `facetName`
 )
 
-type endpoint int
+type Endpoint int
 
 const (
-	Root endpoint = iota
+	Root Endpoint = iota
 	Idx
 	IdxBatch
 	IdxBrowse
@@ -38,7 +38,7 @@ const (
 	routeFacetQuery  = "/indexes/{indexName}/facets/{facetName}/query"
 )
 
-var Endpoints = []endpoint{
+var Endpoints = []Endpoint{
 	Root,
 	Idx,
 	IdxBatch,
@@ -51,7 +51,7 @@ var Endpoints = []endpoint{
 	FacetQuery,
 }
 
-func (end endpoint) SetWildcards(sets ...string) string {
+func (end Endpoint) SetWildcards(sets ...string) string {
 	if end != Root {
 		u := Root.Route()
 		if len(sets) > 0 {
@@ -85,7 +85,7 @@ func (end endpoint) SetWildcards(sets ...string) string {
 	return Root.Route()
 }
 
-func (end endpoint) Route() string {
+func (end Endpoint) Route() string {
 	switch end {
 	case Idx:
 		return routeIdx
@@ -110,19 +110,19 @@ func (end endpoint) Route() string {
 	}
 }
 
-func (end endpoint) Get() string {
+func (end Endpoint) Get() string {
 	return "GET " + end.Route()
 }
 
-func (end endpoint) Put() string {
+func (end Endpoint) Put() string {
 	return "PUT " + end.Route()
 }
 
-func (end endpoint) Del() string {
+func (end Endpoint) Del() string {
 	return "DELETE " + end.Route()
 }
 
-func (end endpoint) Post() string {
+func (end Endpoint) Post() string {
 	return "POST " + end.Route()
 }
 
