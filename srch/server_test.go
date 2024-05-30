@@ -30,6 +30,6 @@ func TestServerPostForm(t *testing.T) {
 }
 
 func testHandler(w http.ResponseWriter, r *http.Request) {
-	req := NewReq(r)
+	req := ParseHTTPRequest(r)
 	fmt.Fprintf(w, "%#v", req)
 }

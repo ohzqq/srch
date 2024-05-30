@@ -3,6 +3,7 @@ package srch
 import (
 	"fmt"
 	"net/http"
+	"net/url"
 	"slices"
 
 	"github.com/ohzqq/hare"
@@ -36,6 +37,18 @@ func NewClient(cfg *Cfg) (*Client, error) {
 	}
 
 	return client, nil
+}
+
+func (client *Client) Request() (*http.Request, error) {
+	method := "GET"
+	vals, err := client.Encode()
+	if err != nil {
+		return nil, err
+	}
+	u := &url.URL{
+		RawQuery: vals.Encode(),
+	}
+	return http.NewRequest(method, u.String(), nil)
 }
 
 func (client *Client) initDB() error {

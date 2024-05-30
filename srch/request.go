@@ -27,7 +27,7 @@ func NewRequest(u any) (*Request, error) {
 	return &Request{vals: v}, nil
 }
 
-func NewReq(r *http.Request) *Request {
+func ParseHTTPRequest(r *http.Request) *Request {
 	r.ParseForm()
 	cards := getWildCards(r)
 
@@ -66,47 +66,47 @@ func (req *Request) Client() (*Client, error) {
 }
 
 func Indexes(w http.ResponseWriter, r *http.Request) {
-	req := NewReq(r)
+	req := ParseHTTPRequest(r)
 	fmt.Fprintf(w, "%#v", req)
 }
 
-func IdxReq(w http.ResponseWriter, r *http.Request) {
-	req := NewReq(r)
+func IdxSrch(w http.ResponseWriter, r *http.Request) {
+	req := ParseHTTPRequest(r)
 	fmt.Fprintf(w, "%#v", req)
 }
 
 func IdxBrowse(w http.ResponseWriter, r *http.Request) {
-	req := NewReq(r)
+	req := ParseHTTPRequest(r)
 	fmt.Fprintf(w, "%#v", req)
 }
 
 func IdxObject(w http.ResponseWriter, r *http.Request) {
-	req := NewReq(r)
+	req := ParseHTTPRequest(r)
 	fmt.Fprintf(w, "%#v", req)
 }
 
 func IdxQuery(w http.ResponseWriter, r *http.Request) {
-	req := NewReq(r)
+	req := ParseHTTPRequest(r)
 	fmt.Fprintf(w, "%#v", req)
 }
 
 func IdxSettings(w http.ResponseWriter, r *http.Request) {
-	req := NewReq(r)
+	req := ParseHTTPRequest(r)
 	fmt.Fprintf(w, "%#v", req)
 }
 
 func Facets(w http.ResponseWriter, r *http.Request) {
-	req := NewReq(r)
+	req := ParseHTTPRequest(r)
 	fmt.Fprintf(w, "%#v", req)
 }
 
 func Facet(w http.ResponseWriter, r *http.Request) {
-	req := NewReq(r)
+	req := ParseHTTPRequest(r)
 	fmt.Fprintf(w, "%#v", req)
 }
 
 func FacetQuery(w http.ResponseWriter, r *http.Request) {
-	req := NewReq(r)
+	req := ParseHTTPRequest(r)
 	fmt.Fprintf(w, "%#v", req)
 }
 

@@ -5,7 +5,6 @@ import (
 	"net/http/httptest"
 
 	"github.com/ohzqq/srch/endpoint"
-	"github.com/spf13/cast"
 )
 
 func NewSrv() *http.Server {
@@ -17,7 +16,7 @@ func NewSrv() *http.Server {
 			mux.HandleFunc(end.Get(), http.HandlerFunc(Indexes))
 		case endpoint.Idx:
 			// search index
-			mux.HandleFunc(end.Get(), http.HandlerFunc(IdxReq))
+			mux.HandleFunc(end.Get(), http.HandlerFunc(IdxSrch))
 			// add object
 			mux.HandleFunc(end.Post(), http.HandlerFunc(IdxObject))
 		case endpoint.IdxBrowse:
@@ -83,28 +82,4 @@ func getWildCards(r *http.Request) []string {
 	}
 
 	return cards
-}
-
-func getIdxName(r *http.Request) (string, bool) {
-	name := r.PathValue(endpoint.IdxName)
-	if name == "" {
-		return name, false
-	}
-	return name, true
-}
-
-func getFacetName(r *http.Request) (string, bool) {
-	name := r.PathValue(endpoint.FacetName)
-	if name == "" {
-		return name, false
-	}
-	return name, true
-}
-
-func getObjectID(r *http.Request) (int, bool) {
-	id := r.PathValue(endpoint.ObjectID)
-	if id == "" {
-		return 0, false
-	}
-	return cast.ToInt(id), true
 }
