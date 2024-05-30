@@ -2,13 +2,21 @@ package srch
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"net/url"
 	"strings"
+
+	"github.com/ohzqq/srch/endpoint"
+	"github.com/samber/lo"
 )
 
 type Request struct {
-	vals url.Values
+	*url.URL
+
+	vals      url.Values
+	wildCards []string
+	method    string
 }
 
 func NewRequest(u any) (*Request, error) {
@@ -17,6 +25,32 @@ func NewRequest(u any) (*Request, error) {
 		return nil, err
 	}
 	return &Request{vals: v}, nil
+}
+
+func NewReq(r *http.Request) *Request {
+	r.ParseForm()
+	cards := getWildCards(r)
+
+	params := lo.Assign(
+		map[string][]string(r.Form),
+		map[string][]string(r.PostForm),
+		map[string][]string(r.URL.Query()),
+	)
+
+	return &Request{
+		vals:      params,
+		URL:       r.URL,
+		method:    r.Method,
+		wildCards: cards,
+	}
+}
+
+func (req *Request) Endpoint() endpoint.Endpoint {
+	return endpoint.Parse(req.Path, req.wildCards)
+}
+
+func (req *Request) Route() string {
+	return req.Endpoint().Route()
 }
 
 func (req *Request) Cfg() (*Cfg, error) {
@@ -31,31 +65,49 @@ func (req *Request) Client() (*Client, error) {
 	return NewClient(cfg)
 }
 
-func (req *Request) Indexes(w http.ResponseWriter, r *http.Request) {
+func Indexes(w http.ResponseWriter, r *http.Request) {
+	req := NewReq(r)
+	fmt.Fprintf(w, "%#v", req)
 }
 
-func (req *Request) Idx(w http.ResponseWriter, r *http.Request) {
+func IdxReq(w http.ResponseWriter, r *http.Request) {
+	req := NewReq(r)
+	fmt.Fprintf(w, "%#v", req)
 }
 
-func (req *Request) IdxBrowse(w http.ResponseWriter, r *http.Request) {
+func IdxBrowse(w http.ResponseWriter, r *http.Request) {
+	req := NewReq(r)
+	fmt.Fprintf(w, "%#v", req)
 }
 
-func (req *Request) IdxObject(w http.ResponseWriter, r *http.Request) {
+func IdxObject(w http.ResponseWriter, r *http.Request) {
+	req := NewReq(r)
+	fmt.Fprintf(w, "%#v", req)
 }
 
-func (req *Request) IdxQuery(w http.ResponseWriter, r *http.Request) {
+func IdxQuery(w http.ResponseWriter, r *http.Request) {
+	req := NewReq(r)
+	fmt.Fprintf(w, "%#v", req)
 }
 
-func (req *Request) IdxSettings(w http.ResponseWriter, r *http.Request) {
+func IdxSettings(w http.ResponseWriter, r *http.Request) {
+	req := NewReq(r)
+	fmt.Fprintf(w, "%#v", req)
 }
 
-func (req *Request) Facets(w http.ResponseWriter, r *http.Request) {
+func Facets(w http.ResponseWriter, r *http.Request) {
+	req := NewReq(r)
+	fmt.Fprintf(w, "%#v", req)
 }
 
-func (req *Request) Facet(w http.ResponseWriter, r *http.Request) {
+func Facet(w http.ResponseWriter, r *http.Request) {
+	req := NewReq(r)
+	fmt.Fprintf(w, "%#v", req)
 }
 
-func (req *Request) FacetQuery(w http.ResponseWriter, r *http.Request) {
+func FacetQuery(w http.ResponseWriter, r *http.Request) {
+	req := NewReq(r)
+	fmt.Fprintf(w, "%#v", req)
 }
 
 func ParseQuery(q any) (url.Values, error) {

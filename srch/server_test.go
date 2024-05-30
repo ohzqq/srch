@@ -6,19 +6,17 @@ import (
 	"net/http"
 	"net/url"
 	"testing"
-
-	"github.com/ohzqq/srch/endpoint"
 )
 
-func TestServer(t *testing.T) {
+func TestServerPostForm(t *testing.T) {
 	//mux := Mux()
 	ts := OfflineSrv()
 	defer ts.Close()
 
-	println(endpoint.IdxName)
-
-	ts.URL += "/indexes/audiobooks"
-	res, err := http.PostForm(ts.URL, url.Values{})
+	ts.URL += "/indexes/audiobooks?searchableAttributes=title&db=file://home/mxb/code/srch/testdata/hare&sortableAttributes=tags&data=file://home/mxb/code/srch/testdata/ndbooks.ndjson&attributesForFaceting=tags,authors,series,narrators&primaryKey=id&name=audiobooks"
+	form := make(url.Values)
+	form.Set("data", "file://home/mxb/code/srch/testdata/data-dir/audiobooks.json")
+	res, err := http.PostForm(ts.URL, form)
 	if err != nil {
 		t.Error(err)
 	}
@@ -32,8 +30,6 @@ func TestServer(t *testing.T) {
 }
 
 func testHandler(w http.ResponseWriter, r *http.Request) {
-	name, ok := getIdxName(r)
-	if ok {
-		fmt.Fprintf(w, "route %v\npath %s\n", endpoint.Idx.Post(), name)
-	}
+	req := NewReq(r)
+	fmt.Fprintf(w, "%#v", req)
 }

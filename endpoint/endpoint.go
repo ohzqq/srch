@@ -51,34 +51,50 @@ var Endpoints = []Endpoint{
 	FacetQuery,
 }
 
+func Parse(path string, cards []string) Endpoint {
+	for _, end := range Endpoints {
+		p := end.SetWildcards(cards...)
+		if path == p {
+			return end
+		}
+	}
+	return Root
+}
+
 func (end Endpoint) SetWildcards(sets ...string) string {
 	if end != Root {
 		u := Root.Route()
 		if len(sets) > 0 {
-			u = filepath.Join(u, sets[0])
-			switch end {
-			case Idx:
-				return u
-			case IdxBatch:
-				return filepath.Join(u, "batch")
-			case IdxBrowse:
-				return filepath.Join(u, "browse")
-			case IdxQuery:
-				return filepath.Join(u, "query")
-			case IdxSettings:
-				return filepath.Join(u, "settings")
-			case Facets:
-				return filepath.Join(u, "facets")
+			w1 := sets[0]
+			if w1 != "" {
+				u = filepath.Join(u, w1)
+				switch end {
+				case Idx:
+					return u
+				case IdxBatch:
+					return filepath.Join(u, "batch")
+				case IdxBrowse:
+					return filepath.Join(u, "browse")
+				case IdxQuery:
+					return filepath.Join(u, "query")
+				case IdxSettings:
+					return filepath.Join(u, "settings")
+				case Facets:
+					return filepath.Join(u, "facets")
+				}
 			}
 		}
 		if len(sets) > 1 {
-			switch end {
-			case Facet:
-				return filepath.Join(u, "facets", sets[1])
-			case FacetQuery:
-				return filepath.Join(u, "facets", sets[1], "query")
-			case IdxObject:
-				return filepath.Join(u, sets[1])
+			w2 := sets[1]
+			if w2 != "" {
+				switch end {
+				case Facet:
+					return filepath.Join(u, "facets", w2)
+				case FacetQuery:
+					return filepath.Join(u, "facets", w2, "query")
+				case IdxObject:
+					return filepath.Join(u, w2)
+				}
 			}
 		}
 	}
